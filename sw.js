@@ -1,4 +1,4 @@
-const CACHE_NAME = 'the-fool-quest-v15-font-plus-two';
+const CACHE_NAME = 'the-fool-quest-v16-two-line-links';
 const APP_SHELL = ['./', './index.html', './style.css', './app.js', './manifest.webmanifest', './title-logo.png', './icon-maskable-192.png', './icon-maskable-512.png'];
 
 self.addEventListener('install', event => {
