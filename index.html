@@ -7,6 +7,28 @@
   <title>THE FOOL QUEST</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="stylesheet" href="./style.css">
+
+  <style id="portal-fix-20260830">
+    /* タイトルロゴを切らずに全体表示 */
+    .logo-image{
+      background-size: contain !important;
+      background-position: center center !important;
+      background-repeat: no-repeat !important;
+      overflow: visible !important;
+      width: 100% !important;
+      min-height: clamp(150px, 27vw, 230px) !important;
+      height: clamp(150px, 27vw, 230px) !important;
+    }
+    @media (max-width: 560px){
+      .logo-image{
+        min-height: 185px !important;
+        height: 185px !important;
+        background-size: contain !important;
+        background-position: center center !important;
+      }
+    }
+  </style>
+
 </head>
 <body>
   <main class="screen">
@@ -65,5 +87,92 @@
     </form>
   </dialog>
   <script src="./app.js"></script>
+
+  <script id="coupon-revenue-sync-20260830">
+  (() => {
+    const REVENUE_API = 'https://winning-url-api.45kikurage.workers.dev';
+
+    const yenToNumber = (value) => {
+      const n = Number(String(value ?? '').replace(/[^\d.-]/g, ''));
+      return Number.isFinite(n) ? n : 0;
+    };
+
+    const yen = (value) => '¥' + Math.round(Number(value) || 0).toLocaleString('ja-JP');
+
+    const setMetric = (name, value, goal) => {
+      const valueEl = document.getElementById(name + '-value');
+      const barEl = document.getElementById(name + '-bar');
+      const overEl = document.getElementById(name + '-over');
+
+      if (valueEl) valueEl.textContent = yen(value);
+
+      if (barEl) {
+        const pct = Math.max(0, Math.min(100, (Number(value) / goal) * 100));
+        barEl.style.width = pct + '%';
+      }
+
+      if (overEl) {
+        overEl.style.display = Number(value) > goal ? '' : 'none';
+      }
+    };
+
+    const readTikTok = () => {
+      const el = document.getElementById('tiktok-value');
+      return yenToNumber(el?.textContent);
+    };
+
+    async function syncCouponRevenue() {
+      try {
+        const res = await fetch(REVENUE_API + '/api/revenue-summary', {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' },
+          cache: 'no-store'
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+
+        const data = await res.json();
+        const rows = Array.isArray(data.revenues) ? data.revenues : [];
+        const current = rows.find(row => String(row.month) === String(data.current_month));
+        const coupon = Number(current?.amount || 0);
+        const tiktok = readTikTok();
+        const total = tiktok + coupon;
+
+        setMetric('coupon', coupon, 500000);
+        setMetric('total', total, 1000000);
+
+        window.__FOOL_QUEST_COUPON_REVENUE__ = coupon;
+      } catch (err) {
+        console.error('Coupon revenue sync failed:', err);
+      }
+    }
+
+    const boot = () => {
+      syncCouponRevenue();
+
+      /* app.js がCSV読込後にTikTok値を書き換えた場合も Total を再計算 */
+      const tiktokEl = document.getElementById('tiktok-value');
+      if (tiktokEl && 'MutationObserver' in window) {
+        let timer = null;
+        new MutationObserver(() => {
+          clearTimeout(timer);
+          timer = setTimeout(() => {
+            const coupon = Number(window.__FOOL_QUEST_COUPON_REVENUE__ || 0);
+            setMetric('total', readTikTok() + coupon, 1000000);
+          }, 50);
+        }).observe(tiktokEl, { childList: true, characterData: true, subtree: true });
+      }
+
+      /* サイトを開いたままでも10分ごとに当月収益を更新 */
+      setInterval(syncCouponRevenue, 10 * 60 * 1000);
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', boot, { once: true });
+    } else {
+      boot();
+    }
+  })();
+  </script>
+
 </body>
 </html>
