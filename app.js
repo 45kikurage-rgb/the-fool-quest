@@ -150,20 +150,30 @@
   }
   function placements(count) {
     const slots = shuffle([
-      {left:13,bottom:34},{left:29,bottom:33},{left:46,bottom:31},
-      {left:64,bottom:33},{left:81,bottom:35}
+      {left:12,bottom:31},{left:27,bottom:33},{left:40,bottom:31},
+      {left:54,bottom:30},{left:67,bottom:32},{left:78,bottom:34}
     ]);
-    const result = slots.slice(0, Math.min(5,count)).map(slot => ({...slot,angle:0,scale:1}));
-    if (count <= 5) return result;
-    result.push({left:12+Math.random()*76,bottom:59+Math.random()*16,angle:5+Math.random()*40,scale:1});
-    for (let i=6;i<count;i++) {
-      const base = result[Math.floor(Math.random()*Math.min(6,result.length))];
-      const layer = 1 + Math.floor((i-6)/6);
+    const result = slots.slice(0, Math.min(6,count)).map(slot => ({...slot,angle:0,scale:1}));
+    if (count <= 6) return result;
+
+    /* 7匹目は、文字・剣・外周を避けた上部黒背景の安全枠へ置く。 */
+    const upperSafeSlots = shuffle([
+      {left:16,bottom:68},{left:29,bottom:75},{left:43,bottom:69},
+      {left:57,bottom:77},{left:70,bottom:69}
+    ]);
+    const seventh = upperSafeSlots[0];
+    result.push({...seventh,angle:(Math.random()<.5?-1:1)*(5+Math.random()*40),scale:1});
+
+    /* 8匹目以降は安全枠のスライムを土台にし、ロゴ方向へ下げず上へ積む。 */
+    for (let i=7;i<count;i++) {
+      const base = result[6];
+      const layer = i - 6;
+      const direction = layer % 2 ? -1 : 1;
       result.push({
-        left:Math.min(91,Math.max(7,base.left+Math.random()*8-4)),
-        bottom:Math.min(88,base.bottom+9+layer*5+Math.random()*4),
+        left:Math.min(88,Math.max(12,base.left+direction*(3+Math.random()*3))),
+        bottom:Math.min(91,base.bottom+layer*3.2+Math.random()*2),
         angle:(Math.random()<.5?-1:1)*(5+Math.random()*40),
-        scale:Math.max(.72,1-layer*.08)
+        scale:Math.max(.66,1-layer*.025)
       });
     }
     return result;
