@@ -23,26 +23,48 @@
     }
 
     /* ===== 収益表示 =====
-       項目名→金額の順に2段表示。両方を同じ大きさにする */
+       左に項目名、右に「達成額」「/ 目標額」を2段・右揃えで表示。
+       フォントサイズと各metric全体の縦幅は変更しない。 */
     .metric-line{
       display:flex !important;
-      flex-direction:column !important;
+      flex-direction:row !important;
       align-items:flex-start !important;
-      justify-content:flex-start !important;
-      gap:5px !important;
+      justify-content:space-between !important;
+      gap:8px !important;
       font-size:16px !important;
       line-height:1.25 !important;
       white-space:nowrap !important;
     }
-    .metric-line > span{
+    .metric-line .metric-label{
+      display:block !important;
+      flex:0 0 auto !important;
+      width:auto !important;
+      font-size:16px !important;
+      line-height:1.25 !important;
+      text-align:left !important;
+    }
+    .metric-line .metric-values{
+      display:flex !important;
+      flex:1 1 auto !important;
+      min-width:0 !important;
+      flex-direction:column !important;
+      align-items:flex-end !important;
+      justify-content:flex-start !important;
+      gap:0 !important;
+      width:auto !important;
+      font-size:16px !important;
+      line-height:1.25 !important;
+      text-align:right !important;
+    }
+    .metric-line .metric-achieved,
+    .metric-line .metric-target,
+    .metric-line b{
       display:block !important;
       width:100% !important;
       font-size:16px !important;
       line-height:1.25 !important;
-    }
-    .metric-line b{
-      font-size:16px !important;
-      line-height:1.25 !important;
+      text-align:right !important;
+      white-space:nowrap !important;
     }
 
     @media (max-width:560px){
@@ -53,7 +75,10 @@
         background-position:center 58% !important;
       }
       .metric-line,
-      .metric-line > span,
+      .metric-line .metric-label,
+      .metric-line .metric-values,
+      .metric-line .metric-achieved,
+      .metric-line .metric-target,
       .metric-line b{
         font-size:16px !important;
       }
@@ -74,17 +99,35 @@
         <div class="rule"></div>
 
         <div class="metric" data-metric="total">
-          <div class="metric-line"><span>Total:</span><span><b id="total-value">¥0</b> / ¥1,000,000</span></div>
+          <div class="metric-line">
+            <span class="metric-label">Total:</span>
+            <span class="metric-values">
+              <span class="metric-achieved"><b id="total-value">¥0</b></span>
+              <span class="metric-target">/ ¥1,000,000</span>
+            </span>
+          </div>
           <div class="gauge"><div id="total-bar" class="gauge-fill"></div></div>
           <div id="total-over" class="over-kill">OVER KILL</div>
         </div>
         <div class="metric" data-metric="tiktok">
-          <div class="metric-line"><span>TikTok:</span><span><b id="tiktok-value">¥0</b> / ¥500,000</span></div>
+          <div class="metric-line">
+            <span class="metric-label">TikTok:</span>
+            <span class="metric-values">
+              <span class="metric-achieved"><b id="tiktok-value">¥0</b></span>
+              <span class="metric-target">/ ¥500,000</span>
+            </span>
+          </div>
           <div class="gauge"><div id="tiktok-bar" class="gauge-fill"></div></div>
           <div id="tiktok-over" class="over-kill">OVER KILL</div>
         </div>
         <div class="metric" data-metric="coupon">
-          <div class="metric-line"><span>Coupon:</span><span><b id="coupon-value">¥0</b> / ¥500,000</span></div>
+          <div class="metric-line">
+            <span class="metric-label">Coupon:</span>
+            <span class="metric-values">
+              <span class="metric-achieved"><b id="coupon-value">¥0</b></span>
+              <span class="metric-target">/ ¥500,000</span>
+            </span>
+          </div>
           <div class="gauge"><div id="coupon-bar" class="gauge-fill"></div></div>
           <div id="coupon-over" class="over-kill">OVER KILL</div>
         </div>
