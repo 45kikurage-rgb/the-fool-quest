@@ -1,5 +1,5 @@
-const CACHE_NAME = 'the-fool-quest-v10-logo-position';
-const APP_SHELL = ['./', './index.html', './style.css', './app.js', './manifest.webmanifest', './title-logo.png'];
+const CACHE_NAME = 'the-fool-quest-v12-transparent-maskable';
+const APP_SHELL = ['./', './index.html', './style.css', './app.js', './manifest.webmanifest', './title-logo.png', './icon-maskable-192.png', './icon-maskable-512.png'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));
