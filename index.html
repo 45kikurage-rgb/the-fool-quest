@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#000000">
   <title>THE FOOL QUEST</title>
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./style.css?v=20260830-1530">
 
   <style id="portal-fix-20260830">
     /* ===== 上部ロゴ =====
@@ -421,6 +421,113 @@
     }
   </style>
 
+
+  <style id="layout-final-consolidated-20260830">
+    /* ===== 最終レイアウト固定 =====
+       1段目 項目名 / 2段目 実績額 / 3段目 目標額 */
+    .status-panel{
+      height:auto !important;
+      min-height:0 !important;
+      align-self:start !important;
+    }
+
+    .metric-line.metric-line-v2{
+      display:grid !important;
+      grid-template-columns:1fr !important;
+      grid-template-rows:auto auto auto !important;
+      width:100% !important;
+      gap:0 !important;
+      white-space:normal !important;
+      font-size:20px !important;
+      line-height:1.24 !important;
+    }
+
+    .metric-line-v2 > .metric-label{
+      display:block !important;
+      width:100% !important;
+      grid-row:1 !important;
+      text-align:left !important;
+      font-size:20px !important;
+      line-height:1.24 !important;
+      margin:0 0 1px 0 !important;
+    }
+
+    .metric-line-v2 > .metric-achieved{
+      display:block !important;
+      width:100% !important;
+      grid-row:2 !important;
+      text-align:right !important;
+      padding-right:18px !important;
+      box-sizing:border-box !important;
+      font-size:20px !important;
+      line-height:1.24 !important;
+      white-space:nowrap !important;
+    }
+
+    .metric-line-v2 > .metric-achieved > b{
+      display:inline !important;
+      width:auto !important;
+      font-size:20px !important;
+      line-height:1.24 !important;
+      white-space:nowrap !important;
+    }
+
+    .metric-line-v2 > .metric-target{
+      display:block !important;
+      width:100% !important;
+      grid-row:3 !important;
+      text-align:right !important;
+      padding-right:18px !important;
+      box-sizing:border-box !important;
+      font-size:20px !important;
+      line-height:1.24 !important;
+      white-space:nowrap !important;
+    }
+
+    .metric{
+      margin-top:10px !important;
+      margin-bottom:10px !important;
+    }
+
+    .gauge-wrap{
+      margin-top:6px !important;
+    }
+
+    /* ゲージは通常白。日割り進捗の達成=青、未達=赤 */
+    .gauge-fill{
+      background:#fff !important;
+      background-color:#fff !important;
+    }
+    .gauge-fill.pace-ok{
+      background:#1687ff !important;
+      background-color:#1687ff !important;
+    }
+    .gauge-fill.pace-behind{
+      background:#ff3b30 !important;
+      background-color:#ff3b30 !important;
+    }
+    .gauge-percent,
+    .gauge-percent.pace-ok,
+    .gauge-percent.pace-behind{
+      color:#fff !important;
+    }
+
+    @media(max-width:560px){
+      .status-panel{
+        height:auto !important;
+        min-height:0 !important;
+        align-self:start !important;
+      }
+      .metric-line.metric-line-v2,
+      .metric-line-v2 > .metric-label,
+      .metric-line-v2 > .metric-achieved,
+      .metric-line-v2 > .metric-achieved > b,
+      .metric-line-v2 > .metric-target{
+        font-size:20px !important;
+      }
+    }
+  </style>
+
 </head>
 <body>
   <main class="screen">
@@ -435,13 +542,11 @@
         <div class="rule"></div>
 
         <div class="metric" data-metric="total">
-          <div class="metric-line">
-            <span class="metric-label">Total:</span>
-            <span class="metric-values">
-              <span class="metric-achieved"><b id="total-value">¥0</b></span>
-              <span id="total-target" class="metric-target">/ ¥1,000,000</span>
-            </span>
-          </div>
+          <div class="metric-line metric-line-v2">
+  <div class="metric-label">Total:</div>
+  <div class="metric-achieved"><b id="total-value">¥0</b></div>
+  <div id="total-target" class="metric-target">/ ¥1,000,000</div>
+</div>
           <div class="gauge-wrap" data-gauge="total">
             <div class="gauge">
               <div id="total-bar" class="gauge-fill"></div>
@@ -452,13 +557,11 @@
           <div id="total-over" class="over-kill">OVER KILL</div>
         </div>
         <div class="metric" data-metric="tiktok">
-          <div class="metric-line">
-            <span class="metric-label">TikTok:</span>
-            <span class="metric-values">
-              <span class="metric-achieved"><b id="tiktok-value">¥0</b></span>
-              <span id="tiktok-target" class="metric-target">/ ¥500,000</span>
-            </span>
-          </div>
+          <div class="metric-line metric-line-v2">
+  <div class="metric-label">TikTok:</div>
+  <div class="metric-achieved"><b id="tiktok-value">¥0</b></div>
+  <div id="tiktok-target" class="metric-target">/ ¥500,000</div>
+</div>
           <div class="gauge-wrap" data-gauge="tiktok">
             <div class="gauge">
               <div id="tiktok-bar" class="gauge-fill"></div>
@@ -469,13 +572,11 @@
           <div id="tiktok-over" class="over-kill">OVER KILL</div>
         </div>
         <div class="metric" data-metric="coupon">
-          <div class="metric-line">
-            <span class="metric-label">Coupon:</span>
-            <span class="metric-values">
-              <span class="metric-achieved"><b id="coupon-value">¥0</b></span>
-              <span id="coupon-target" class="metric-target">/ ¥500,000</span>
-            </span>
-          </div>
+          <div class="metric-line metric-line-v2">
+  <div class="metric-label">Coupon:</div>
+  <div class="metric-achieved"><b id="coupon-value">¥0</b></div>
+  <div id="coupon-target" class="metric-target">/ ¥500,000</div>
+</div>
           <div class="gauge-wrap" data-gauge="coupon">
             <div class="gauge">
               <div id="coupon-bar" class="gauge-fill"></div>
@@ -549,7 +650,7 @@
       <button class="csv-done" value="close">閉じる</button>
     </form>
   </dialog>
-  <script src="./app.js"></script>
+  <script src="./app.js?v=20260830-1530"></script>
 
   <script id="coupon-revenue-sync-20260830">
   (() => {
