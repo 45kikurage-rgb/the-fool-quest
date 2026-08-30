@@ -87,7 +87,7 @@
     return name === 'tiktok' ? state.tiktok : name === 'coupon' ? state.coupon : state.tiktok + state.coupon;
   }
   function level() {
-    return Math.max(0, Math.floor(valueOf('total') / Math.max(1, state.goals.total) * 100));
+    return Math.max(0, Math.floor(valueOf('total') / 10000));
   }
 
   function buildUi() {
@@ -102,7 +102,7 @@
       </div><span id="${name}-flame" class="gauge-flame" hidden>🔥</span></div></div>`).join('');
     $('goal-inputs').innerHTML = CONFIG.metrics.map(([name,label]) => `
       <label class="goal-input-row"><span>${label}</span><span class="goal-input-wrap">
-        <span>¥</span><input id="goal-${name}-input" type="number" inputmode="numeric" min="1" step="1000">
+        <span>¥</span><input id="goal-${name}-input" type="number" inputmode="numeric" min="1" step="1000" ${name === 'total' ? 'readonly aria-readonly="true"' : ''}>
       </span></label>`).join('');
   }
   function renderDate() {
@@ -176,19 +176,28 @@
     const records=Object.values(state.monthly).filter(item=>item?.month).sort((a,b)=>b.month.localeCompare(a.month));
     body.innerHTML=records.map(record=>{
       const total=(Number(record.tiktok)||0)+(Number(record.coupon)||0);
-      const lv=record.level??Math.floor(total/Math.max(1,Number(record.totalGoal)||state.goals.total)*100);
+      const lv=Math.floor(total/10000);
       const status=record.month===state.month?'集計中':record.finalized?'確定':'確定待ち';
       return `<tr><td>${record.month.replace('-','/')}</td><td>${money(record.tiktok)}</td><td>${money(record.coupon)}</td><td>${money(total)}</td><td>${lv}</td><td>${status}</td></tr>`;
     }).join('')||'<tr><td colspan="6">履歴はまだありません</td></tr>';
   }
   function setupGoals() {
     const dialog=$('goal-manage-dialog'),message=$('goal-manage-message');
-    const fill=values=>CONFIG.metrics.forEach(([name])=>{$(`goal-${name}-input`).value=values[name];});
+    const syncTotal=()=>{
+      const tiktok=Math.max(0,Math.trunc(Number($('goal-tiktok-input').value))||0);
+      const coupon=Math.max(0,Math.trunc(Number($('goal-coupon-input').value))||0);
+      $('goal-total-input').value=tiktok+coupon;
+    };
+    const fill=values=>{CONFIG.metrics.forEach(([name])=>{$(`goal-${name}-input`).value=values[name];});syncTotal();};
+    $('goal-tiktok-input').addEventListener('input',syncTotal);
+    $('goal-coupon-input').addEventListener('input',syncTotal);
     $('goal-manage-open').addEventListener('click',()=>{fill(state.goals);message.textContent='';renderHistory();dialog.showModal();});
     $('goal-reset-btn').addEventListener('click',()=>{fill(CONFIG.goals);message.textContent='初期値を入力しました';});
     $('goal-save-btn').addEventListener('click',()=>{
-      const next=Object.fromEntries(CONFIG.metrics.map(([name])=>[name,Math.trunc(Number($(`goal-${name}-input`).value))]));
-      if(Object.values(next).some(value=>value<1||!Number.isFinite(value))){message.textContent='目標額は1円以上で入力してください';return;}
+      const tiktok=Math.trunc(Number($('goal-tiktok-input').value));
+      const coupon=Math.trunc(Number($('goal-coupon-input').value));
+      if(tiktok<1||coupon<1||!Number.isFinite(tiktok)||!Number.isFinite(coupon)){message.textContent='目標額は1円以上で入力してください';return;}
+      const next={tiktok,coupon,total:tiktok+coupon};
       state.goals=next;save(KEY.goals,next);renderAll();message.textContent='保存しました ✓';
       setTimeout(()=>dialog.close(),450);
     });
@@ -200,7 +209,7 @@
       if(!month||month>cutoff||!Number.isFinite(coupon)||coupon<0)return;
       const old=state.monthly[month]||{month,tiktok:0};
       const total=(Number(old.tiktok)||0)+coupon,goal=Number(old.totalGoal)||state.goals.total;
-      state.monthly[month]={...old,coupon,finalized:true,finalizedAt:new Date().toISOString(),totalGoal:goal,level:Math.floor(total/Math.max(1,goal)*100)};
+      state.monthly[month]={...old,coupon,finalized:true,finalizedAt:new Date().toISOString(),totalGoal:goal,level:Math.floor(total/10000)};
     });
     save(KEY.monthly,state.monthly);
   }
