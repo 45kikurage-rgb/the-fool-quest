@@ -275,6 +275,33 @@
       return yenToNumber(el?.textContent);
     };
 
+    const COUPON_CACHE_KEY = 'foolQuestCouponRevenueLastGood';
+
+    const loadCachedCoupon = () => {
+      try {
+        const raw = localStorage.getItem(COUPON_CACHE_KEY);
+        if (raw === null || raw === '') return null;
+        const n = Number(raw);
+        return Number.isFinite(n) && n >= 0 ? n : null;
+      } catch {
+        return null;
+      }
+    };
+
+    const saveCachedCoupon = (value) => {
+      try {
+        localStorage.setItem(COUPON_CACHE_KEY, String(value));
+      } catch {}
+    };
+
+    const applyCouponValue = (coupon) => {
+      const safeCoupon = Math.max(0, Number(coupon) || 0);
+      const tiktok = readTikTok();
+      setMetric('coupon', safeCoupon, 500000);
+      setMetric('total', tiktok + safeCoupon, 1000000);
+      window.__FOOL_QUEST_COUPON_REVENUE__ = safeCoupon;
+    };
+
     async function syncCouponRevenue() {
       try {
         const res = await fetch(REVENUE_API + '/api/revenue-summary', {
@@ -286,21 +313,46 @@
 
         const data = await res.json();
         const rows = Array.isArray(data.revenues) ? data.revenues : [];
-        const current = rows.find(row => String(row.month) === String(data.current_month));
-        const coupon = Number(current?.amount || 0);
-        const tiktok = readTikTok();
-        const total = tiktok + coupon;
+        const currentMonth = String(data.current_month || '').trim();
 
-        setMetric('coupon', coupon, 500000);
-        setMetric('total', total, 1000000);
+        /* 当月データが見つからない・API応答が不完全な場合は
+           0円で上書きせず、前回正常値をそのまま維持する。 */
+        if (!currentMonth) throw new Error('current_month missing');
 
-        window.__FOOL_QUEST_COUPON_REVENUE__ = coupon;
+        const current = rows.find(row => String(row?.month || '').trim() === currentMonth);
+        if (!current || current.amount === undefined || current.amount === null || current.amount === '') {
+          throw new Error('current revenue missing');
+        }
+
+        const coupon = Number(current.amount);
+        if (!Number.isFinite(coupon) || coupon < 0) {
+          throw new Error('invalid current revenue');
+        }
+
+        /* ここまで正常なら0円も正規値として反映する。 */
+        saveCachedCoupon(coupon);
+        applyCouponValue(coupon);
       } catch (err) {
-        console.error('Coupon revenue sync failed:', err);
+        console.error('Coupon revenue sync failed; keeping last good value:', err);
+
+        /* 画面がまだ0初期値のときだけ、保存済みの正常値を復元する。 */
+        const cached = loadCachedCoupon();
+        if (cached !== null) {
+          const currentShown = yenToNumber(document.getElementById('coupon-value')?.textContent);
+          const remembered = Number(window.__FOOL_QUEST_COUPON_REVENUE__);
+          if (!Number.isFinite(remembered) || remembered === 0 || currentShown === 0) {
+            applyCouponValue(cached);
+          }
+        }
       }
     }
 
     const boot = () => {
+      const cachedCoupon = loadCachedCoupon();
+      if (cachedCoupon !== null) {
+        applyCouponValue(cachedCoupon);
+      }
+
       syncCouponRevenue();
 
       /* app.js がCSV読込後にTikTok値を書き換えた場合も Total を再計算 */
