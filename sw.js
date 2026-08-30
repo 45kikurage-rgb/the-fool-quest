@@ -1,4 +1,4 @@
-const CACHE_NAME = 'the-fool-quest-v16-two-line-links';
+const CACHE_NAME = 'the-fool-quest-v17-link-spacing';
 const APP_SHELL = ['./', './index.html', './style.css', './app.js', './manifest.webmanifest', './title-logo.png', './icon-maskable-192.png', './icon-maskable-512.png'];
 
 self.addEventListener('install', event => {

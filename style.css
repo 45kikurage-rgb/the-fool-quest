@@ -37,7 +37,7 @@ button,a,input{font:inherit;color:inherit}
 .manage-command{display:flex;justify-content:flex-start;background:var(--black)}
 .day-command strong{font-weight:400}
 .link-panel{padding:clamp(8px,1.2vw,18px);display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(6px,1vw,14px)}
-.command{min-width:0;min-height:clamp(112px,13vw,180px);padding:8px clamp(4px,.8vw,12px);display:grid;grid-template-columns:auto minmax(0,1fr);align-content:center;align-items:start;column-gap:.28em;border:0;text-decoration:none;font-size:var(--panel-font-size);letter-spacing:-.05em;white-space:nowrap;overflow:hidden;transition:background .12s,color .12s,transform .12s}
+.command{min-width:0;min-height:clamp(112px,13vw,180px);padding:8px clamp(4px,.8vw,12px);display:grid;grid-template-columns:auto minmax(0,1fr);align-content:center;align-items:start;column-gap:.28em;border:0;text-decoration:none;font-size:var(--panel-font-size);letter-spacing:0;white-space:nowrap;overflow:hidden;transition:background .12s,color .12s,transform .12s}
 .command-arrow{display:block;line-height:1.18}
 .command-copy{display:grid;grid-template-rows:auto auto;min-width:0;line-height:1.18;text-align:left}
 .command-copy>span{display:block;min-width:0;overflow:hidden}
