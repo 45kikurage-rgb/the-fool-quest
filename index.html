@@ -82,6 +82,7 @@
     }
     .gauge{
       position:relative !important;
+      width:80% !important;
       overflow:hidden !important;
     }
     .gauge-fill{
@@ -108,9 +109,10 @@
     }
     .gauge-flame{
       position:absolute !important;
-      right:-2px !important;
+      left:84% !important;
+      right:auto !important;
       top:50% !important;
-      transform:translate(100%,-50%) !important;
+      transform:translateY(-50%) !important;
       z-index:5 !important;
       font-size:22px !important;
       line-height:1 !important;
@@ -259,9 +261,9 @@
 
       const actualPercent = goal > 0 ? (numericValue / goal) * 100 : 0;
 
-      /* 100%をゲージの80%地点にする。
-         125%でゲージ右端(100%)に到達し、それ以上は満タン表示。 */
-      const visualPercent = Math.max(0, Math.min(100, actualPercent * 0.8));
+      /* ゲージ外枠そのものが従来幅の80%。
+         進捗率は通常どおり0〜100%で描画する。 */
+      const visualPercent = Math.max(0, Math.min(100, actualPercent));
 
       if (barEl) barEl.style.width = visualPercent + '%';
       if (percentEl) percentEl.textContent = actualPercent.toFixed(1) + '%';
@@ -346,7 +348,7 @@
 
       const value = Math.max(0, parseMoney(valueEl.textContent));
       const actualPercent = (value / goal) * 100;
-      const visualPercent = Math.max(0, Math.min(100, actualPercent * 0.8));
+      const visualPercent = Math.max(0, Math.min(100, actualPercent));
 
       barEl.style.width = visualPercent + '%';
       percentEl.textContent = actualPercent.toFixed(1) + '%';
