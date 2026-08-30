@@ -322,6 +322,105 @@
     }
   </style>
 
+
+  <style id="daily-pace-gauge-color-20260830">
+    .gauge-fill{
+      background:#fff !important;
+      background-color:#fff !important;
+    }
+    .gauge-fill.pace-ok{
+      background:#1687ff !important;
+      background-color:#1687ff !important;
+    }
+    .gauge-fill.pace-behind{
+      background:#ff3b30 !important;
+      background-color:#ff3b30 !important;
+    }
+    .gauge-percent,
+    .gauge-percent.pace-ok,
+    .gauge-percent.pace-behind{
+      color:#fff !important;
+    }
+  </style>
+
+
+  <style id="status-height-balance-20260830">
+    /* 大きくした文字サイズは維持し、左パネルの強制620pxだけ解除 */
+    .status-panel{
+      min-height:0 !important;
+      height:100% !important;
+      align-self:stretch !important;
+    }
+
+    /* 3つの収益ブロックの上下余白を少し圧縮 */
+    .metric{
+      margin-top:12px !important;
+      margin-bottom:12px !important;
+    }
+
+    .gauge-wrap{
+      margin-top:7px !important;
+    }
+
+    @media(max-width:560px){
+      .status-panel{
+        min-height:0 !important;
+        height:100% !important;
+        align-self:stretch !important;
+      }
+      .metric{
+        margin-top:11px !important;
+        margin-bottom:11px !important;
+      }
+    }
+  </style>
+
+
+  <style id="metric-achieved-second-line-20260830">
+    /* 1段目：項目名 / 2段目：実績額 / 3段目：目標額 */
+    .metric-line{
+      display:block !important;
+      white-space:normal !important;
+    }
+
+    .metric-line .metric-label{
+      display:block !important;
+      width:100% !important;
+      text-align:left !important;
+      margin-bottom:2px !important;
+    }
+
+    .metric-line .metric-values{
+      display:flex !important;
+      width:100% !important;
+      padding-right:18px !important;
+      box-sizing:border-box !important;
+      flex-direction:column !important;
+      align-items:flex-end !important;
+      text-align:right !important;
+      gap:0 !important;
+    }
+
+    .metric-line .metric-achieved,
+    .metric-line .metric-target,
+    .metric-line b{
+      display:block !important;
+      width:100% !important;
+      text-align:right !important;
+      white-space:nowrap !important;
+    }
+
+    /* 3行化した分だけ縦方向を自然に確保 */
+    .metric{
+      margin-top:10px !important;
+      margin-bottom:10px !important;
+    }
+
+    .gauge-wrap{
+      margin-top:6px !important;
+    }
+  </style>
+
 </head>
 <body>
   <main class="screen">
@@ -495,8 +594,11 @@
         const targetByToday = goal * (d / daysInMonth);
         const achievedToday = numericValue >= targetByToday;
 
-        percentEl.classList.toggle('pace-ok', achievedToday);
-        percentEl.classList.toggle('pace-behind', !achievedToday);
+        if (barEl) {
+          barEl.classList.toggle('pace-ok', achievedToday);
+          barEl.classList.toggle('pace-behind', !achievedToday);
+        }
+        percentEl.classList.remove('pace-ok','pace-behind');
         percentEl.dataset.dailyTarget = String(Math.round(targetByToday));
       }
       if (flameEl) flameEl.hidden = !(numericValue > goal);
@@ -659,8 +761,12 @@
       const targetByToday = goal * (day / daysInMonth);
       const achieved = Number(value) >= targetByToday;
 
-      percentEl.classList.toggle('pace-ok', achieved);
-      percentEl.classList.toggle('pace-behind', !achieved);
+      const barEl = percentEl.closest('.gauge')?.querySelector('.gauge-fill');
+      if (barEl) {
+        barEl.classList.toggle('pace-ok', achieved);
+        barEl.classList.toggle('pace-behind', !achieved);
+      }
+      percentEl.classList.remove('pace-ok','pace-behind');
       percentEl.dataset.dailyTarget = String(Math.round(targetByToday));
     };
 
@@ -795,8 +901,9 @@
       const targetByToday = goal * (d / daysInMonth);
       const achievedToday = value >= targetByToday;
 
-      percentEl.classList.toggle('pace-ok', achievedToday);
-      percentEl.classList.toggle('pace-behind', !achievedToday);
+      barEl.classList.toggle('pace-ok', achievedToday);
+      barEl.classList.toggle('pace-behind', !achievedToday);
+      percentEl.classList.remove('pace-ok','pace-behind');
       percentEl.dataset.dailyTarget = String(Math.round(targetByToday));
 
       flameEl.hidden = !(value > goal);
