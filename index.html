@@ -9,22 +9,53 @@
   <link rel="stylesheet" href="./style.css">
 
   <style id="portal-fix-20260830">
-    /* タイトルロゴを切らずに全体表示 */
+    /* ===== 上部ロゴ =====
+       元画像の黒い余白を画面外へ逃がし、ロゴ本体を横幅いっぱいに見せる */
     .logo-image{
-      background-size: contain !important;
-      background-position: center center !important;
-      background-repeat: no-repeat !important;
-      overflow: visible !important;
-      width: 100% !important;
-      min-height: clamp(150px, 27vw, 230px) !important;
-      height: clamp(150px, 27vw, 230px) !important;
+      width:100% !important;
+      height:230px !important;
+      min-height:230px !important;
+      background-size:cover !important;
+      background-position:center 58% !important;
+      background-repeat:no-repeat !important;
+      overflow:visible !important;
+      margin:0 auto 8px !important;
     }
-    @media (max-width: 560px){
+
+    /* ===== 収益表示 =====
+       項目名→金額の順に2段表示。両方を同じ大きさにする */
+    .metric-line{
+      display:flex !important;
+      flex-direction:column !important;
+      align-items:flex-start !important;
+      justify-content:flex-start !important;
+      gap:5px !important;
+      font-size:16px !important;
+      line-height:1.25 !important;
+      white-space:nowrap !important;
+    }
+    .metric-line > span{
+      display:block !important;
+      width:100% !important;
+      font-size:16px !important;
+      line-height:1.25 !important;
+    }
+    .metric-line b{
+      font-size:16px !important;
+      line-height:1.25 !important;
+    }
+
+    @media (max-width:560px){
       .logo-image{
-        min-height: 185px !important;
-        height: 185px !important;
-        background-size: contain !important;
-        background-position: center center !important;
+        height:220px !important;
+        min-height:220px !important;
+        background-size:cover !important;
+        background-position:center 58% !important;
+      }
+      .metric-line,
+      .metric-line > span,
+      .metric-line b{
+        font-size:16px !important;
       }
     }
   </style>
