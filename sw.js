@@ -1,4 +1,4 @@
-const CACHE_NAME = 'the-fool-quest-v14-auto-total-level';
+const CACHE_NAME = 'the-fool-quest-v15-font-plus-two';
 const APP_SHELL = ['./', './index.html', './style.css', './app.js', './manifest.webmanifest', './title-logo.png', './icon-maskable-192.png', './icon-maskable-512.png'];
 
 self.addEventListener('install', event => {
