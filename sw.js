@@ -1,5 +1,5 @@
-const CACHE_NAME = 'the-fool-quest-v6-clean';
-const APP_SHELL = ['./', './index.html', './style.css', './app.js', './manifest.webmanifest', './title-logo.png'];
+const CACHE_NAME = 'the-fool-quest-v8-monthly-slimes';
+const APP_SHELL = ['./', './index.html', './style.css', './app.js', './manifest.webmanifest', './title-logo.png', './slime-blue.png', './slime-red.png', './slime-green.png'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));

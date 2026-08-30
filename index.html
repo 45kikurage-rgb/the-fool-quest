@@ -10,7 +10,9 @@
 </head>
 <body>
   <main class="screen">
-    <header class="logo-image" aria-label="THE FOOL QUEST"></header>
+    <header class="logo-image" aria-label="THE FOOL QUEST">
+      <div id="logo-slime-layer" class="logo-slime-layer" aria-hidden="true"></div>
+    </header>
 
     <section class="dashboard">
       <article class="status-panel pixel-frame">
@@ -24,9 +26,12 @@
       </article>
 
       <div class="commands">
+        <div class="top-commands">
         <button class="day-command pixel-frame" type="button" aria-label="14日後の日付">
           <span>▶ Day+14</span><strong id="day14">--/--</strong>
         </button>
+        <button id="goal-manage-open" class="manage-command pixel-frame" type="button">▶ 管理画面</button>
+        </div>
 
         <nav class="link-panel pixel-frame" aria-label="ポータルリンク">
           <a href="https://assets-management-8os.pages.dev" class="command">▶ Assets</a>
@@ -39,8 +44,6 @@
       </div>
     </section>
   </main>
-
-  <button id="goal-manage-open" class="goal-manage-open" type="button">管理画面</button>
 
   <dialog id="goal-manage-dialog" class="modal">
     <form method="dialog" class="modal-card pixel-frame">
@@ -55,6 +58,15 @@
         <button class="secondary" value="cancel">キャンセル</button>
         <button id="goal-save-btn" class="primary" type="button">保存</button>
       </div>
+      <section class="history-section" aria-labelledby="history-title">
+        <h2 id="history-title">月別収益</h2>
+        <div class="history-scroll">
+          <table class="history-table">
+            <thead><tr><th>月</th><th>TikTok</th><th>Coupon</th><th>Total</th><th>Lv</th><th>状態</th></tr></thead>
+            <tbody id="history-body"></tbody>
+          </table>
+        </div>
+      </section>
     </form>
   </dialog>
 
