@@ -67,6 +67,63 @@
       white-space:nowrap !important;
     }
 
+
+    /* ===== ゲージ最終仕様 =====
+       目標100% = ゲージ幅80%。超過分は残り20%へ伸びる。
+       ％はゲージ中央、超過時は右側に炎。 */
+    .metric-values{
+      padding-right:8px !important; /* 右端に寄りすぎないよう少し内側へ */
+      box-sizing:border-box !important;
+    }
+    .gauge-wrap{
+      position:relative !important;
+      width:100% !important;
+      overflow:visible !important;
+    }
+    .gauge{
+      position:relative !important;
+      overflow:hidden !important;
+    }
+    .gauge-fill{
+      background:#1687ff !important;
+      background-color:#1687ff !important;
+      transition:width .25s ease !important;
+    }
+    .gauge-percent{
+      position:absolute !important;
+      inset:0 !important;
+      display:flex !important;
+      align-items:center !important;
+      justify-content:center !important;
+      pointer-events:none !important;
+      z-index:3 !important;
+      font:inherit !important;
+      line-height:1 !important;
+      color:#fff !important;
+      text-align:center !important;
+      white-space:nowrap !important;
+      text-shadow:
+        1px 0 #000,-1px 0 #000,0 1px #000,0 -1px #000,
+        1px 1px #000,-1px -1px #000,1px -1px #000,-1px 1px #000 !important;
+    }
+    .gauge-flame{
+      position:absolute !important;
+      right:-2px !important;
+      top:50% !important;
+      transform:translate(100%,-50%) !important;
+      z-index:5 !important;
+      font-size:22px !important;
+      line-height:1 !important;
+      filter:saturate(1.25) contrast(1.05);
+    }
+    .gauge-flame[hidden]{
+      display:none !important;
+    }
+    /* 旧OVER KILL文字は炎表示に置き換える */
+    .over-kill{
+      display:none !important;
+    }
+
     @media (max-width:560px){
       .logo-image{
         height:220px !important;
@@ -94,7 +151,7 @@
       <article class="status-panel pixel-frame">
         <header class="character-row">
           <button id="open-csv" class="name-command" type="button" aria-label="CSVアップデートを開く">あるの</button>
-          <span>Lv <strong id="level">000</strong></span>
+          <span>Lv <strong id="level">00</strong></span>
         </header>
         <div class="rule"></div>
 
@@ -106,7 +163,13 @@
               <span class="metric-target">/ ¥1,000,000</span>
             </span>
           </div>
-          <div class="gauge"><div id="total-bar" class="gauge-fill"></div></div>
+          <div class="gauge-wrap" data-gauge="total">
+            <div class="gauge">
+              <div id="total-bar" class="gauge-fill"></div>
+              <span id="total-percent" class="gauge-percent">0.0%</span>
+            </div>
+            <span id="total-flame" class="gauge-flame" aria-label="目標達成" hidden>🔥</span>
+          </div>
           <div id="total-over" class="over-kill">OVER KILL</div>
         </div>
         <div class="metric" data-metric="tiktok">
@@ -117,7 +180,13 @@
               <span class="metric-target">/ ¥500,000</span>
             </span>
           </div>
-          <div class="gauge"><div id="tiktok-bar" class="gauge-fill"></div></div>
+          <div class="gauge-wrap" data-gauge="tiktok">
+            <div class="gauge">
+              <div id="tiktok-bar" class="gauge-fill"></div>
+              <span id="tiktok-percent" class="gauge-percent">0.0%</span>
+            </div>
+            <span id="tiktok-flame" class="gauge-flame" aria-label="目標達成" hidden>🔥</span>
+          </div>
           <div id="tiktok-over" class="over-kill">OVER KILL</div>
         </div>
         <div class="metric" data-metric="coupon">
@@ -128,7 +197,13 @@
               <span class="metric-target">/ ¥500,000</span>
             </span>
           </div>
-          <div class="gauge"><div id="coupon-bar" class="gauge-fill"></div></div>
+          <div class="gauge-wrap" data-gauge="coupon">
+            <div class="gauge">
+              <div id="coupon-bar" class="gauge-fill"></div>
+              <span id="coupon-percent" class="gauge-percent">0.0%</span>
+            </div>
+            <span id="coupon-flame" class="gauge-flame" aria-label="目標達成" hidden>🔥</span>
+          </div>
           <div id="coupon-over" class="over-kill">OVER KILL</div>
         </div>
       </article>
@@ -174,20 +249,23 @@
     const yen = (value) => '¥' + Math.round(Number(value) || 0).toLocaleString('ja-JP');
 
     const setMetric = (name, value, goal) => {
+      const numericValue = Math.max(0, Number(value) || 0);
       const valueEl = document.getElementById(name + '-value');
       const barEl = document.getElementById(name + '-bar');
-      const overEl = document.getElementById(name + '-over');
+      const percentEl = document.getElementById(name + '-percent');
+      const flameEl = document.getElementById(name + '-flame');
 
-      if (valueEl) valueEl.textContent = yen(value);
+      if (valueEl) valueEl.textContent = yen(numericValue);
 
-      if (barEl) {
-        const pct = Math.max(0, Math.min(100, (Number(value) / goal) * 100));
-        barEl.style.width = pct + '%';
-      }
+      const actualPercent = goal > 0 ? (numericValue / goal) * 100 : 0;
 
-      if (overEl) {
-        overEl.style.display = Number(value) > goal ? '' : 'none';
-      }
+      /* 100%をゲージの80%地点にする。
+         125%でゲージ右端(100%)に到達し、それ以上は満タン表示。 */
+      const visualPercent = Math.max(0, Math.min(100, actualPercent * 0.8));
+
+      if (barEl) barEl.style.width = visualPercent + '%';
+      if (percentEl) percentEl.textContent = actualPercent.toFixed(1) + '%';
+      if (flameEl) flameEl.hidden = !(numericValue > goal);
     };
 
     const readTikTok = () => {
@@ -244,6 +322,74 @@
       document.addEventListener('DOMContentLoaded', boot, { once: true });
     } else {
       boot();
+    }
+  })();
+  </script>
+
+
+  <script id="portal-final-display-20260830">
+  (() => {
+    const GOALS = { total: 1000000, tiktok: 500000, coupon: 500000 };
+
+    const parseMoney = (s) => {
+      const n = Number(String(s ?? '').replace(/[^\d.-]/g, ''));
+      return Number.isFinite(n) ? n : 0;
+    };
+
+    const renderGaugeOnly = (name) => {
+      const valueEl = document.getElementById(name + '-value');
+      const barEl = document.getElementById(name + '-bar');
+      const percentEl = document.getElementById(name + '-percent');
+      const flameEl = document.getElementById(name + '-flame');
+      const goal = GOALS[name];
+      if (!valueEl || !barEl || !percentEl || !flameEl || !goal) return;
+
+      const value = Math.max(0, parseMoney(valueEl.textContent));
+      const actualPercent = (value / goal) * 100;
+      const visualPercent = Math.max(0, Math.min(100, actualPercent * 0.8));
+
+      barEl.style.width = visualPercent + '%';
+      percentEl.textContent = actualPercent.toFixed(1) + '%';
+      flameEl.hidden = !(value > goal);
+    };
+
+    const normalizeLevel = () => {
+      const el = document.getElementById('level');
+      if (!el) return;
+      const n = Math.max(0, Math.trunc(Number(String(el.textContent).replace(/\D/g,'')) || 0));
+      const next = String(n).padStart(2, '0');
+      if (el.textContent !== next) el.textContent = next;
+    };
+
+    const bootFinalDisplay = () => {
+      normalizeLevel();
+      ['total','tiktok','coupon'].forEach(renderGaugeOnly);
+
+      const levelEl = document.getElementById('level');
+      if (levelEl && 'MutationObserver' in window) {
+        new MutationObserver(normalizeLevel)
+          .observe(levelEl, { childList:true, characterData:true, subtree:true });
+      }
+
+      ['total','tiktok','coupon'].forEach(name => {
+        const el = document.getElementById(name + '-value');
+        if (el && 'MutationObserver' in window) {
+          new MutationObserver(() => renderGaugeOnly(name))
+            .observe(el, { childList:true, characterData:true, subtree:true });
+        }
+      });
+
+      /* app.js側の初期描画が少し遅れても最終仕様を適用 */
+      setTimeout(() => {
+        normalizeLevel();
+        ['total','tiktok','coupon'].forEach(renderGaugeOnly);
+      }, 300);
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bootFinalDisplay, { once:true });
+    } else {
+      bootFinalDisplay();
     }
   })();
   </script>
