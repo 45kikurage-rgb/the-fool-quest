@@ -10,14 +10,12 @@
 </head>
 <body>
   <main class="screen">
-    <header class="logo" aria-label="THE FOOL QUEST">
-      <span>THE FOOL QUEST</span><span class="sword" aria-hidden="true">⚔</span>
-    </header>
+    <header class="logo-image" aria-label="THE FOOL QUEST"></header>
 
     <section class="dashboard">
       <article class="status-panel pixel-frame">
         <header class="character-row">
-          <span>あるの</span>
+          <button id="open-csv" class="name-command" type="button" aria-label="CSVアップデートを開く">あるの</button>
           <span>Lv <strong id="level">000</strong></span>
         </header>
         <div class="rule"></div>
@@ -55,6 +53,17 @@
       </div>
     </section>
   </main>
+
+  <dialog id="csv-dialog" class="csv-dialog">
+    <form method="dialog" class="csv-card pixel-frame">
+      <header class="csv-title"><span>CSV UPDATE</span><button class="csv-close" value="close" aria-label="閉じる">×</button></header>
+      <p>ポイント履歴CSVを選択すると、チャージポイントの合計をTikTokへ反映します。</p>
+      <input id="csv-file" type="file" accept=".csv,text/csv" hidden>
+      <button id="choose-csv" class="csv-select" type="button">▶ CSVを選択</button>
+      <div id="csv-result" class="csv-result">CSVを選択してください</div>
+      <button class="csv-done" value="close">閉じる</button>
+    </form>
+  </dialog>
   <script src="./app.js"></script>
 </body>
 </html>

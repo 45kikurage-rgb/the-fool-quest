@@ -5,14 +5,15 @@
 html,body{margin:0;min-height:100%;background:#000;color:#fff}
 body{font-family:"DotGothic16","Courier New",monospace;overflow-x:hidden}
 button,a{font:inherit;color:inherit}
-.screen{min-height:100svh;padding:clamp(14px,2.2vw,34px);background-color:#000;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:clamp(60px,8.7vw,134px) clamp(60px,8.7vw,134px);display:flex;flex-direction:column;justify-content:center}
-.logo{position:relative;margin:0 auto clamp(22px,4vh,56px);font-family:Impact,"Arial Black",sans-serif;font-style:italic;font-size:clamp(52px,10.6vw,164px);line-height:.85;letter-spacing:-.07em;text-align:center;white-space:nowrap;transform:skew(-4deg);filter:drop-shadow(7px 10px 0 #9b5938);-webkit-text-stroke:clamp(1px,.2vw,3px) #dbeaff;background:linear-gradient(#8bc3ff 5%,#4387e5 55%,#c8e7ff 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
-.sword{display:inline-block;margin-left:.05em;font-size:.67em;letter-spacing:0;transform:skew(4deg) rotate(-8deg);color:#eaf2ff;-webkit-text-stroke:1px #83a9df;filter:none}
+.screen{min-height:100svh;padding:clamp(14px,2.2vw,34px);background:#000;display:flex;flex-direction:column;justify-content:center}
+.logo-image{width:min(1480px,100%);height:clamp(170px,25vw,385px);margin:0 auto clamp(12px,2vh,30px);background:url('./title-logo.png') center 64%/100% auto no-repeat}
 .dashboard{width:min(1480px,100%);margin:0 auto;display:grid;grid-template-columns:minmax(0,.82fr) minmax(0,1.08fr);gap:clamp(20px,3vw,46px);align-items:start}
 .pixel-frame{border:clamp(3px,.42vw,7px) solid #fff;background:#000;box-shadow:inset 0 0 0 3px #000,0 0 0 1px #000;clip-path:polygon(12px 0,calc(100% - 12px) 0,100% 12px,100% calc(100% - 12px),calc(100% - 12px) 100%,12px 100%,0 calc(100% - 12px),0 12px)}
 .status-panel{padding:clamp(18px,2.6vw,40px);min-height:510px}
 .character-row{display:flex;justify-content:space-between;align-items:center;font-size:clamp(29px,3.2vw,52px);padding:0 .35em}
 .character-row strong{font-weight:400}
+.name-command{appearance:none;border:0;background:transparent;padding:0;color:#fff;cursor:pointer}
+.name-command:hover,.name-command:focus-visible{color:#000;background:#fff;outline:none}
 .rule{height:3px;background:#fff;margin:clamp(16px,2vw,28px) 0 clamp(28px,3vw,42px)}
 .metric{position:relative;margin-bottom:clamp(26px,3vw,44px)}
 .metric:last-child{margin-bottom:0}
@@ -30,10 +31,19 @@ button,a{font:inherit;color:inherit}
 .command{min-height:clamp(112px,13vw,180px);padding:18px clamp(16px,2.2vw,34px);display:flex;align-items:center;border:clamp(3px,.4vw,6px) solid #fff;text-decoration:none;font-size:clamp(25px,3vw,46px);white-space:nowrap;clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0 calc(100% - 10px),0 10px);transition:background .12s,color .12s,transform .12s}
 .command:hover,.command:focus-visible,.command:active,.day-command:hover,.day-command:focus-visible{background:#fff;color:#000;outline:none}
 .command:active{transform:translateY(3px)}
+.csv-dialog{width:min(620px,calc(100% - 28px));padding:0;border:0;background:transparent;color:#fff}
+.csv-dialog::backdrop{background:rgba(0,0,0,.82)}
+.csv-card{padding:clamp(20px,4vw,38px);font-size:clamp(17px,2.3vw,27px)}
+.csv-title{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #fff;padding-bottom:14px;font-size:1.25em}
+.csv-close{border:0;background:transparent;color:#fff;font-size:1.35em;cursor:pointer}
+.csv-card p{line-height:1.65;margin:22px 0}
+.csv-select,.csv-done{width:100%;border:3px solid #fff;background:#000;color:#fff;padding:14px;cursor:pointer}
+.csv-select:hover,.csv-select:focus-visible,.csv-done:hover,.csv-done:focus-visible{background:#fff;color:#000;outline:none}
+.csv-result{min-height:86px;margin:18px 0;padding:14px;border:2px solid #fff;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.5;white-space:pre-line}
+.csv-result.success{background:#fff;color:#000}
 @media(max-width:820px){
-  .screen{min-height:100svh;justify-content:flex-start;padding:8px 7px 14px;background-size:50px 50px}
-  .logo{font-size:clamp(38px,10.5vw,82px);margin:14px auto 22px;filter:drop-shadow(3px 5px 0 #9b5938);-webkit-text-stroke:1px #dbeaff}
-  .sword{display:none}
+  .screen{min-height:100svh;justify-content:flex-start;padding:8px 7px 14px}
+  .logo-image{height:clamp(112px,25vw,205px);margin:0 auto 7px;background-position:center 64%}
   .dashboard{grid-template-columns:minmax(0,.82fr) minmax(0,1.08fr);gap:10px;align-items:stretch}
   .pixel-frame{border-width:3px;clip-path:polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px)}
   .status-panel{min-height:0;padding:12px 10px;display:flex;flex-direction:column}

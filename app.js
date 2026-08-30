@@ -32,7 +32,7 @@
     document.getElementById('level').textContent = String(calculateLevel(now)).padStart(3, '0');
     document.getElementById('day14').textContent = dayPlus14(now);
 
-    // 次の接続段階で各サイトのAPI取得値に置き換える設定箇所です。
+    // 冒険の書の接続先。API公開後、ADVENTURE_BOOK_URLからチャージ合計を取得します。
     const tiktok = Number(localStorage.getItem('tfq_tiktok') || 0);
     const coupon = Number(localStorage.getItem('tfq_coupon') || 0);
     renderMetric('tiktok', tiktok);
@@ -40,7 +40,67 @@
     renderMetric('total', tiktok + coupon);
   }
 
+  function parseCsv(text) {
+    const rows = [];
+    let row = [], cell = '', quoted = false;
+    const source = text.replace(/^\uFEFF/, '');
+    for (let i = 0; i < source.length; i++) {
+      const ch = source[i];
+      if (quoted) {
+        if (ch === '"' && source[i + 1] === '"') { cell += '"'; i++; }
+        else if (ch === '"') quoted = false;
+        else cell += ch;
+      } else if (ch === '"') quoted = true;
+      else if (ch === ',') { row.push(cell); cell = ''; }
+      else if (ch === '\n') { row.push(cell.replace(/\r$/, '')); rows.push(row); row = []; cell = ''; }
+      else cell += ch;
+    }
+    if (cell || row.length) { row.push(cell.replace(/\r$/, '')); rows.push(row); }
+    return rows;
+  }
+
+  function importCsv(text, fileName) {
+    const rows = parseCsv(text);
+    const headerIndex = rows.findIndex(row => row.some(cell => cell.trim() === 'チャージポイント'));
+    if (headerIndex < 0) throw new Error('「チャージポイント」列が見つかりません');
+    const chargeIndex = rows[headerIndex].findIndex(cell => cell.trim() === 'チャージポイント');
+    let total = 0, count = 0;
+    for (const row of rows.slice(headerIndex + 1)) {
+      if (!row.some(cell => cell.trim())) continue;
+      const value = Number(String(row[chargeIndex] ?? '').replace(/,/g, '').trim());
+      if (Number.isFinite(value)) { total += Math.abs(value); count++; }
+    }
+    localStorage.setItem('tfq_tiktok', String(total));
+    localStorage.setItem('tfq_tiktok_csv_meta', JSON.stringify({ fileName, count, importedAt: new Date().toISOString() }));
+    render();
+    return { total, count };
+  }
+
   render();
+  const dialog = document.getElementById('csv-dialog');
+  const fileInput = document.getElementById('csv-file');
+  const result = document.getElementById('csv-result');
+  document.getElementById('open-csv').addEventListener('click', () => {
+    result.className = 'csv-result';
+    const meta = JSON.parse(localStorage.getItem('tfq_tiktok_csv_meta') || 'null');
+    result.textContent = meta ? `前回：${meta.fileName}\n${new Date(meta.importedAt).toLocaleString('ja-JP')}` : 'CSVを選択してください';
+    dialog.showModal();
+  });
+  document.getElementById('choose-csv').addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', async () => {
+    const file = fileInput.files?.[0];
+    if (!file) return;
+    try {
+      const imported = importCsv(await file.text(), file.name);
+      result.className = 'csv-result success';
+      result.textContent = `更新完了\n${yen(imported.total)}（${imported.count}件）`;
+    } catch (error) {
+      result.className = 'csv-result';
+      result.textContent = `読込エラー：${error.message}`;
+    } finally {
+      fileInput.value = '';
+    }
+  });
   setInterval(render, 60 * 1000);
   if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
 })();
