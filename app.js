@@ -3,15 +3,12 @@
   const CONFIG = {
     api: 'https://winning-url-api.45kikurage.workers.dev',
     goals: { total: 1000000, tiktok: 500000, coupon: 500000 },
-    metrics: [['total','Total'],['tiktok','TikTok'],['coupon','Coupon']],
-    colors: ['blue','red','green'],
-    maxSlimes: 20
+    metrics: [['total','Total'],['tiktok','TikTok'],['coupon','Coupon']]
   };
   const KEY = {
     tiktok: 'tfq_tiktok', csv: 'tfq_tiktok_csv_meta',
     coupon: 'foolQuestCouponRevenueLastGood', couponMeta: 'foolQuestCouponRevenueLastGoodMeta',
-    goals: 'foolQuestGoalAmounts', monthly: 'foolQuestMonthlyRevenueV1',
-    slimeColors: 'foolQuestSlimeColorsV1'
+    goals: 'foolQuestGoalAmounts', monthly: 'foolQuestMonthlyRevenueV1'
   };
   const $ = id => document.getElementById(id);
   const json = (raw, fallback) => { try { return JSON.parse(raw) ?? fallback; } catch { return fallback; } };
@@ -85,7 +82,6 @@
     state.coupon = Math.max(0, Number(state.monthly[current]?.coupon) || 0);
     persistCurrent();
     renderAll();
-    renderSlimes();
   }
   function valueOf(name) {
     return name === 'tiktok' ? state.tiktok : name === 'coupon' ? state.coupon : state.tiktok + state.coupon;
@@ -131,70 +127,6 @@
     renderHistory();
   }
 
-  function countForLevel(lv) {
-    return lv < 1 ? 0 : Math.min(CONFIG.maxSlimes, Math.floor((lv - 1) / 10) + 1);
-  }
-  function fixedColors(count) {
-    let colors = load(KEY.slimeColors, []);
-    if (!Array.isArray(colors)) colors = [];
-    while (colors.length < count) colors.push(CONFIG.colors[Math.floor(Math.random() * 3)]);
-    save(KEY.slimeColors, colors);
-    return colors.slice(0, count);
-  }
-  function shuffle(items) {
-    for (let i=items.length-1;i>0;i--) {
-      const j=Math.floor(Math.random()*(i+1));
-      [items[i],items[j]]=[items[j],items[i]];
-    }
-    return items;
-  }
-  function placements(count) {
-    const slots = shuffle([
-      {left:12,bottom:31},{left:27,bottom:33},{left:40,bottom:31},
-      {left:54,bottom:30},{left:67,bottom:32},{left:78,bottom:34}
-    ]);
-    const result = slots.slice(0, Math.min(6,count)).map(slot => ({...slot,angle:0,scale:1}));
-    if (count <= 6) return result;
-
-    /* 7匹目は、文字・剣・外周を避けた上部黒背景の安全枠へ置く。 */
-    const upperSafeSlots = shuffle([
-      {left:16,bottom:68},{left:29,bottom:75},{left:43,bottom:69},
-      {left:57,bottom:77},{left:70,bottom:69}
-    ]);
-    const seventh = upperSafeSlots[0];
-    result.push({...seventh,angle:(Math.random()<.5?-1:1)*(5+Math.random()*40),scale:1});
-
-    /* 8匹目以降は安全枠のスライムを土台にし、ロゴ方向へ下げず上へ積む。 */
-    for (let i=7;i<count;i++) {
-      const base = result[6];
-      const layer = i - 6;
-      const direction = layer % 2 ? -1 : 1;
-      result.push({
-        left:Math.min(88,Math.max(12,base.left+direction*(3+Math.random()*3))),
-        bottom:Math.min(91,base.bottom+layer*3.2+Math.random()*2),
-        angle:(Math.random()<.5?-1:1)*(5+Math.random()*40),
-        scale:Math.max(.66,1-layer*.025)
-      });
-    }
-    return result;
-  }
-  let renderedSlimeCount = -1;
-  function renderSlimes() {
-    const count = countForLevel(level());
-    if (count === renderedSlimeCount) return;
-    renderedSlimeCount = count;
-    const colors = fixedColors(count), spots = placements(count);
-    $('logo-slime-layer').replaceChildren(...colors.map((color,index) => {
-      const img=document.createElement('img'), spot=spots[index];
-      img.src=`./slime-${color}.png`; img.className='logo-slime'; img.alt='';
-      img.style.left=`${spot.left}%`; img.style.bottom=`${spot.bottom}%`;
-      img.style.setProperty('--slime-angle',`${spot.angle}deg`);
-      img.style.setProperty('--slime-scale',String(spot.scale));
-      img.style.zIndex=String(index+1);
-      return img;
-    }));
-  }
-
   function parseCsv(text) {
     const rows=[]; let row=[],cell='',quoted=false; const source=text.replace(/^\uFEFF/,'');
     for(let i=0;i<source.length;i++){
@@ -220,7 +152,7 @@
     });
     state.tiktok=total; save(KEY.tiktok,String(total));
     save(KEY.csv,{fileName,count,month:state.month,importedAt:new Date().toISOString()});
-    persistCurrent(); renderAll(); renderSlimes();
+    persistCurrent(); renderAll();
     return {total,count};
   }
   function setupCsv() {
@@ -257,7 +189,7 @@
     $('goal-save-btn').addEventListener('click',()=>{
       const next=Object.fromEntries(CONFIG.metrics.map(([name])=>[name,Math.trunc(Number($(`goal-${name}-input`).value))]));
       if(Object.values(next).some(value=>value<1||!Number.isFinite(value))){message.textContent='目標額は1円以上で入力してください';return;}
-      state.goals=next;save(KEY.goals,next);renderAll();renderSlimes();message.textContent='保存しました ✓';
+      state.goals=next;save(KEY.goals,next);renderAll();message.textContent='保存しました ✓';
       setTimeout(()=>dialog.close(),450);
     });
   }
@@ -283,11 +215,11 @@
       if(coupon===0&&state.coupon>0)throw new Error('同月の収益が突然0円になったため前回値を維持しました');
       state.coupon=coupon;save(KEY.coupon,String(coupon));
       save(KEY.couponMeta,{month:state.month,value:coupon,savedAt:new Date().toISOString()});
-      persistCurrent();renderAll();renderSlimes();
+      persistCurrent();renderAll();
     }catch(error){console.error('Coupon revenue sync failed; keeping last good value:',error);}
   }
 
-  initializeMonth();buildUi();setupCsv();setupGoals();renderAll();renderSlimes();syncCoupon();
+  initializeMonth();buildUi();setupCsv();setupGoals();renderAll();syncCoupon();
   setInterval(()=>{checkMonth();renderAll();},60000);
   setInterval(syncCoupon,600000);
   if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));

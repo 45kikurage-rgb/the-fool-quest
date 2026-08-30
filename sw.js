@@ -1,5 +1,5 @@
-const CACHE_NAME = 'the-fool-quest-v9-layout-safe-zones';
-const APP_SHELL = ['./', './index.html', './style.css', './app.js', './manifest.webmanifest', './title-logo.png', './slime-blue.png', './slime-red.png', './slime-green.png'];
+const CACHE_NAME = 'the-fool-quest-v10-logo-position';
+const APP_SHELL = ['./', './index.html', './style.css', './app.js', './manifest.webmanifest', './title-logo.png'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));
