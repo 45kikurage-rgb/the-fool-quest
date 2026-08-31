@@ -8,7 +8,8 @@
   const KEY = {
     tiktok: 'tfq_tiktok', csv: 'tfq_tiktok_csv_meta',
     coupon: 'foolQuestCouponRevenueLastGood', couponMeta: 'foolQuestCouponRevenueLastGoodMeta',
-    goals: 'foolQuestGoalAmounts', monthly: 'foolQuestMonthlyRevenueV1'
+    goals: 'foolQuestGoalAmounts', monthly: 'foolQuestMonthlyRevenueV1',
+    simulation: 'foolQuestOperationSimulationV1'
   };
   const $ = id => document.getElementById(id);
   const json = (raw, fallback) => { try { return JSON.parse(raw) ?? fallback; } catch { return fallback; } };
@@ -209,6 +210,11 @@
     const dialog = $('verification-dialog');
     const manageDialog = $('goal-manage-dialog');
     const fields = ['sim-amount','sim-rest-days','sim-starts','sim-owned'];
+    const stored = load(KEY.simulation, { amount: 2000, restDays: 9, starts: 6, owned: 200 });
+    $('sim-amount').value = stored.amount ?? 2000;
+    $('sim-rest-days').value = stored.restDays ?? 9;
+    $('sim-starts').value = stored.starts ?? 6;
+    $('sim-owned').value = stored.owned ?? 200;
     const clampInput = (id, max) => {
       const input = $(id);
       const value = Math.max(0, Math.min(max, Math.trunc(Number(input.value) || 0)));
@@ -226,6 +232,8 @@
       const daily = requestedStarts * amount;
       const monthly = daily * 30;
       const maxActive = requestedStarts * workDays;
+
+      save(KEY.simulation, { amount, restDays, starts: requestedStarts, owned });
 
       $('sim-rest-hours').textContent = `＝${(restDays * 24).toLocaleString('ja-JP')}時間`;
       $('sim-max-starts').textContent = maxStarts.toFixed(2);

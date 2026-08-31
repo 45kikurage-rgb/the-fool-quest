@@ -173,6 +173,7 @@ button,a,input{font:inherit;color:inherit}
 /* compact one-screen verification layout */
 .verification-dialog{overflow:hidden}
 .verification-card{height:100dvh;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+.verification-card>.capacity-section{margin-top:auto}
 @media(max-width:520px){
   .verification-card{padding:8px 10px 10px}
   .verification-header{flex:0 0 auto;margin-bottom:8px;padding:0 0 8px;font-size:22px;line-height:1.25}

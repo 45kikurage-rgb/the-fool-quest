@@ -7,7 +7,7 @@
   <title>THE FOOL QUEST</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./icon-maskable-192.png">
-  <link rel="stylesheet" href="./style.css?v=20260831-layout2">
+  <link rel="stylesheet" href="./style.css?v=20260831-layout3">
 </head>
 <body>
   <main class="screen">
@@ -82,13 +82,9 @@
         <span aria-hidden="true"></span>
       </header>
 
-      <section class="verification-results pixel-frame">
-        <h2>検証結果</h2>
-        <dl>
-          <div><dt>1日収益</dt><dd id="sim-daily">¥12,000</dd></div>
-          <div><dt>月間収益</dt><dd id="sim-monthly">¥360,000</dd></div>
-          <div><dt>最大同時稼働</dt><dd id="sim-max-active">84台</dd></div>
-        </dl>
+      <section class="capacity-section pixel-frame" aria-label="保有台数と1日最大始動台数">
+        <label class="capacity-column"><span>保有台数</span><span class="compact-input"><input id="sim-owned" type="number" inputmode="numeric" min="0" max="999" value="200"><span>台</span></span></label>
+        <div class="capacity-column"><span>1日最大始動台数</span><span class="compact-input output-input"><output id="sim-max-starts">8.69</output><span>台</span></span></div>
       </section>
 
       <section class="verification-section pixel-frame">
@@ -101,9 +97,13 @@
         </div>
       </section>
 
-      <section class="capacity-section pixel-frame" aria-label="保有台数と1日最大始動台数">
-        <label class="capacity-column"><span>保有台数</span><span class="compact-input"><input id="sim-owned" type="number" inputmode="numeric" min="0" max="999" value="200"><span>台</span></span></label>
-        <div class="capacity-column"><span>1日最大始動台数</span><span class="compact-input output-input"><output id="sim-max-starts">8.69</output><span>台</span></span></div>
+      <section class="verification-results pixel-frame">
+        <h2>検証結果</h2>
+        <dl>
+          <div><dt>1日収益</dt><dd id="sim-daily">¥12,000</dd></div>
+          <div><dt>月間収益</dt><dd id="sim-monthly">¥360,000</dd></div>
+          <div><dt>最大同時稼働</dt><dd id="sim-max-active">84台</dd></div>
+        </dl>
       </section>
 
     </form>
@@ -123,6 +123,6 @@
     </form>
   </dialog>
 
-  <script src="./app.js?v=20260831-layout2"></script>
+  <script src="./app.js?v=20260831-layout3"></script>
 </body>
 </html>
