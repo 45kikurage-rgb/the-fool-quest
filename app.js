@@ -121,8 +121,13 @@
   }
   function renderDate() {
     $('level').textContent = String(level());
-    const now = new Date(), date = new Date(now.getFullYear(), now.getMonth(), now.getDate()+14);
-    $('day14').textContent = `${String(date.getMonth()+1).padStart(2,'0')}/${String(date.getDate()).padStart(2,'0')}`;
+    const today = jst();
+    const formatOffset = offset => {
+      const date = new Date(Date.UTC(today.year, today.month - 1, today.day + offset));
+      return `${String(date.getUTCMonth()+1).padStart(2,'0')}/${String(date.getUTCDate()).padStart(2,'0')}`;
+    };
+    $('day14').textContent = formatOffset(14);
+    $('day5').textContent = formatOffset(5);
   }
   function renderMetric(name) {
     const value = valueOf(name), goal = state.goals[name], percent = goal > 0 ? value / goal * 100 : 0;
@@ -192,7 +197,7 @@
       const total=(Number(record.tiktok)||0)+(Number(record.coupon)||0);
       const lv=Math.floor(total/10000);
       const status=record.month===state.month?'集計中':record.finalized?'確定':'確定待ち';
-      return `<tr><td>${record.month.replace('-','/')}</td><td>${money(record.tiktok)}</td><td>${money(record.coupon)}</td><td>${money(total)}</td><td>${lv}</td><td>${status}</td></tr>`;
+      return `<tr><td>${record.month.replace('-','/')}</td><td>${lv}</td><td>${money(total)}</td><td>${money(record.tiktok)}</td><td>${money(record.coupon)}</td><td>${status}</td></tr>`;
     }).join('')||'<tr><td colspan="6">履歴はまだありません</td></tr>';
   }
   function setupGoals() {
@@ -277,8 +282,14 @@
     $('sim-rest-days').value = stored.restDays ?? 9;
     $('sim-starts').value = stored.starts ?? 6;
     $('sim-owned').value = stored.owned ?? 200;
+    const digitsOnly = input => {
+      const limit = Number(input.maxLength) > 0 ? Number(input.maxLength) : 4;
+      const cleaned = String(input.value).replace(/\D/g, '').slice(0, limit);
+      if (input.value !== cleaned) input.value = cleaned;
+    };
     const clampInput = (id, max) => {
       const input = $(id);
+      digitsOnly(input);
       const value = Math.max(0, Math.min(max, Math.trunc(Number(input.value) || 0)));
       input.value = String(value);
       return value;
@@ -306,7 +317,9 @@
 
     const openBtn = $('verification-open');
     const closeBtn = $('verification-close');
-    if (!dialog || !manageDialog || !openBtn || !closeBtn) {
+    const backBtn = $('verification-back');
+    const title = $('verification-title');
+    if (!dialog || !manageDialog || !openBtn || !closeBtn || !backBtn || !title) {
       console.error('Verification UI is incomplete');
       return;
     }
@@ -314,13 +327,19 @@
       calculate();
       manageDialog.close();
       dialog.showModal();
+      requestAnimationFrame(() => title.focus({ preventScroll: true }));
     });
-    closeBtn.addEventListener('click', () => {
+    const returnToManage = () => {
       dialog.close();
       renderHistory();
       if (!manageDialog.open) manageDialog.showModal();
-    });
-    fields.forEach(id => $(id).addEventListener('input', calculate));
+    };
+    closeBtn.addEventListener('click', returnToManage);
+    backBtn.addEventListener('click', returnToManage);
+    fields.forEach(id => $(id).addEventListener('input', event => {
+      digitsOnly(event.currentTarget);
+      calculate();
+    }));
     calculate();
   }
   function finalize(rows) {

@@ -7,7 +7,7 @@
   <title>THE FOOL QUEST</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./icon-maskable-192.png">
-  <link rel="stylesheet" href="./style.css?v=20260901-linkedit2">
+  <link rel="stylesheet" href="./style.css?v=20260901-review3">
 </head>
 <body>
   <main class="screen">
@@ -25,8 +25,9 @@
         </article>
 
         <div class="top-commands">
-          <button class="day-command pixel-frame" type="button" aria-label="14日後の日付">
-            <span>▶ Day+14</span><strong id="day14">--/--</strong>
+          <button class="day-command pixel-frame" type="button" aria-label="14日後と5日後の日付">
+            <span class="date-command-row"><span>▶ ＋14</span><strong id="day14">--/--</strong></span>
+            <span class="date-command-row"><span>　＋ 5</span><strong id="day5">--/--</strong></span>
           </button>
           <button id="goal-manage-open" class="manage-command pixel-frame" type="button">▶ 管理画面</button>
         </div>
@@ -68,7 +69,7 @@
         <h2 id="history-title">月別収益</h2>
         <div class="history-scroll">
           <table class="history-table">
-            <thead><tr><th>月</th><th>TikTok</th><th>Coupon</th><th>Total</th><th>Lv</th><th>状態</th></tr></thead>
+            <thead><tr><th>月</th><th>Lv</th><th>Total</th><th>TikTok</th><th>Coupon</th><th>状態</th></tr></thead>
             <tbody id="history-body"></tbody>
           </table>
         </div>
@@ -78,8 +79,13 @@
 
   <dialog id="verification-dialog" class="modal verification-dialog">
     <form method="dialog" class="verification-card">
+      <header class="verification-header">
+        <button id="verification-back" class="verification-back" type="button">＜ 管理画面</button>
+        <span id="verification-title" tabindex="-1">稼働数検証</span>
+        <span aria-hidden="true"></span>
+      </header>
       <section class="capacity-section pixel-frame" aria-label="保有台数と1日最大始動台数">
-        <label class="capacity-column"><span>保有台数</span><span class="compact-input"><input id="sim-owned" type="number" inputmode="numeric" min="0" max="999" value="200"><span>台</span></span></label>
+        <label class="capacity-column"><span>保有台数</span><span class="compact-input"><input id="sim-owned" class="numeric-only" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" value="200" autocomplete="off"><span>台</span></span></label>
         <div class="capacity-column"><span>1日最大始動台数</span><span class="compact-input output-input"><output id="sim-max-starts">8.69</output><span>台</span></span></div>
       </section>
 
@@ -87,9 +93,9 @@
         <h2>条件入力</h2>
         <div class="verification-fields">
           <div class="verification-row"><span>稼働日数</span><span class="fixed-value">14 日</span></div>
-          <label class="verification-row"><span>1台想定額</span><span class="compact-input"><input id="sim-amount" type="number" inputmode="numeric" min="0" max="9999" value="2000"><span>円</span></span></label>
-          <label class="verification-row rest-row"><span>休憩日数</span><span class="compact-input"><input id="sim-rest-days" type="number" inputmode="numeric" min="0" max="9999" value="9"><span>日</span><small id="sim-rest-hours">＝216時間</small></span></label>
-          <label class="verification-row"><span>始動台数／日</span><span class="compact-input"><input id="sim-starts" type="number" inputmode="numeric" min="0" max="9999" value="6"><span>台</span></span></label>
+          <label class="verification-row"><span>1台想定額</span><span class="compact-input"><input id="sim-amount" class="numeric-only" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="2000" autocomplete="off"><span>円</span></span></label>
+          <label class="verification-row rest-row"><span>休憩日数</span><span class="compact-input"><input id="sim-rest-days" class="numeric-only" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="9" autocomplete="off"><span>日</span><small id="sim-rest-hours">＝216時間</small></span></label>
+          <label class="verification-row"><span>始動台数／日</span><span class="compact-input"><input id="sim-starts" class="numeric-only" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="6" autocomplete="off"><span>台</span></span></label>
         </div>
       </section>
 
@@ -102,7 +108,7 @@
         </dl>
       </section>
 
-      <button id="verification-close" class="wide-button verification-bottom" type="button">▶ 稼働数検証</button>
+      <button id="verification-close" class="wide-button verification-bottom" type="button">▶ 管理画面へ戻る</button>
     </form>
   </dialog>
 
@@ -136,6 +142,6 @@
     </form>
   </dialog>
 
-  <script src="./app.js?v=20260901-linkedit2"></script>
+  <script src="./app.js?v=20260901-review3"></script>
 </body>
 </html>

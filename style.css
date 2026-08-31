@@ -34,6 +34,9 @@ button,a,input{font:inherit;color:inherit}
 .day-command{display:grid;grid-template-columns:1fr;grid-template-rows:auto auto;align-content:center;white-space:nowrap}
 .day-command span{display:block;width:100%;text-align:left;white-space:nowrap}
 .day-command strong{display:block;width:100%;text-align:right;white-space:nowrap}
+.day-command .date-command-row{display:grid;width:100%;grid-template-columns:auto minmax(0,1fr);align-items:center;column-gap:.3em}
+.day-command .date-command-row>span{width:auto}
+.day-command .date-command-row>strong{text-align:right}
 .manage-command{display:flex;justify-content:flex-start;background:var(--black)}
 .day-command strong{font-weight:400}
 .link-panel{padding:clamp(8px,1.2vw,18px);display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(6px,1vw,14px)}
@@ -116,6 +119,7 @@ button,a,input{font:inherit;color:inherit}
 .verification-card{width:min(100%,720px);min-height:100%;margin:0 auto;padding:18px 18px 28px;border:0;background:var(--black);color:var(--white)}
 .verification-header{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;padding:2px 0 14px;margin-bottom:18px;border-bottom:2px solid var(--white);font-size:24px}
 .verification-back{appearance:none;border:0;background:transparent;padding:0;text-align:left;font-size:18px;cursor:pointer;white-space:nowrap}
+#verification-title:focus{outline:none}
 .verification-section,.capacity-section,.verification-results{padding:22px 26px;margin-bottom:18px}
 .verification-section h2,.verification-results h2{margin:0 0 20px;font-size:22px;font-weight:400}
 .verification-fields{display:grid;gap:14px}
@@ -211,8 +215,7 @@ button,a,input{font:inherit;color:inherit}
 .link-input-row{display:grid;grid-template-columns:145px minmax(0,1fr);align-items:center;gap:10px;font-size:18px}
 .link-input-wrap{display:flex;align-items:center;border:2px solid var(--white);padding:4px 8px;min-width:0}
 .link-input-wrap input{width:100%;min-width:0;border:0;outline:0;background:var(--black);color:var(--white);font-size:17px;padding:6px 0}
-.verification-card{overflow-y:auto;padding-bottom:max(10px,env(safe-area-inset-bottom))}
-.verification-card>.capacity-section{margin-top:auto}
+.verification-card{overflow:hidden;padding-bottom:max(10px,env(safe-area-inset-bottom))}
 .verification-results{margin-bottom:8px}
 .verification-bottom{flex:0 0 auto;margin-top:0;margin-bottom:0}
 @media(max-width:520px){
