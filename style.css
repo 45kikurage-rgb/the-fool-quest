@@ -128,8 +128,6 @@ button,a,input{font:inherit;color:inherit}
 .rest-row>span:first-child{padding-top:10px}
 .rest-row .compact-input{grid-template-rows:auto auto}
 .rest-row small{grid-column:1/-1;text-align:right;font-size:16px;font-weight:400;white-space:nowrap}
-.sim-calculate{width:100%;min-height:52px;margin-top:20px;border:2px solid var(--blue);background:var(--black);font-size:20px;cursor:pointer}
-.sim-calculate:hover,.sim-calculate:focus-visible{background:var(--white);color:var(--black);outline:0}
 .capacity-section{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
 .capacity-column{display:grid;align-content:start;gap:14px;min-width:0;font-size:18px}
 .capacity-column+ .capacity-column{padding-left:20px;border-left:2px solid var(--white)}
@@ -170,4 +168,36 @@ button,a,input{font:inherit;color:inherit}
   .link-panel{gap:3px}
   .metric-line{column-gap:.18em}
   .verification-section,.capacity-section,.verification-results{padding-inline:13px}
+}
+
+/* compact one-screen verification layout */
+.verification-dialog{overflow:hidden}
+.verification-card{height:100dvh;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+@media(max-width:520px){
+  .verification-card{padding:8px 10px 10px}
+  .verification-header{flex:0 0 auto;margin-bottom:8px;padding:0 0 8px;font-size:22px;line-height:1.25}
+  .verification-back{font-size:16px}
+  .verification-section,.capacity-section,.verification-results{flex:0 0 auto;margin-bottom:8px;padding:10px 14px}
+  .verification-section h2,.verification-results h2{margin:0 0 8px;font-size:20px;line-height:1.2}
+  .verification-results dl>div{min-height:38px;padding:6px 3px}
+  .verification-results dt{font-size:17px}
+  .verification-results dd{font-size:20px}
+  .verification-fields{gap:5px}
+  .verification-row{min-height:36px;font-size:17px;line-height:1.2}
+  .fixed-value{min-width:116px;font-size:19px}
+  .compact-input{grid-template-columns:76px auto;min-width:116px;font-size:17px}
+  .compact-input input,.output-input output{width:76px;min-height:36px;padding:3px 7px;font-size:19px}
+  .rest-row>span:first-child{padding-top:7px}
+  .rest-row small{font-size:14px;line-height:1.1}
+  .capacity-section{padding-block:10px;gap:10px}
+  .capacity-column{gap:7px;font-size:15px;line-height:1.2;white-space:nowrap}
+  .capacity-column+ .capacity-column{padding-left:10px}
+  .capacity-column .compact-input{grid-template-columns:minmax(54px,70px) auto;font-size:16px}
+  .capacity-column .compact-input input,.capacity-column .output-input output{width:70px;min-height:36px;font-size:18px}
+}
+@media(max-width:380px){
+  .verification-card{padding-inline:7px}
+  .verification-section,.capacity-section,.verification-results{padding-inline:10px}
+  .verification-row{font-size:16px}
+  .capacity-column{font-size:14px}
 }

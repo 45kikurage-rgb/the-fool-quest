@@ -82,22 +82,6 @@
         <span aria-hidden="true"></span>
       </header>
 
-      <section class="verification-section pixel-frame">
-        <h2>条件入力</h2>
-        <div class="verification-fields">
-          <div class="verification-row"><span>稼働日数</span><span class="fixed-value">14 日</span></div>
-          <label class="verification-row"><span>1台想定額</span><span class="compact-input"><input id="sim-amount" type="number" inputmode="numeric" min="0" max="9999" value="2000"><span>円</span></span></label>
-          <label class="verification-row rest-row"><span>休憩日数</span><span class="compact-input"><input id="sim-rest-days" type="number" inputmode="numeric" min="0" max="9999" value="9"><span>日</span><small id="sim-rest-hours">＝216時間</small></span></label>
-          <label class="verification-row"><span>始動台数／日</span><span class="compact-input"><input id="sim-starts" type="number" inputmode="numeric" min="0" max="9999" value="6"><span>台</span></span></label>
-        </div>
-        <button id="sim-calculate" class="sim-calculate" type="button">▶ 計算する</button>
-      </section>
-
-      <section class="capacity-section pixel-frame" aria-label="保有台数と1日最大始動台数">
-        <label class="capacity-column"><span>保有台数</span><span class="compact-input"><input id="sim-owned" type="number" inputmode="numeric" min="0" max="999" value="200"><span>台</span></span></label>
-        <div class="capacity-column"><span>1日最大始動台数</span><span class="compact-input output-input"><output id="sim-max-starts">8.69</output><span>台</span></span></div>
-      </section>
-
       <section class="verification-results pixel-frame">
         <h2>検証結果</h2>
         <dl>
@@ -106,6 +90,22 @@
           <div><dt>最大同時稼働</dt><dd id="sim-max-active">84台</dd></div>
         </dl>
       </section>
+
+      <section class="verification-section pixel-frame">
+        <h2>条件入力</h2>
+        <div class="verification-fields">
+          <div class="verification-row"><span>稼働日数</span><span class="fixed-value">14 日</span></div>
+          <label class="verification-row"><span>1台想定額</span><span class="compact-input"><input id="sim-amount" type="number" inputmode="numeric" min="0" max="9999" value="2000"><span>円</span></span></label>
+          <label class="verification-row rest-row"><span>休憩日数</span><span class="compact-input"><input id="sim-rest-days" type="number" inputmode="numeric" min="0" max="9999" value="9"><span>日</span><small id="sim-rest-hours">＝216時間</small></span></label>
+          <label class="verification-row"><span>始動台数／日</span><span class="compact-input"><input id="sim-starts" type="number" inputmode="numeric" min="0" max="9999" value="6"><span>台</span></span></label>
+        </div>
+      </section>
+
+      <section class="capacity-section pixel-frame" aria-label="保有台数と1日最大始動台数">
+        <label class="capacity-column"><span>保有台数</span><span class="compact-input"><input id="sim-owned" type="number" inputmode="numeric" min="0" max="999" value="200"><span>台</span></span></label>
+        <div class="capacity-column"><span>1日最大始動台数</span><span class="compact-input output-input"><output id="sim-max-starts">8.69</output><span>台</span></span></div>
+      </section>
+
     </form>
   </dialog>
 

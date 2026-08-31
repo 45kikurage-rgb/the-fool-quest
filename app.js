@@ -223,10 +223,9 @@
       const owned = clampInput('sim-owned', 999);
       const cycleDays = workDays + restDays;
       const maxStarts = cycleDays > 0 ? owned / cycleDays : 0;
-      const actualStarts = Math.min(requestedStarts, maxStarts);
-      const daily = actualStarts * amount;
+      const daily = requestedStarts * amount;
       const monthly = daily * 30;
-      const maxActive = Math.min(owned, actualStarts * workDays);
+      const maxActive = requestedStarts * workDays;
 
       $('sim-rest-hours').textContent = `＝${(restDays * 24).toLocaleString('ja-JP')}時間`;
       $('sim-max-starts').textContent = maxStarts.toFixed(2);
@@ -245,7 +244,6 @@
       renderHistory();
       manageDialog.showModal();
     });
-    $('sim-calculate').addEventListener('click', calculate);
     fields.forEach(id => $(id).addEventListener('input', calculate));
     calculate();
   }
