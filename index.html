@@ -7,7 +7,7 @@
   <title>THE FOOL QUEST</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./icon-maskable-192.png">
-  <link rel="stylesheet" href="./style.css?v=20260901-linkedit1">
+  <link rel="stylesheet" href="./style.css?v=20260901-linkedit2">
 </head>
 <body>
   <main class="screen">
@@ -102,6 +102,23 @@
         </dl>
       </section>
 
+      <button id="verification-close" class="wide-button verification-bottom" type="button">▶ 稼働数検証</button>
+    </form>
+  </dialog>
+
+  <dialog id="link-manage-dialog" class="modal">
+    <form method="dialog" class="modal-card pixel-frame link-manage-card">
+      <header class="modal-title">
+        <span>リンク修正</span>
+        <button class="modal-close" value="cancel" aria-label="閉じる">×</button>
+      </header>
+      <div id="link-inputs" class="link-inputs"></div>
+      <div id="link-manage-message" class="goal-message" aria-live="polite"></div>
+      <div class="goal-actions">
+        <button id="link-reset-btn" class="secondary" type="button">初期値</button>
+        <button class="secondary" value="cancel">キャンセル</button>
+        <button id="link-save-btn" class="primary" type="button">保存</button>
+      </div>
     </form>
   </dialog>
 
@@ -119,6 +136,6 @@
     </form>
   </dialog>
 
-  <script src="./app.js?v=20260901-linkedit1"></script>
+  <script src="./app.js?v=20260901-linkedit2"></script>
 </body>
 </html>

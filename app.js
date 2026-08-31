@@ -219,6 +219,7 @@
 
   function setupLinks() {
     const dialog = $('link-manage-dialog');
+    const manageDialog = $('goal-manage-dialog');
     const message = $('link-manage-message');
     const readLinks = () => ({ ...DEFAULT_LINKS, ...load(KEY.links, {}) });
     const applyLinks = links => {
@@ -238,9 +239,24 @@
     };
     let links = readLinks();
     applyLinks(links);
-    $('link-manage-open').addEventListener('click', () => { fill(links); message.textContent=''; dialog.showModal(); });
-    $('link-reset-btn').addEventListener('click', () => { fill(DEFAULT_LINKS); message.textContent='初期値を入力しました'; });
-    $('link-save-btn').addEventListener('click', () => {
+    const openBtn = $('link-manage-open');
+    const resetBtn = $('link-reset-btn');
+    const saveBtn = $('link-save-btn');
+    if (!dialog || !message || !openBtn || !resetBtn || !saveBtn || !$('link-inputs')) {
+      console.error('Link editor UI is incomplete');
+      return;
+    }
+    openBtn.addEventListener('click', () => {
+      fill(links);
+      message.textContent='';
+      if (manageDialog?.open) manageDialog.close();
+      dialog.showModal();
+    });
+    dialog.addEventListener('close', () => {
+      if (!manageDialog?.open) { renderHistory(); manageDialog?.showModal(); }
+    });
+    resetBtn.addEventListener('click', () => { fill(DEFAULT_LINKS); message.textContent='初期値を入力しました'; });
+    saveBtn.addEventListener('click', () => {
       const next = {};
       for (const key of Object.keys(DEFAULT_LINKS)) {
         const value = String($(`link-${key}`).value || '').trim();
@@ -288,15 +304,21 @@
       $('sim-max-active').textContent = `${Math.floor(maxActive).toLocaleString('ja-JP')}台`;
     };
 
-    $('verification-open').addEventListener('click', () => {
-      manageDialog.close();
+    const openBtn = $('verification-open');
+    const closeBtn = $('verification-close');
+    if (!dialog || !manageDialog || !openBtn || !closeBtn) {
+      console.error('Verification UI is incomplete');
+      return;
+    }
+    openBtn.addEventListener('click', () => {
       calculate();
+      manageDialog.close();
       dialog.showModal();
     });
-    $('verification-close').addEventListener('click', () => {
+    closeBtn.addEventListener('click', () => {
       dialog.close();
       renderHistory();
-      manageDialog.showModal();
+      if (!manageDialog.open) manageDialog.showModal();
     });
     fields.forEach(id => $(id).addEventListener('input', calculate));
     calculate();
