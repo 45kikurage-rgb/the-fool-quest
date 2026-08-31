@@ -5,11 +5,22 @@
     goals: { total: 1000000, tiktok: 500000, coupon: 500000 },
     metrics: [['total','Total'],['tiktok','TikTok'],['coupon','Coupon']]
   };
+  const DEFAULT_LINKS = {
+    assets: 'https://assets-management-8os.pages.dev',
+    action: 'https://the-fool-head.45kikurage.workers.dev',
+    text: 'https://45kikurage-rgb.github.io/copy-paste',
+    win: 'https://winning-url-manager.45kikurage.workers.dev',
+    capture: 'https://coupon-capture.45kikurage.workers.dev',
+    image: 'https://yahoo-framev2.45kikurage.workers.dev',
+    summary: 'https://lit.link/admin/creator/edit'
+  };
+  const LINK_LABELS = { assets:'ASSET MANAGER', action:'ACTION TOOL', text:'TEXT FORMAT', win:'WIN LINK MANAGER', capture:'URL CAPTURE', image:'IMAGE EDITOR', summary:'LINK SUMMARY' };
+
   const KEY = {
     tiktok: 'tfq_tiktok', csv: 'tfq_tiktok_csv_meta',
     coupon: 'foolQuestCouponRevenueLastGood', couponMeta: 'foolQuestCouponRevenueLastGoodMeta',
     goals: 'foolQuestGoalAmounts', monthly: 'foolQuestMonthlyRevenueV1',
-    simulation: 'foolQuestOperationSimulationV1'
+    simulation: 'foolQuestOperationSimulationV1', links: 'foolQuestPortalLinksV1'
   };
   const $ = id => document.getElementById(id);
   const json = (raw, fallback) => { try { return JSON.parse(raw) ?? fallback; } catch { return fallback; } };
@@ -206,6 +217,41 @@
     });
   }
 
+  function setupLinks() {
+    const dialog = $('link-manage-dialog');
+    const message = $('link-manage-message');
+    const readLinks = () => ({ ...DEFAULT_LINKS, ...load(KEY.links, {}) });
+    const applyLinks = links => {
+      document.querySelectorAll('[data-link-key]').forEach(anchor => {
+        const key = anchor.dataset.linkKey;
+        anchor.href = links[key] || DEFAULT_LINKS[key];
+      });
+    };
+    const fill = links => {
+      $('link-inputs').innerHTML = Object.keys(DEFAULT_LINKS).map(key => `
+        <label class="link-input-row"><span>${LINK_LABELS[key]}</span><span class="link-input-wrap">
+          <input id="link-${key}" type="url" inputmode="url" value="${String(links[key] || DEFAULT_LINKS[key]).replace(/&/g,'&amp;').replace(/"/g,'&quot;')}">
+        </span></label>`).join('');
+    };
+    const validUrl = value => {
+      try { const u = new URL(value); return u.protocol === 'http:' || u.protocol === 'https:'; } catch { return false; }
+    };
+    let links = readLinks();
+    applyLinks(links);
+    $('link-manage-open').addEventListener('click', () => { fill(links); message.textContent=''; dialog.showModal(); });
+    $('link-reset-btn').addEventListener('click', () => { fill(DEFAULT_LINKS); message.textContent='初期値を入力しました'; });
+    $('link-save-btn').addEventListener('click', () => {
+      const next = {};
+      for (const key of Object.keys(DEFAULT_LINKS)) {
+        const value = String($(`link-${key}`).value || '').trim();
+        if (!validUrl(value)) { message.textContent = `${LINK_LABELS[key]} のURLを確認してください`; return; }
+        next[key] = value;
+      }
+      links = next; save(KEY.links, links); applyLinks(links); message.textContent='保存しました ✓';
+      setTimeout(() => dialog.close(), 450);
+    });
+  }
+
   function setupVerification() {
     const dialog = $('verification-dialog');
     const manageDialog = $('goal-manage-dialog');
@@ -247,7 +293,7 @@
       calculate();
       dialog.showModal();
     });
-    $('verification-back').addEventListener('click', () => {
+    $('verification-close').addEventListener('click', () => {
       dialog.close();
       renderHistory();
       manageDialog.showModal();
@@ -281,7 +327,7 @@
     }catch(error){console.error('Coupon revenue sync failed; keeping last good value:',error);}
   }
 
-  initializeMonth();buildUi();setupCsv();setupGoals();setupVerification();renderAll();syncCoupon();
+  initializeMonth();buildUi();setupCsv();setupGoals();setupLinks();setupVerification();renderAll();syncCoupon();
   setInterval(()=>{checkMonth();renderAll();},60000);
   setInterval(syncCoupon,600000);
   if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));
