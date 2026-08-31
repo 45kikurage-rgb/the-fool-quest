@@ -91,7 +91,8 @@
   }
 
   function buildUi() {
-    $('metrics').innerHTML = CONFIG.metrics.map(([name,label]) => `
+    CONFIG.metrics.forEach(([name,label]) => {
+      $(`metric-${name}`).innerHTML = `
       <div class="metric"><div class="metric-line">
         <div class="metric-label">${label}:</div>
         <div class="metric-achieved"><b id="${name}-value">¥0</b></div>
@@ -99,7 +100,8 @@
       </div><div class="gauge-wrap"><div class="gauge">
         <div id="${name}-bar" class="gauge-fill"></div>
         <span id="${name}-percent" class="gauge-percent">0.0%</span>
-      </div><span id="${name}-flame" class="gauge-flame" hidden>🔥</span></div></div>`).join('');
+      </div><span id="${name}-flame" class="gauge-flame" hidden>🔥</span></div></div>`;
+    });
     $('goal-inputs').innerHTML = CONFIG.metrics.map(([name,label]) => `
       <label class="goal-input-row"><span>${label}</span><span class="goal-input-wrap">
         <span>¥</span><input id="goal-${name}-input" type="number" inputmode="numeric" min="1" step="1000" ${name === 'total' ? 'readonly aria-readonly="true"' : ''}>
@@ -202,6 +204,51 @@
       setTimeout(()=>dialog.close(),450);
     });
   }
+
+  function setupVerification() {
+    const dialog = $('verification-dialog');
+    const manageDialog = $('goal-manage-dialog');
+    const fields = ['sim-amount','sim-rest-days','sim-starts','sim-owned'];
+    const clampInput = (id, max) => {
+      const input = $(id);
+      const value = Math.max(0, Math.min(max, Math.trunc(Number(input.value) || 0)));
+      input.value = String(value);
+      return value;
+    };
+    const calculate = () => {
+      const workDays = 14;
+      const amount = clampInput('sim-amount', 9999);
+      const restDays = clampInput('sim-rest-days', 9999);
+      const requestedStarts = clampInput('sim-starts', 9999);
+      const owned = clampInput('sim-owned', 999);
+      const cycleDays = workDays + restDays;
+      const maxStarts = cycleDays > 0 ? owned / cycleDays : 0;
+      const actualStarts = Math.min(requestedStarts, maxStarts);
+      const daily = actualStarts * amount;
+      const monthly = daily * 30;
+      const maxActive = Math.min(owned, actualStarts * workDays);
+
+      $('sim-rest-hours').textContent = `＝${(restDays * 24).toLocaleString('ja-JP')}時間`;
+      $('sim-max-starts').textContent = maxStarts.toFixed(2);
+      $('sim-daily').textContent = money(daily);
+      $('sim-monthly').textContent = money(monthly);
+      $('sim-max-active').textContent = `${Math.floor(maxActive).toLocaleString('ja-JP')}台`;
+    };
+
+    $('verification-open').addEventListener('click', () => {
+      manageDialog.close();
+      calculate();
+      dialog.showModal();
+    });
+    $('verification-back').addEventListener('click', () => {
+      dialog.close();
+      renderHistory();
+      manageDialog.showModal();
+    });
+    $('sim-calculate').addEventListener('click', calculate);
+    fields.forEach(id => $(id).addEventListener('input', calculate));
+    calculate();
+  }
   function finalize(rows) {
     const cutoff=jst().day>=6?previousMonth(state.month):previousMonth(previousMonth(state.month));
     rows.forEach(row=>{
@@ -228,7 +275,7 @@
     }catch(error){console.error('Coupon revenue sync failed; keeping last good value:',error);}
   }
 
-  initializeMonth();buildUi();setupCsv();setupGoals();renderAll();syncCoupon();
+  initializeMonth();buildUi();setupCsv();setupGoals();setupVerification();renderAll();syncCoupon();
   setInterval(()=>{checkMonth();renderAll();},60000);
   setInterval(syncCoupon,600000);
   if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));

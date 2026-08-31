@@ -7,40 +7,44 @@
   <title>THE FOOL QUEST</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./icon-maskable-192.png">
-  <link rel="stylesheet" href="./style.css?v=20260830-clean1">
+  <link rel="stylesheet" href="./style.css?v=20260831-layout2">
 </head>
 <body>
   <main class="screen">
     <header class="logo-image" aria-label="THE FOOL QUEST"></header>
 
     <section class="dashboard">
-      <article class="status-panel pixel-frame">
-        <header class="character-row">
-          <button id="open-csv" class="name-command" type="button" aria-label="CSVアップデートを開く">あるの</button>
-          <span>Lv <strong id="level">00</strong></span>
-        </header>
-        <div class="rule"></div>
+      <div class="overview-grid">
+        <article class="status-panel total-panel pixel-frame">
+          <header class="character-row">
+            <button id="open-csv" class="name-command" type="button" aria-label="CSVアップデートを開く">あるの</button>
+            <span>Lv <strong id="level">00</strong></span>
+          </header>
+          <div class="rule"></div>
+          <div id="metric-total"></div>
+        </article>
 
-        <div id="metrics"></div>
-      </article>
-
-      <div class="commands">
         <div class="top-commands">
-        <button class="day-command pixel-frame" type="button" aria-label="14日後の日付">
-          <span>▶ Day+14</span><strong id="day14">--/--</strong>
-        </button>
-        <button id="goal-manage-open" class="manage-command pixel-frame" type="button">▶ 管理</button>
+          <button class="day-command pixel-frame" type="button" aria-label="14日後の日付">
+            <span>▶ Day+14</span><strong id="day14">--/--</strong>
+          </button>
+          <button id="goal-manage-open" class="manage-command pixel-frame" type="button">▶ 管理画面</button>
         </div>
-
-        <nav class="link-panel pixel-frame" aria-label="ポータルリンク">
-          <a href="https://assets-management-8os.pages.dev" class="command"><span class="command-arrow">▶</span><span class="command-copy"><span>ASSET</span><span>MANAGER</span></span></a>
-          <a href="https://winning-url-manager.45kikurage.workers.dev" class="command"><span class="command-arrow">▶</span><span class="command-copy"><span>WIN LINK</span><span>MANAGER</span></span></a>
-          <a href="https://the-fool-head.45kikurage.workers.dev" class="command"><span class="command-arrow">▶</span><span class="command-copy"><span>ACTION</span><span>TOOL</span></span></a>
-          <a href="https://coupon-capture.45kikurage.workers.dev" class="command"><span class="command-arrow">▶</span><span class="command-copy"><span>URL</span><span>CAPTURE</span></span></a>
-          <a href="https://45kikurage-rgb.github.io/copy-paste" class="command"><span class="command-arrow">▶</span><span class="command-copy"><span>TEXT</span><span>FORMAT</span></span></a>
-          <a href="https://yahoo-framev2.45kikurage.workers.dev" class="command"><span class="command-arrow">▶</span><span class="command-copy"><span>IMAGE</span><span>EDITOR</span></span></a>
-        </nav>
       </div>
+
+      <section class="middle-metrics" aria-label="収益状況">
+        <article id="metric-tiktok" class="metric-panel pixel-frame"></article>
+        <article id="metric-coupon" class="metric-panel pixel-frame"></article>
+      </section>
+
+      <nav class="link-panel pixel-frame" aria-label="ポータルリンク">
+        <a href="https://assets-management-8os.pages.dev" class="command"><span class="command-arrow">▶</span><span class="command-copy"><span>ASSET</span><span>MANAGER</span></span></a>
+        <a href="https://the-fool-head.45kikurage.workers.dev" class="command"><span class="command-arrow">▶</span><span class="command-copy"><span>ACTION</span><span>TOOL</span></span></a>
+        <a href="https://45kikurage-rgb.github.io/copy-paste" class="command"><span class="command-arrow">▶</span><span class="command-copy"><span>TEXT</span><span>FORMAT</span></span></a>
+        <a href="https://winning-url-manager.45kikurage.workers.dev" class="command"><span class="command-arrow">▶</span><span class="command-copy"><span>WIN LINK</span><span>MANAGER</span></span></a>
+        <a href="https://coupon-capture.45kikurage.workers.dev" class="command"><span class="command-arrow">▶</span><span class="command-copy"><span>URL</span><span>CAPTURE</span></span></a>
+        <a href="https://yahoo-framev2.45kikurage.workers.dev" class="command"><span class="command-arrow">▶</span><span class="command-copy"><span>IMAGE</span><span>EDITOR</span></span></a>
+      </nav>
     </section>
   </main>
 
@@ -57,6 +61,7 @@
         <button class="secondary" value="cancel">キャンセル</button>
         <button id="goal-save-btn" class="primary" type="button">保存</button>
       </div>
+      <button id="verification-open" class="wide-button verification-open" type="button">▶ 検証</button>
       <section class="history-section" aria-labelledby="history-title">
         <h2 id="history-title">月別収益</h2>
         <div class="history-scroll">
@@ -65,6 +70,41 @@
             <tbody id="history-body"></tbody>
           </table>
         </div>
+      </section>
+    </form>
+  </dialog>
+
+  <dialog id="verification-dialog" class="modal verification-dialog">
+    <form method="dialog" class="verification-card">
+      <header class="verification-header">
+        <button id="verification-back" class="verification-back" type="button">＜ 管理画面</button>
+        <span>稼働検証</span>
+        <span aria-hidden="true"></span>
+      </header>
+
+      <section class="verification-section pixel-frame">
+        <h2>条件入力</h2>
+        <div class="verification-fields">
+          <div class="verification-row"><span>稼働日数</span><span class="fixed-value">14 日</span></div>
+          <label class="verification-row"><span>1台想定額</span><span class="compact-input"><input id="sim-amount" type="number" inputmode="numeric" min="0" max="9999" value="2000"><span>円</span></span></label>
+          <label class="verification-row rest-row"><span>休憩日数</span><span class="compact-input"><input id="sim-rest-days" type="number" inputmode="numeric" min="0" max="9999" value="9"><span>日</span><small id="sim-rest-hours">＝216時間</small></span></label>
+          <label class="verification-row"><span>始動台数／日</span><span class="compact-input"><input id="sim-starts" type="number" inputmode="numeric" min="0" max="9999" value="6"><span>台</span></span></label>
+        </div>
+        <button id="sim-calculate" class="sim-calculate" type="button">▶ 計算する</button>
+      </section>
+
+      <section class="capacity-section pixel-frame" aria-label="保有台数と1日最大始動台数">
+        <label class="capacity-column"><span>保有台数</span><span class="compact-input"><input id="sim-owned" type="number" inputmode="numeric" min="0" max="999" value="200"><span>台</span></span></label>
+        <div class="capacity-column"><span>1日最大始動台数</span><span class="compact-input output-input"><output id="sim-max-starts">8.69</output><span>台</span></span></div>
+      </section>
+
+      <section class="verification-results pixel-frame">
+        <h2>検証結果</h2>
+        <dl>
+          <div><dt>1日収益</dt><dd id="sim-daily">¥12,000</dd></div>
+          <div><dt>月間収益</dt><dd id="sim-monthly">¥360,000</dd></div>
+          <div><dt>最大同時稼働</dt><dd id="sim-max-active">84台</dd></div>
+        </dl>
       </section>
     </form>
   </dialog>
@@ -83,6 +123,6 @@
     </form>
   </dialog>
 
-  <script src="./app.js?v=20260830-clean1"></script>
+  <script src="./app.js?v=20260831-layout2"></script>
 </body>
 </html>
