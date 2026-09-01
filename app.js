@@ -20,7 +20,8 @@
     tiktok: 'tfq_tiktok', csv: 'tfq_tiktok_csv_meta',
     coupon: 'foolQuestCouponRevenueLastGood', couponMeta: 'foolQuestCouponRevenueLastGoodMeta',
     goals: 'foolQuestGoalAmounts', monthly: 'foolQuestMonthlyRevenueV1',
-    simulation: 'foolQuestOperationSimulationV1', links: 'foolQuestPortalLinksV1'
+    simulation: 'foolQuestOperationSimulationV1', links: 'foolQuestPortalLinksV1',
+    tiktokManual: 'foolQuestTiktokManualChargesV1'
   };
   const $ = id => document.getElementById(id);
   const json = (raw, fallback) => { try { return JSON.parse(raw) ?? fallback; } catch { return fallback; } };
@@ -57,8 +58,12 @@
 
   const state = {
     month: monthKey(jst()), goals: readGoals(), monthly: load(KEY.monthly),
-    tiktok: 0, coupon: 0
+    manualCharges: load(KEY.tiktokManual, []), tiktokCsv: 0, tiktok: 0, coupon: 0
   };
+  if (!Array.isArray(state.manualCharges)) state.manualCharges = [];
+  const manualTotal = month => state.manualCharges
+    .filter(entry => String(entry?.date || '').slice(0, 7) === month)
+    .reduce((sum, entry) => sum + Math.max(0, Number(entry.amount) || 0), 0);
   function legacyNumber(key) {
     try { const n = Number(localStorage.getItem(key)); return Number.isFinite(n) && n >= 0 ? n : 0; }
     catch { return 0; }
@@ -66,7 +71,7 @@
   function persistCurrent() {
     state.monthly[state.month] = {
       ...(state.monthly[state.month] || {}), month: state.month,
-      tiktok: state.tiktok, coupon: state.coupon,
+      tiktokCsv: state.tiktokCsv, tiktok: state.tiktok, coupon: state.coupon,
       updatedAt: new Date().toISOString(), finalized: false
     };
     save(KEY.monthly, state.monthly);
@@ -74,15 +79,18 @@
   function initializeMonth() {
     const record = state.monthly[state.month];
     if (record) {
-      state.tiktok = Math.max(0, Number(record.tiktok) || 0);
+      state.tiktokCsv = Math.max(0, Number(record.tiktokCsv ?? record.tiktok) || 0);
+      state.tiktok = state.tiktokCsv + manualTotal(state.month);
       state.coupon = Math.max(0, Number(record.coupon) || 0);
+      persistCurrent();
       return;
     }
     const meta = load(KEY.couponMeta), csvMeta = load(KEY.csv);
     const hasMonthlyHistory = Object.keys(state.monthly).length > 0;
-    state.tiktok = !hasMonthlyHistory || normalizeMonth(csvMeta.month) === state.month
+    state.tiktokCsv = !hasMonthlyHistory || normalizeMonth(csvMeta.month) === state.month
       ? legacyNumber(KEY.tiktok)
       : 0;
+    state.tiktok = state.tiktokCsv + manualTotal(state.month);
     state.coupon = normalizeMonth(meta.month) === state.month ? Math.max(0, Number(meta.value) || 0) : 0;
     persistCurrent();
   }
@@ -90,7 +98,9 @@
     const current = monthKey(jst());
     if (current === state.month) return;
     state.month = current;
-    state.tiktok = Math.max(0, Number(state.monthly[current]?.tiktok) || 0);
+    const record = state.monthly[current];
+    state.tiktokCsv = Math.max(0, Number(record?.tiktokCsv ?? record?.tiktok) || 0);
+    state.tiktok = state.tiktokCsv + manualTotal(current);
     state.coupon = Math.max(0, Number(state.monthly[current]?.coupon) || 0);
     persistCurrent();
     renderAll();
@@ -106,7 +116,9 @@
     CONFIG.metrics.forEach(([name,label]) => {
       $(`metric-${name}`).innerHTML = `
       <div class="metric"><div class="metric-line">
-        <div class="metric-label">${label}:</div>
+        ${name === 'tiktok'
+          ? `<button id="open-tiktok-manual" class="metric-label metric-label-button" type="button" aria-label="TikTokチャージを手動追加">${label}:</button>`
+          : `<div class="metric-label">${label}:</div>`}
         <div class="metric-achieved"><b id="${name}-value">¥0</b></div>
         <div id="${name}-target" class="metric-target"></div>
       </div><div class="gauge-wrap"><div class="gauge">
@@ -131,12 +143,18 @@
   }
   function renderMetric(name) {
     const value = valueOf(name), goal = state.goals[name], percent = goal > 0 ? value / goal * 100 : 0;
-    const date = jst(), pace = value >= goal * date.day / date.days;
+    const date = jst(), expected = goal * date.day / date.days;
+    const pacePercent = expected > 0 ? value / expected * 100 : 100;
+    const paceClass = pacePercent >= 100 ? 'pace-ontrack'
+      : pacePercent >= 80 ? 'pace-yellow'
+      : pacePercent >= 60 ? 'pace-light-red'
+      : 'pace-dark-red';
+    const panel = name === 'total' ? document.querySelector('.total-panel') : $(`metric-${name}`);
+    ['pace-ontrack','pace-yellow','pace-light-red','pace-dark-red'].forEach(className => panel?.classList.remove(className));
+    panel?.classList.add(paceClass);
     $(`${name}-value`).textContent = money(value);
     $(`${name}-target`).textContent = `/ ${money(goal)}`;
     $(`${name}-bar`).style.width = `${Math.min(100, Math.max(0, percent))}%`;
-    $(`${name}-bar`).classList.toggle('pace-ok', pace);
-    $(`${name}-bar`).classList.toggle('pace-behind', !pace);
     $(`${name}-percent`).textContent = `${percent.toFixed(1)}%`;
     $(`${name}-flame`).hidden = !(value > goal);
   }
@@ -169,7 +187,9 @@
       const value=Number(String(row[column]??'').replace(/,/g,'').trim());
       if(Number.isFinite(value)){total+=Math.abs(value);count++;}
     });
-    state.tiktok=total; save(KEY.tiktok,String(total));
+    state.tiktokCsv=total;
+    state.tiktok=state.tiktokCsv+manualTotal(state.month);
+    save(KEY.tiktok,String(total));
     save(KEY.csv,{fileName,count,month:state.month,importedAt:new Date().toISOString()});
     persistCurrent(); renderAll();
     return {total,count};
@@ -187,6 +207,81 @@
       try{const data=importCsv(await file.text(),file.name);result.className='csv-result success';result.textContent=`更新完了\n${money(data.total)}（${data.count}件）`;}
       catch(error){result.className='csv-result';result.textContent=`読込エラー：${error.message}`;}
       finally{input.value='';}
+    });
+  }
+
+  function setupTiktokManual() {
+    const dialog = $('tiktok-manual-dialog');
+    const dateInput = $('tiktok-manual-date');
+    const amountInput = $('tiktok-manual-amount');
+    const message = $('tiktok-manual-message');
+    const history = $('tiktok-manual-history');
+    const todayValue = () => {
+      const today = jst();
+      return `${today.year}-${String(today.month).padStart(2,'0')}-${String(today.day).padStart(2,'0')}`;
+    };
+    const sanitizeAmount = () => {
+      amountInput.value = String(amountInput.value || '').replace(/\D/g, '').slice(0, 9);
+    };
+    const recalculateMonth = month => {
+      const old = state.monthly[month] || { month, coupon: 0 };
+      const csvBase = month === state.month
+        ? state.tiktokCsv
+        : Math.max(0, Number(old.tiktokCsv ?? old.tiktok) || 0);
+      const tiktok = csvBase + manualTotal(month);
+      state.monthly[month] = { ...old, month, tiktokCsv: csvBase, tiktok, updatedAt: new Date().toISOString() };
+      if (month === state.month) state.tiktok = tiktok;
+      save(KEY.monthly, state.monthly);
+    };
+    const renderManualHistory = () => {
+      const entries = [...state.manualCharges].sort((a, b) => String(b.date).localeCompare(String(a.date)) || String(b.id).localeCompare(String(a.id)));
+      history.innerHTML = entries.length ? `<div class="manual-history-list">${entries.map(entry => `
+        <div class="manual-history-row">
+          <span>${String(entry.date).replace(/-/g, '/')}</span>
+          <strong>${money(entry.amount)}</strong>
+          <button class="manual-history-delete" type="button" data-manual-delete="${entry.id}" aria-label="${entry.date}の手動追加を削除">削除</button>
+        </div>`).join('')}</div>` : '<div class="manual-history-empty">手動追加はありません</div>';
+    };
+    $('open-tiktok-manual').addEventListener('click', () => {
+      dateInput.value = todayValue();
+      amountInput.value = '';
+      message.textContent = '';
+      renderManualHistory();
+      dialog.showModal();
+    });
+    amountInput.addEventListener('input', sanitizeAmount);
+    $('tiktok-manual-add').addEventListener('click', () => {
+      sanitizeAmount();
+      const date = dateInput.value;
+      const amount = Math.trunc(Number(amountInput.value));
+      if (!/^20\d{2}-\d{2}-\d{2}$/.test(date) || Number.isNaN(Date.parse(`${date}T00:00:00Z`))) {
+        message.textContent = '日付を確認してください';
+        return;
+      }
+      if (!Number.isFinite(amount) || amount < 1) {
+        message.textContent = '金額を1円以上で入力してください';
+        return;
+      }
+      const id = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      state.manualCharges.push({ id, date, amount, createdAt: new Date().toISOString() });
+      save(KEY.tiktokManual, state.manualCharges);
+      recalculateMonth(date.slice(0, 7));
+      amountInput.value = '';
+      message.textContent = `${money(amount)}を追加しました ✓`;
+      renderManualHistory();
+      renderAll();
+    });
+    history.addEventListener('click', event => {
+      const button = event.target.closest('[data-manual-delete]');
+      if (!button) return;
+      const entry = state.manualCharges.find(item => item.id === button.dataset.manualDelete);
+      if (!entry || !confirm(`${entry.date.replace(/-/g, '/')} の ${money(entry.amount)} を削除しますか？`)) return;
+      state.manualCharges = state.manualCharges.filter(item => item.id !== entry.id);
+      save(KEY.tiktokManual, state.manualCharges);
+      recalculateMonth(entry.date.slice(0, 7));
+      message.textContent = '削除しました';
+      renderManualHistory();
+      renderAll();
     });
   }
 
@@ -368,7 +463,7 @@
     }catch(error){console.error('Coupon revenue sync failed; keeping last good value:',error);}
   }
 
-  initializeMonth();buildUi();setupCsv();setupGoals();setupLinks();setupVerification();renderAll();syncCoupon();
+  initializeMonth();buildUi();setupCsv();setupTiktokManual();setupGoals();setupLinks();setupVerification();renderAll();syncCoupon();
   setInterval(()=>{checkMonth();renderAll();},60000);
   setInterval(syncCoupon,600000);
   if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));

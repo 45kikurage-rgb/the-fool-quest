@@ -7,7 +7,7 @@
   <title>THE FOOL QUEST</title>
   <link rel="manifest" href="./manifest.webmanifest?v=20260901-white-mask2">
   <link rel="apple-touch-icon" href="./icon-any-192.png?v=20260901-dragon-icon1">
-  <link rel="stylesheet" href="./style.css?v=20260901-dragon-icon1">
+  <link rel="stylesheet" href="./style.css?v=20260901-pace-frame1">
 </head>
 <body>
   <main class="screen">
@@ -142,6 +142,32 @@
     </form>
   </dialog>
 
-  <script src="./app.js?v=20260901-review3"></script>
+  <dialog id="tiktok-manual-dialog" class="modal tiktok-manual-dialog">
+    <form method="dialog" class="modal-card pixel-frame">
+      <header class="modal-title">
+        <span>TikTok チャージ追加</span>
+        <button class="modal-close" value="close" aria-label="閉じる">×</button>
+      </header>
+      <label class="manual-charge-row">
+        <span>日付</span>
+        <input id="tiktok-manual-date" type="date">
+      </label>
+      <label class="manual-charge-row">
+        <span>金額</span>
+        <span class="manual-amount-wrap"><span>¥</span><input id="tiktok-manual-amount" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="9" autocomplete="off"></span>
+      </label>
+      <div id="tiktok-manual-message" class="goal-message" aria-live="polite"></div>
+      <div class="manual-charge-actions">
+        <button class="secondary" value="close">キャンセル</button>
+        <button id="tiktok-manual-add" class="primary" type="button">追加</button>
+      </div>
+      <section class="manual-history" aria-labelledby="manual-history-title">
+        <h2 id="manual-history-title">手動追加履歴</h2>
+        <div id="tiktok-manual-history"></div>
+      </section>
+    </form>
+  </dialog>
+
+  <script src="./app.js?v=20260901-pace-frame1"></script>
 </body>
 </html>
