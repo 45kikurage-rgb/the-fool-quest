@@ -7,7 +7,7 @@
   <title>THE FOOL QUEST</title>
   <link rel="manifest" href="./manifest.webmanifest?v=20260901-white-mask2">
   <link rel="apple-touch-icon" href="./icon-any-192.png?v=20260901-dragon-icon1">
-  <link rel="stylesheet" href="./style.css?v=20260901-pace-frame1">
+  <link rel="stylesheet" href="./style.css?v=20260901-pace-toggle1">
 </head>
 <body>
   <main class="screen">
@@ -26,8 +26,8 @@
 
         <div class="top-commands">
           <button class="day-command pixel-frame" type="button" aria-label="14日後と5日後の日付">
-            <span class="date-command-row"><span>▶ ＋14</span><strong id="day14">--/--</strong></span>
-            <span class="date-command-row"><span>　＋ 5</span><strong id="day5">--/--</strong></span>
+            <span class="date-command-row"><span class="date-arrow">▶</span><span class="date-plus">＋</span><span class="date-count">14</span><strong id="day14">--/--</strong></span>
+            <span class="date-command-row"><span class="date-arrow" aria-hidden="true"></span><span class="date-plus">＋</span><span class="date-count">5</span><strong id="day5">--/--</strong></span>
           </button>
           <button id="goal-manage-open" class="manage-command pixel-frame" type="button">▶ 管理画面</button>
         </div>
@@ -63,6 +63,7 @@
         <button class="secondary" value="cancel">キャンセル</button>
         <button id="goal-save-btn" class="primary" type="button">保存</button>
       </div>
+      <button id="pace-color-toggle" class="wide-button pace-color-toggle" type="button" aria-pressed="true">▶ 進捗カラー　ON</button>
       <button id="verification-open" class="wide-button verification-open" type="button">▶ 稼働数検証</button>
        <button id="link-manage-open" class="wide-button link-manage-open" type="button">▶ リンク修正</button>
       <section class="history-section" aria-labelledby="history-title">
@@ -168,6 +169,6 @@
     </form>
   </dialog>
 
-  <script src="./app.js?v=20260901-pace-frame1"></script>
+  <script src="./app.js?v=20260901-pace-toggle1"></script>
 </body>
 </html>
