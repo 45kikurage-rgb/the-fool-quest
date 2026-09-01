@@ -6,7 +6,7 @@ html,body{margin:0;min-height:100%;background:var(--black);color:var(--white)}
 body{font-family:"DotGothic16","Courier New",monospace;font-size:19px;overflow-x:hidden}
 button,a,input{font:inherit;color:inherit}
 .screen{min-height:100svh;padding:clamp(14px,2.2vw,34px);display:flex;flex-direction:column;justify-content:center}
-.logo-image{position:relative;width:min(1480px,100%);height:clamp(203px,24vw,368px);margin:0 auto 1em;background:url('./title-logo.png') center 52%/100% auto no-repeat;overflow:hidden}
+.logo-image{position:relative;width:min(1480px,100%);height:clamp(203px,24vw,368px);margin:0 auto 1em;background:url('./dragon-top.png') center/contain no-repeat;overflow:hidden}
 .dashboard{--panel-font-size:clamp(32px,calc(3.2vw + 3px),55px);width:min(1480px,100%);margin:0 auto;display:grid;grid-template-columns:minmax(0,.82fr) minmax(0,1.08fr);gap:clamp(20px,3vw,46px);align-items:start}
 .pixel-frame{border:clamp(3px,.42vw,7px) solid var(--white);background:var(--black);box-shadow:inset 0 0 0 3px var(--black),0 0 0 1px var(--black);clip-path:polygon(12px 0,calc(100% - 12px) 0,100% 12px,100% calc(100% - 12px),calc(100% - 12px) 100%,12px 100%,0 calc(100% - 12px),0 12px)}
 .status-panel{padding:clamp(18px,2.6vw,40px)}
