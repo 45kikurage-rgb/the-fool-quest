@@ -169,7 +169,7 @@
     </form>
   </dialog>
 
-  <script src="./app.js?v=20260902-recovery6"></script>
+  <script src="./app.js?v=20260902-free-plan1"></script>
   <script>
     if ('serviceWorker' in navigator) {
       let refreshing = false;
@@ -178,7 +178,7 @@
         refreshing = true;
         location.reload();
       });
-      navigator.serviceWorker.register('./sw.js?v=20260902-recovery6', { updateViaCache: 'none' })
+      navigator.serviceWorker.register('./sw.js?v=20260902-free-plan1', { updateViaCache: 'none' })
         .then(registration => registration.update())
         .catch(error => console.error('Service Worker update failed:', error));
     }

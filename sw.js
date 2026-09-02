@@ -1,14 +1,22 @@
-'use strict';
+const CACHE='winning-url-manager-share-v6-inbox-dedup';
+const ASSETS=['./','./index.html','./share.html','./manifest.webmanifest','./icon-any.png','./icon-maskable.png'];
 
-// 復旧優先：旧キャッシュを削除し、通信はブラウザ標準のネットワーク取得に任せる。
-self.addEventListener('install', event => {
-  event.waitUntil(self.skipWaiting());
+self.addEventListener('install',event=>{
+  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)));
+  self.skipWaiting();
 });
 
-self.addEventListener('activate', event => {
-  event.waitUntil((async () => {
-    const names = await caches.keys();
-    await Promise.all(names.map(name => caches.delete(name)));
-    await self.clients.claim();
-  })());
+self.addEventListener('activate',event=>{
+  event.waitUntil(
+    caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))
+  );
+  self.clients.claim();
+});
+
+self.addEventListener('fetch',event=>{
+  const req=event.request;
+  if(req.method!=='GET') return;
+  event.respondWith(
+    fetch(req).catch(()=>caches.match(req).then(r=>r||caches.match('./index.html')))
+  );
 });
