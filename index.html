@@ -7,7 +7,7 @@
   <title>THE FOOL QUEST</title>
   <link rel="manifest" href="./manifest.webmanifest?v=20260902-white-splash3">
   <link rel="apple-touch-icon" href="./icon-any-192.png?v=20260901-dragon-icon1">
-  <link rel="stylesheet" href="./style.css?v=20260902-recovery6">
+  <link rel="stylesheet" href="./style.css?v=20260903-revenue-layout1">
 </head>
 <body>
   <main class="screen">
@@ -15,14 +15,15 @@
 
     <section class="dashboard">
       <div class="overview-grid">
-        <article class="status-panel total-panel pixel-frame">
-          <header class="character-row">
-            <button id="open-csv" class="name-command" type="button" aria-label="CSVアップデートを開く">あるの</button>
-            <span>Lv <strong id="level">00</strong></span>
-          </header>
-          <div class="rule"></div>
-          <div id="metric-total"></div>
-        </article>
+        <div class="overview-main">
+          <article id="character-panel" class="status-panel character-panel pixel-frame">
+            <header class="character-row">
+              <button id="open-csv" class="name-command" type="button" aria-label="CSVアップデートを開く">あるの</button>
+              <span>Lv <strong id="level">00</strong></span>
+            </header>
+          </article>
+          <article id="metric-total" class="metric-panel total-panel pixel-frame"></article>
+        </div>
 
         <div class="top-commands">
           <button class="day-command pixel-frame" type="button" aria-label="14日後と5日後の日付">
@@ -169,7 +170,86 @@
     </form>
   </dialog>
 
-  <script src="./app.js?v=20260902-free-plan1"></script>
+  <script src="./app.js?v=20260902-recovery6"></script>
+  <script>
+    (() => {
+      const METRICS = [['total', 'Total'], ['tiktok', 'TikTok'], ['coupon', 'Coupon']];
+      const COLOR_CLASSES = ['pace-ontrack', 'pace-yellow', 'pace-dark-red'];
+
+      const moneyValue = text => {
+        const value = Number(String(text || '').replace(/[^\d.-]/g, ''));
+        return Number.isFinite(value) ? Math.max(0, value) : 0;
+      };
+      const money = value => `¥${Math.max(0, Math.round(value)).toLocaleString('ja-JP')}`;
+      const jstDay = () => {
+        const parts = new Intl.DateTimeFormat('ja-JP', {
+          timeZone: 'Asia/Tokyo', year: 'numeric', month: 'numeric', day: 'numeric'
+        }).formatToParts(new Date());
+        const get = type => Number(parts.find(part => part.type === type)?.value || 0);
+        const year = get('year'), month = get('month'), day = get('day');
+        return { day, days: new Date(Date.UTC(year, month, 0)).getUTCDate() };
+      };
+
+      const refreshTargetToDate = name => {
+        const monthTarget = document.getElementById(`${name}-target`);
+        const dailyTarget = document.getElementById(`${name}-target-to-date`);
+        if (!monthTarget || !dailyTarget) return;
+        const goal = moneyValue(monthTarget.textContent);
+        const { day, days } = jstDay();
+        dailyTarget.textContent = money(days > 0 ? goal * day / days : 0);
+
+        const normalized = money(goal);
+        if (monthTarget.textContent.trim() !== normalized) monthTarget.textContent = normalized;
+      };
+
+      const prepareMetric = (name, title) => {
+        const panel = document.getElementById(`metric-${name}`);
+        const line = panel?.querySelector('.metric-line');
+        const label = line?.querySelector('.metric-label');
+        const achieved = line?.querySelector('.metric-achieved');
+        const monthTarget = line?.querySelector('.metric-target');
+        if (!panel || !line || !label || !achieved || !monthTarget) return;
+
+        const labelButton = label.querySelector('button');
+        if (labelButton) labelButton.textContent = title;
+        else label.textContent = title;
+
+        label.classList.add('metric-title');
+        if (!document.getElementById(`${name}-target-to-date`)) {
+          const row = document.createElement('div');
+          row.className = 'metric-target-to-date';
+          const value = document.createElement('b');
+          value.id = `${name}-target-to-date`;
+          value.textContent = '¥0';
+          row.appendChild(value);
+          achieved.insertAdjacentElement('afterend', row);
+        }
+
+        refreshTargetToDate(name);
+        new MutationObserver(() => refreshTargetToDate(name)).observe(monthTarget, {
+          childList: true, characterData: true, subtree: true
+        });
+      };
+
+      const mirrorTotalColor = () => {
+        const totalPanel = document.getElementById('metric-total');
+        const characterPanel = document.getElementById('character-panel');
+        if (!totalPanel || !characterPanel) return;
+        characterPanel.classList.remove(...COLOR_CLASSES);
+        COLOR_CLASSES.forEach(className => {
+          if (totalPanel.classList.contains(className)) characterPanel.classList.add(className);
+        });
+      };
+
+      METRICS.forEach(([name, title]) => prepareMetric(name, title));
+      mirrorTotalColor();
+      const totalPanel = document.getElementById('metric-total');
+      if (totalPanel) new MutationObserver(mirrorTotalColor).observe(totalPanel, {
+        attributes: true, attributeFilter: ['class']
+      });
+      setInterval(() => METRICS.forEach(([name]) => refreshTargetToDate(name)), 60000);
+    })();
+  </script>
   <script>
     if ('serviceWorker' in navigator) {
       let refreshing = false;
@@ -178,7 +258,7 @@
         refreshing = true;
         location.reload();
       });
-      navigator.serviceWorker.register('./sw.js?v=20260902-free-plan1', { updateViaCache: 'none' })
+      navigator.serviceWorker.register('./sw.js?v=20260903-revenue-layout1', { updateViaCache: 'none' })
         .then(registration => registration.update())
         .catch(error => console.error('Service Worker update failed:', error));
     }
