@@ -122,7 +122,7 @@ button,a,input{font:inherit;color:inherit}
 .metric-line{display:block;line-height:1.2}
 .metric-label{margin:0 0 .18em;white-space:nowrap}
 .metric-title{font-size:var(--panel-font-size)}
-.metric-achieved,.metric-target-to-date,.metric-target{display:flex;align-items:baseline;justify-content:space-between;gap:.35em;padding-right:0;white-space:nowrap;font-size:clamp(10px,2.85vw,24px);font-variant-numeric:tabular-nums}
+.metric-achieved,.metric-target-to-date,.metric-target{display:flex;align-items:baseline;justify-content:space-between;gap:.2em;padding-right:0;white-space:nowrap;font-size:var(--panel-font-size);font-variant-numeric:tabular-nums}
 .metric-achieved::before{content:'ACTUAL / NOW';text-align:left}
 .metric-target-to-date::before{content:'TARGET / TO DATE';text-align:left}
 .metric-target::before{content:'TARGET / MONTH';text-align:left}
@@ -164,13 +164,17 @@ button,a,input{font:inherit;color:inherit}
 .verification-results dd{margin:0;font-size:22px;text-align:right;white-space:nowrap}
 
 @media(max-width:820px){
+  .screen{min-height:100svh}
+  .logo-image{flex:0 0 clamp(162px,33vw,240px)}
   .dashboard{gap:9px}
+  .dashboard{margin-top:auto;margin-bottom:0}
   .overview-grid,.overview-main,.middle-metrics{gap:9px}
   .total-panel,.metric-panel{padding:12px 10px}
   .top-commands{gap:9px}
   .link-panel{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
-  .command{min-height:clamp(68px,17vw,106px)}
-  .metric-achieved,.metric-target{padding-right:4px}
+  .command{min-height:clamp(54px,14vw,88px);padding-block:3px}
+  .metric-achieved,.metric-target-to-date,.metric-target{gap:0;padding-right:0;font-size:clamp(15px,3.8vw,21px);letter-spacing:-.03em}
+  .metric-achieved::before,.metric-target-to-date::before,.metric-target::before{letter-spacing:-.08em}
   .verification-card{padding:12px 12px 24px}
 }
 @media(max-width:520px){
@@ -190,7 +194,9 @@ button,a,input{font:inherit;color:inherit}
   .overview-grid{grid-template-columns:minmax(0,1.58fr) minmax(0,.92fr);gap:7px}
   .overview-main{gap:7px}
   .middle-metrics{gap:7px}
-  .link-panel{gap:3px}
+  .middle-metrics .metric-panel{padding-inline:8px}
+  .link-panel{gap:2px;padding-block:3px}
+  .command{padding-block:3px}
   .metric-line{column-gap:.18em}
   .verification-section,.capacity-section,.verification-results{padding-inline:13px}
 }
