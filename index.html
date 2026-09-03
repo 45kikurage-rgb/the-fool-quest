@@ -7,7 +7,7 @@
   <title>THE FOOL QUEST</title>
   <link rel="manifest" href="./manifest.webmanifest?v=20260902-white-splash3">
   <link rel="apple-touch-icon" href="./icon-any-192.png?v=20260901-dragon-icon1">
-  <link rel="stylesheet" href="./style.css?v=20260903-revenue-layout4">
+  <link rel="stylesheet" href="./style.css?v=20260903-revenue-layout5">
 </head>
 <body>
   <main class="screen">
@@ -258,7 +258,7 @@
         refreshing = true;
         location.reload();
       });
-      navigator.serviceWorker.register('./sw.js?v=20260903-revenue-layout4', { updateViaCache: 'none' })
+      navigator.serviceWorker.register('./sw.js?v=20260903-revenue-layout5', { updateViaCache: 'none' })
         .then(registration => registration.update())
         .catch(error => console.error('Service Worker update failed:', error));
     }

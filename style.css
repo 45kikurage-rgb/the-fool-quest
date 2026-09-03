@@ -22,6 +22,7 @@ button,a,input{font:inherit;color:inherit}
 .character-panel .character-row{width:100%}
 .character-row strong{font-weight:400}
 .name-command,.modal-close{appearance:none;border:0;background:transparent;padding:0;cursor:pointer}
+.name-command{font-size:calc(var(--panel-font-size) + 3px);line-height:1}
 .name-command:hover,.name-command:focus-visible{color:var(--black);background:var(--white);outline:none}
 .rule{height:3px;background:var(--white);margin:clamp(16px,2vw,28px) 0 clamp(28px,3vw,42px)}
 .metric{position:relative;margin:10px 0}
@@ -121,7 +122,7 @@ button,a,input{font:inherit;color:inherit}
 .metric{margin:0}
 .metric-line{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;line-height:1.2;font-size:var(--panel-font-size)}
 .metric-label{grid-column:1;grid-row:1;margin:0;white-space:nowrap}
-.metric-title{font-size:var(--panel-font-size)}
+.metric-title{font-size:calc(var(--panel-font-size) + 3px);line-height:1}
 .metric-achieved,.metric-target-to-date,.metric-target{padding-right:0;white-space:nowrap;font-size:var(--panel-font-size);font-variant-numeric:tabular-nums}
 .metric-achieved{grid-column:2;grid-row:1;display:block;text-align:right}
 .metric-target-to-date,.metric-target{grid-column:1/-1;display:flex;align-items:baseline;justify-content:space-between;gap:.2em}
