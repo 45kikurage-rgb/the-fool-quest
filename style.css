@@ -119,13 +119,17 @@ button,a,input{font:inherit;color:inherit}
 .middle-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(14px,1.8vw,25px)}
 .metric-panel{min-width:0;padding:clamp(18px,2.6vw,40px)}
 .metric{margin:0}
-.metric-line{display:block;line-height:1.2}
-.metric-label{margin:0 0 .18em;white-space:nowrap}
+.metric-line{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;line-height:1.2;font-size:var(--panel-font-size)}
+.metric-label{grid-column:1;grid-row:1;margin:0;white-space:nowrap}
 .metric-title{font-size:var(--panel-font-size)}
-.metric-achieved,.metric-target-to-date,.metric-target{display:flex;align-items:baseline;justify-content:space-between;gap:.2em;padding-right:0;white-space:nowrap;font-size:var(--panel-font-size);font-variant-numeric:tabular-nums}
-.metric-achieved::before{content:'ACTUAL / NOW';text-align:left}
-.metric-target-to-date::before{content:'TARGET / TO DATE';text-align:left}
-.metric-target::before{content:'TARGET / MONTH';text-align:left}
+.metric-achieved,.metric-target-to-date,.metric-target{padding-right:0;white-space:nowrap;font-size:var(--panel-font-size);font-variant-numeric:tabular-nums}
+.metric-achieved{grid-column:2;grid-row:1;display:block;text-align:right}
+.metric-target-to-date,.metric-target{grid-column:1/-1;display:flex;align-items:baseline;justify-content:space-between;gap:.2em}
+.metric-target-to-date{grid-row:2}
+.metric-target{grid-row:3}
+.metric-achieved::before{content:none}
+.metric-target-to-date::before{content:'TO DATE';text-align:left}
+.metric-target::before{content:'MONTH';text-align:left}
 .metric-achieved b,.metric-target-to-date b{font-weight:400;text-align:right}
 .link-panel{grid-template-columns:repeat(3,minmax(0,1fr))}
 .command{min-height:clamp(92px,10vw,145px)}
@@ -167,7 +171,6 @@ button,a,input{font:inherit;color:inherit}
   .screen{min-height:100svh}
   .logo-image{flex:0 0 clamp(162px,33vw,240px)}
   .dashboard{gap:9px}
-  .dashboard{margin-top:auto;margin-bottom:0}
   .overview-grid,.overview-main,.middle-metrics{gap:9px}
   .total-panel,.metric-panel{padding:12px 10px}
   .top-commands{gap:9px}
