@@ -123,6 +123,7 @@
           ? `<button id="open-tiktok-manual" class="metric-label metric-label-button" type="button" aria-label="TikTokチャージを手動追加">${label}:</button>`
           : `<div class="metric-label">${label}:</div>`}
         <div class="metric-achieved"><b id="${name}-value">¥0</b></div>
+        <div class="metric-target-to-date"><b id="${name}-target-to-date">¥0</b></div>
         <div id="${name}-target" class="metric-target"></div>
       </div><div class="gauge-wrap"><div class="gauge">
         <div id="${name}-bar" class="gauge-fill"></div>
@@ -155,6 +156,7 @@
     ['pace-ontrack','pace-yellow','pace-light-red','pace-dark-red'].forEach(className => panel?.classList.remove(className));
     panel?.classList.add(paceClass);
     $(`${name}-value`).textContent = money(value);
+    $(`${name}-target-to-date`).textContent = money(Math.round(expected));
     $(`${name}-target`).textContent = `/ ${money(goal)}`;
     $(`${name}-bar`).style.width = `${Math.min(100, Math.max(0, percent))}%`;
     $(`${name}-percent`).textContent = `${percent.toFixed(1)}%`;
