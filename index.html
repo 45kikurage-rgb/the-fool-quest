@@ -7,7 +7,7 @@
   <title>THE FOOL QUEST</title>
   <link rel="manifest" href="./manifest.webmanifest?v=20260903-gray-splash1">
   <link rel="apple-touch-icon" href="./icon-any-192.png?v=20260901-dragon-icon1">
-  <link rel="stylesheet" href="./style.css?v=20260902-recovery6">
+  <link rel="stylesheet" href="./style.css?v=20260904-homeamount1">
 </head>
 <body>
   <main class="screen">
@@ -58,12 +58,21 @@
       </header>
       <div id="goal-inputs"></div>
       <div id="goal-manage-message" class="goal-message" aria-live="polite"></div>
+      <div class="compact-settings" aria-label="ホーム画面表示設定">
+        <div class="compact-setting-row">
+          <span>ホーム金額</span>
+          <button id="home-amount-toggle" class="compact-toggle" type="button" aria-pressed="true">▶ 表示</button>
+        </div>
+        <div class="compact-setting-row">
+          <span>進捗カラー</span>
+          <button id="pace-color-toggle" class="compact-toggle" type="button" aria-pressed="true">▶ ON</button>
+        </div>
+      </div>
       <div class="goal-actions">
         <button id="goal-reset-btn" class="secondary" type="button">初期値</button>
         <button class="secondary" value="cancel">キャンセル</button>
         <button id="goal-save-btn" class="primary" type="button">保存</button>
       </div>
-      <button id="pace-color-toggle" class="wide-button pace-color-toggle" type="button" aria-pressed="true">▶ 進捗カラー　ON</button>
       <button id="verification-open" class="wide-button verification-open" type="button">▶ 稼働数検証</button>
        <button id="link-manage-open" class="wide-button link-manage-open" type="button">▶ リンク修正</button>
       <section class="history-section" aria-labelledby="history-title">
@@ -169,7 +178,7 @@
     </form>
   </dialog>
 
-  <script src="./app.js?v=20260902-recovery6"></script>
+  <script src="./app.js?v=20260904-homeamount1"></script>
   <script>
     if ('serviceWorker' in navigator) {
       let refreshing = false;

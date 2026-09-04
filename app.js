@@ -21,7 +21,8 @@
     coupon: 'foolQuestCouponRevenueLastGood', couponMeta: 'foolQuestCouponRevenueLastGoodMeta',
     goals: 'foolQuestGoalAmounts', monthly: 'foolQuestMonthlyRevenueV1',
     simulation: 'foolQuestOperationSimulationV1', links: 'foolQuestPortalLinksV1',
-    tiktokManual: 'foolQuestTiktokManualChargesV1', paceColors: 'foolQuestPaceColorsEnabledV1'
+    tiktokManual: 'foolQuestTiktokManualChargesV1', paceColors: 'foolQuestPaceColorsEnabledV1',
+    homeAmounts: 'foolQuestHomeAmountsVisibleV1'
   };
   const $ = id => document.getElementById(id);
   const json = (raw, fallback) => { try { return JSON.parse(raw) ?? fallback; } catch { return fallback; } };
@@ -61,6 +62,7 @@
     month: monthKey(jst()), goals: readGoals(),
     monthly: loadedMonthly && typeof loadedMonthly === 'object' && !Array.isArray(loadedMonthly) ? loadedMonthly : {},
     manualCharges: load(KEY.tiktokManual, []), paceColors: load(KEY.paceColors, true) !== false,
+    homeAmountsVisible: load(KEY.homeAmounts, true) !== false,
     tiktokCsv: 0, tiktok: 0, coupon: 0
   };
   if (!Array.isArray(state.manualCharges)) state.manualCharges = [];
@@ -168,13 +170,33 @@
     renderHistory();
   }
 
+  function setupHomeAmounts() {
+    const button = $('home-amount-toggle');
+    if (!button) return;
+    const apply = () => {
+      document.documentElement.classList.toggle('home-amounts-hidden', !state.homeAmountsVisible);
+      button.textContent = `▶ ${state.homeAmountsVisible ? '表示' : '非表示'}`;
+      button.setAttribute('aria-pressed', String(state.homeAmountsVisible));
+      button.setAttribute('aria-label', `ホーム画面の実績金額：${state.homeAmountsVisible ? '表示' : '非表示'}`);
+      button.blur();
+    };
+    button.addEventListener('click', event => {
+      event.preventDefault();
+      state.homeAmountsVisible = !state.homeAmountsVisible;
+      save(KEY.homeAmounts, state.homeAmountsVisible);
+      apply();
+    });
+    apply();
+  }
+
   function setupPaceColors() {
     const button = $('pace-color-toggle');
     if (!button) return;
     const apply = () => {
       document.documentElement.classList.toggle('pace-colors-off', !state.paceColors);
-      button.textContent = `▶ 進捗カラー　${state.paceColors ? 'ON' : 'OFF'}`;
+      button.textContent = `▶ ${state.paceColors ? 'ON' : 'OFF'}`;
       button.setAttribute('aria-pressed', String(state.paceColors));
+      button.setAttribute('aria-label', `進捗カラー：${state.paceColors ? 'ON' : 'OFF'}`);
       button.blur();
     };
     button.addEventListener('click', event => {
@@ -498,6 +520,7 @@
   };
   safeSetup('UI', buildUi);
   safeSetup('Month', initializeMonth);
+  safeSetup('Home amounts', setupHomeAmounts);
   safeSetup('Pace colors', setupPaceColors);
   safeSetup('CSV', setupCsv);
   safeSetup('TikTok manual charge', setupTiktokManual);
