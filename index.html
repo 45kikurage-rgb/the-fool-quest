@@ -7,7 +7,7 @@
   <title>THE FOOL QUEST</title>
   <link rel="manifest" href="./manifest.webmanifest?v=20260903-gray-splash1">
   <link rel="apple-touch-icon" href="./icon-any-192.png?v=20260901-dragon-icon1">
-  <link rel="stylesheet" href="./style.css?v=20260904-homeamount1">
+  <link rel="stylesheet" href="./style.css?v=20260905-revenue-log1">
 </head>
 <body>
   <main class="screen">
@@ -75,15 +75,22 @@
       </div>
       <button id="verification-open" class="wide-button verification-open" type="button">▶ 稼働数検証</button>
        <button id="link-manage-open" class="wide-button link-manage-open" type="button">▶ リンク修正</button>
-      <section class="history-section" aria-labelledby="history-title">
-        <h2 id="history-title">月別収益</h2>
-        <div class="history-scroll">
-          <table class="history-table">
-            <thead><tr><th>月</th><th>Lv</th><th>Total</th><th>TikTok</th><th>Coupon</th><th>状態</th></tr></thead>
-            <tbody id="history-body"></tbody>
-          </table>
-        </div>
-      </section>
+    </form>
+  </dialog>
+
+  <dialog id="revenue-log-dialog" class="modal revenue-log-dialog">
+    <form method="dialog" class="modal-card pixel-frame revenue-log-card">
+      <header class="modal-title">
+        <span>収益ログ</span>
+        <button class="modal-close" value="cancel" aria-label="閉じる">×</button>
+      </header>
+      <div class="revenue-unit">単位：円</div>
+      <div class="revenue-table-wrap">
+        <table class="revenue-table" aria-label="全期間・年次・月次収益">
+          <thead><tr><th></th><th>合計</th><th>TikTok</th><th>Coupon</th></tr></thead>
+          <tbody id="revenue-log-body"></tbody>
+        </table>
+      </div>
     </form>
   </dialog>
 
@@ -178,7 +185,7 @@
     </form>
   </dialog>
 
-  <script src="./app.js?v=20260904-homeamount1"></script>
+  <script src="./app.js?v=20260905-revenue-log1"></script>
   <script>
     if ('serviceWorker' in navigator) {
       let refreshing = false;

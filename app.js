@@ -123,7 +123,9 @@
       <div class="metric"><div class="metric-line">
         ${name === 'tiktok'
           ? `<button id="open-tiktok-manual" class="metric-label metric-label-button" type="button" aria-label="TikTokチャージを手動追加">${label}:</button>`
-          : `<div class="metric-label">${label}:</div>`}
+          : name === 'total'
+            ? `<button id="open-revenue-log" class="metric-label metric-label-button" type="button" aria-label="収益ログを開く">${label}:</button>`
+            : `<div class="metric-label">${label}:</div>`}
         <div class="metric-achieved"><b id="${name}-value">¥0</b></div>
         <div class="metric-target-to-date"><b id="${name}-target-to-date">¥0</b></div>
         <div id="${name}-target" class="metric-target"></div>
@@ -344,6 +346,43 @@
       return `<tr><td>${record.month.replace('-','/')}</td><td>${lv}</td><td>${money(total)}</td><td>${money(record.tiktok)}</td><td>${money(record.coupon)}</td><td>${status}</td></tr>`;
     }).join('')||'<tr><td colspan="6">履歴はまだありません</td></tr>';
   }
+  function revenueNumbers(record) {
+    const tiktok = Math.max(0, Number(record?.tiktok) || 0);
+    const coupon = Math.max(0, Number(record?.coupon) || 0);
+    return { tiktok, coupon, total: tiktok + coupon };
+  }
+  const compactMoney = value => Math.max(0, Math.round(Number(value) || 0)).toLocaleString('ja-JP');
+  function renderRevenueLog() {
+    const body = $('revenue-log-body');
+    if (!body) return;
+    const records = Object.values(state.monthly).filter(item => item?.month && /^20\d{2}-\d{2}$/.test(item.month));
+    const years = {};
+    let all = { total:0, tiktok:0, coupon:0 };
+    records.forEach(record => {
+      const year = record.month.slice(0,4);
+      const values = revenueNumbers(record);
+      if (!years[year]) years[year] = { total:0, tiktok:0, coupon:0, months:[] };
+      years[year].total += values.total;
+      years[year].tiktok += values.tiktok;
+      years[year].coupon += values.coupon;
+      years[year].months.push({ month:Number(record.month.slice(5,7)), ...values });
+      all.total += values.total; all.tiktok += values.tiktok; all.coupon += values.coupon;
+    });
+    const row = (label, values, className='') => `<tr class="${className}"><th>${label}</th><td>${compactMoney(values.total)}</td><td>${compactMoney(values.tiktok)}</td><td>${compactMoney(values.coupon)}</td></tr>`;
+    let html = row('全期間', all, 'all-period');
+    Object.keys(years).sort((a,b)=>b.localeCompare(a)).forEach(year => {
+      html += row(`${year}年`, years[year], 'year-row');
+      years[year].months.sort((a,b)=>b.month-a.month).forEach(month => { html += row(`${month.month}月`, month, 'month-row'); });
+    });
+    body.innerHTML = html;
+  }
+  function setupRevenueLog() {
+    const dialog = $('revenue-log-dialog');
+    const open = $('open-revenue-log');
+    if (!dialog || !open) return;
+    open.addEventListener('click', () => { renderRevenueLog(); dialog.showModal(); });
+  }
+
   function setupGoals() {
     const dialog=$('goal-manage-dialog'),message=$('goal-manage-message');
     const syncTotal=()=>{
@@ -525,6 +564,7 @@
   safeSetup('CSV', setupCsv);
   safeSetup('TikTok manual charge', setupTiktokManual);
   safeSetup('Goals', setupGoals);
+  safeSetup('Revenue log', setupRevenueLog);
   safeSetup('Links', setupLinks);
   safeSetup('Verification', setupVerification);
   safeSetup('Initial render', renderAll);
