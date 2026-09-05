@@ -171,8 +171,8 @@
     // Gauge % = current revenue / monthly goal.
     // Progress color = current revenue / today's prorated target (TO DATE).
     const pacePercent = expected > 0 ? value / expected * 100 : 100;
-    const paceClass = pacePercent > 50 ? 'pace-ontrack'
-      : pacePercent > 20 ? 'pace-yellow'
+    const paceClass = pacePercent >= 100 ? 'pace-ontrack'
+      : pacePercent >= 50 ? 'pace-yellow'
       : 'pace-dark-red';
     const panel = name === 'total' ? document.querySelector('.total-panel') : $(`metric-${name}`);
     ['pace-ontrack','pace-yellow','pace-light-red','pace-dark-red'].forEach(className => panel?.classList.remove(className));
