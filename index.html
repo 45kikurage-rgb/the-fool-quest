@@ -93,40 +93,60 @@
 
   <dialog id="verification-dialog" class="modal verification-dialog">
     <form method="dialog" class="verification-card">
-      <header class="verification-header">
-        <button id="verification-back" class="verification-back" type="button">◀ 管理画面</button>
-        <span id="verification-title" tabindex="-1">稼働数/収益検証</span>
-      </header>
+      <div class="verification-main-stack">
+        <header class="verification-header">
+          <span id="verification-title" tabindex="-1">稼働数/収益検証</span>
+        </header>
 
-      <section class="verification-results pixel-frame" aria-label="検証結果">
-        <h2>▶ 検証結果</h2>
-        <div class="verification-result-grid">
-          <div class="result-column result-starts">
-            <h3>始動台数</h3>
-            <div class="result-row"><span>月30日作業</span><strong><output id="sim-starts-30">０</output> 台</strong></div>
-            <div class="result-row"><span>月20日作業</span><strong><output id="sim-starts-20">０</output> 台</strong></div>
+        <section class="verification-results pixel-frame" aria-label="検証結果">
+          <h2>▶ 検証結果</h2>
+          <div class="verification-result-layout">
+            <div class="verification-content-label">検証内容</div>
+            <div></div>
+
+            <div class="result-label">月30日作業</div>
+            <div class="result-label">1日収益</div>
+            <div class="result-value"><output id="sim-starts-30">0</output><span>台</span></div>
+            <div class="result-value"><output id="sim-daily">0</output><span>円</span></div>
+
+            <div class="result-label">月20日作業</div>
+            <div class="result-label">月間収益</div>
+            <div class="result-value"><output id="sim-starts-20">0</output><span>台</span></div>
+            <div class="result-value"><output id="sim-monthly">0</output><span>円</span></div>
+
+            <div></div>
+            <div class="result-label">最大稼働台数</div>
+            <div></div>
+            <div class="result-value"><output id="sim-max-active">0</output><span>台</span></div>
           </div>
-          <div class="result-column result-profit">
-            <h3>収益・稼働</h3>
-            <div class="result-row"><span>1日収益</span><strong><output id="sim-daily">０</output> 円</strong></div>
-            <div class="result-row"><span>月間収益</span><strong><output id="sim-monthly">０</output> 円</strong></div>
-            <div class="result-row"><span>最大稼働台数</span><strong><output id="sim-max-active">０</output> 台</strong></div>
+        </section>
+
+        <section class="verification-section pixel-frame" aria-label="条件入力">
+          <h2>▶ 条件入力</h2>
+          <div class="verification-input-grid">
+            <div class="verification-row">
+              <span class="input-label">稼働日数</span>
+              <span class="fixed-value">14<span>日</span></span>
+            </div>
+            <label class="verification-row">
+              <span class="input-label">休憩日数</span>
+              <span class="compact-input"><input id="sim-rest-days" class="numeric-only" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="10" autocomplete="off"><span>日</span></span>
+            </label>
+            <label class="verification-row">
+              <span class="input-label">保有台数</span>
+              <span class="compact-input"><input id="sim-owned" class="numeric-only" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="240" autocomplete="off"><span>台</span></span>
+            </label>
+            <label class="verification-row">
+              <span class="input-label">粗利</span>
+              <span class="compact-input"><input id="sim-amount" class="numeric-only" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="3200" autocomplete="off"><span>円</span></span>
+            </label>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section class="verification-section pixel-frame" aria-label="条件入力">
-        <h2>▶ 条件入力</h2>
-        <div class="verification-fields verification-input-grid">
-          <div class="verification-row"><span>稼働日数</span><span class="fixed-value">１４ 日</span></div>
-          <label class="verification-row"><span>休憩日数</span><span class="compact-input"><input id="sim-rest-days" class="numeric-only fullwidth-number" type="text" inputmode="numeric" pattern="[0-9０-９]*" maxlength="4" value="１０" autocomplete="off"><span>日</span></span></label>
-          <label class="verification-row"><span>保有台数</span><span class="compact-input"><input id="sim-owned" class="numeric-only fullwidth-number" type="text" inputmode="numeric" pattern="[0-9０-９]*" maxlength="3" value="２４０" autocomplete="off"><span>台</span></span></label>
-          <label class="verification-row"><span>粗利</span><span class="compact-input"><input id="sim-amount" class="numeric-only fullwidth-number" type="text" inputmode="numeric" pattern="[0-9０-９]*" maxlength="6" value="３２００" autocomplete="off"><span>円</span></span></label>
+        <div class="verification-footer">
+          <button id="verification-close" class="verification-bottom" type="button">戻る ▶</button>
         </div>
-      </section>
-
-      <div class="verification-footer">
-        <button id="verification-close" class="verification-bottom" type="button">戻る ▶</button>
+        <div class="verification-bottom-space" aria-hidden="true"></div>
       </div>
     </form>
   </dialog>

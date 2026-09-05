@@ -484,33 +484,29 @@
     const fields = ['sim-amount','sim-rest-days','sim-owned'];
     const stored = load(KEY.simulation, { amount: 3200, restDays: 10, owned: 240 });
 
-    const toAsciiDigits = value => String(value || '').replace(/[０-９]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0));
-    const toFullWidth = value => String(value ?? '').replace(/[0-9]/g, ch => String.fromCharCode(ch.charCodeAt(0) + 0xFEE0));
-    const fullNumber = value => toFullWidth(Math.max(0, Math.trunc(Number(value) || 0)).toLocaleString('ja-JP'));
-
-    const setInputValue = (id, value) => { $(id).value = toFullWidth(String(value)); };
-    setInputValue('sim-amount', stored.amount ?? 3200);
-    setInputValue('sim-rest-days', stored.restDays ?? 10);
-    setInputValue('sim-owned', stored.owned ?? 240);
+    $('sim-amount').value = stored.amount ?? 3200;
+    $('sim-rest-days').value = stored.restDays ?? 10;
+    $('sim-owned').value = stored.owned ?? 240;
 
     const digitsOnly = input => {
-      const limit = Number(input.maxLength) > 0 ? Number(input.maxLength) : 6;
-      const cleaned = toAsciiDigits(input.value).replace(/\D/g, '').slice(0, limit);
+      const limit = Number(input.maxLength) > 0 ? Number(input.maxLength) : 4;
+      const cleaned = String(input.value).replace(/\D/g, '').slice(0, limit);
       if (input.value !== cleaned) input.value = cleaned;
     };
-    const clampInput = (id, max) => {
+    const clampInput = (id, max = 9999) => {
       const input = $(id);
       digitsOnly(input);
       const value = Math.max(0, Math.min(max, Math.trunc(Number(input.value) || 0)));
       input.value = String(value);
       return value;
     };
+    const numberText = value => Math.max(0, Math.trunc(Number(value) || 0)).toLocaleString('ja-JP');
 
     const calculate = () => {
       const workDays = 14;
-      const amount = clampInput('sim-amount', 999999);
-      const restDays = clampInput('sim-rest-days', 9999);
-      const owned = clampInput('sim-owned', 999);
+      const amount = clampInput('sim-amount');
+      const restDays = clampInput('sim-rest-days');
+      const owned = clampInput('sim-owned');
       const cycleDays = workDays + restDays;
       const maxDailyStarts = cycleDays > 0 ? owned / cycleDays : 0;
 
@@ -522,51 +518,41 @@
 
       save(KEY.simulation, { amount, restDays, owned });
 
-      $('sim-starts-30').textContent = fullNumber(starts30);
-      $('sim-starts-20').textContent = fullNumber(starts20);
-      $('sim-daily').textContent = fullNumber(daily);
-      $('sim-monthly').textContent = fullNumber(monthly);
-      $('sim-max-active').textContent = fullNumber(maxActive);
+      $('sim-starts-30').textContent = numberText(starts30);
+      $('sim-starts-20').textContent = numberText(starts20);
+      $('sim-daily').textContent = numberText(daily);
+      $('sim-monthly').textContent = numberText(monthly);
+      $('sim-max-active').textContent = numberText(maxActive);
     };
 
     const openBtn = $('verification-open');
     const closeBtn = $('verification-close');
-    const backBtn = $('verification-back');
     const title = $('verification-title');
-    if (!dialog || !manageDialog || !openBtn || !closeBtn || !backBtn || !title) {
+    if (!dialog || !manageDialog || !openBtn || !closeBtn || !title) {
       console.error('Verification UI is incomplete');
       return;
     }
 
-    fields.forEach(id => {
-      const input = $(id);
-      input.addEventListener('focus', () => { input.value = toAsciiDigits(input.value).replace(/\D/g, ''); });
-      input.addEventListener('input', calculate);
-      input.addEventListener('blur', () => {
-        calculate();
-        input.value = toFullWidth(input.value);
-      });
-    });
+    fields.forEach(id => $(id).addEventListener('input', event => {
+      digitsOnly(event.currentTarget);
+      calculate();
+    }));
 
     openBtn.addEventListener('click', () => {
       calculate();
-      fields.forEach(id => { $(id).value = toFullWidth($(id).value); });
       manageDialog.close();
       dialog.showModal();
       requestAnimationFrame(() => title.focus({ preventScroll: true }));
     });
-    const returnToManage = () => {
+
+    closeBtn.addEventListener('click', () => {
       dialog.close();
       renderHistory();
       if (!manageDialog.open) manageDialog.showModal();
-    };
-    closeBtn.addEventListener('click', returnToManage);
-    backBtn.addEventListener('click', returnToManage);
+    });
 
     calculate();
-    fields.forEach(id => { $(id).value = toFullWidth($(id).value); });
   }
-
   function finalize(rows) {
     const cutoff=jst().day>=6?previousMonth(state.month):previousMonth(previousMonth(state.month));
     rows.forEach(row=>{
