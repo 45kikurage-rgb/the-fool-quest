@@ -94,35 +94,40 @@
   <dialog id="verification-dialog" class="modal verification-dialog">
     <form method="dialog" class="verification-card">
       <header class="verification-header">
-        <button id="verification-back" class="verification-back" type="button">＜ 管理画面</button>
-        <span id="verification-title" tabindex="-1">稼働数検証</span>
-        <span aria-hidden="true"></span>
+        <button id="verification-back" class="verification-back" type="button">◀ 管理画面</button>
+        <span id="verification-title" tabindex="-1">稼働数/収益検証</span>
       </header>
-      <section class="capacity-section pixel-frame" aria-label="保有台数と1日最大始動台数">
-        <label class="capacity-column"><span>保有台数</span><span class="compact-input"><input id="sim-owned" class="numeric-only" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" value="200" autocomplete="off"><span>台</span></span></label>
-        <div class="capacity-column"><span>1日最大始動台数</span><span class="compact-input output-input"><output id="sim-max-starts">8.69</output><span>台</span></span></div>
-      </section>
 
-      <section class="verification-section pixel-frame">
-        <h2>条件入力</h2>
-        <div class="verification-fields">
-          <div class="verification-row"><span>稼働日数</span><span class="fixed-value">14 日</span></div>
-          <label class="verification-row"><span>1台想定額</span><span class="compact-input"><input id="sim-amount" class="numeric-only" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="2000" autocomplete="off"><span>円</span></span></label>
-          <label class="verification-row rest-row"><span>休憩日数</span><span class="compact-input"><input id="sim-rest-days" class="numeric-only" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="9" autocomplete="off"><span>日</span><small id="sim-rest-hours">＝216時間</small></span></label>
-          <label class="verification-row"><span>始動台数／日</span><span class="compact-input"><input id="sim-starts" class="numeric-only" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="6" autocomplete="off"><span>台</span></span></label>
+      <section class="verification-results pixel-frame" aria-label="検証結果">
+        <h2>▶ 検証結果</h2>
+        <div class="verification-result-grid">
+          <div class="result-column result-starts">
+            <h3>始動台数</h3>
+            <div class="result-row"><span>月30日作業</span><strong><output id="sim-starts-30">０</output> 台</strong></div>
+            <div class="result-row"><span>月20日作業</span><strong><output id="sim-starts-20">０</output> 台</strong></div>
+          </div>
+          <div class="result-column result-profit">
+            <h3>収益・稼働</h3>
+            <div class="result-row"><span>1日収益</span><strong><output id="sim-daily">０</output> 円</strong></div>
+            <div class="result-row"><span>月間収益</span><strong><output id="sim-monthly">０</output> 円</strong></div>
+            <div class="result-row"><span>最大稼働台数</span><strong><output id="sim-max-active">０</output> 台</strong></div>
+          </div>
         </div>
       </section>
 
-      <section class="verification-results pixel-frame">
-        <h2>検証結果</h2>
-        <dl>
-          <div><dt>1日収益</dt><dd id="sim-daily">¥12,000</dd></div>
-          <div><dt>月間収益</dt><dd id="sim-monthly">¥360,000</dd></div>
-          <div><dt>最大同時稼働</dt><dd id="sim-max-active">84台</dd></div>
-        </dl>
+      <section class="verification-section pixel-frame" aria-label="条件入力">
+        <h2>▶ 条件入力</h2>
+        <div class="verification-fields verification-input-grid">
+          <div class="verification-row"><span>稼働日数</span><span class="fixed-value">１４ 日</span></div>
+          <label class="verification-row"><span>休憩日数</span><span class="compact-input"><input id="sim-rest-days" class="numeric-only fullwidth-number" type="text" inputmode="numeric" pattern="[0-9０-９]*" maxlength="4" value="１０" autocomplete="off"><span>日</span></span></label>
+          <label class="verification-row"><span>保有台数</span><span class="compact-input"><input id="sim-owned" class="numeric-only fullwidth-number" type="text" inputmode="numeric" pattern="[0-9０-９]*" maxlength="3" value="２４０" autocomplete="off"><span>台</span></span></label>
+          <label class="verification-row"><span>粗利</span><span class="compact-input"><input id="sim-amount" class="numeric-only fullwidth-number" type="text" inputmode="numeric" pattern="[0-9０-９]*" maxlength="6" value="３２００" autocomplete="off"><span>円</span></span></label>
+        </div>
       </section>
 
-      <button id="verification-close" class="wide-button verification-bottom" type="button">▶ 管理画面へ戻る</button>
+      <div class="verification-footer">
+        <button id="verification-close" class="verification-bottom" type="button">戻る ▶</button>
+      </div>
     </form>
   </dialog>
 
