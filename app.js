@@ -5,6 +5,7 @@
     goals: { total: 1000000, tiktok: 500000, coupon: 500000 },
     metrics: [['total','Total'],['tiktok','TikTok'],['coupon','Coupon']]
   };
+  const LEGACY_TIKTOK_MONTHLY = {"2024-09":110990,"2024-10":479624,"2024-11":508979,"2024-12":646046,"2025-01":406131,"2025-02":158977,"2025-03":142341,"2025-04":174674,"2025-05":128657,"2025-06":154275,"2025-07":170453,"2025-08":108470,"2025-09":372034,"2025-10":1489675,"2025-11":682854,"2025-12":1224053,"2026-01":1295198,"2026-02":1770810,"2026-03":1181047,"2026-04":328699,"2026-05":147208,"2026-06":427918,"2026-07":539764};
   const DEFAULT_LINKS = {
     assets: 'https://assets-management-8os.pages.dev',
     action: 'https://the-fool-head.45kikurage.workers.dev',
@@ -22,7 +23,7 @@
     goals: 'foolQuestGoalAmounts', monthly: 'foolQuestMonthlyRevenueV1',
     simulation: 'foolQuestOperationSimulationV1', links: 'foolQuestPortalLinksV1',
     tiktokManual: 'foolQuestTiktokManualChargesV1', paceColors: 'foolQuestPaceColorsEnabledV1',
-    homeAmounts: 'foolQuestHomeAmountsVisibleV1'
+    homeAmounts: 'foolQuestHomeAmountsVisibleV1', legacyRevenueMigration: 'foolQuestLegacyRevenueMigration20260905V1'
   };
   const $ = id => document.getElementById(id);
   const json = (raw, fallback) => { try { return JSON.parse(raw) ?? fallback; } catch { return fallback; } };
@@ -66,6 +67,21 @@
     tiktokCsv: 0, tiktok: 0, coupon: 0
   };
   if (!Array.isArray(state.manualCharges)) state.manualCharges = [];
+  function migrateLegacyRevenue() {
+    if (load(KEY.legacyRevenueMigration, false) === true) return;
+    Object.entries(LEGACY_TIKTOK_MONTHLY).forEach(([month, tiktok]) => {
+      const old = state.monthly[month] || { month, coupon: 0 };
+      state.monthly[month] = {
+        ...old, month, tiktokCsv: tiktok, tiktok,
+        coupon: Math.max(0, Number(old.coupon) || 0),
+        legacyImported: true, legacySource: '冒険の書 収支データ_2026-09-05.csv',
+        updatedAt: new Date().toISOString()
+      };
+    });
+    save(KEY.monthly, state.monthly);
+    save(KEY.legacyRevenueMigration, true);
+  }
+  migrateLegacyRevenue();
   const manualTotal = month => state.manualCharges
     .filter(entry => String(entry?.date || '').slice(0, 7) === month)
     .reduce((sum, entry) => sum + Math.max(0, Number(entry.amount) || 0), 0);
@@ -152,9 +168,11 @@
   function renderMetric(name) {
     const value = valueOf(name), goal = state.goals[name], percent = goal > 0 ? value / goal * 100 : 0;
     const date = jst(), expected = goal * date.day / date.days;
+    // Gauge % = current revenue / monthly goal.
+    // Progress color = current revenue / today's prorated target (TO DATE).
     const pacePercent = expected > 0 ? value / expected * 100 : 100;
-    const paceClass = pacePercent >= 100 ? 'pace-ontrack'
-      : pacePercent >= 50 ? 'pace-yellow'
+    const paceClass = pacePercent > 50 ? 'pace-ontrack'
+      : pacePercent > 20 ? 'pace-yellow'
       : 'pace-dark-red';
     const panel = name === 'total' ? document.querySelector('.total-panel') : $(`metric-${name}`);
     ['pace-ontrack','pace-yellow','pace-light-red','pace-dark-red'].forEach(className => panel?.classList.remove(className));
@@ -177,7 +195,7 @@
     if (!button) return;
     const apply = () => {
       document.documentElement.classList.toggle('home-amounts-hidden', !state.homeAmountsVisible);
-      button.textContent = `▶ ${state.homeAmountsVisible ? '表示' : '非表示'}`;
+      button.textContent = `▶ ホーム金額　${state.homeAmountsVisible ? '表示' : '非表示'}`;
       button.setAttribute('aria-pressed', String(state.homeAmountsVisible));
       button.setAttribute('aria-label', `ホーム画面の実績金額：${state.homeAmountsVisible ? '表示' : '非表示'}`);
       button.blur();
@@ -196,9 +214,9 @@
     if (!button) return;
     const apply = () => {
       document.documentElement.classList.toggle('pace-colors-off', !state.paceColors);
-      button.textContent = `▶ ${state.paceColors ? 'ON' : 'OFF'}`;
+      button.textContent = `▶ 進歩カラー　${state.paceColors ? 'ON' : 'OFF'}`;
       button.setAttribute('aria-pressed', String(state.paceColors));
-      button.setAttribute('aria-label', `進捗カラー：${state.paceColors ? 'ON' : 'OFF'}`);
+      button.setAttribute('aria-label', `進歩カラー：${state.paceColors ? 'ON' : 'OFF'}`);
       button.blur();
     };
     button.addEventListener('click', event => {
@@ -371,7 +389,9 @@
     const row = (label, values, className='') => `<tr class="${className}"><th>${label}</th><td>${compactMoney(values.total)}</td><td>${compactMoney(values.tiktok)}</td><td>${compactMoney(values.coupon)}</td></tr>`;
     let html = row('全期間', all, 'all-period');
     Object.keys(years).sort((a,b)=>b.localeCompare(a)).forEach(year => {
+      html += '<tr class="revenue-spacer" aria-hidden="true"><td colspan="4"></td></tr>';
       html += row(`${year}年`, years[year], 'year-row');
+      html += '<tr class="revenue-spacer revenue-spacer-small" aria-hidden="true"><td colspan="4"></td></tr>';
       years[year].months.sort((a,b)=>b.month-a.month).forEach(month => { html += row(`${month.month}月`, month, 'month-row'); });
     });
     body.innerHTML = html;
@@ -394,6 +414,8 @@
     $('goal-tiktok-input').addEventListener('input',syncTotal);
     $('goal-coupon-input').addEventListener('input',syncTotal);
     $('goal-manage-open').addEventListener('click',()=>{fill(state.goals);message.textContent='';renderHistory();dialog.showModal();});
+    $('goal-manage-close')?.addEventListener('click',()=>dialog.close('cancel'));
+    $('goal-cancel-btn')?.addEventListener('click',()=>dialog.close('cancel'));
     $('goal-reset-btn').addEventListener('click',()=>{fill(CONFIG.goals);message.textContent='初期値を入力しました';});
     $('goal-save-btn').addEventListener('click',()=>{
       const tiktok=Math.trunc(Number($('goal-tiktok-input').value));

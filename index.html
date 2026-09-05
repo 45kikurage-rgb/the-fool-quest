@@ -7,7 +7,7 @@
   <title>THE FOOL QUEST</title>
   <link rel="manifest" href="./manifest.webmanifest?v=20260903-gray-splash1">
   <link rel="apple-touch-icon" href="./icon-any-192.png?v=20260901-dragon-icon1">
-  <link rel="stylesheet" href="./style.css?v=20260905-revenue-log1">
+  <link rel="stylesheet" href="./style.css?v=20260905-revenue-migrate2">
 </head>
 <body>
   <main class="screen">
@@ -53,28 +53,25 @@
   <dialog id="goal-manage-dialog" class="modal">
     <form method="dialog" class="modal-card pixel-frame">
       <header class="modal-title">
-        <span>目標額設定</span>
-        <button class="modal-close" value="cancel" aria-label="閉じる">×</button>
+        <span>管理画面</span>
+        <button id="goal-manage-close" class="modal-close" type="button" aria-label="閉じる">×</button>
       </header>
+      <h2 class="manage-section-title">目標額設定</h2>
       <div id="goal-inputs"></div>
       <div id="goal-manage-message" class="goal-message" aria-live="polite"></div>
       <div class="compact-settings" aria-label="ホーム画面表示設定">
-        <div class="compact-setting-row">
-          <span>ホーム金額</span>
-          <button id="home-amount-toggle" class="compact-toggle" type="button" aria-pressed="true">▶ 表示</button>
-        </div>
-        <div class="compact-setting-row">
-          <span>進捗カラー</span>
-          <button id="pace-color-toggle" class="compact-toggle" type="button" aria-pressed="true">▶ ON</button>
-        </div>
+        <button id="home-amount-toggle" class="compact-toggle compact-toggle-wide" type="button" aria-pressed="true">▶ ホーム金額　表示</button>
+        <button id="pace-color-toggle" class="compact-toggle compact-toggle-wide" type="button" aria-pressed="true">▶ 進歩カラー　ON</button>
       </div>
       <div class="goal-actions">
         <button id="goal-reset-btn" class="secondary" type="button">初期値</button>
-        <button class="secondary" value="cancel">キャンセル</button>
+        <button id="goal-cancel-btn" class="secondary" type="button">キャンセル</button>
         <button id="goal-save-btn" class="primary" type="button">保存</button>
       </div>
-      <button id="verification-open" class="wide-button verification-open" type="button">▶ 稼働数検証</button>
-       <button id="link-manage-open" class="wide-button link-manage-open" type="button">▶ リンク修正</button>
+      <div class="manage-bottom-commands">
+        <button id="verification-open" class="wide-button verification-open" type="button">▶ 稼働数検証</button>
+        <button id="link-manage-open" class="wide-button link-manage-open" type="button">▶ リンク修正</button>
+      </div>
     </form>
   </dialog>
 
@@ -185,7 +182,7 @@
     </form>
   </dialog>
 
-  <script src="./app.js?v=20260905-revenue-log1"></script>
+  <script src="./app.js?v=20260905-revenue-migrate2"></script>
   <script>
     if ('serviceWorker' in navigator) {
       let refreshing = false;
@@ -194,7 +191,7 @@
         refreshing = true;
         location.reload();
       });
-      navigator.serviceWorker.register('./sw.js?v=20260903-gray-splash1', { updateViaCache: 'none' })
+      navigator.serviceWorker.register('./sw.js?v=20260905-revenue-migrate2', { updateViaCache: 'none' })
         .then(registration => registration.update())
         .catch(error => console.error('Service Worker update failed:', error));
     }

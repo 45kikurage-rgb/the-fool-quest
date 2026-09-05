@@ -1,22 +1,22 @@
-const CACHE='winning-url-manager-share-v6-inbox-dedup';
-const ASSETS=['./','./index.html','./share.html','./manifest.webmanifest','./icon-any.png','./icon-maskable.png'];
+const CACHE='the-fool-quest-v20260905-portal-final1';
+const ASSETS=['./','./index.html','./style.css','./app.js','./manifest.webmanifest','./title-logo.png','./icon-any.png','./icon-maskable.png'];
 
 self.addEventListener('install',event=>{
-  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)));
-  self.skipWaiting();
+  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()));
 });
 
 self.addEventListener('activate',event=>{
   event.waitUntil(
-    caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))
+    caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())
   );
-  self.clients.claim();
 });
 
 self.addEventListener('fetch',event=>{
   const req=event.request;
-  if(req.method!=='GET') return;
-  event.respondWith(
-    fetch(req).catch(()=>caches.match(req).then(r=>r||caches.match('./index.html')))
-  );
+  if(req.method!=='GET')return;
+  event.respondWith(fetch(req).then(response=>{
+    const copy=response.clone();
+    caches.open(CACHE).then(cache=>cache.put(req,copy)).catch(()=>{});
+    return response;
+  }).catch(()=>caches.match(req).then(cached=>cached||caches.match('./index.html'))));
 });
