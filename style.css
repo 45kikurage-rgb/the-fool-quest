@@ -308,7 +308,7 @@ button,a,input{font:inherit;color:inherit}
 .verification-dialog[open]{display:block}
 .verification-card{width:min(100%,720px);height:100dvh;min-height:0;margin:0 auto;padding:0 10px max(10px,env(safe-area-inset-bottom));border:0;background:var(--black);color:var(--white);display:flex;flex-direction:column;overflow:hidden}
 .verification-main-stack{width:100%;margin-top:auto;display:flex;flex-direction:column;gap:10px}
-.verification-header{display:flex;align-items:center;justify-content:center;min-height:48px;margin:0;padding:4px 0 8px;border-bottom:2px solid var(--white);font-size:24px;line-height:1.2;text-align:center}
+.verification-header{display:flex;align-items:center;justify-content:center;min-height:52px;margin:0;padding:4px 0 8px;border-bottom:2px solid var(--white);font-size:30px;font-weight:700;line-height:1.2;text-align:center}
 #verification-title{width:100%;text-align:center;white-space:nowrap}
 .verification-results,.verification-section{flex:0 0 auto;margin:0;padding:14px 20px}
 .verification-results h2,.verification-section h2{margin:0 0 12px;font-size:25px;font-weight:700;line-height:1.2}
@@ -329,12 +329,12 @@ button,a,input{font:inherit;color:inherit}
 .verification-footer{display:flex;justify-content:flex-end;align-items:center;margin-top:2px}
 .verification-bottom{min-width:150px;min-height:48px;padding:6px 18px;border:2px solid var(--white);background:var(--black);color:var(--white);font-size:21px;cursor:pointer}
 .verification-bottom:hover,.verification-bottom:focus-visible{background:var(--white);color:var(--black);outline:none}
-.verification-bottom-space{height:1.25em;flex:0 0 auto}
+.verification-bottom-space{height:36px;flex:0 0 auto}
 
 @media(max-width:520px){
-  .verification-card{padding-inline:9px;padding-bottom:max(8px,env(safe-area-inset-bottom))}
+  .verification-card{padding-inline:9px;padding-bottom:env(safe-area-inset-bottom)}
   .verification-main-stack{gap:8px}
-  .verification-header{min-height:42px;padding-bottom:7px;font-size:22px}
+  .verification-header{min-height:48px;padding-bottom:7px;font-size:28px;font-weight:700}
   .verification-results,.verification-section{padding:11px 14px}
   .verification-results h2,.verification-section h2{margin-bottom:9px;font-size:22px}
   .verification-result-layout{column-gap:14px;row-gap:3px}
@@ -349,12 +349,12 @@ button,a,input{font:inherit;color:inherit}
   .compact-input{grid-template-columns:76px auto;min-width:100px;gap:4px;font-size:16px}
   .compact-input input{width:76px;min-height:36px;padding:3px 5px;font-size:18px}
   .verification-bottom{min-width:126px;min-height:42px;padding:5px 14px;font-size:19px}
-  .verification-bottom-space{height:1em}
+  .verification-bottom-space{height:30px}
 }
 @media(max-width:380px){
   .verification-card{padding-inline:7px}
   .verification-results,.verification-section{padding-inline:10px}
-  .verification-header{font-size:20px}
+  .verification-header{font-size:26px;font-weight:700}
   .verification-result-layout{column-gap:10px}
   .verification-content-label,.result-label{font-size:15px}
   .result-value{font-size:16px}
