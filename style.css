@@ -452,3 +452,9 @@ button,a,input{font:inherit;color:inherit}
     padding-bottom:4px;
   }
 }
+
+/* 2026-09-07 Center Manage label */
+.manage-command{
+  justify-content:center;
+  text-align:center;
+}
