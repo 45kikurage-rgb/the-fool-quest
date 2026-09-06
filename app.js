@@ -23,7 +23,8 @@
     goals: 'foolQuestGoalAmounts', monthly: 'foolQuestMonthlyRevenueV1',
     simulation: 'foolQuestOperationSimulationV1', links: 'foolQuestPortalLinksV1',
     tiktokManual: 'foolQuestTiktokManualChargesV1', paceColors: 'foolQuestPaceColorsEnabledV1',
-    homeAmounts: 'foolQuestHomeAmountsVisibleV1', legacyRevenueMigration: 'foolQuestLegacyRevenueMigration20260905V1'
+    homeAmounts: 'foolQuestHomeAmountsVisibleV1', legacyRevenueMigration: 'foolQuestLegacyRevenueMigration20260905V1',
+    tiktokStarts: 'foolQuestTiktokDailyStartsV1'
   };
   const $ = id => document.getElementById(id);
   const json = (raw, fallback) => { try { return JSON.parse(raw) ?? fallback; } catch { return fallback; } };
@@ -481,6 +482,117 @@
     });
   }
 
+  function setupTiktokManagement() {
+    const dialog = $('tiktok-management-dialog');
+    const openBtn = $('task-end-open');
+    const closeBtn = $('tiktok-management-close');
+    const grid = $('tiktok-day-grid');
+    const input = $('tiktok-start-input');
+    const register = $('tiktok-start-register');
+    const message = $('tiktok-entry-message');
+    if (!dialog || !openBtn || !closeBtn || !grid || !input || !register) {
+      console.error('TikTok Management UI is incomplete');
+      return;
+    }
+
+    const pad = value => String(value).padStart(2, '0');
+    const todayUtc = () => {
+      const t = jst();
+      return new Date(Date.UTC(t.year, t.month - 1, t.day));
+    };
+    const dateKey = date => `${date.getUTCFullYear()}-${pad(date.getUTCMonth()+1)}-${pad(date.getUTCDate())}`;
+    const mmdd = date => `${pad(date.getUTCMonth()+1)}/${pad(date.getUTCDate())}`;
+    const monthFromDateKey = key => key.slice(0, 7);
+    const readStarts = () => {
+      const value = load(KEY.tiktokStarts, {});
+      return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+    };
+    const clampCount = value => Math.max(0, Math.min(9999, Math.trunc(Number(value) || 0)));
+    const last14 = () => {
+      const base = todayUtc();
+      return Array.from({length:14}, (_, i) => {
+        const date = new Date(base);
+        date.setUTCDate(base.getUTCDate() - i);
+        return date;
+      });
+    };
+
+    function normalizeVisibleDays(starts) {
+      let changed = false;
+      last14().forEach(date => {
+        const key = dateKey(date);
+        if (!Object.prototype.hasOwnProperty.call(starts, key)) {
+          starts[key] = 0;
+          changed = true;
+        } else {
+          const normalized = clampCount(starts[key]);
+          if (starts[key] !== normalized) {
+            starts[key] = normalized;
+            changed = true;
+          }
+        }
+      });
+      if (changed) save(KEY.tiktokStarts, starts);
+      return starts;
+    }
+
+    function renderColumn(dates, starts, isFirst) {
+      const cells = [
+        '<div class="tiktok-day-cell tiktok-day-head">日付</div>',
+        '<div class="tiktok-day-cell tiktok-day-head">台数</div>'
+      ];
+      dates.forEach((date, index) => {
+        const key = dateKey(date);
+        const todayClass = isFirst && index === 0 ? ' tiktok-day-today' : '';
+        cells.push(`<div class="tiktok-day-cell${todayClass}">${mmdd(date)}</div>`);
+        cells.push(`<div class="tiktok-day-cell${todayClass}">${clampCount(starts[key])}台</div>`);
+      });
+      return `<div class="tiktok-day-column">${cells.join('')}</div>`;
+    }
+
+    function render() {
+      const starts = normalizeVisibleDays(readStarts());
+      const dates = last14();
+      grid.innerHTML = renderColumn(dates.slice(0,7), starts, true) + renderColumn(dates.slice(7,14), starts, false);
+
+      const active = dates.reduce((sum, date) => sum + clampCount(starts[dateKey(date)]), 0);
+      const currentMonth = monthKey(jst());
+      const monthStarts = Object.entries(starts).reduce((sum, [key, count]) => {
+        return sum + (monthFromDateKey(key) === currentMonth ? clampCount(count) : 0);
+      }, 0);
+      $('tiktok-active-count').textContent = active.toLocaleString('ja-JP');
+      $('tiktok-daily-revenue').textContent = (active * 200).toLocaleString('ja-JP');
+      $('tiktok-month-starts').textContent = monthStarts.toLocaleString('ja-JP');
+      input.value = String(clampCount(starts[dateKey(todayUtc())]));
+    }
+
+    input.addEventListener('input', () => {
+      const cleaned = String(input.value).replace(/\D/g, '').slice(0, 4);
+      if (input.value !== cleaned) input.value = cleaned;
+    });
+    register.addEventListener('click', () => {
+      const starts = normalizeVisibleDays(readStarts());
+      const key = dateKey(todayUtc());
+      starts[key] = clampCount(input.value);
+      save(KEY.tiktokStarts, starts);
+      render();
+      if (message) {
+        message.textContent = '登録しました';
+        setTimeout(() => { if (message.textContent === '登録しました') message.textContent = ''; }, 1200);
+      }
+    });
+    openBtn.addEventListener('click', () => {
+      render();
+      if (message) message.textContent = '';
+      dialog.showModal();
+    });
+    closeBtn.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('cancel', event => {
+      event.preventDefault();
+      dialog.close();
+    });
+  }
+
   function setupVerification() {
     const dialog = $('verification-dialog');
     const manageDialog = $('goal-manage-dialog');
@@ -594,6 +706,7 @@
   safeSetup('Pace colors', setupPaceColors);
   safeSetup('CSV', setupCsv);
   safeSetup('TikTok manual charge', setupTiktokManual);
+  safeSetup('TikTok Management', setupTiktokManagement);
   safeSetup('Goals', setupGoals);
   safeSetup('Revenue log', setupRevenueLog);
   safeSetup('Links', setupLinks);
