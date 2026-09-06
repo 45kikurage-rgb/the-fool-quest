@@ -416,3 +416,6 @@ button,a,input{font:inherit;color:inherit}
   .tiktok-entry{padding:9px 10px}
   #tiktok-start-register{min-width:76px;padding-inline:11px}
 }
+
+/* Month-End: second line (Lv) right aligned */
+.month-end-command > span:nth-child(2){width:100%;text-align:right;}
