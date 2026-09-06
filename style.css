@@ -373,8 +373,8 @@ button,a,input{font:inherit;color:inherit}
 }
 
 /* 2026-09-06 TikTok Management */
-.month-end-command{flex-direction:column;align-items:flex-start;justify-content:center;line-height:1.08;white-space:normal}
-.month-end-command strong{margin-left:0}
+.month-end-command{flex-direction:row;align-items:center;justify-content:space-between;line-height:1.08;white-space:nowrap}
+.month-end-command strong{margin-left:.18em}
 .day-command{appearance:none;color:var(--white);background:var(--black);text-align:left;cursor:pointer}
 .day-command:focus-visible,.manage-command:focus-visible{outline:2px solid var(--white);outline-offset:2px}
 
@@ -417,5 +417,8 @@ button,a,input{font:inherit;color:inherit}
   #tiktok-start-register{min-width:76px;padding-inline:11px}
 }
 
-/* Month-End: second line (Lv) right aligned */
-.month-end-command > span:nth-child(2){width:100%;text-align:right;}
+/* Final / Lv: one-line layout */
+.month-end-command > span:nth-child(2){width:auto;text-align:right;}
+
+/* Player name and level: one size larger */
+.character-row > span{font-size:calc(var(--panel-font-size) + 3px);line-height:1;}
