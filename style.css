@@ -422,3 +422,33 @@ button,a,input{font:inherit;color:inherit}
 
 /* Player name and level: one size larger */
 .character-row > span{font-size:calc(var(--panel-font-size) + 3px);line-height:1;}
+
+/* 2026-09-07 Compact Final / Manage rows */
+.top-commands{
+  grid-template-rows:auto auto auto;
+}
+.month-end-command,
+.manage-command{
+  height:auto;
+  min-height:0;
+  padding-top:clamp(8px,1vw,14px);
+  padding-bottom:clamp(8px,1vw,14px);
+  line-height:1;
+}
+.day-command{
+  height:auto;
+  min-height:0;
+  padding-top:clamp(5px,.7vw,9px);
+  padding-bottom:clamp(5px,.7vw,9px);
+}
+@media(max-width:820px){
+  .month-end-command,
+  .manage-command{
+    padding-top:7px;
+    padding-bottom:7px;
+  }
+  .day-command{
+    padding-top:4px;
+    padding-bottom:4px;
+  }
+}
