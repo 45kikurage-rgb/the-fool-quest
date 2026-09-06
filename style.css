@@ -43,7 +43,7 @@ button,a,input{font:inherit;color:inherit}
 .gauge-flame[hidden]{display:none}
 .commands{display:grid;gap:clamp(16px,1.7vw,25px)}
 .top-commands{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(16px,1.7vw,25px)}
-.day-command,.manage-command{width:100%;min-height:clamp(70px,8vw,105px);padding:0 clamp(4px,1vw,14px);align-items:center;cursor:pointer;font-size:var(--panel-font-size);letter-spacing:-.05em}
+.month-end-command,.day-command,.manage-command{width:100%;min-height:clamp(70px,8vw,105px);padding:0 clamp(4px,1vw,14px);align-items:center;cursor:pointer;font-size:var(--panel-font-size);letter-spacing:-.05em}
 .day-command{display:grid;grid-template-columns:1fr;grid-template-rows:auto auto;align-content:center;white-space:nowrap}
 .day-command span{display:block;width:100%;text-align:left;white-space:nowrap}
 .day-command strong{display:block;width:100%;text-align:right;white-space:nowrap}
@@ -109,11 +109,11 @@ button,a,input{font:inherit;color:inherit}
   .gauge{height:clamp(27px,6vw,45px);border-width:2px;padding:3px}
   .commands{gap:9px}
   .top-commands{gap:9px}
-  .day-command,.manage-command{min-height:48px;padding:0 10px}
+  .month-end-command,.day-command,.manage-command{min-height:0;padding-inline:10px}
   .link-panel{gap:4px;padding:6px}
   .command{min-height:clamp(76px,17vw,132px);padding:6px 3px}
 }
-@media(max-width:410px){.dashboard{gap:7px}.top-commands{gap:7px}.link-panel{gap:3px;padding:5px}.command{padding:6px 2px}.status-panel{padding-inline:8px}.day-command,.manage-command{padding-inline:4px}}
+@media(max-width:410px){.dashboard{gap:7px}.top-commands{gap:7px}.link-panel{gap:3px;padding:5px}.command{padding:6px 2px}.status-panel{padding-inline:8px}.month-end-command,.day-command,.manage-command{padding-inline:4px}}
 @media(max-width:520px){#goal-manage-dialog .modal-card{padding:14px;min-height:min(88dvh,760px)}.compact-settings{gap:6px}.compact-toggle{min-height:38px;padding-inline:5px;font-size:clamp(13px,3.7vw,17px)}.history-section{margin-top:16px;padding-top:12px}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
@@ -122,9 +122,15 @@ button,a,input{font:inherit;color:inherit}
 .overview-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:clamp(14px,1.8vw,25px);align-items:stretch}
 .overview-main{display:grid;grid-template-rows:auto minmax(0,1fr);gap:clamp(14px,1.8vw,25px);min-width:0}
 .total-panel{min-width:0}
-.top-commands{display:grid;grid-template-columns:1fr;grid-template-rows:1fr 1fr;gap:clamp(14px,1.8vw,25px)}
-.day-command,.manage-command{height:100%;min-height:0}
-.manage-command{justify-content:center;text-align:center;white-space:nowrap}
+.top-commands{display:grid;grid-template-columns:1fr;grid-template-rows:repeat(3,minmax(0,1fr));gap:clamp(8px,1.15vw,16px)}
+.month-end-command,.day-command,.manage-command{height:100%;min-height:0;font-size:var(--panel-font-size);letter-spacing:0}
+.month-end-command{display:flex;align-items:center;justify-content:space-between;gap:.25em;padding:0 clamp(4px,1vw,14px);white-space:nowrap}
+.month-end-command strong{font-weight:400;margin-left:.18em}
+.day-command{display:grid;grid-template-rows:auto auto auto;align-content:center;padding:clamp(2px,.4vw,6px) clamp(4px,1vw,14px);white-space:nowrap}
+.task-end-title{text-align:left;line-height:1.05}
+.day-command .date-command-row{grid-template-columns:1em auto 2ch minmax(0,1fr);line-height:1.05}
+.day-command .date-indent{display:block}
+.manage-command{justify-content:flex-start;text-align:left;white-space:nowrap}
 .middle-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(14px,1.8vw,25px)}
 .metric-panel{min-width:0;padding:clamp(18px,2.6vw,40px)}
 .metric{margin:0}

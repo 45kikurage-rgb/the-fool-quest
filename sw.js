@@ -1,4 +1,4 @@
-const CACHE='the-fool-quest-v20260906-verification-bottom-gap4';
+const CACHE='the-fool-quest-v20260906-month-end-task-end1';
 const ASSETS=['./','./index.html','./style.css','./app.js','./manifest.webmanifest','./title-logo.png','./icon-any.png','./icon-maskable.png'];
 
 self.addEventListener('install',event=>{

@@ -158,6 +158,9 @@
   function renderDate() {
     $('level').textContent = String(level());
     const today = jst();
+    const monthEndRevenue = today.day > 0 ? valueOf('total') / today.day * today.days : 0;
+    const monthEndLevel = Math.max(0, Math.floor(monthEndRevenue / 10000));
+    $('month-end-level').textContent = String(monthEndLevel);
     const formatOffset = offset => {
       const date = new Date(Date.UTC(today.year, today.month - 1, today.day + offset));
       return `${String(date.getUTCMonth()+1).padStart(2,'0')}/${String(date.getUTCDate()).padStart(2,'0')}`;
