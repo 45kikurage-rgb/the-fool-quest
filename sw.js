@@ -1,4 +1,5 @@
-const CACHE='the-fool-quest-v20260906-tiktok-management1';
+const CACHE='the-fool-quest-v20260908-work-usage1';
+const SHARE_CACHE='the-fool-quest-share-v1';
 const ASSETS=['./','./index.html','./style.css','./app.js','./manifest.webmanifest','./title-logo.png','./icon-any.png','./icon-maskable.png'];
 
 self.addEventListener('install',event=>{
@@ -13,7 +14,24 @@ self.addEventListener('activate',event=>{
 
 self.addEventListener('fetch',event=>{
   const req=event.request;
+  const url=new URL(req.url);
+  if(req.method==='POST'&&url.searchParams.get('work-usage-share')==='1'){
+    event.respondWith((async()=>{
+      const data=await req.formData();
+      const file=data.get('workUsageScreenshot');
+      if(file instanceof File&&file.type.startsWith('image/')){
+        const cache=await caches.open(SHARE_CACHE);
+        await cache.put(new URL('./__work_usage_screenshot__',self.registration.scope).toString(),new Response(file,{headers:{'Content-Type':file.type}}));
+      }
+      return Response.redirect(new URL('./?work-usage-share=1',self.registration.scope).toString(),303);
+    })());
+    return;
+  }
   if(req.method!=='GET')return;
+  if(url.pathname.endsWith('/__work_usage_screenshot__')){
+    event.respondWith(caches.open(SHARE_CACHE).then(cache=>cache.match(req)).then(response=>response||new Response('',{status:404})));
+    return;
+  }
   event.respondWith(fetch(req).then(response=>{
     const copy=response.clone();
     caches.open(CACHE).then(cache=>cache.put(req,copy)).catch(()=>{});

@@ -24,7 +24,7 @@
     simulation: 'foolQuestOperationSimulationV1', links: 'foolQuestPortalLinksV1',
     tiktokManual: 'foolQuestTiktokManualChargesV1', paceColors: 'foolQuestPaceColorsEnabledV1',
     homeAmounts: 'foolQuestHomeAmountsVisibleV1', legacyRevenueMigration: 'foolQuestLegacyRevenueMigration20260905V1',
-    tiktokStarts: 'foolQuestTiktokDailyStartsV1'
+    tiktokStarts: 'foolQuestTiktokDailyStartsV1', workUsage: 'foolQuestWorkUsageV1'
   };
   const $ = id => document.getElementById(id);
   const json = (raw, fallback) => { try { return JSON.parse(raw) ?? fallback; } catch { return fallback; } };
@@ -191,7 +191,149 @@
   function renderAll() {
     renderDate();
     CONFIG.metrics.forEach(([name]) => renderMetric(name));
+    renderWorkUsage();
     renderHistory();
+  }
+
+  function normalizedWorkUsage(value = load(KEY.workUsage, {})) {
+    const percent = input => Number.isFinite(Number(input)) ? Math.max(0, Math.min(100, Math.round(Number(input)))) : null;
+    return {
+      fivePercent: percent(value?.fivePercent),
+      weekPercent: percent(value?.weekPercent),
+      fiveReset: String(value?.fiveReset || '――'),
+      weekReset: String(value?.weekReset || '――'),
+      updatedAt: String(value?.updatedAt || '')
+    };
+  }
+
+  function renderWorkUsage() {
+    const usage = normalizedWorkUsage();
+    const apply = (name, percent, reset) => {
+      const fill = $(`work-${name}-fill`), value = $(`work-${name}-percent`), time = $(`work-${name}-reset`);
+      if (!fill || !value || !time) return;
+      fill.classList.remove('work-yellow', 'work-red');
+      if (percent === null) {
+        fill.style.width = '0%';
+        value.textContent = '--％';
+      } else {
+        fill.style.width = `${percent}%`;
+        value.textContent = `${percent}％`;
+        if (percent <= 20) fill.classList.add('work-red');
+        else if (percent <= 50) fill.classList.add('work-yellow');
+      }
+      time.textContent = reset || '――';
+    };
+    apply('five', usage.fivePercent, usage.fiveReset);
+    apply('week', usage.weekPercent, usage.weekReset);
+  }
+
+  function formatWorkReset(value) {
+    const source = String(value || '').replace(/[年月]/g, '/').replace(/日/g, ' ').replace(/[：]/g, ':').replace(/[.-]/g, '/');
+    const full = source.match(/(?:20\d{2}\/)?(\d{1,2})\/(\d{1,2})\s+(\d{1,2}):(\d{2})/);
+    if (full) return `${String(full[1]).padStart(2,'0')}/${String(full[2]).padStart(2,'0')} ${String(full[3]).padStart(2,'0')}:${full[4]}`;
+    const time = source.match(/(?:^|\s)(\d{1,2}):(\d{2})(?:\s|$)/);
+    if (!time) return '――';
+    const now = new Date();
+    const parts = new Intl.DateTimeFormat('ja-JP', { timeZone:'Asia/Tokyo', month:'2-digit', day:'2-digit' }).formatToParts(now);
+    const get = type => parts.find(part => part.type === type)?.value || '--';
+    return `${get('month')}/${get('day')} ${String(time[1]).padStart(2,'0')}:${time[2]}`;
+  }
+
+  function parseWorkUsageText(rawText) {
+    const text = String(rawText || '').replace(/％/g, '%').replace(/[：]/g, ':');
+    const percentMatches = [...text.matchAll(/(\d{1,3})\s*%/g)]
+      .map(match => Number(match[1])).filter(value => value >= 0 && value <= 100);
+    if (percentMatches.length < 2) throw new Error('5時間・週間の残量を読み取れませんでした');
+
+    const firstPercent = text.search(/\d{1,3}\s*%/);
+    const relevant = firstPercent >= 0 ? text.slice(firstPercent) : text;
+    const dateTimes = [...relevant.matchAll(/(?:20\d{2}[\/.-])?\d{1,2}[\/.-]\d{1,2}\s+\d{1,2}[:：]\d{2}/g)].map(match => match[0]);
+    const withoutDates = dateTimes.reduce((source, value) => source.replace(value, ' '), relevant);
+    const times = [...withoutDates.matchAll(/(?:^|\s)(\d{1,2}[:：]\d{2})(?=\s|$)/g)].map(match => match[1]);
+
+    return {
+      fivePercent: percentMatches[0],
+      weekPercent: percentMatches[1],
+      fiveReset: formatWorkReset(times[0]),
+      weekReset: formatWorkReset(dateTimes[0]),
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  async function cropWorkUsageImage(file) {
+    const bitmap = await createImageBitmap(file);
+    const sx = Math.round(bitmap.width * .06), sy = Math.round(bitmap.height * .25);
+    const sw = Math.round(bitmap.width * .92), sh = Math.round(bitmap.height * .31);
+    const scale = Math.min(2, 1600 / sw);
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(sw * scale));
+    canvas.height = Math.max(1, Math.round(sh * scale));
+    canvas.getContext('2d').drawImage(bitmap, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+    bitmap.close?.();
+    return canvas;
+  }
+
+  async function readWorkUsageScreenshot(file) {
+    const status = $('work-usage-status');
+    const showStatus = (message, error = false) => {
+      if (!status) return;
+      status.hidden = false;
+      status.textContent = message;
+      status.classList.toggle('is-error', error);
+    };
+    if (!file?.type?.startsWith('image/')) {
+      showStatus('画像ファイルを選択してください', true);
+      return;
+    }
+    if (!window.Tesseract) {
+      showStatus('画像読取機能を読み込めませんでした', true);
+      return;
+    }
+    try {
+      showStatus('スクショを読み込んでいます…');
+      const image = await cropWorkUsageImage(file);
+      const result = await window.Tesseract.recognize(image, 'jpn+eng', {
+        logger: progress => {
+          if (progress.status !== 'recognizing text') return;
+          showStatus(`残量を確認中… ${Math.round((progress.progress || 0) * 100)}％`);
+        }
+      });
+      const usage = parseWorkUsageText(result?.data?.text);
+      save(KEY.workUsage, usage);
+      renderWorkUsage();
+      showStatus(`更新しました　5時間 ${usage.fivePercent}％／週間 ${usage.weekPercent}％`);
+      setTimeout(() => { if (status && !status.classList.contains('is-error')) status.hidden = true; }, 3500);
+    } catch (error) {
+      console.error('Work usage screenshot read failed:', error);
+      showStatus(error?.message || 'スクショを読み取れませんでした', true);
+    }
+  }
+
+  function setupWorkUsage() {
+    const input = $('work-usage-file'), open = $('work-usage-file-open');
+    open?.addEventListener('click', event => { event.preventDefault(); input?.click(); });
+    input?.addEventListener('change', async () => {
+      const file = input.files?.[0];
+      input.value = '';
+      if (file) await readWorkUsageScreenshot(file);
+    });
+
+    const params = new URLSearchParams(location.search);
+    if (params.get('work-usage-share') !== '1') return;
+    params.delete('work-usage-share');
+    const nextSearch = params.toString();
+    history.replaceState(null, '', `${location.pathname}${nextSearch ? `?${nextSearch}` : ''}${location.hash}`);
+    fetch('./__work_usage_screenshot__', { cache:'no-store' })
+      .then(response => {
+        if (!response.ok) throw new Error('共有されたスクショを受け取れませんでした');
+        return response.blob();
+      })
+      .then(readWorkUsageScreenshot)
+      .finally(() => caches?.open('the-fool-quest-share-v1').then(cache => cache.delete('./__work_usage_screenshot__')).catch(() => {}))
+      .catch(error => {
+        const status = $('work-usage-status');
+        if (status) { status.hidden = false; status.classList.add('is-error'); status.textContent = error.message; }
+      });
   }
 
   function setupHomeAmounts() {
@@ -710,6 +852,7 @@
   safeSetup('Goals', setupGoals);
   safeSetup('Revenue log', setupRevenueLog);
   safeSetup('Links', setupLinks);
+  safeSetup('Work usage', setupWorkUsage);
   safeSetup('Verification', setupVerification);
   safeSetup('Initial render', renderAll);
   syncCoupon();

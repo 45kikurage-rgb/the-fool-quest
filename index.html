@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#f5f6f8">
   <title>THE FOOL QUEST</title>
-  <link rel="manifest" href="./manifest.webmanifest?v=20260903-gray-splash1">
+  <link rel="manifest" href="./manifest.webmanifest?v=20260908-work-usage1">
   <link rel="apple-touch-icon" href="./icon-any-192.png?v=20260901-dragon-icon1">
-  <link rel="stylesheet" href="./style.css?v=20260906-tiktok-management1">
+  <link rel="stylesheet" href="./style.css?v=20260908-work-usage1">
 </head>
 <body>
   <main class="screen">
@@ -40,6 +40,26 @@
       <section class="middle-metrics" aria-label="収益状況">
         <article id="metric-tiktok" class="metric-panel pixel-frame"></article>
         <article id="metric-coupon" class="metric-panel pixel-frame"></article>
+      </section>
+
+      <section class="work-usage-panel" aria-label="ChatGPT Work残量">
+        <a class="work-usage-gauge" href="https://chatgpt.com/codex/settings/usage" target="_blank" rel="noopener noreferrer" aria-label="OpenAI利用状況画面で5時間の残量を確認">
+          <span id="work-five-fill" class="work-usage-fill" aria-hidden="true"></span>
+          <span class="work-usage-copy">
+            <span class="work-usage-kind">5時間</span>
+            <strong id="work-five-percent" class="work-usage-percent">--％</strong>
+            <span class="work-usage-reset">リセット <time id="work-five-reset">――</time></span>
+          </span>
+        </a>
+        <a class="work-usage-gauge" href="https://chatgpt.com/codex/settings/usage" target="_blank" rel="noopener noreferrer" aria-label="OpenAI利用状況画面で週間の残量を確認">
+          <span id="work-week-fill" class="work-usage-fill" aria-hidden="true"></span>
+          <span class="work-usage-copy">
+            <span class="work-usage-kind">週間</span>
+            <strong id="work-week-percent" class="work-usage-percent">--％</strong>
+            <span class="work-usage-reset">リセット <time id="work-week-reset">――</time></span>
+          </span>
+        </a>
+        <p id="work-usage-status" class="work-usage-status" aria-live="polite" hidden></p>
       </section>
 
       <nav class="link-panel pixel-frame" aria-label="ポータルリンク">
@@ -103,6 +123,8 @@
         <button id="goal-save-btn" class="primary" type="button">保存</button>
       </div>
       <div class="manage-bottom-commands">
+        <input id="work-usage-file" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+        <button id="work-usage-file-open" class="wide-button" type="button">▶ WORK残量スクショ</button>
         <button id="verification-open" class="wide-button verification-open" type="button">▶ 稼働数検証</button>
         <button id="link-manage-open" class="wide-button link-manage-open" type="button">▶ リンク修正</button>
       </div>
@@ -241,7 +263,8 @@
     </form>
   </dialog>
 
-  <script src="./app.js?v=20260906-tiktok-management1"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script src="./app.js?v=20260908-work-usage1"></script>
   <script>
     if ('serviceWorker' in navigator) {
       let refreshing = false;
@@ -250,7 +273,7 @@
         refreshing = true;
         location.reload();
       });
-      navigator.serviceWorker.register('./sw.js?v=20260906-tiktok-management1', { updateViaCache: 'none' })
+      navigator.serviceWorker.register('./sw.js?v=20260908-work-usage1', { updateViaCache: 'none' })
         .then(registration => registration.update())
         .catch(error => console.error('Service Worker update failed:', error));
     }
