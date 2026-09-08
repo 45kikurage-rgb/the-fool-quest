@@ -153,8 +153,8 @@ button,a,input{font:inherit;color:inherit}
 
 /* 2026-09-08 ChatGPT Work usage gauges */
 .work-usage-panel{display:grid;grid-template-columns:1fr;gap:clamp(5px,.7vw,9px)}
-.work-usage-gauge{position:relative;display:block;width:100%;height:clamp(46px,5.4vw,70px);overflow:hidden;border:clamp(3px,.35vw,5px) solid var(--white);background:var(--black);color:var(--white);text-decoration:none;clip-path:polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px);cursor:pointer}
-.work-usage-fill{position:absolute;inset:0 auto 0 0;width:0;background:var(--white);transition:width .25s ease,background-color .25s ease}
+.work-usage-gauge{--work-inner-gap:clamp(3px,.35vw,5px);position:relative;display:block;width:100%;height:clamp(42px,5vw,64px);overflow:hidden;border:clamp(3px,.35vw,5px) solid var(--white);background:var(--black);color:var(--white);text-decoration:none;cursor:pointer}
+.work-usage-fill{position:absolute;top:var(--work-inner-gap);bottom:var(--work-inner-gap);left:var(--work-inner-gap);width:0;max-width:calc(100% - (var(--work-inner-gap) * 2));background:var(--blue);transition:width .25s ease,background-color .25s ease}
 .work-usage-fill.work-yellow{background:#ffd43b}
 .work-usage-fill.work-red{background:#ff2d2d}
 .work-usage-copy{position:absolute;inset:0;z-index:2;display:grid;grid-template-columns:5.2em 4.8em minmax(0,1fr);align-items:center;padding:0 clamp(9px,1.5vw,22px);font-size:clamp(18px,2.8vw,37px);line-height:1;white-space:nowrap;text-shadow:1px 0 #000,-1px 0 #000,0 1px #000,0 -1px #000,1px 1px #000,-1px -1px #000,1px -1px #000,-1px 1px #000;pointer-events:none}
@@ -205,7 +205,7 @@ button,a,input{font:inherit;color:inherit}
   .top-commands{gap:9px}
   .link-panel{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
   .command{min-height:clamp(54px,14vw,88px);padding-block:3px}
-  .work-usage-gauge{height:clamp(34px,8.6vw,54px);border-width:2px}
+  .work-usage-gauge{--work-inner-gap:3px;height:clamp(27px,6vw,45px);border-width:2px}
   .work-usage-copy{grid-template-columns:4.2em 3.7em minmax(0,1fr);padding-inline:clamp(6px,1.7vw,12px);font-size:clamp(13px,3.15vw,23px);letter-spacing:-.03em}
   .metric-achieved,.metric-target-to-date,.metric-target{gap:.2em;padding-right:0;font-size:var(--panel-font-size);letter-spacing:0}
   .metric-achieved::before,.metric-target-to-date::before,.metric-target::before{letter-spacing:0}
