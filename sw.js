@@ -1,6 +1,6 @@
-const CACHE='the-fool-quest-v20260909-readable-ui2';
+const CACHE='the-fool-quest-v20260909-corporate-rounded';
 const SHARE_CACHE='the-fool-quest-share-v1';
-const ASSETS=['./','./index.html','./style.css','./app.js','./manifest.webmanifest','./title-logo.png','./icon-any.png','./icon-maskable.png'];
+const ASSETS=['./','./index.html','./style.css','./app.js','./fonts/Corporate-Logo-Rounded-Bold-ver3.woff2','./manifest.webmanifest','./title-logo.png','./icon-any.png','./icon-maskable.png'];
 
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()));

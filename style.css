@@ -1,9 +1,15 @@
-@import url('https://fonts.googleapis.com/css2?family=DotGothic16&family=VT323&display=swap');
+@font-face{
+  font-family:"Corporate Logo Rounded";
+  src:url("./fonts/Corporate-Logo-Rounded-Bold-ver3.woff2") format("woff2");
+  font-style:normal;
+  font-weight:700;
+  font-display:swap;
+}
 
 :root{--white:#fff;--black:#000;--blue:#1687ff;--red:#ff4545;--yellow:#ffd43b;--green:#31d158;--subtext:#c9c9c9}
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%;background:var(--black);color:var(--white)}
-body{font-family:"VT323","DotGothic16","Courier New",monospace;font-size:19px;font-weight:700;font-synthesis:weight;letter-spacing:.02em;overflow-x:hidden}
+body{font-family:"Corporate Logo Rounded","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;font-size:19px;font-weight:700;font-synthesis:none;letter-spacing:.02em;overflow-x:hidden}
 button,a,input{font:inherit;color:inherit}
 .screen{min-height:100svh;padding:clamp(14px,2.2vw,34px);display:flex;flex-direction:column;justify-content:center}
 .logo-image{position:relative;width:min(1480px,100%);height:clamp(203px,24vw,368px);margin:0 auto 1em;border:0!important;border-top:0!important;box-shadow:none!important;background:url('./title-logo.png') center 52%/100% auto no-repeat;overflow:hidden}
@@ -481,12 +487,4 @@ button,a,input{font:inherit;color:inherit}
 .manage-command{
   justify-content:center;
   text-align:center;
-}
-
-/* 2026-09-09 Tall pixel numerals shared across the portal family */
-.metric-label,.metric-achieved b,.metric-target-to-date b,.metric-target,
-.gauge-percent,.character-row strong,.month-end-command strong,
-.date-command-row,.work-usage-percent,.work-usage-reset time,.command-copy{
-  transform:scaleY(1.08);
-  transform-origin:center;
 }
