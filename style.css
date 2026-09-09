@@ -551,3 +551,85 @@ button,a,input{font:inherit;color:inherit}
   }
   dialog[open]{overscroll-behavior:contain}
 }
+
+/* 2026-09-09 Mobile spacing and visual rhythm */
+@media(max-width:520px){
+  .screen{
+    padding:5px 8px max(10px,env(safe-area-inset-bottom));
+  }
+  .logo-image{
+    flex-basis:clamp(124px,29vw,142px);
+    height:clamp(124px,29vw,142px);
+    margin-bottom:9px;
+  }
+  .dashboard{
+    gap:8px;
+  }
+  .overview-grid,
+  .overview-main,
+  .middle-metrics,
+  .top-commands{
+    gap:8px;
+  }
+  .status-panel,
+  .total-panel{
+    padding:11px 10px;
+  }
+  .character-row{
+    padding-inline:2px;
+  }
+  .rule{
+    margin:9px 0 13px;
+  }
+  .metric-line{
+    line-height:1.24;
+  }
+  .middle-metrics .metric-panel{
+    padding:11px 9px;
+  }
+  .middle-metrics .metric-line,
+  .middle-metrics .metric-title,
+  .middle-metrics .metric-achieved,
+  .middle-metrics .metric-target-to-date,
+  .middle-metrics .metric-target{
+    line-height:1.25;
+  }
+  .middle-metrics .gauge-wrap{
+    margin-top:8px;
+  }
+  .middle-metrics .gauge{
+    height:clamp(30px,7vw,36px);
+  }
+  .month-end-command,
+  .manage-command{
+    padding-top:8px;
+    padding-bottom:8px;
+  }
+  .day-command{
+    padding-top:5px;
+    padding-bottom:5px;
+  }
+  .work-usage-panel{
+    gap:6px;
+  }
+  .work-usage-gauge{
+    height:clamp(26px,6.2vw,31px);
+  }
+  .link-panel{
+    grid-template-rows:repeat(3,auto);
+    grid-auto-rows:auto;
+    align-content:start;
+    column-gap:3px;
+    row-gap:5px;
+    padding:7px 5px max(8px,env(safe-area-inset-bottom));
+  }
+  .command{
+    min-height:clamp(40px,10.4vw,46px);
+    padding:3px 2px;
+    column-gap:.2em;
+    align-content:center;
+  }
+  .command-copy{
+    line-height:1.16;
+  }
+}
