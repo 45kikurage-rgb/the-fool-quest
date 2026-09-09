@@ -1,4 +1,4 @@
-const CACHE='the-fool-quest-v20260909-corporate-rounded';
+const CACHE='the-fool-quest-v20260909-mobile-fit1';
 const SHARE_CACHE='the-fool-quest-share-v1';
 const ASSETS=['./','./index.html','./style.css','./app.js','./fonts/Corporate-Logo-Rounded-Bold-ver3.woff2','./manifest.webmanifest','./title-logo.png','./icon-any.png','./icon-maskable.png'];
 
