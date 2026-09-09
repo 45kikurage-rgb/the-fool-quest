@@ -616,6 +616,8 @@ button,a,input{font:inherit;color:inherit}
     height:clamp(26px,6.2vw,31px);
   }
   .link-panel{
+    align-self:start;
+    width:100%;
     grid-template-rows:repeat(3,auto);
     grid-auto-rows:auto;
     align-content:start;
