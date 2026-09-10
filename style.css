@@ -560,7 +560,8 @@ button,a,input{font:inherit;color:inherit}
   .logo-image{
     flex-basis:clamp(124px,29vw,142px);
     height:clamp(124px,29vw,142px);
-    margin-bottom:9px;
+    /* Match the gap to the rendered height of the 「あるの」 label. */
+    margin-bottom:calc(clamp(19px, calc(3.8vw + 3px), 33px) + 3px);
   }
   .dashboard{
     gap:8px;
