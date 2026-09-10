@@ -13,9 +13,9 @@
     win: 'https://winning-url-manager.45kikurage.workers.dev',
     capture: 'https://coupon-capture.45kikurage.workers.dev',
     image: 'https://yahoo-framev2.45kikurage.workers.dev',
-    summary: 'https://lit.link/admin/creator/edit'
+    summary: 'https://the-fool-links.45kikurage.workers.dev/'
   };
-  const LINK_LABELS = { assets:'ASSET MANAGER', action:'ACTION TOOL', text:'TEXT FORMAT', win:'WIN LINK MANAGER', capture:'URL CAPTURE', image:'IMAGE EDITOR', summary:'LINK SUMMARY' };
+  const LINK_LABELS = { assets:'ASSET MANAGER', action:'ACTION TOOL', text:'TEXT FORMAT', win:'WIN LINK MANAGER', capture:'URL CAPTURE', image:'IMAGE EDITOR', summary:'FOOL LINK' };
 
   const KEY = {
     tiktok: 'tfq_tiktok', csv: 'tfq_tiktok_csv_meta',
