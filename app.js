@@ -632,6 +632,8 @@
     const input = $('tiktok-start-input');
     const register = $('tiktok-start-register');
     const message = $('tiktok-entry-message');
+    const entryLabel = dialog?.querySelector('label[for="tiktok-start-input"]');
+    let selectedDateKey = '';
     if (!dialog || !openBtn || !closeBtn || !grid || !input || !register) {
       console.error('TikTok Management UI is incomplete');
       return;
@@ -686,8 +688,10 @@
       dates.forEach((date, index) => {
         const key = dateKey(date);
         const todayClass = isFirst && index === 0 ? ' tiktok-day-today' : '';
-        cells.push(`<div class="tiktok-day-cell${todayClass}">${mmdd(date)}</div>`);
-        cells.push(`<div class="tiktok-day-cell${todayClass}">${clampCount(starts[key])}台</div>`);
+        const selectedClass = key === selectedDateKey ? ' tiktok-day-selected' : '';
+        const attrs = ` data-tiktok-date="${key}" aria-label="${mmdd(date)}の始動台数を変更"`;
+        cells.push(`<div class="tiktok-day-cell tiktok-day-editable${todayClass}${selectedClass}"${attrs}>${mmdd(date)}</div>`);
+        cells.push(`<div class="tiktok-day-cell tiktok-day-editable${todayClass}${selectedClass}"${attrs}>${clampCount(starts[key])}台</div>`);
       });
       return `<div class="tiktok-day-column">${cells.join('')}</div>`;
     }
@@ -695,6 +699,9 @@
     function render() {
       const starts = normalizeVisibleDays(readStarts());
       const dates = last14();
+      const visibleKeys = dates.map(dateKey);
+      const todayKey = dateKey(todayUtc());
+      if (!visibleKeys.includes(selectedDateKey)) selectedDateKey = todayKey;
       grid.innerHTML = renderColumn(dates.slice(0,7), starts, true) + renderColumn(dates.slice(7,14), starts, false);
 
       const active = dates.reduce((sum, date) => sum + clampCount(starts[dateKey(date)]), 0);
@@ -705,8 +712,21 @@
       $('tiktok-active-count').textContent = active.toLocaleString('ja-JP');
       $('tiktok-daily-revenue').textContent = (active * 200).toLocaleString('ja-JP');
       $('tiktok-month-starts').textContent = monthStarts.toLocaleString('ja-JP');
-      input.value = String(clampCount(starts[dateKey(todayUtc())]));
+      input.value = String(clampCount(starts[selectedDateKey]));
+      const selectedLabel = selectedDateKey.slice(5).replace('-', '/');
+      if (entryLabel) entryLabel.textContent = selectedDateKey === todayKey ? '当日始動台数' : `${selectedLabel} 始動台数`;
+      register.textContent = selectedDateKey === todayKey ? '登録' : '変更';
     }
+
+    grid.addEventListener('click', event => {
+      const cell = event.target.closest('[data-tiktok-date]');
+      if (!cell || !grid.contains(cell)) return;
+      selectedDateKey = cell.dataset.tiktokDate;
+      render();
+      if (message) message.textContent = `${selectedDateKey.slice(5).replace('-', '/')}を選択中`;
+      input.focus();
+      input.select();
+    });
 
     input.addEventListener('input', () => {
       const cleaned = String(input.value).replace(/\D/g, '').slice(0, 4);
@@ -714,18 +734,22 @@
     });
     register.addEventListener('click', () => {
       const starts = normalizeVisibleDays(readStarts());
-      const key = dateKey(todayUtc());
+      const key = selectedDateKey || dateKey(todayUtc());
       starts[key] = clampCount(input.value);
       save(KEY.tiktokStarts, starts);
       render();
       if (message) {
-        message.textContent = '登録しました';
-        setTimeout(() => { if (message.textContent === '登録しました') message.textContent = ''; }, 1200);
+        const savedText = key === dateKey(todayUtc())
+          ? '登録しました'
+          : `${key.slice(5).replace('-', '/')}を変更しました`;
+        message.textContent = savedText;
+        setTimeout(() => { if (message.textContent === savedText) message.textContent = ''; }, 1200);
       }
     });
     openBtn.addEventListener('click', () => {
+      selectedDateKey = dateKey(todayUtc());
       render();
-      if (message) message.textContent = '';
+      if (message) message.textContent = '日付または台数を押すと過去分を変更できます';
       dialog.showModal();
     });
     closeBtn.addEventListener('click', () => dialog.close());
