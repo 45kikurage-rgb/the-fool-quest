@@ -636,3 +636,20 @@ button,a,input{font:inherit;color:inherit}
     line-height:1.16;
   }
 }
+
+/* 2026-09-10 Mobile vertical spacing between portal sections */
+@media(max-width:520px){
+  .dashboard{
+    row-gap:0;
+  }
+  .dashboard > .overview-grid{
+    margin-bottom:12px;
+  }
+  .dashboard > .middle-metrics{
+    margin-bottom:16px;
+  }
+  .dashboard > .work-usage-panel{
+    gap:10px;
+    margin-bottom:16px;
+  }
+}
