@@ -164,6 +164,9 @@ button,a,input{font:inherit;color:inherit}
 
 /* 2026-09-08 ChatGPT Work usage gauges */
 .work-usage-panel{display:grid;grid-template-columns:1fr;gap:clamp(5px,.7vw,9px)}
+.work-usage-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 3px;font-size:clamp(14px,2.3vw,28px);line-height:1.15;letter-spacing:.01em;white-space:nowrap}
+.work-usage-plan{font-size:.82em;color:var(--subtext)}
+.work-usage-plan strong{color:var(--white);font-weight:700}
 .work-usage-gauge{--work-inner-gap:clamp(3px,.35vw,5px);position:relative;display:block;width:100%;height:clamp(42px,5vw,64px);overflow:hidden;border:clamp(3px,.35vw,5px) solid var(--white);background:var(--black);color:var(--white);text-decoration:none;cursor:pointer}
 .work-usage-fill{position:absolute;top:var(--work-inner-gap);bottom:var(--work-inner-gap);left:var(--work-inner-gap);width:0;max-width:calc(100% - (var(--work-inner-gap) * 2));background:var(--blue);transition:width .25s ease,background-color .25s ease}
 .work-usage-fill.work-yellow{background:#ffd43b}
@@ -243,6 +246,7 @@ button,a,input{font:inherit;color:inherit}
   .link-panel{gap:2px;padding-block:3px}
   .command{padding-block:3px}
   .work-usage-panel{gap:4px}
+  .work-usage-heading{gap:6px;padding-inline:2px;font-size:clamp(11px,3vw,13px);letter-spacing:-.025em}
   .work-usage-copy{grid-template-columns:3.6em 3.3em minmax(0,1fr);padding-inline:6px;font-size:clamp(11px,3.05vw,14px);letter-spacing:-.06em}
   .metric-line{column-gap:.18em}
   .verification-section,.capacity-section,.verification-results{padding-inline:13px}
