@@ -264,7 +264,7 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script src="./app.js?v=20260910-fool-link1"></script>
+  <script src="./app.js?v=20260911-pro-usage1"></script>
   <script>
     if ('serviceWorker' in navigator) {
       let refreshing = false;
@@ -273,7 +273,7 @@
         refreshing = true;
         location.reload();
       });
-      navigator.serviceWorker.register('./sw.js?v=20260910-fool-link1', { updateViaCache: 'none' })
+      navigator.serviceWorker.register('./sw.js?v=20260911-pro-usage1', { updateViaCache: 'none' })
         .then(registration => registration.update())
         .catch(error => console.error('Service Worker update failed:', error));
     }
