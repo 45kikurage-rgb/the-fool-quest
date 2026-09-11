@@ -209,6 +209,8 @@
 
   function renderWorkUsage() {
     const usage = normalizedWorkUsage();
+    const plan = $('work-usage-plan');
+    if (plan) plan.textContent = usage.mode === 'pro' ? 'PRO' : 'PLUS';
     const apply = (name, percent, reset) => {
       const fill = $(`work-${name}-fill`), value = $(`work-${name}-percent`), time = $(`work-${name}-reset`);
       if (!fill || !value || !time) return;
