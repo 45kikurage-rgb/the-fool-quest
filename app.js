@@ -202,6 +202,7 @@
       weekPercent: percent(value?.weekPercent),
       fiveReset: String(value?.fiveReset || '――'),
       weekReset: String(value?.weekReset || '――'),
+      mode: value?.mode === 'pro' ? 'pro' : 'standard',
       updatedAt: String(value?.updatedAt || '')
     };
   }
@@ -225,6 +226,12 @@
     };
     apply('five', usage.fivePercent, usage.fiveReset);
     apply('week', usage.weekPercent, usage.weekReset);
+    if (usage.mode === 'pro') {
+      const fill = $('work-five-fill'), value = $('work-five-percent'), time = $('work-five-reset');
+      if (fill) fill.style.width = '0%';
+      if (value) value.textContent = '対象外';
+      if (time) time.textContent = 'なし';
+    }
   }
 
   function formatWorkReset(value) {
@@ -243,7 +250,7 @@
     const text = String(rawText || '').replace(/％/g, '%').replace(/[：]/g, ':');
     const percentMatches = [...text.matchAll(/(\d{1,3})\s*%/g)]
       .map(match => Number(match[1])).filter(value => value >= 0 && value <= 100);
-    if (percentMatches.length < 2) throw new Error('5時間・週間の残量を読み取れませんでした');
+    if (percentMatches.length < 1) throw new Error('週間の残量を読み取れませんでした');
 
     const firstPercent = text.search(/\d{1,3}\s*%/);
     const relevant = firstPercent >= 0 ? text.slice(firstPercent) : text;
@@ -251,11 +258,26 @@
     const withoutDates = dateTimes.reduce((source, value) => source.replace(value, ' '), relevant);
     const times = [...withoutDates.matchAll(/(?:^|\s)(\d{1,2}[:：]\d{2})(?=\s|$)/g)].map(match => match[1]);
 
+    // Pro shows one weekly allowance instead of the former 5-hour + weekly pair.
+    // Keep the two-value parser for older plans, but accept the Pro layout when
+    // OCR finds only the weekly percentage.
+    if (percentMatches.length === 1) {
+      return {
+        fivePercent: null,
+        weekPercent: percentMatches[0],
+        fiveReset: '――',
+        weekReset: formatWorkReset(dateTimes[0] || times[0]),
+        mode: 'pro',
+        updatedAt: new Date().toISOString()
+      };
+    }
+
     return {
       fivePercent: percentMatches[0],
       weekPercent: percentMatches[1],
       fiveReset: formatWorkReset(times[0]),
       weekReset: formatWorkReset(dateTimes[0]),
+      mode: 'standard',
       updatedAt: new Date().toISOString()
     };
   }
@@ -301,7 +323,9 @@
       const usage = parseWorkUsageText(result?.data?.text);
       save(KEY.workUsage, usage);
       renderWorkUsage();
-      showStatus(`更新しました　5時間 ${usage.fivePercent}％／週間 ${usage.weekPercent}％`);
+      showStatus(usage.mode === 'pro'
+        ? `更新しました　週間 ${usage.weekPercent}％（Pro：5時間上限なし）`
+        : `更新しました　5時間 ${usage.fivePercent}％／週間 ${usage.weekPercent}％`);
       setTimeout(() => { if (status && !status.classList.contains('is-error')) status.hidden = true; }, 3500);
     } catch (error) {
       console.error('Work usage screenshot read failed:', error);
