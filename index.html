@@ -7,7 +7,7 @@
   <title>THE FOOL QUEST</title>
   <link rel="manifest" href="./manifest.webmanifest?v=20260909-spacing2">
   <link rel="apple-touch-icon" href="./icon-any-192.png?v=20260901-dragon-icon1">
-  <link rel="stylesheet" href="./style.css?v=20260911-usage-heading1">
+  <link rel="stylesheet" href="./style.css?v=20260912-tiktok-summary1">
 </head>
 <body>
   <main class="screen">
@@ -91,10 +91,17 @@
       </section>
 
       <section class="tiktok-summary pixel-frame" aria-label="稼働集計">
-        <div class="tiktok-summary-row"><span>稼働台数</span><strong><span id="tiktok-active-count">0</span>台</strong></div>
-        <div class="tiktok-summary-row"><span>1日収益</span><strong><span id="tiktok-daily-revenue">0</span>円</strong></div>
-        <div class="tiktok-summary-spacer" aria-hidden="true"></div>
-        <div class="tiktok-summary-row"><span>当月始動台数</span><strong><span id="tiktok-month-starts">0</span>台</strong></div>
+        <section class="tiktok-summary-group" aria-labelledby="tiktok-summary-14day">
+          <h2 id="tiktok-summary-14day" class="tiktok-summary-title">▶14Day</h2>
+          <div class="tiktok-summary-row"><span>稼働台数</span><strong><span id="tiktok-active-count">0</span>台</strong></div>
+          <div class="tiktok-summary-row"><span>1日収益</span><strong><span id="tiktok-daily-revenue">0</span>円</strong></div>
+          <div class="tiktok-summary-row"><span>1日平均始動</span><strong><span id="tiktok-14day-average">0.0</span>台</strong></div>
+        </section>
+        <section class="tiktok-summary-group" aria-labelledby="tiktok-summary-month">
+          <h2 id="tiktok-summary-month" class="tiktok-summary-title">▶Month</h2>
+          <div class="tiktok-summary-row"><span>始動台数</span><strong><span id="tiktok-month-starts">0</span>台</strong></div>
+          <div class="tiktok-summary-row"><span>平均始動台数</span><strong><span id="tiktok-month-average">0.0</span>台</strong></div>
+        </section>
       </section>
 
       <section class="tiktok-entry pixel-frame" aria-label="当日始動台数入力">
@@ -268,7 +275,7 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script src="./app.js?v=20260911-usage-heading1"></script>
+  <script src="./app.js?v=20260912-tiktok-summary1"></script>
   <script>
     if ('serviceWorker' in navigator) {
       let refreshing = false;
@@ -277,7 +284,7 @@
         refreshing = true;
         location.reload();
       });
-      navigator.serviceWorker.register('./sw.js?v=20260911-usage-heading1', { updateViaCache: 'none' })
+      navigator.serviceWorker.register('./sw.js?v=20260912-tiktok-summary1', { updateViaCache: 'none' })
         .then(registration => registration.update())
         .catch(error => console.error('Service Worker update failed:', error));
     }

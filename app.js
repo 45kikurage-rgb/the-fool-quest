@@ -678,6 +678,10 @@
       return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
     };
     const clampCount = value => Math.max(0, Math.min(9999, Math.trunc(Number(value) || 0)));
+    const averageText = value => Math.max(0, Number(value) || 0).toLocaleString('ja-JP', {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1
+    });
     const last14 = () => {
       const base = todayUtc();
       return Array.from({length:14}, (_, i) => {
@@ -737,7 +741,9 @@
       }, 0);
       $('tiktok-active-count').textContent = active.toLocaleString('ja-JP');
       $('tiktok-daily-revenue').textContent = (active * 200).toLocaleString('ja-JP');
+      $('tiktok-14day-average').textContent = averageText(active / dates.length);
       $('tiktok-month-starts').textContent = monthStarts.toLocaleString('ja-JP');
+      $('tiktok-month-average').textContent = averageText(monthStarts / Math.max(1, jst().day));
       input.value = String(clampCount(starts[selectedDateKey]));
       const selectedLabel = selectedDateKey.slice(5).replace('-', '/');
       if (entryLabel) entryLabel.textContent = selectedDateKey === todayKey ? '当日始動台数' : `${selectedLabel} 始動台数`;
