@@ -445,7 +445,7 @@ button,a,input{font:inherit;color:inherit}
 #tiktok-start-register:hover,#tiktok-start-register:focus-visible{background:var(--white);color:var(--black);outline:none}
 .tiktok-entry-message{min-height:18px;margin-top:6px;text-align:center;font-size:14px}
 @media(max-width:410px){
-  .tiktok-management-card{padding-inline:8px;gap:8px}
+  .tiktok-management-card{padding:9px 8px max(9px,env(safe-area-inset-bottom));gap:5px}
   .tiktok-days{padding:7px}
   .tiktok-day-grid{gap:7px}
   .tiktok-day-cell{min-height:31px;padding:3px 2px;font-size:clamp(14px,4.2vw,18px)}
