@@ -443,7 +443,6 @@ button,a,input{font:inherit;color:inherit}
 .tiktok-input-wrap input{width:100%;min-width:0;border:0;outline:0;background:var(--black);color:var(--white);text-align:right;font-size:inherit;font-variant-numeric:tabular-nums}
 #tiktok-start-register{min-width:88px;border:2px solid var(--white);background:var(--black);color:var(--white);padding:5px 16px;cursor:pointer;font-size:clamp(19px,5.2vw,26px)}
 #tiktok-start-register:hover,#tiktok-start-register:focus-visible{background:var(--white);color:var(--black);outline:none}
-.tiktok-entry-message{min-height:18px;margin-top:6px;text-align:center;font-size:14px}
 @media(max-width:410px){
   .tiktok-management-card{padding:9px 8px max(9px,env(safe-area-inset-bottom));gap:5px}
   .tiktok-days{padding:7px}

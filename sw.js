@@ -1,4 +1,4 @@
-const CACHE='the-fool-quest-v20260912-tiktok-fit1';
+const CACHE='the-fool-quest-v20260912-tiktok-no-help1';
 const SHARE_CACHE='the-fool-quest-share-v1';
 const ASSETS=['./','./index.html','./style.css','./app.js','./fonts/Corporate-Logo-Rounded-Bold-ver3.woff2','./manifest.webmanifest','./title-logo.png','./icon-any.png','./icon-maskable.png'];
 
