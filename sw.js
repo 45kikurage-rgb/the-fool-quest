@@ -1,6 +1,6 @@
-const CACHE='the-fool-quest-v20260912-tiktok-no-help1';
+const CACHE="the-fool-quest-20260914-white-splash";
 const SHARE_CACHE='the-fool-quest-share-v1';
-const ASSETS=['./','./index.html','./style.css','./app.js','./fonts/Corporate-Logo-Rounded-Bold-ver3.woff2','./manifest.webmanifest','./title-logo.png','./icon-any.png','./icon-maskable.png'];
+const ASSETS=['./','./index.html','./style.css','./app.js','./fonts/Corporate-Logo-Rounded-Bold-ver3.woff2','./manifest.webmanifest?v=20260914-white-splash','./title-logo.png','./icon-any-192.png?v=20260914-white-splash','./icon-any.png?v=20260914-white-splash','./icon-maskable-192.png?v=20260914-white-splash','./icon-maskable.png?v=20260914-white-splash'];
 
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()));
@@ -8,7 +8,7 @@ self.addEventListener('install',event=>{
 
 self.addEventListener('activate',event=>{
   event.waitUntil(
-    caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())
+    caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE&&k!==SHARE_CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())
   );
 });
 
