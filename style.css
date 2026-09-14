@@ -663,26 +663,24 @@ button,a,input{font:inherit;color:inherit}
   }
 }
 
-/* ChatGPT 2/3 + Povo 1/3. Keep dates yearless and the separator thin. */
-.usage-povo-panel{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);align-items:stretch;gap:0;min-width:0}
-.usage-povo-panel .work-usage-panel{min-width:0;padding-right:clamp(5px,1vw,12px);gap:6px;grid-template-rows:auto 1fr 1fr}
-.usage-povo-panel .work-usage-heading{flex-wrap:wrap;gap:2px 6px;white-space:normal;font-size:clamp(11px,2vw,23px);letter-spacing:0}
-.usage-povo-panel .work-usage-plan{margin-left:auto;font-size:.72em;white-space:nowrap}
+/* Shared heading and row tracks keep both expiry dates aligned with the gauges. */
+.usage-povo-panel{--usage-heading-size:clamp(13px,3.6vw,24px);--usage-heading-height:calc(var(--usage-heading-size) * 2.6);--usage-row-height:clamp(28px,7vw,48px);display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);align-items:stretch;gap:0;min-width:0}
+.usage-povo-panel .work-usage-panel{min-width:0;padding-right:clamp(5px,1vw,12px);gap:6px;grid-template-rows:var(--usage-heading-height) repeat(2,var(--usage-row-height))}
+.usage-povo-panel .work-usage-heading,.povo-expiry-panel h2{font-size:var(--usage-heading-size);line-height:1.2;letter-spacing:0;align-content:center}
+.usage-povo-panel .work-usage-heading{flex-wrap:wrap;gap:0 6px;white-space:normal}
+.usage-povo-panel .work-usage-heading > span:first-child{white-space:nowrap}
+.usage-povo-panel .work-usage-plan{flex-basis:100%;margin-left:0;font-size:.72em;white-space:nowrap}
+.usage-povo-panel .work-usage-gauge{height:var(--usage-row-height)}
 .usage-povo-panel .work-usage-copy{grid-template-columns:auto auto minmax(0,1fr);gap:4px;padding-inline:4px;font-size:clamp(10px,1.85vw,24px);letter-spacing:-.03em}
 .usage-povo-panel .work-usage-reset{display:flex;flex-wrap:wrap;justify-content:flex-end;column-gap:.25em;font-size:.9em;line-height:1.05}
 .usage-povo-panel .work-usage-reset time{white-space:nowrap}
-.povo-expiry-panel{min-width:0;border-left:1px solid #bbb;padding-left:clamp(5px,1vw,12px);display:grid;grid-template-rows:auto 1fr 1fr;gap:6px}
-.povo-expiry-panel h2{margin:0;align-self:start;display:flex;flex-wrap:wrap;gap:0 .3em;font-size:clamp(10px,1.8vw,22px);line-height:1.2;letter-spacing:0}
+.povo-expiry-panel{min-width:0;border-left:1px solid #bbb;padding-left:clamp(5px,1vw,12px);display:grid;grid-template-rows:var(--usage-heading-height) repeat(2,var(--usage-row-height));gap:6px}
+.povo-expiry-panel h2{margin:0;display:grid}
 .povo-expiry-panel h2 span{white-space:nowrap}
-.povo-expiry-row{display:flex;align-items:center;justify-content:space-between;gap:3px;min-width:0;font-size:clamp(10px,1.75vw,22px);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.povo-expiry-row{display:flex;align-items:center;justify-content:center;min-width:0;font-size:clamp(16px,4.3vw,29px);line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
 .povo-expiry-row time{white-space:nowrap}
 .usage-povo-panel > .work-usage-status{grid-column:1/-1;margin-top:5px}
 @media(max-width:520px){
   .dashboard > .usage-povo-panel{margin-bottom:16px}
-  .usage-povo-panel .work-usage-heading{font-size:clamp(10px,2.85vw,14px)}
   .usage-povo-panel .work-usage-copy{font-size:clamp(10px,2.6vw,13px)}
-  .povo-expiry-panel h2{font-size:clamp(9px,2.6vw,13px)}
-  .povo-expiry-row{font-size:clamp(9px,2.65vw,13px)}
 }
-.usage-povo-panel{--usage-heading-height:clamp(25px,4.5vw,48px)}
-.usage-povo-panel .work-usage-heading,.povo-expiry-panel h2{min-height:var(--usage-heading-height);align-content:center}
