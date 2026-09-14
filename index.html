@@ -7,7 +7,7 @@
   <title>THE FOOL QUEST</title>
   <link rel="manifest" href="./manifest.webmanifest?v=20260914-white-splash">
   <link rel="apple-touch-icon" href="./icon-any-192.png?v=20260914-white-splash">
-  <link rel="stylesheet" href="./style.css?v=20260912-tiktok-no-help1">
+  <link rel="stylesheet" href="./style.css?v=20260914-magic-povo1">
 </head>
 <body>
   <main class="screen">
@@ -42,9 +42,10 @@
         <article id="metric-coupon" class="metric-panel pixel-frame"></article>
       </section>
 
-      <section class="work-usage-panel" aria-label="ChatGPT Work残量">
+      <section class="usage-povo-panel" aria-label="ChatGPT利用残量とPovoデータ使用期限">
+      <section class="work-usage-panel" aria-label="ChatGPT Magic Point">
         <header class="work-usage-heading">
-          <span>ChatGPT REMAINING USAGE</span>
+          <span>ChatGPT Magic Point</span>
           <span class="work-usage-plan">PLAN: <strong id="work-usage-plan">PLUS</strong></span>
         </header>
         <a class="work-usage-gauge" href="https://chatgpt.com/codex/settings/usage" target="_blank" rel="noopener noreferrer" aria-label="OpenAI利用状況画面で5時間の残量を確認">
@@ -63,7 +64,13 @@
             <span class="work-usage-reset">リセット <time id="work-week-reset">――</time></span>
           </span>
         </a>
-        <p id="work-usage-status" class="work-usage-status" aria-live="polite" hidden></p>
+      </section>
+      <section class="povo-expiry-panel" aria-labelledby="povo-expiry-heading">
+        <h2 id="povo-expiry-heading"><span>Povo</span><span>データ使用期限</span></h2>
+        <div class="povo-expiry-row"><span>1</span><time id="povo-expiry-one">--/-- --:--</time></div>
+        <div class="povo-expiry-row"><span>2</span><time id="povo-expiry-two">--/-- --:--</time></div>
+      </section>
+      <p id="work-usage-status" class="work-usage-status" aria-live="polite" hidden></p>
       </section>
 
       <nav class="link-panel pixel-frame" aria-label="ポータルリンク">
@@ -133,8 +140,8 @@
         <button id="goal-save-btn" class="primary" type="button">保存</button>
       </div>
       <div class="manage-bottom-commands">
-        <input id="work-usage-file" type="file" accept="image/png,image/jpeg,image/webp" hidden>
-        <button id="work-usage-file-open" class="wide-button" type="button">▶ WORK残量スクショ</button>
+        <input id="work-usage-file" type="file" multiple accept="image/png,image/jpeg,image/webp" hidden>
+        <button id="work-usage-file-open" class="wide-button" type="button">▶ ChatGPT・Povo スクショ読取</button>
         <button id="verification-open" class="wide-button verification-open" type="button">▶ 稼働数検証</button>
         <button id="link-manage-open" class="wide-button link-manage-open" type="button">▶ リンク修正</button>
       </div>
@@ -274,7 +281,8 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script src="./app.js?v=20260912-tiktok-no-help1"></script>
+  <script src="./portal-screenshots.js?v=1"></script>
+  <script src="./app.js?v=20260914-magic-povo1"></script>
   <script>
     if ('serviceWorker' in navigator) {
       let refreshing = false;
@@ -283,7 +291,7 @@
         refreshing = true;
         location.reload();
       });
-      navigator.serviceWorker.register('./sw.js?v=20260914-white-splash', { updateViaCache: 'none' })
+      navigator.serviceWorker.register('./sw.js?v=20260914-magic-povo1', { updateViaCache: 'none' })
         .then(registration => registration.update())
         .catch(error => console.error('Service Worker update failed:', error));
     }

@@ -1,6 +1,7 @@
-const CACHE="the-fool-quest-20260914-white-splash";
+importScripts('./portal-screenshots.js?v=1');
+const CACHE="the-fool-quest-20260914-magic-povo1";
 const SHARE_CACHE='the-fool-quest-share-v1';
-const ASSETS=['./','./index.html','./style.css','./app.js','./fonts/Corporate-Logo-Rounded-Bold-ver3.woff2','./manifest.webmanifest?v=20260914-white-splash','./title-logo.png','./icon-any-192.png?v=20260914-white-splash','./icon-any.png?v=20260914-white-splash','./icon-maskable-192.png?v=20260914-white-splash','./icon-maskable.png?v=20260914-white-splash'];
+const ASSETS=['./portal-screenshots.js?v=1','./','./index.html','./style.css?v=20260914-magic-povo1','./app.js?v=20260914-magic-povo1','./fonts/Corporate-Logo-Rounded-Bold-ver3.woff2','./manifest.webmanifest?v=20260914-white-splash','./title-logo.png','./icon-any-192.png?v=20260914-white-splash','./icon-any.png?v=20260914-white-splash','./icon-maskable-192.png?v=20260914-white-splash','./icon-maskable.png?v=20260914-white-splash'];
 
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()));
@@ -18,11 +19,9 @@ self.addEventListener('fetch',event=>{
   if(req.method==='POST'&&url.searchParams.get('work-usage-share')==='1'){
     event.respondWith((async()=>{
       const data=await req.formData();
-      const file=data.get('workUsageScreenshot');
-      if(file instanceof File&&file.type.startsWith('image/')){
-        const cache=await caches.open(SHARE_CACHE);
-        await cache.put(new URL('./__work_usage_screenshot__',self.registration.scope).toString(),new Response(file,{headers:{'Content-Type':file.type}}));
-      }
+      await PortalScreenshots.enqueue(data.getAll('workUsageScreenshot'), self.registration.scope);
+      const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});
+      windows.forEach(client=>client.postMessage({type:'portal-screenshot-queued'}));
       return Response.redirect(new URL('./?work-usage-share=1',self.registration.scope).toString(),303);
     })());
     return;

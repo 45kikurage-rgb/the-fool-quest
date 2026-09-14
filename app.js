@@ -192,6 +192,7 @@
     renderDate();
     CONFIG.metrics.forEach(([name]) => renderMetric(name));
     renderWorkUsage();
+    renderPovoExpiry();
     renderHistory();
   }
 
@@ -297,69 +298,132 @@
     return canvas;
   }
 
-  async function readWorkUsageScreenshot(file) {
+  function renderPovoExpiry() {
+    const data = load(PortalScreenshots.POVO_KEY, {});
+    ['povo-expiry-one','povo-expiry-two'].forEach((id,index) => {
+      const node = $(id), entry = data.entries?.[index];
+      if (!node) return;
+      node.textContent = PortalScreenshots.formatExpiry(entry?.expiry);
+      if (entry?.expiry) node.dateTime = entry.expiry;
+      else node.removeAttribute('datetime');
+    });
+  }
+
+  let screenshotStatusTimer = null;
+  function screenshotStatus(message, error = false) {
+    clearTimeout(screenshotStatusTimer);
     const status = $('work-usage-status');
-    const showStatus = (message, error = false) => {
-      if (!status) return;
-      status.hidden = false;
-      status.textContent = message;
-      status.classList.toggle('is-error', error);
-    };
-    if (!file?.type?.startsWith('image/')) {
-      showStatus('画像ファイルを選択してください', true);
-      return;
-    }
-    if (!window.Tesseract) {
-      showStatus('画像読取機能を読み込めませんでした', true);
-      return;
-    }
-    try {
-      showStatus('スクショを読み込んでいます…');
-      const image = await cropWorkUsageImage(file);
+    if (!status) return;
+    status.hidden = false;
+    status.textContent = message;
+    status.classList.toggle('is-error', error);
+  }
+
+  async function readPortalScreenshot(file, id) {
+    if (!file?.type?.startsWith('image/')) throw new Error('画像ファイルを選択してください');
+    if (!window.Tesseract) throw new Error('画像読取機能を読み込めませんでした。通信状態を確認して再送してください。');
+    // Replaying a queued image after a reload must not push the same receipt twice.
+    if (load(PortalScreenshots.POVO_KEY, {}).seenIds?.includes(id)) return {kind:'saved'};
+    const images = [await cropWorkUsageImage(file), file];
+    let lastError = null;
+    for (const image of images) {
       const result = await window.Tesseract.recognize(image, 'jpn+eng', {
         logger: progress => {
-          if (progress.status !== 'recognizing text') return;
-          showStatus(`残量を確認中… ${Math.round((progress.progress || 0) * 100)}％`);
+          if (progress.status === 'recognizing text') {
+            screenshotStatus(`画像を読み取り中… ${Math.round((progress.progress || 0) * 100)}％`);
+          }
         }
       });
-      const usage = parseWorkUsageText(result?.data?.text);
-      save(KEY.workUsage, usage);
-      renderWorkUsage();
-      showStatus(usage.mode === 'pro'
-        ? `更新しました　週間 ${usage.weekPercent}％（Pro：5時間上限なし）`
-        : `更新しました　5時間 ${usage.fivePercent}％／週間 ${usage.weekPercent}％`);
-      setTimeout(() => { if (status && !status.classList.contains('is-error')) status.hidden = true; }, 3500);
-    } catch (error) {
-      console.error('Work usage screenshot read failed:', error);
-      showStatus(error?.message || 'スクショを読み取れませんでした', true);
+      const text = result?.data?.text || '';
+      let expiry;
+      try { expiry = PortalScreenshots.parsePovoExpiry(text); }
+      catch (error) { lastError = error; continue; }
+      if (expiry) {
+        const next = PortalScreenshots.pushExpiry(load(PortalScreenshots.POVO_KEY, {}), expiry, id);
+        // Do not swallow storage errors: leave the previous dates intact and report failure.
+        localStorage.setItem(PortalScreenshots.POVO_KEY, JSON.stringify(next));
+        renderPovoExpiry();
+        return {kind:'povo',expiry};
+      }
+      if (/[％%]/.test(text) && /リセット|残量|残り|制限|usage|limit|weekly|週|時間/i.test(text)) {
+        try {
+          const usage = parseWorkUsageText(text);
+          localStorage.setItem(KEY.workUsage, JSON.stringify(usage));
+          renderWorkUsage();
+          return {kind:'work'};
+        } catch (error) { lastError = error; }
+      }
     }
+    throw lastError || new Error('Povoの有効期限・ChatGPTの利用残量を読み取れませんでした。鮮明な画像を再送してください。');
+  }
+
+  let screenshotProcessing = null;
+  function processScreenshotQueue() {
+    if (screenshotProcessing) return screenshotProcessing;
+    const run = async () => {
+      const cache = await caches.open(PortalScreenshots.SHARE_CACHE);
+      let successes = 0, failures = 0, attempted = new Set();
+      while (true) {
+        const requests = (await PortalScreenshots.pending(document.baseURI)).filter(request => !attempted.has(request.url));
+        if (!requests.length) break;
+        for (const request of requests) {
+          attempted.add(request.url);
+          const response = await cache.match(request);
+          if (!response) continue;
+          screenshotStatus(`画像を読み込んでいます… ${successes + failures + 1}枚目`);
+          try {
+            await readPortalScreenshot(await response.blob(), request.url);
+            successes++;
+          } catch (error) {
+            failures++;
+            console.error('Screenshot read failed:', error);
+          }
+          // Images are temporary. A failed read does not change either stored expiry.
+          await cache.delete(request).catch(() => {});
+        }
+      }
+      if (successes || failures) {
+        renderPovoExpiry();
+        screenshotStatus(failures
+          ? `${successes}枚を更新しました。${failures}枚は読取・保存できませんでした。期限・残量が鮮明な画像を再送してください。`
+          : `${successes}枚の画像から更新しました。`, Boolean(failures));
+        if (!failures) screenshotStatusTimer = setTimeout(() => { $('work-usage-status').hidden = true; }, 5000);
+      }
+    };
+    const locked = () => navigator.locks?.request
+      ? navigator.locks.request('fool-quest-screenshots', run) : run();
+    screenshotProcessing = locked().catch(error => {
+      screenshotStatus(error?.message || '画像を受け取れませんでした。再送してください。', true);
+    }).finally(() => { screenshotProcessing = null; });
+    return screenshotProcessing;
   }
 
   function setupWorkUsage() {
     const input = $('work-usage-file'), open = $('work-usage-file-open');
     open?.addEventListener('click', event => { event.preventDefault(); input?.click(); });
     input?.addEventListener('change', async () => {
-      const file = input.files?.[0];
+      const files = [...(input.files || [])];
       input.value = '';
-      if (file) await readWorkUsageScreenshot(file);
+      if (!files.length) return;
+      $('goal-manage-dialog')?.close();
+      try {
+        await PortalScreenshots.enqueue(files, document.baseURI);
+        await processScreenshotQueue();
+      } catch (error) { screenshotStatus('画像を保存できませんでした。もう一度選択してください。', true); }
     });
-
     const params = new URLSearchParams(location.search);
-    if (params.get('work-usage-share') !== '1') return;
     params.delete('work-usage-share');
     const nextSearch = params.toString();
     history.replaceState(null, '', `${location.pathname}${nextSearch ? `?${nextSearch}` : ''}${location.hash}`);
-    fetch('./__work_usage_screenshot__', { cache:'no-store' })
-      .then(response => {
-        if (!response.ok) throw new Error('共有されたスクショを受け取れませんでした');
-        return response.blob();
-      })
-      .then(readWorkUsageScreenshot)
-      .finally(() => caches?.open('the-fool-quest-share-v1').then(cache => cache.delete('./__work_usage_screenshot__')).catch(() => {}))
-      .catch(error => {
-        const status = $('work-usage-status');
-        if (status) { status.hidden = false; status.classList.add('is-error'); status.textContent = error.message; }
-      });
+    // Also resume receipts left during navigation/reload, without requiring a query flag.
+    if ('caches' in window) processScreenshotQueue();
+    navigator.serviceWorker?.addEventListener('message', event => {
+      if (event.data?.type === 'portal-screenshot-queued') processScreenshotQueue();
+    });
+    window.addEventListener('storage', event => {
+      if (event.key === PortalScreenshots.POVO_KEY) renderPovoExpiry();
+      if (event.key === KEY.workUsage) renderWorkUsage();
+    });
   }
 
   function setupHomeAmounts() {
