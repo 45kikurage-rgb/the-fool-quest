@@ -85,7 +85,7 @@ function appFixture(texts){
 
 test('切抜き失敗時は全体で読み、失敗画像は既存期限を変えず次の2枚を処理する',async()=>{
   const valid='有効期限 2026年 9月 16日 午後7:23';
-  const f=appFixture(['bad crop',valid,'unreadable','unreadable',valid]);
+  const f=appFixture(['bad crop','unreadable',valid,'unreadable','unreadable','unreadable',valid]);
   const image=()=>new Blob(['image'],{type:'image/png'});
   await P.enqueue([image(),image(),image()],'https://portal.test/');
   await f.context.processScreenshotQueue();
@@ -96,7 +96,7 @@ test('切抜き失敗時は全体で読み、失敗画像は既存期限を変�
   assert.equal(f.$('povo-expiry-two').textContent,'09/16 19:23');
   assert.match(f.$('work-usage-status').textContent,/2枚を更新.*1枚は/);
   assert.equal((await f.cache.keys()).length,0);
-  assert.equal(f.calls(),5);
+  assert.equal(f.calls(),7);
   delete global.caches;
 });
 
@@ -113,5 +113,28 @@ test('ChatGPTのPlus/Pro読取はPovoを変更せず、画像再処理でも二�
   await f.context.readPortalScreenshot(image,'receipt-c');
   assert.equal(JSON.parse(f.stored.get('usage')).mode,'pro');
   assert.equal(f.stored.get(P.POVO_KEY),before);
+  delete global.caches;
+});
+
+test('Pro新画面は販促・グラフの別パーセントを無視し週間残量を読む',async()=>{
+  const f=appFixture(['Codex & Work は同じ利用上限を共有しています。 週間利用上限 75% 残り リセット: 2026/09/21 12:06 残りのクレジット 0 自動チャージ 最大40%お得 グラフ 100% 0%']);
+  const image=new Blob(['image'],{type:'image/jpeg'});
+  await f.context.readPortalScreenshot(image,'new-pro');
+  const usage=JSON.parse(f.stored.get('usage'));
+  assert.equal(usage.mode,'pro');
+  assert.equal(usage.fivePercent,null);
+  assert.equal(usage.weekPercent,75);
+  assert.equal(usage.weekReset,'09/21 12:06');
+  delete global.caches;
+});
+
+test('通常切抜きが読めなくても英語のProカード切抜きで復旧する',async()=>{
+  const f=appFixture(['unreadable','Codex & Work weekly limit 75% remaining reset 2026/09/21 12:06']);
+  const image=new Blob(['image'],{type:'image/jpeg'});
+  await f.context.readPortalScreenshot(image,'pro-fallback');
+  const usage=JSON.parse(f.stored.get('usage'));
+  assert.equal(usage.mode,'pro');
+  assert.equal(usage.weekPercent,75);
+  assert.equal(f.calls(),2);
   delete global.caches;
 });

@@ -250,10 +250,31 @@
   }
 
   function parseWorkUsageText(rawText) {
-    const text = String(rawText || '').replace(/％/g, '%').replace(/[：]/g, ':');
+    const text = String(rawText || '').normalize('NFKC')
+      .replace(/[：]/g, ':').replace(/[©@]/g, '&');
+    const validPercent = value => {
+      const number = Number(value);
+      return number >= 0 && number <= 100 ? number : null;
+    };
+    const firstPercentIn = source => {
+      const match = String(source || '').match(/(\d{1,3})\s*%/);
+      return match ? validPercent(match[1]) : null;
+    };
     const percentMatches = [...text.matchAll(/(\d{1,3})\s*%/g)]
-      .map(match => Number(match[1])).filter(value => value >= 0 && value <= 100);
+      .map(match => validPercent(match[1])).filter(value => value !== null);
     if (percentMatches.length < 1) throw new Error('週間の残量を読み取れませんでした');
+
+    // Prefer a value attached to its label. The Pro analytics page also contains
+    // unrelated percentages (auto-charge offers and chart axes), so positional
+    // "first percentage wins" parsing can silently save the wrong number.
+    const fiveSection = text.match(/(?:5\s*時間|5\s*hour)[\s\S]{0,100}/i)?.[0] || '';
+    const weekSection = text.match(/(?:週間(?:利用)?上限|週間残量|週(?:間)?|weekly(?:\s+(?:usage\s+)?limit)?)[\s\S]{0,120}/i)?.[0] || '';
+    const remainingSection = text.match(/(\d{1,3})\s*%\s*(?:残り|remaining)/i);
+    const fivePercent = firstPercentIn(fiveSection);
+    const weekPercent = firstPercentIn(weekSection)
+      ?? (remainingSection ? validPercent(remainingSection[1]) : null);
+    const proPage = /codex\s*(?:&|and)\s*work/i.test(text)
+      && !/(?:5\s*時間|5\s*hour)/i.test(text);
 
     const firstPercent = text.search(/\d{1,3}\s*%/);
     const relevant = firstPercent >= 0 ? text.slice(firstPercent) : text;
@@ -261,13 +282,12 @@
     const withoutDates = dateTimes.reduce((source, value) => source.replace(value, ' '), relevant);
     const times = [...withoutDates.matchAll(/(?:^|\s)(\d{1,2}[:：]\d{2})(?=\s|$)/g)].map(match => match[1]);
 
-    // Pro shows one weekly allowance instead of the former 5-hour + weekly pair.
-    // Keep the two-value parser for older plans, but accept the Pro layout when
-    // OCR finds only the weekly percentage.
-    if (percentMatches.length === 1) {
+    // The current Pro page has one weekly allowance, but may OCR extra offer/chart
+    // percentages. In a tight Codex & Work crop the first value is the allowance.
+    if (proPage || (fivePercent === null && weekPercent !== null)) {
       return {
         fivePercent: null,
-        weekPercent: percentMatches[0],
+        weekPercent: weekPercent ?? percentMatches[0],
         fiveReset: '――',
         weekReset: formatWorkReset(dateTimes[0] || times[0]),
         mode: 'pro',
@@ -275,9 +295,12 @@
       };
     }
 
+    if (fivePercent === null || weekPercent === null) {
+      throw new Error('5時間・週間の残量を特定できませんでした');
+    }
     return {
-      fivePercent: percentMatches[0],
-      weekPercent: percentMatches[1],
+      fivePercent,
+      weekPercent,
       fiveReset: formatWorkReset(times[0]),
       weekReset: formatWorkReset(dateTimes[0]),
       mode: 'standard',
@@ -294,6 +317,23 @@
     canvas.width = Math.max(1, Math.round(sw * scale));
     canvas.height = Math.max(1, Math.round(sh * scale));
     canvas.getContext('2d').drawImage(bitmap, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+    bitmap.close?.();
+    return canvas;
+  }
+
+  async function cropProWorkUsageImage(file) {
+    const bitmap = await createImageBitmap(file);
+    // ChatGPT's desktop analytics page is shown scaled down on Android. Isolate
+    // the left weekly-limit card so the credit card and chart cannot pollute OCR.
+    const sx = Math.round(bitmap.width * .26), sy = Math.round(bitmap.height * .24);
+    const sw = Math.round(bitmap.width * .40), sh = Math.round(bitmap.height * .24);
+    const scale = Math.min(3, 1200 / sw);
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(sw * scale));
+    canvas.height = Math.max(1, Math.round(sh * scale));
+    const context = canvas.getContext('2d');
+    context.filter = 'grayscale(1) contrast(1.6)';
+    context.drawImage(bitmap, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
     bitmap.close?.();
     return canvas;
   }
@@ -324,10 +364,14 @@
     if (!window.Tesseract) throw new Error('画像読取機能を読み込めませんでした。通信状態を確認して再送してください。');
     // Replaying a queued image after a reload must not push the same receipt twice.
     if (load(PortalScreenshots.POVO_KEY, {}).seenIds?.includes(id)) return {kind:'saved'};
-    const images = [await cropWorkUsageImage(file), file];
+    const images = [
+      {image:await cropWorkUsageImage(file), language:'jpn+eng', usageOnly:false},
+      {image:await cropProWorkUsageImage(file), language:'eng', usageOnly:true},
+      {image:file, language:'jpn+eng', usageOnly:false}
+    ];
     let lastError = null;
-    for (const image of images) {
-      const result = await window.Tesseract.recognize(image, 'jpn+eng', {
+    for (const candidate of images) {
+      const result = await window.Tesseract.recognize(candidate.image, candidate.language, {
         logger: progress => {
           if (progress.status === 'recognizing text') {
             screenshotStatus(`画像を読み取り中… ${Math.round((progress.progress || 0) * 100)}％`);
@@ -335,6 +379,15 @@
         }
       });
       const text = result?.data?.text || '';
+      if (candidate.usageOnly) {
+        if (!/codex\s*(?:&|and|[©@])\s*work/i.test(text)) continue;
+        try {
+          const usage = parseWorkUsageText(text);
+          localStorage.setItem(KEY.workUsage, JSON.stringify(usage));
+          renderWorkUsage();
+          return {kind:'work'};
+        } catch (error) { lastError = error; continue; }
+      }
       let expiry;
       try { expiry = PortalScreenshots.parsePovoExpiry(text); }
       catch (error) { lastError = error; continue; }
