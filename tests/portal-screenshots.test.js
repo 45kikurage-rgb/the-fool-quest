@@ -18,6 +18,20 @@ test('Povoの日本語日時・午前午後・年末を読み、表示では年�
   assert.equal(P.parsePovoExpiry('週間14% リセット09/19 18:28'),null);
 });
 
+test('Cursorのカーソルモデル欄からGrok使用率を読み取る',()=>{
+  for(const [text,expected] of [
+    ['カーソルモデル Cursor GrokとComposerが含まれています 3 %使用済み',3],
+    ['Ｃｕｒｓｏｒ Ｍｏｄｅｌｓ ２２％ used',22],
+    ['Cursor Grok and Composer included 100% used',100]
+  ]) {
+    const usage=P.parseGrokUsage(text);
+    assert.equal(usage.usedPercent,expected);
+    assert.equal(usage.remainingPercent,100-expected);
+  }
+  assert.equal(P.parseGrokUsage('週間利用上限 53% 残り'),null);
+  assert.throws(()=>P.parseGrokUsage('カーソルモデル 使用済み'));
+});
+
 test('2枚の同一期限を2件として保存し、新しいものから2件保持する',()=>{
   const expiry='2026-09-16T19:27:00+09:00';
   let state=P.pushExpiry({},expiry,'a');
@@ -71,7 +85,7 @@ function appFixture(texts){
   };
   const cache=cacheFixture();global.caches={open:async()=>cache};
   const context={PortalScreenshots:P,load:(key,fallback)=>stored.has(key)?JSON.parse(stored.get(key)):fallback,
-    localStorage:{setItem:(key,value)=>stored.set(key,value)},KEY:{workUsage:'usage'},$,
+    localStorage:{setItem:(key,value)=>stored.set(key,value)},KEY:{workUsage:'usage',grokUsage:'grok'},$,
     window:{Tesseract:{recognize:async()=>({data:{text:texts[calls++]||''}})}},
     document:{baseURI:'https://portal.test/',createElement:()=>({getContext:()=>({drawImage(){}})})},
     createImageBitmap:async()=>({width:684,height:1536,close(){}}),
@@ -136,5 +150,17 @@ test('通常切抜きが読めなくても英語のProカード切抜きで復�
   assert.equal(usage.mode,'pro');
   assert.equal(usage.weekPercent,75);
   assert.equal(f.calls(),2);
+  delete global.caches;
+});
+
+test('Cursor画面のGrok使用率を保存し、ChatGPTとPovoを変更しない',async()=>{
+  const f=appFixture(['カーソルモデル Cursor GrokとComposerが含まれています 3%使用済み その他のモデル 100%使用済み']);
+  const image=new Blob(['image'],{type:'image/png'});
+  await f.context.readPortalScreenshot(image,'cursor-grok');
+  assert.equal(JSON.parse(f.stored.get('grok')).usedPercent,3);
+  assert.equal(f.$('grok-usage-percent').textContent,'3％');
+  assert.equal(f.$('grok-usage-fill').style.width,'3%');
+  assert.equal(f.stored.has('usage'),false);
+  assert.equal(f.stored.has(P.POVO_KEY),false);
   delete global.caches;
 });
