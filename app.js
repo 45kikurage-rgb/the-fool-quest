@@ -24,8 +24,7 @@
     simulation: 'foolQuestOperationSimulationV1', links: 'foolQuestPortalLinksV1',
     tiktokManual: 'foolQuestTiktokManualChargesV1', paceColors: 'foolQuestPaceColorsEnabledV1',
     homeAmounts: 'foolQuestHomeAmountsVisibleV1', legacyRevenueMigration: 'foolQuestLegacyRevenueMigration20260905V1',
-    tiktokStarts: 'foolQuestTiktokDailyStartsV1', workUsage: 'foolQuestWorkUsageV1',
-    grokUsage: 'foolQuestGrokUsageV1'
+    tiktokStarts: 'foolQuestTiktokDailyStartsV1', workUsage: 'foolQuestWorkUsageV1'
   };
   const $ = id => document.getElementById(id);
   const json = (raw, fallback) => { try { return JSON.parse(raw) ?? fallback; } catch { return fallback; } };
@@ -193,7 +192,6 @@
     renderDate();
     CONFIG.metrics.forEach(([name]) => renderMetric(name));
     renderWorkUsage();
-    renderGrokUsage();
     renderPovoExpiry();
     renderHistory();
   }
@@ -239,24 +237,6 @@
     }
   }
 
-  function renderGrokUsage() {
-    const usage = load(KEY.grokUsage, {});
-    const raw = Number(usage?.usedPercent);
-    const percent = Number.isFinite(raw) ? Math.max(0, Math.min(100, Math.round(raw))) : null;
-    const fill = $('grok-usage-fill'), value = $('grok-usage-percent');
-    if (!fill || !value) return;
-    fill.classList.remove('work-yellow', 'work-red');
-    if (percent === null) {
-      fill.style.width = '0%';
-      value.textContent = '--％';
-      return;
-    }
-    fill.style.width = `${percent}%`;
-    value.textContent = `${percent}％`;
-    if (percent >= 80) fill.classList.add('work-red');
-    else if (percent >= 50) fill.classList.add('work-yellow');
-  }
-
   function formatWorkReset(value) {
     const source = String(value || '').replace(/[年月]/g, '/').replace(/日/g, ' ').replace(/[：]/g, ':').replace(/[.-]/g, '/');
     const full = source.match(/(?:20\d{2}\/)?(\d{1,2})\/(\d{1,2})\s+(\d{1,2}):(\d{2})/);
@@ -295,6 +275,9 @@
       ?? (remainingSection ? validPercent(remainingSection[1]) : null);
     const proPage = /codex\s*(?:&|and)\s*work/i.test(text)
       && !/(?:5\s*時間|5\s*hour)/i.test(text);
+    if (PortalScreenshots.isCursorUsageScreenshot(text)) {
+      throw new Error('Cursor/Grok画面はChatGPT利用残量の更新対象外です');
+    }
 
     const firstPercent = text.search(/\d{1,3}\s*%/);
     const relevant = firstPercent >= 0 ? text.slice(firstPercent) : text;
@@ -304,7 +287,7 @@
 
     // The current Pro page has one weekly allowance, but may OCR extra offer/chart
     // percentages. In a tight Codex & Work crop the first value is the allowance.
-    if (proPage || (fivePercent === null && weekPercent !== null)) {
+    if (proPage) {
       return {
         fivePercent: null,
         weekPercent: weekPercent ?? percentMatches[0],
@@ -399,14 +382,7 @@
         }
       });
       const text = result?.data?.text || '';
-      try {
-        const grokUsage = PortalScreenshots.parseGrokUsage(text);
-        if (grokUsage) {
-          localStorage.setItem(KEY.grokUsage, JSON.stringify(grokUsage));
-          renderGrokUsage();
-          return {kind:'grok',usage:grokUsage};
-        }
-      } catch (error) { lastError = error; continue; }
+      if (PortalScreenshots.isCursorUsageScreenshot(text)) return {kind:'cursor-ignored'};
       if (candidate.usageOnly) {
         if (!/codex\s*(?:&|and|[©@])\s*work/i.test(text)) continue;
         try {
@@ -435,7 +411,7 @@
         } catch (error) { lastError = error; }
       }
     }
-    throw lastError || new Error('ChatGPT・Grok・Povoの情報を読み取れませんでした。対象欄が鮮明な画像を再送してください。');
+    throw lastError || new Error('Povoの有効期限・ChatGPTの利用残量を読み取れませんでした。鮮明な画像を再送してください。');
   }
 
   let screenshotProcessing = null;
@@ -504,7 +480,6 @@
     window.addEventListener('storage', event => {
       if (event.key === PortalScreenshots.POVO_KEY) renderPovoExpiry();
       if (event.key === KEY.workUsage) renderWorkUsage();
-      if (event.key === KEY.grokUsage) renderGrokUsage();
     });
   }
 

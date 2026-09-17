@@ -18,18 +18,13 @@ test('Povoの日本語日時・午前午後・年末を読み、表示では年�
   assert.equal(P.parsePovoExpiry('週間14% リセット09/19 18:28'),null);
 });
 
-test('Cursorのカーソルモデル欄からGrok使用率を読み取る',()=>{
-  for(const [text,expected] of [
-    ['カーソルモデル Cursor GrokとComposerが含まれています 3 %使用済み',3],
-    ['Ｃｕｒｓｏｒ Ｍｏｄｅｌｓ ２２％ used',22],
-    ['Cursor Grok and Composer included 100% used',100]
-  ]) {
-    const usage=P.parseGrokUsage(text);
-    assert.equal(usage.usedPercent,expected);
-    assert.equal(usage.remainingPercent,100-expected);
-  }
-  assert.equal(P.parseGrokUsage('週間利用上限 53% 残り'),null);
-  assert.throws(()=>P.parseGrokUsage('カーソルモデル 使用済み'));
+test('Cursor/Grok画面をChatGPTスクショと区別する',()=>{
+  for(const text of [
+    'カーソルモデル Cursor GrokとComposerが含まれています 3 %使用済み',
+    'Cursor Models 22% used',
+    'オンデマンド支出 Cursorを通じて請求'
+  ]) assert.equal(P.isCursorUsageScreenshot(text),true);
+  assert.equal(P.isCursorUsageScreenshot('Codex & Work 週間利用上限 53% 残り'),false);
 });
 
 test('2枚の同一期限を2件として保存し、新しいものから2件保持する',()=>{
@@ -85,7 +80,7 @@ function appFixture(texts){
   };
   const cache=cacheFixture();global.caches={open:async()=>cache};
   const context={PortalScreenshots:P,load:(key,fallback)=>stored.has(key)?JSON.parse(stored.get(key)):fallback,
-    localStorage:{setItem:(key,value)=>stored.set(key,value)},KEY:{workUsage:'usage',grokUsage:'grok'},$,
+    localStorage:{setItem:(key,value)=>stored.set(key,value)},KEY:{workUsage:'usage'},$,
     window:{Tesseract:{recognize:async()=>({data:{text:texts[calls++]||''}})}},
     document:{baseURI:'https://portal.test/',createElement:()=>({getContext:()=>({drawImage(){}})})},
     createImageBitmap:async()=>({width:684,height:1536,close(){}}),
@@ -115,7 +110,7 @@ test('切抜き失敗時は全体で読み、失敗画像は既存期限を変�
 });
 
 test('ChatGPTのPlus/Pro読取はPovoを変更せず、画像再処理でも二重に押し出さない',async()=>{
-  const f=appFixture(['有効期限2026年9月16日午後7:23','5時間 残量87% リセット10:00 週間残量14% リセット09/19 18:28','週間 残量14% リセット09/19 18:28']);
+  const f=appFixture(['有効期限2026年9月16日午後7:23','5時間 残量87% リセット10:00 週間残量14% リセット09/19 18:28','Codex & Work 週間 残量14% リセット09/19 18:28']);
   const image=new Blob(['image'],{type:'image/png'});
   await f.context.readPortalScreenshot(image,'receipt-a');
   const before=f.stored.get(P.POVO_KEY);
@@ -153,14 +148,19 @@ test('通常切抜きが読めなくても英語のProカード切抜きで復�
   delete global.caches;
 });
 
-test('Cursor画面のGrok使用率を保存し、ChatGPTとPovoを変更しない',async()=>{
+test('Cursor/Grok画面を送ってもChatGPTとPovoを変更しない',async()=>{
   const f=appFixture(['カーソルモデル Cursor GrokとComposerが含まれています 3%使用済み その他のモデル 100%使用済み']);
   const image=new Blob(['image'],{type:'image/png'});
   await f.context.readPortalScreenshot(image,'cursor-grok');
-  assert.equal(JSON.parse(f.stored.get('grok')).usedPercent,3);
-  assert.equal(f.$('grok-usage-percent').textContent,'3％');
-  assert.equal(f.$('grok-usage-fill').style.width,'3%');
   assert.equal(f.stored.has('usage'),false);
   assert.equal(f.stored.has(P.POVO_KEY),false);
+  delete global.caches;
+});
+
+test('週次パーセントだけの画面をChatGPT Proとして誤保存しない',async()=>{
+  const f=appFixture(['週間の使用量 22%使用済み 9月23日にリセット','週間の使用量 22%使用済み','週間の使用量 22%使用済み']);
+  const image=new Blob(['image'],{type:'image/png'});
+  await assert.rejects(()=>f.context.readPortalScreenshot(image,'weekly-only'));
+  assert.equal(f.stored.has('usage'),false);
   delete global.caches;
 });

@@ -7,7 +7,7 @@
   <title>THE FOOL QUEST</title>
   <link rel="manifest" href="./manifest.webmanifest?v=20260914-white-splash">
   <link rel="apple-touch-icon" href="./icon-any-192.png?v=20260914-white-splash">
-  <link rel="stylesheet" href="./style.css?v=20260917-grok-usage">
+  <link rel="stylesheet" href="./style.css?v=20260917-grok-link">
 </head>
 <body>
   <main class="screen">
@@ -46,10 +46,11 @@
 
       <h2 class="category-divider"><span>SYSTEM &amp; TOOLS</span></h2>
 
-      <section class="usage-povo-panel" aria-label="ChatGPT・Grok利用状況とPovoデータ使用期限">
+      <section class="usage-povo-panel" aria-label="ChatGPT利用残量とPovoデータ使用期限">
       <section class="work-usage-panel" aria-label="ChatGPT Magic Point">
         <header class="work-usage-heading">
           <span>ChatGPT Magic Point</span>
+          <a class="grok-dashboard-link" href="https://cursor.com/dashboard/spending?" target="_blank" rel="noopener noreferrer" aria-label="Cursor Grok利用状況を開く">Grok ▶</a>
           <span class="work-usage-plan">PLAN: <strong id="work-usage-plan">PLUS</strong></span>
         </header>
         <a class="work-usage-gauge" href="https://chatgpt.com/codex/settings/usage" target="_blank" rel="noopener noreferrer" aria-label="OpenAI利用状況画面で5時間の残量を確認">
@@ -66,16 +67,6 @@
             <span class="work-usage-kind">週間</span>
             <strong id="work-week-percent" class="work-usage-percent">--％</strong>
             <span class="work-usage-reset">リセット <time id="work-week-reset">――</time></span>
-          </span>
-        </a>
-      </section>
-      <section class="grok-usage-panel" aria-labelledby="grok-usage-heading">
-        <h2 id="grok-usage-heading"><span>Grok</span><span>CURSOR PRO</span></h2>
-        <a class="grok-usage-gauge work-usage-gauge" href="https://cursor.com/dashboard/spending?" target="_blank" rel="noopener noreferrer" aria-label="Cursor利用状況画面でGrokの使用量を確認">
-          <span id="grok-usage-fill" class="work-usage-fill" aria-hidden="true"></span>
-          <span class="grok-usage-copy">
-            <span>使用済み</span>
-            <strong id="grok-usage-percent">--％</strong>
           </span>
         </a>
       </section>
@@ -155,7 +146,7 @@
       </div>
       <div class="manage-bottom-commands">
         <input id="work-usage-file" type="file" multiple accept="image/png,image/jpeg,image/webp" hidden>
-        <button id="work-usage-file-open" class="wide-button" type="button">▶ ChatGPT・Grok・Povo スクショ読取</button>
+        <button id="work-usage-file-open" class="wide-button" type="button">▶ ChatGPT・Povo スクショ読取</button>
         <button id="verification-open" class="wide-button verification-open" type="button">▶ 稼働数検証</button>
         <button id="link-manage-open" class="wide-button link-manage-open" type="button">▶ リンク修正</button>
       </div>
@@ -295,8 +286,8 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script src="./portal-screenshots.js?v=20260917-grok-usage"></script>
-  <script src="./app.js?v=20260917-grok-usage"></script>
+  <script src="./portal-screenshots.js?v=20260917-grok-link"></script>
+  <script src="./app.js?v=20260917-grok-link"></script>
   <script>
     if ('serviceWorker' in navigator) {
       let refreshing = false;
@@ -305,7 +296,7 @@
         refreshing = true;
         location.reload();
       });
-      navigator.serviceWorker.register('./sw.js?v=20260917-grok-usage', { updateViaCache: 'none' })
+      navigator.serviceWorker.register('./sw.js?v=20260917-grok-link', { updateViaCache: 'none' })
         .then(registration => registration.update())
         .catch(error => console.error('Service Worker update failed:', error));
     }

@@ -26,12 +26,13 @@ ZIP内の全ファイルをGitHubへアップロードし、同名ファイル�
 
 既存のlocalStorageキーを維持しているため、同じURLへ上書き公開すれば端末内のTikTok値、Coupon正常値、CSV履歴、目標額を引き継ぎます。
 
-## ChatGPT Magic Point / Grok / Povo
+## ChatGPT Magic Point / Povo / Grokリンク
 
-- ホームはChatGPT・Grok・Povoの3列表示です。境界は細い縦線で、既存の枠高とページ全体構成を維持します。
+- ホームはChatGPTを左2/3、Povoを右1/3で表示します。境界は細い縦線で、既存の枠高とページ全体構成を維持します。
 - Povoは `09/16 19:27` の形式で番号と年を省き、内部では年・日本時間を保持します。
-- Androidの画像共有、または管理画面の「ChatGPT・Grok・Povo スクショ読取」で画像を取り込みます。複数選択に対応しています。
-- Grok欄はCursor Proの利用状況ページへリンクし、同ページのスクリーンショットにある「カーソルモデル ○%使用済み」を自動読取してゲージへ反映します。
+- Androidの画像共有、または管理画面の「ChatGPT・Povo スクショ読取」で画像を取り込みます。複数選択に対応しています。
+- Magic Point見出し内の「Grok ▶」からCursor Proの利用状況ページを開けます。GrokゲージとGrokスクショ解析は行いません。
+- Cursor/Grok画面はChatGPTのスクリーンショットとして扱わず、Magic Pointの残量を変更しません。
 - 共有画像は個別に一時保存して順番に読み取り、新しいPovo期限を先頭へ追加します。同じ期限の2枚も別件として残し、最新2件を表示します。
 - 期限と受信IDは `foolQuestPovoExpiryV1` に端末内保存します。読取失敗では既存期限を変更しません。画像は処理後に削除します。
 - テスト: `node --test tests/*.test.js`

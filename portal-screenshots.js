@@ -2,7 +2,6 @@
   'use strict';
   const SHARE_CACHE = 'the-fool-quest-share-v1';
   const POVO_KEY = 'foolQuestPovoExpiryV1';
-  const GROK_KEY = 'foolQuestGrokUsageV1';
   const PREFIX = './__portal_screenshot__/';
   const LEGACY = './__work_usage_screenshot__';
   function parsePovoExpiry(raw) {
@@ -30,27 +29,9 @@
     const match = String(expiry || '').match(/^\d{4}-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
     return match ? `${match[1]}/${match[2]} ${match[3]}:${match[4]}` : '--/-- --:--';
   }
-  function parseGrokUsage(raw) {
-    const text = String(raw || '').normalize('NFKC').replace(/[：]/g, ':');
-    const anchors = [
-      /カーソル\s*モデル/i,
-      /Cursor\s*Models?/i,
-      /Cursor\s*Grok/i
-    ];
-    let anchor = -1;
-    for (const pattern of anchors) {
-      const index = text.search(pattern);
-      if (index >= 0 && (anchor < 0 || index < anchor)) anchor = index;
-    }
-    if (anchor < 0) return null;
-    const section = text.slice(anchor, anchor + 320);
-    const match = section.match(/(\d{1,3})\s*[%％]\s*(?:使用済み|使用|used)?/i);
-    if (!match) throw new Error('Grokの使用量を読み取れませんでした。カーソルモデル欄が鮮明な画像を再送してください。');
-    const usedPercent = Number(match[1]);
-    if (!Number.isFinite(usedPercent) || usedPercent < 0 || usedPercent > 100) {
-      throw new Error('Grokの使用量が正しい割合ではありません。画像を再送してください。');
-    }
-    return {usedPercent, remainingPercent:100-usedPercent, updatedAt:new Date().toISOString()};
+  function isCursorUsageScreenshot(raw) {
+    const text = String(raw || '').normalize('NFKC');
+    return /カーソル\s*モデル|Cursor\s*Models?|Cursor\s*Grok|Composer|その他のモデル|オンデマンド(?:支出|利用)|Cursorを通じて請求/i.test(text);
   }
   function pushExpiry(previous, expiry, id, receivedAt = new Date().toISOString()) {
     const current = previous && typeof previous === 'object' ? previous : {};
@@ -83,7 +64,7 @@
     const prefix = new URL(PREFIX, scope).href;
     return (await cache.keys()).filter(request => request.url.startsWith(prefix)).sort((a,b) => a.url.localeCompare(b.url));
   }
-  const api = {SHARE_CACHE,POVO_KEY,GROK_KEY,PREFIX,parsePovoExpiry,parseGrokUsage,formatExpiry,pushExpiry,enqueue,pending};
+  const api = {SHARE_CACHE,POVO_KEY,PREFIX,parsePovoExpiry,isCursorUsageScreenshot,formatExpiry,pushExpiry,enqueue,pending};
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.PortalScreenshots = api;
 })(globalThis);
