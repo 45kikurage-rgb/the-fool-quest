@@ -1,7 +1,7 @@
-importScripts('./portal-screenshots.js?v=20260921-startup-layout-v4');
-const CACHE="the-fool-quest-20260921-startup-layout-v4";
+importScripts('./portal-screenshots.js?v=20260921-povo-expiry-v5');
+const CACHE="the-fool-quest-20260921-povo-expiry-v5";
 const SHARE_CACHE='the-fool-quest-share-v1';
-const ASSETS=['./portal-screenshots.js?v=20260921-startup-layout-v4','./','./index.html','./style.css?v=20260921-startup-layout-v4','./app.js?v=20260921-startup-layout-v4','./fonts/Corporate-Logo-Rounded-Bold-ver3.woff2','./manifest.webmanifest?v=20260914-white-splash','./title-logo.png','./icon-any-192.png?v=20260914-white-splash','./icon-any.png?v=20260914-white-splash','./icon-maskable-192.png?v=20260914-white-splash','./icon-maskable.png?v=20260914-white-splash'];
+const ASSETS=['./portal-screenshots.js?v=20260921-povo-expiry-v5','./','./index.html','./style.css?v=20260921-povo-expiry-v5','./app.js?v=20260921-povo-expiry-v5','./fonts/Corporate-Logo-Rounded-Bold-ver3.woff2','./manifest.webmanifest?v=20260914-white-splash','./title-logo.png','./icon-any-192.png?v=20260914-white-splash','./icon-any.png?v=20260914-white-splash','./icon-maskable-192.png?v=20260914-white-splash','./icon-maskable.png?v=20260914-white-splash'];
 
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()));
