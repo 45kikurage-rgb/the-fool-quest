@@ -709,3 +709,14 @@ button,a,input{font:inherit;color:inherit}
   color:var(--black);
   outline:none;
 }
+
+
+/* 2026-09-21 Compact label for the 3-column LIGHTWEIGHT LINK command. */
+.lightweight-link-command .command-copy{
+  font-size:.86em;
+  letter-spacing:-.045em;
+  line-height:1.12;
+}
+.lightweight-link-command .command-copy > span:first-child{
+  white-space:nowrap;
+}
