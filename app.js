@@ -196,6 +196,18 @@
     renderHistory();
   }
 
+  function setupLogoRefresh() {
+    const logo = $('top-logo');
+    if (!logo) return;
+    const refresh = () => location.reload();
+    logo.addEventListener('click', refresh);
+    logo.addEventListener('keydown', event => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      refresh();
+    });
+  }
+
   function normalizedWorkUsage(value = load(KEY.workUsage, {})) {
     const percent = input => Number.isFinite(Number(input)) ? Math.max(0, Math.min(100, Math.round(Number(input)))) : null;
     return {
@@ -1068,6 +1080,7 @@
     catch (error) { console.error(`${name} setup failed:`, error); }
   };
   safeSetup('UI', buildUi);
+  safeSetup('Logo refresh', setupLogoRefresh);
   safeSetup('Month', initializeMonth);
   safeSetup('Home amounts', setupHomeAmounts);
   safeSetup('Pace colors', setupPaceColors);
