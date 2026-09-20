@@ -11,11 +11,10 @@
     action: 'https://the-fool-head.45kikurage.workers.dev',
     text: 'https://45kikurage-rgb.github.io/copy-paste',
     win: 'https://winning-url-manager.45kikurage.workers.dev',
-    capture: 'https://coupon-capture.45kikurage.workers.dev',
-    image: 'https://yahoo-framev2.45kikurage.workers.dev',
-    summary: 'https://the-fool-links.45kikurage.workers.dev/'
+    capture: 'https://coupon-capture.45kikurage.workers.dev/checker/',
+    summary: 'https://lightweight-links.pages.dev/'
   };
-  const LINK_LABELS = { assets:'ASSET MANAGER', action:'ACTION TOOL', text:'TEXT FORMAT', win:'WIN LINK MANAGER', capture:'URL CAPTURE', image:'IMAGE EDITOR', summary:'FOOL LINK' };
+  const LINK_LABELS = { assets:'ASSET MANAGER', action:'ACTION TOOL', text:'TEXT FORMAT', win:'WIN LINK MANAGER', capture:'COUPON CHECKER', summary:'LIGHTWEIGHT LINK' };
 
   const KEY = {
     tiktok: 'tfq_tiktok', csv: 'tfq_tiktok_csv_meta',
@@ -249,6 +248,12 @@
     return `${get('month')}/${get('day')} ${String(time[1]).padStart(2,'0')}:${time[2]}`;
   }
 
+  function isProWorkUsageText(rawText) {
+    const text = String(rawText || '').normalize('NFKC');
+    return /codex\s*(?:&|and|と|・|\/)?\s*work/i.test(text)
+      || /週間(?:利用)?上限|利用制限のリセット|残りのクレジット|クレジットの自動チャージ/i.test(text);
+  }
+
   function parseWorkUsageText(rawText) {
     const text = String(rawText || '').normalize('NFKC')
       .replace(/[：]/g, ':').replace(/[©@]/g, '&');
@@ -273,7 +278,7 @@
     const fivePercent = firstPercentIn(fiveSection);
     const weekPercent = firstPercentIn(weekSection)
       ?? (remainingSection ? validPercent(remainingSection[1]) : null);
-    const proPage = /codex\s*(?:&|and)\s*work/i.test(text)
+    const proPage = isProWorkUsageText(text)
       && !/(?:5\s*時間|5\s*hour)/i.test(text);
     if (PortalScreenshots.isCursorUsageScreenshot(text)) {
       throw new Error('Cursor/Grok画面はChatGPT利用残量の更新対象外です');
@@ -281,7 +286,7 @@
 
     const firstPercent = text.search(/\d{1,3}\s*%/);
     const relevant = firstPercent >= 0 ? text.slice(firstPercent) : text;
-    const dateTimes = [...relevant.matchAll(/(?:20\d{2}[\/.-])?\d{1,2}[\/.-]\d{1,2}\s+\d{1,2}[:：]\d{2}/g)].map(match => match[0]);
+    const dateTimes = [...relevant.matchAll(/(?:(?:20\d{2}[\/.-])?\d{1,2}[\/.-]\d{1,2}|\d{1,2}月\d{1,2}日)\s*\d{1,2}[:：]\d{2}/g)].map(match => match[0]);
     const withoutDates = dateTimes.reduce((source, value) => source.replace(value, ' '), relevant);
     const times = [...withoutDates.matchAll(/(?:^|\s)(\d{1,2}[:：]\d{2})(?=\s|$)/g)].map(match => match[1]);
 
@@ -328,14 +333,16 @@
     const bitmap = await createImageBitmap(file);
     // ChatGPT's desktop analytics page is shown scaled down on Android. Isolate
     // the left weekly-limit card so the credit card and chart cannot pollute OCR.
-    const sx = Math.round(bitmap.width * .26), sy = Math.round(bitmap.height * .24);
-    const sw = Math.round(bitmap.width * .40), sh = Math.round(bitmap.height * .24);
-    const scale = Math.min(3, 1200 / sw);
+    // Current Android Codex analytics screenshots show the weekly limit card
+    // lower and wider than the previous layout. Include the full weekly/reset area.
+    const sx = Math.round(bitmap.width * .22), sy = Math.round(bitmap.height * .33);
+    const sw = Math.round(bitmap.width * .74), sh = Math.round(bitmap.height * .30);
+    const scale = Math.min(3.2, 1500 / sw);
     const canvas = document.createElement('canvas');
     canvas.width = Math.max(1, Math.round(sw * scale));
     canvas.height = Math.max(1, Math.round(sh * scale));
     const context = canvas.getContext('2d');
-    context.filter = 'grayscale(1) contrast(1.6)';
+    context.filter = 'grayscale(1) contrast(1.8)';
     context.drawImage(bitmap, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
     bitmap.close?.();
     return canvas;
@@ -384,7 +391,7 @@
       const text = result?.data?.text || '';
       if (PortalScreenshots.isCursorUsageScreenshot(text)) return {kind:'cursor-ignored'};
       if (candidate.usageOnly) {
-        if (!/codex\s*(?:&|and|[©@])\s*work/i.test(text)) continue;
+        if (!isProWorkUsageText(text)) continue;
         try {
           const usage = parseWorkUsageText(text);
           localStorage.setItem(KEY.workUsage, JSON.stringify(usage));
@@ -724,7 +731,18 @@
     const dialog = $('link-manage-dialog');
     const manageDialog = $('goal-manage-dialog');
     const message = $('link-manage-message');
-    const readLinks = () => ({ ...DEFAULT_LINKS, ...load(KEY.links, {}) });
+    const readLinks = () => {
+      const stored = load(KEY.links, {});
+      const links = { ...DEFAULT_LINKS, ...stored };
+      // Migrate the old built-in destinations without overwriting a user's custom URL.
+      if (!stored.capture || stored.capture === 'https://coupon-capture.45kikurage.workers.dev') {
+        links.capture = DEFAULT_LINKS.capture;
+      }
+      if (!stored.summary || stored.summary === 'https://the-fool-links.45kikurage.workers.dev/') {
+        links.summary = DEFAULT_LINKS.summary;
+      }
+      return links;
+    };
     const applyLinks = links => {
       document.querySelectorAll('[data-link-key]').forEach(anchor => {
         const key = anchor.dataset.linkKey;
