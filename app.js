@@ -273,8 +273,9 @@
     // unrelated percentages (auto-charge offers and chart axes), so positional
     // "first percentage wins" parsing can silently save the wrong number.
     const fiveSection = text.match(/(?:5\s*時間|5\s*hour)[\s\S]{0,100}/i)?.[0] || '';
-    const weekSection = text.match(/(?:週間(?:利用)?上限|週間残量|週(?:間)?|weekly(?:\s+(?:usage\s+)?limit)?)[\s\S]{0,120}/i)?.[0] || '';
+    const weekSection = text.match(/(?:週間(?:利用)?上限|週間残量|週(?:間)?|weekly(?:\s+(?:usage\s+)?limit)?)[\s\S]{0,160}/i)?.[0] || '';
     const remainingSection = text.match(/(\d{1,3})\s*%\s*(?:残り|remaining)/i);
+    const weekResetNearLimit = weekSection.match(/(?:リセット|reset)[^\d]{0,24}((?:(?:20\d{2}[\/.-])?\d{1,2}[\/.-]\d{1,2}\s+|\d{1,2}月\d{1,2}日\s*)?\d{1,2}[:：]\d{2})/i)?.[1] || '';
     const fivePercent = firstPercentIn(fiveSection);
     const weekPercent = firstPercentIn(weekSection)
       ?? (remainingSection ? validPercent(remainingSection[1]) : null);
@@ -297,7 +298,7 @@
         fivePercent: null,
         weekPercent: weekPercent ?? percentMatches[0],
         fiveReset: '――',
-        weekReset: formatWorkReset(dateTimes[0] || times[0]),
+        weekReset: formatWorkReset(weekResetNearLimit || times[0] || dateTimes[0]),
         mode: 'pro',
         updatedAt: new Date().toISOString()
       };
@@ -376,7 +377,7 @@
     if (load(PortalScreenshots.POVO_KEY, {}).seenIds?.includes(id)) return {kind:'saved'};
     const images = [
       {image:await cropWorkUsageImage(file), language:'jpn+eng', usageOnly:false},
-      {image:await cropProWorkUsageImage(file), language:'eng', usageOnly:true},
+      {image:await cropProWorkUsageImage(file), language:'jpn+eng', usageOnly:true},
       {image:file, language:'jpn+eng', usageOnly:false}
     ];
     let lastError = null;
