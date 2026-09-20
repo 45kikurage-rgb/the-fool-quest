@@ -23,7 +23,8 @@
     simulation: 'foolQuestOperationSimulationV1', links: 'foolQuestPortalLinksV1',
     tiktokManual: 'foolQuestTiktokManualChargesV1', paceColors: 'foolQuestPaceColorsEnabledV1',
     homeAmounts: 'foolQuestHomeAmountsVisibleV1', legacyRevenueMigration: 'foolQuestLegacyRevenueMigration20260905V1',
-    tiktokStarts: 'foolQuestTiktokDailyStartsV1', workUsage: 'foolQuestWorkUsageV1'
+    tiktokStarts: 'foolQuestTiktokDailyStartsV1', workUsage: 'foolQuestWorkUsageV1',
+    povoOrder: 'foolQuestPovoDisplayOrderV1'
   };
   const $ = id => document.getElementById(id);
   const json = (raw, fallback) => { try { return JSON.parse(raw) ?? fallback; } catch { return fallback; } };
@@ -351,12 +352,40 @@
 
   function renderPovoExpiry() {
     const data = load(PortalScreenshots.POVO_KEY, {});
+    const entries = Array.isArray(data.entries) ? data.entries.slice(0, 2) : [];
+    if (load(KEY.povoOrder, false) === true) entries.reverse();
+    const yellowAt = 48 * 60 * 60 * 1000;
+    const redAt = 24 * 60 * 60 * 1000;
     ['povo-expiry-one','povo-expiry-two'].forEach((id,index) => {
-      const node = $(id), entry = data.entries?.[index];
+      const node = $(id), entry = entries[index];
       if (!node) return;
       node.textContent = PortalScreenshots.formatExpiry(entry?.expiry);
-      if (entry?.expiry) node.dateTime = entry.expiry;
-      else node.removeAttribute('datetime');
+      node.classList.remove('expiry-yellow', 'expiry-red');
+      if (entry?.expiry) {
+        node.dateTime = entry.expiry;
+        const remaining = Date.parse(entry.expiry) - Date.now();
+        if (Number.isFinite(remaining)) {
+          if (remaining <= redAt) node.classList.add('expiry-red');
+          else if (remaining <= yellowAt) node.classList.add('expiry-yellow');
+        }
+      } else {
+        node.removeAttribute('datetime');
+      }
+    });
+  }
+
+  function setupPovoExpiryOrder() {
+    const panel = document.querySelector('.povo-expiry-panel');
+    if (!panel) return;
+    const swap = () => {
+      save(KEY.povoOrder, load(KEY.povoOrder, false) !== true);
+      renderPovoExpiry();
+    };
+    panel.addEventListener('click', swap);
+    panel.addEventListener('keydown', event => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      swap();
     });
   }
 
@@ -1049,6 +1078,7 @@
   safeSetup('Revenue log', setupRevenueLog);
   safeSetup('Links', setupLinks);
   safeSetup('Work usage', setupWorkUsage);
+  safeSetup('Povo expiry order', setupPovoExpiryOrder);
   safeSetup('Verification', setupVerification);
   safeSetup('Initial render', renderAll);
   syncCoupon();
