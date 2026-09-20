@@ -137,6 +137,19 @@ test('Pro新画面は販促・グラフの別パーセントを無視し週間�
   delete global.caches;
 });
 
+test('現行日本語Codex画面は14%と直近の12:06を読み、完全リセット日時と混同しない',async()=>{
+  const f=appFixture(['Codex と Work のアナリティクス Codex と Work の利用上限に近づいています。 週間利用上限 14% 残り リセット: 12:06 残りのクレジット 0 利用制限のリセット 完全リセット 有効期限: 10月5日 8:00 クレジットの自動チャージ 最大40%お得 グラフ 100% 0%']);
+  const image=new Blob(['image'],{type:'image/png'});
+  await f.context.readPortalScreenshot(image,'current-jp-pro');
+  const usage=JSON.parse(f.stored.get('usage'));
+  assert.equal(usage.mode,'pro');
+  assert.equal(usage.fivePercent,null);
+  assert.equal(usage.weekPercent,14);
+  assert.match(usage.weekReset,/12:06$/);
+  assert.notEqual(usage.weekReset,'10/05 08:00');
+  delete global.caches;
+});
+
 test('通常切抜きが読めなくても英語のProカード切抜きで復旧する',async()=>{
   const f=appFixture(['unreadable','Codex & Work weekly limit 75% remaining reset 2026/09/21 12:06']);
   const image=new Blob(['image'],{type:'image/jpeg'});
