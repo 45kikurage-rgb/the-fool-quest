@@ -12,7 +12,8 @@ html,body{margin:0;min-height:100%;background:var(--black);color:var(--white)}
 body{font-family:"Corporate Logo Rounded","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;font-size:19px;font-weight:700;font-synthesis:none;letter-spacing:.02em;overflow-x:hidden}
 button,a,input{font:inherit;color:inherit}
 .screen{min-height:100svh;padding:clamp(14px,2.2vw,34px);display:flex;flex-direction:column;justify-content:center}
-.logo-image{position:relative;width:min(1480px,100%);height:clamp(203px,24vw,368px);margin:0 auto 1em;border:0!important;border-top:0!important;box-shadow:none!important;background:url('./title-logo.png') center 52%/102% auto no-repeat;overflow:hidden}
+.logo-image{position:relative;width:min(1480px,100%);height:clamp(203px,24vw,368px);margin:0 auto 1em;border:0!important;border-top:0!important;box-shadow:none!important;background:url('./title-logo.png') center 52%/102% auto no-repeat;overflow:hidden;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.logo-image:focus-visible{outline:2px solid var(--white);outline-offset:2px}
 .logo-image::before,.logo-image::after{content:none!important;display:none!important}
 .dashboard{--panel-font-size:clamp(32px,calc(3.2vw + 3px),55px);width:min(1480px,100%);margin:0 auto;display:grid;grid-template-columns:minmax(0,.82fr) minmax(0,1.08fr);gap:clamp(20px,3vw,46px);align-items:start}
 .category-divider{display:flex;align-items:center;gap:clamp(10px,1.2vw,18px);margin:0;color:var(--white);font-size:clamp(17px,2.1vw,29px);font-weight:700;line-height:1;letter-spacing:.06em;white-space:nowrap}
