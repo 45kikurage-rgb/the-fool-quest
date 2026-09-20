@@ -7,7 +7,7 @@
   <title>THE FOOL QUEST</title>
   <link rel="manifest" href="./manifest.webmanifest?v=20260914-white-splash">
   <link rel="apple-touch-icon" href="./icon-any-192.png?v=20260914-white-splash">
-  <link rel="stylesheet" href="./style.css?v=20260917-grok-link">
+  <link rel="stylesheet" href="./style.css?v=20260921-links-codex-jp">
 </head>
 <body>
   <main class="screen">
@@ -83,9 +83,8 @@
         <a href="https://the-fool-head.45kikurage.workers.dev" class="command" data-link-key="action"><span class="command-arrow">▶</span><span class="command-copy"><span>ACTION</span><span>TOOL</span></span></a>
         <a href="https://45kikurage-rgb.github.io/copy-paste" class="command" data-link-key="text"><span class="command-arrow">▶</span><span class="command-copy"><span>TEXT</span><span>FORMAT</span></span></a>
         <a href="https://winning-url-manager.45kikurage.workers.dev" class="command" data-link-key="win"><span class="command-arrow">▶</span><span class="command-copy"><span>WIN LINK</span><span>MANAGER</span></span></a>
-        <a href="https://coupon-capture.45kikurage.workers.dev" class="command" data-link-key="capture"><span class="command-arrow">▶</span><span class="command-copy"><span>URL</span><span>CAPTURE</span></span></a>
-        <a href="https://yahoo-framev2.45kikurage.workers.dev" class="command" data-link-key="image"><span class="command-arrow">▶</span><span class="command-copy"><span>IMAGE</span><span>EDITOR</span></span></a>
-        <a href="https://the-fool-links.45kikurage.workers.dev/" class="command" data-link-key="summary"><span class="command-arrow">▶</span><span class="command-copy"><span>FOOL</span><span>LINK</span></span></a>
+        <a href="https://coupon-capture.45kikurage.workers.dev/checker/" class="command" data-link-key="capture"><span class="command-arrow">▶</span><span class="command-copy"><span>COUPON</span><span>CHECK</span></span></a>
+        <a href="https://lightweight-links.pages.dev/" class="command lightweight-link-command" data-link-key="summary"><span class="command-arrow">▶</span><span class="command-copy"><span>LIGHTWEIGHT</span><span>LINK</span></span></a>
       </nav>
     </section>
   </main>
@@ -286,8 +285,8 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script src="./portal-screenshots.js?v=20260917-grok-link"></script>
-  <script src="./app.js?v=20260917-grok-link"></script>
+  <script src="./portal-screenshots.js?v=20260921-links-codex-jp"></script>
+  <script src="./app.js?v=20260921-links-codex-jp"></script>
   <script>
     if ('serviceWorker' in navigator) {
       let refreshing = false;
@@ -296,7 +295,7 @@
         refreshing = true;
         location.reload();
       });
-      navigator.serviceWorker.register('./sw.js?v=20260917-grok-link', { updateViaCache: 'none' })
+      navigator.serviceWorker.register('./sw.js?v=20260921-links-codex-jp', { updateViaCache: 'none' })
         .then(registration => registration.update())
         .catch(error => console.error('Service Worker update failed:', error));
     }
