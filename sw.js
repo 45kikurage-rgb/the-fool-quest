@@ -1,7 +1,7 @@
-importScripts('./portal-screenshots.js?v=20260917-grok-link');
-const CACHE="the-fool-quest-20260917-grok-link";
+importScripts('./portal-screenshots.js?v=20260921-tools-usage');
+const CACHE="the-fool-quest-20260921-tools-usage";
 const SHARE_CACHE='the-fool-quest-share-v1';
-const ASSETS=['./portal-screenshots.js?v=20260917-grok-link','./','./index.html','./style.css?v=20260917-grok-link','./app.js?v=20260917-grok-link','./fonts/Corporate-Logo-Rounded-Bold-ver3.woff2','./manifest.webmanifest?v=20260914-white-splash','./title-logo.png','./icon-any-192.png?v=20260914-white-splash','./icon-any.png?v=20260914-white-splash','./icon-maskable-192.png?v=20260914-white-splash','./icon-maskable.png?v=20260914-white-splash'];
+const ASSETS=['./portal-screenshots.js?v=20260921-tools-usage','./','./index.html','./style.css?v=20260921-tools-usage','./app.js?v=20260921-tools-usage','./fonts/Corporate-Logo-Rounded-Bold-ver3.woff2','./manifest.webmanifest?v=20260914-white-splash','./title-logo.png','./icon-any-192.png?v=20260914-white-splash','./icon-any.png?v=20260914-white-splash','./icon-maskable-192.png?v=20260914-white-splash','./icon-maskable.png?v=20260914-white-splash'];
 
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()));
