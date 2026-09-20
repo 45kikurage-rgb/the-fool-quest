@@ -720,3 +720,20 @@ button,a,input{font:inherit;color:inherit}
 .lightweight-link-command .command-copy > span:first-child{
   white-space:nowrap;
 }
+
+
+/* 2026-09-21 Lightweight Link: keep the long English label inside the portal button. */
+.lightweight-link-command .command-copy{
+  font-size:.78em;
+  line-height:1.04;
+  letter-spacing:-.035em;
+}
+.lightweight-link-command .command-copy span{
+  white-space:nowrap;
+}
+@media(max-width:520px){
+  .lightweight-link-command .command-copy{
+    font-size:.72em;
+    letter-spacing:-.045em;
+  }
+}
