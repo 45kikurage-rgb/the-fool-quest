@@ -686,7 +686,7 @@ button,a,input{font:inherit;color:inherit}
 .povo-expiry-panel h2{margin:0;display:grid}
 .povo-expiry-panel h2 span{white-space:nowrap}
 .povo-expiry-row{display:grid;grid-template-rows:.55em 1em;align-content:center;align-items:center;min-width:0;padding:1px 0;font-size:clamp(16px,4.3vw,29px);line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
-.povo-device-label{justify-self:start;align-self:start;font-size:.52em;line-height:1;letter-spacing:0;white-space:nowrap;color:var(--white)}
+.povo-device-label{justify-self:start;align-self:start;font-size:.60em;line-height:1;letter-spacing:0;white-space:nowrap;color:var(--white)}
 .povo-expiry-row time{justify-self:center;align-self:end;white-space:nowrap;transition:color .2s ease}
 .povo-expiry-row time.expiry-yellow{color:#ffd43b}
 .povo-expiry-row time.expiry-red{color:#ff2d2d}
