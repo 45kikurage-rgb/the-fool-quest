@@ -717,31 +717,14 @@ button,a,input{font:inherit;color:inherit}
 }
 
 
-/* 2026-09-21 Compact label for the 3-column LIGHTWEIGHT LINK command. */
+/* 2026-09-21 SITE LINK: match the typography of the other portal commands. */
 .lightweight-link-command .command-copy{
-  font-size:.86em;
-  letter-spacing:-.045em;
-  line-height:1.12;
-}
-.lightweight-link-command .command-copy > span:first-child{
-  white-space:nowrap;
-}
-
-
-/* 2026-09-21 Lightweight Link: keep the long English label inside the portal button. */
-.lightweight-link-command .command-copy{
-  font-size:.78em;
-  line-height:1.04;
-  letter-spacing:-.035em;
+  font-size:inherit;
+  line-height:1.18;
+  letter-spacing:0;
 }
 .lightweight-link-command .command-copy span{
   white-space:nowrap;
-}
-@media(max-width:520px){
-  .lightweight-link-command .command-copy{
-    font-size:.72em;
-    letter-spacing:-.045em;
-  }
 }
 
 /* 2026-09-21 First-paint mobile layout stabilization */
