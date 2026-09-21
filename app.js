@@ -12,7 +12,7 @@
     text: 'https://45kikurage-rgb.github.io/copy-paste',
     win: 'https://winning-url-manager.45kikurage.workers.dev',
     capture: 'https://coupon-capture.45kikurage.workers.dev/checker/',
-    summary: 'https://lightweight-links.pages.dev/'
+    summary: 'https://lightweight-links.pages.dev/r8k2mq7vn4xp.html'
   };
   const LINK_LABELS = { assets:'ASSET MANAGER', action:'ACTION TOOL', text:'TEXT FORMAT', win:'WIN LINK MANAGER', capture:'COUPON CHECK', summary:'SITE LINK Ver.LIGHT' };
 
@@ -780,7 +780,10 @@
       if (!stored.capture || stored.capture === 'https://coupon-capture.45kikurage.workers.dev') {
         links.capture = DEFAULT_LINKS.capture;
       }
-      if (!stored.summary || stored.summary === 'https://the-fool-links.45kikurage.workers.dev/') {
+      if (!stored.summary
+        || stored.summary === 'https://the-fool-links.45kikurage.workers.dev/'
+        || stored.summary === 'https://lightweight-links.pages.dev/'
+        || stored.summary === 'https://lightweight-links.pages.dev') {
         links.summary = DEFAULT_LINKS.summary;
       }
       return links;

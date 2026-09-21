@@ -1,7 +1,7 @@
 importScripts('./portal-screenshots.js?v=20260921-logo-refresh-v6');
-const CACHE="the-fool-quest-20260921-logo-refresh-v6";
+const CACHE="the-fool-quest-20260921-link-edit-v7";
 const SHARE_CACHE='the-fool-quest-share-v1';
-const ASSETS=['./portal-screenshots.js?v=20260921-logo-refresh-v6','./','./index.html','./style.css?v=20260921-logo-refresh-v6','./app.js?v=20260921-logo-refresh-v6','./fonts/Corporate-Logo-Rounded-Bold-ver3.woff2','./manifest.webmanifest?v=20260914-white-splash','./title-logo.png','./icon-any-192.png?v=20260914-white-splash','./icon-any.png?v=20260914-white-splash','./icon-maskable-192.png?v=20260914-white-splash','./icon-maskable.png?v=20260914-white-splash'];
+const ASSETS=['./portal-screenshots.js?v=20260921-logo-refresh-v6','./','./index.html','./style.css?v=20260921-logo-refresh-v6','./app.js?v=20260921-link-edit-v7','./fonts/Corporate-Logo-Rounded-Bold-ver3.woff2','./manifest.webmanifest?v=20260914-white-splash','./title-logo.png','./icon-any-192.png?v=20260914-white-splash','./icon-any.png?v=20260914-white-splash','./icon-maskable-192.png?v=20260914-white-splash','./icon-maskable.png?v=20260914-white-splash'];
 
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()));
