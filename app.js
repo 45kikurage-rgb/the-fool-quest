@@ -261,15 +261,26 @@
     return `${get('month')}/${get('day')} ${String(time[1]).padStart(2,'0')}:${time[2]}`;
   }
 
+  function normalizeWorkUsageText(rawText) {
+    return String(rawText || '').normalize('NFKC')
+      .replace(/[：]/g, ':').replace(/[©@]/g, '&')
+      .replace(/([一-龠ぁ-んァ-ヶ])\s+(?=[一-龠ぁ-んァ-ヶ])/g, '$1');
+  }
+
   function isProWorkUsageText(rawText) {
-    const text = String(rawText || '').normalize('NFKC');
+    const text = normalizeWorkUsageText(rawText);
     return /codex\s*(?:&|and|と|・|\/)?\s*work/i.test(text)
       || /週間(?:利用)?上限|利用制限のリセット|残りのクレジット|クレジットの自動チャージ/i.test(text);
   }
 
   function parseWorkUsageText(rawText) {
-    const text = String(rawText || '').normalize('NFKC')
-      .replace(/[：]/g, ':').replace(/[©@]/g, '&');
+    const fullText = normalizeWorkUsageText(rawText);
+    if (PortalScreenshots.isCursorUsageScreenshot(fullText)) {
+      throw new Error('Cursor/Grok画面はChatGPT利用残量の更新対象外です');
+    }
+    // Reset-voucher help mentions "5時間" and has its own expiry. Neither is
+    // a quota card. Exclude the entire help/offer/chart area before parsing.
+    const text = fullText.split(/利用制限のリセット|完全リセット|有効期限|(?:クレジットの)?自動チャージ|使用状況の内訳|個人の使用状況|usage limit resets|reset usage limits|full reset|expires|auto[ -]?(?:recharge|top[ -]?up)|usage breakdown/i)[0];
     const validPercent = value => {
       const number = Number(value);
       return number >= 0 && number <= 100 ? number : null;
@@ -285,18 +296,18 @@
     // Prefer a value attached to its label. The Pro analytics page also contains
     // unrelated percentages (auto-charge offers and chart axes), so positional
     // "first percentage wins" parsing can silently save the wrong number.
-    const fiveSection = text.match(/(?:5\s*時間|5\s*hour)[\s\S]{0,100}/i)?.[0] || '';
-    const weekSection = text.match(/(?:週間(?:利用)?上限|週間残量|週(?:間)?|weekly(?:\s+(?:usage\s+)?limit)?)[\s\S]{0,160}/i)?.[0] || '';
+    // Require an actual percentage attached to the five-hour label. A help
+    // sentence mentioning five hours must not switch a weekly-only card to Plus.
+    const fiveSection = text.match(/(?:5\s*時間|5\s*hours?)(?:\s|:|あたり|ごと|の|利用|上限|残量|残り|usage|limit|remaining){0,24}\d{1,3}\s*%/i)?.[0] || '';
+    const weekMatch = text.match(/(?:週間(?:利用)?上限|週間残量|週間|週|weekly(?:\s+(?:usage\s+)?limit)?)(?:\s|:|の|利用|上限|残量|残り|usage|limit|remaining){0,24}(\d{1,3})\s*%/i);
     const remainingSection = text.match(/(\d{1,3})\s*%\s*(?:残り|remaining)/i);
+    const weekAnchor = weekMatch || remainingSection;
+    const weekSection = weekAnchor ? text.slice(weekAnchor.index, weekAnchor.index + 160) : '';
     const weekResetNearLimit = weekSection.match(/(?:リセット|reset)[^\d]{0,24}((?:(?:20\d{2}[\/.-])?\d{1,2}[\/.-]\d{1,2}\s+|\d{1,2}月\d{1,2}日\s*)?\d{1,2}[:：]\d{2})/i)?.[1] || '';
     const fivePercent = firstPercentIn(fiveSection);
-    const weekPercent = firstPercentIn(weekSection)
-      ?? (remainingSection ? validPercent(remainingSection[1]) : null);
-    const proPage = isProWorkUsageText(text)
-      && !/(?:5\s*時間|5\s*hour)/i.test(text);
-    if (PortalScreenshots.isCursorUsageScreenshot(text)) {
-      throw new Error('Cursor/Grok画面はChatGPT利用残量の更新対象外です');
-    }
+    const weekPercent = weekMatch ? validPercent(weekMatch[1])
+      : (fivePercent === null && remainingSection ? validPercent(remainingSection[1]) : null);
+    const proPage = isProWorkUsageText(fullText) && fivePercent === null;
 
     const firstPercent = text.search(/\d{1,3}\s*%/);
     const relevant = firstPercent >= 0 ? text.slice(firstPercent) : text;
@@ -304,14 +315,14 @@
     const withoutDates = dateTimes.reduce((source, value) => source.replace(value, ' '), relevant);
     const times = [...withoutDates.matchAll(/(?:^|\s)(\d{1,2}[:：]\d{2})(?=\s|$)/g)].map(match => match[1]);
 
-    // The current Pro page has one weekly allowance, but may OCR extra offer/chart
-    // percentages. In a tight Codex & Work crop the first value is the allowance.
+    // Never guess from offer percentages or chart axes when the quota is unreadable.
     if (proPage) {
+      if (weekPercent === null) throw new Error('週間の残量を特定できませんでした');
       return {
         fivePercent: null,
-        weekPercent: weekPercent ?? percentMatches[0],
+        weekPercent,
         fiveReset: '――',
-        weekReset: formatWorkReset(weekResetNearLimit || times[0] || dateTimes[0]),
+        weekReset: formatWorkReset(weekResetNearLimit),
         mode: 'pro',
         updatedAt: new Date().toISOString()
       };
@@ -347,11 +358,11 @@
     const bitmap = await createImageBitmap(file);
     // ChatGPT's desktop analytics page is shown scaled down on Android. Isolate
     // the left weekly-limit card so the credit card and chart cannot pollute OCR.
-    // Current Android Codex analytics screenshots show the weekly limit card
-    // lower and wider than the previous layout. Include the full weekly/reset area.
-    const sx = Math.round(bitmap.width * .22), sy = Math.round(bitmap.height * .33);
-    const sw = Math.round(bitmap.width * .74), sh = Math.round(bitmap.height * .30);
-    const scale = Math.min(3.2, 1500 / sw);
+    // Keep the weekly card and its reset time, not the reset-voucher section below.
+    // The general crop and full-image fallback remain available for other layouts.
+    const sx = Math.round(bitmap.width * .27), sy = Math.round(bitmap.height * .27);
+    const sw = Math.round(bitmap.width * .40), sh = Math.round(bitmap.height * .16);
+    const scale = Math.min(4, 1600 / sw);
     const canvas = document.createElement('canvas');
     canvas.width = Math.max(1, Math.round(sw * scale));
     canvas.height = Math.max(1, Math.round(sh * scale));
@@ -531,7 +542,9 @@
       });
       const text = result?.data?.text || '';
       if (PortalScreenshots.isCursorUsageScreenshot(text)) return {kind:'cursor-ignored'};
-      if (candidate.usageOnly) {
+      // Identify ChatGPT before Povo: a reset voucher also says "有効期限".
+      // On a failed ChatGPT read, try another crop; never overwrite Povo dates.
+      if (candidate.usageOnly || isProWorkUsageText(text)) {
         if (!isProWorkUsageText(text)) continue;
         try {
           const usage = parseWorkUsageText(text);
