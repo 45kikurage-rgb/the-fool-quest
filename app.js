@@ -718,6 +718,60 @@
     persistCurrent(); renderAll();
     return {total,count};
   }
+  function applyPaySyncFromHash() {
+    const params = new URLSearchParams(location.hash.replace(/^#/,''));
+    const raw = params.get('paySync');
+    if (!raw) return;
+    try {
+      const payload = JSON.parse(raw);
+      const month = normalizeMonth(payload.month);
+      const total = Math.trunc(Number(payload.total));
+      const count = Math.trunc(Number(payload.count));
+      const fingerprint = String(payload.fingerprint || '');
+      if (
+        payload.source !== 'aruno-assist' ||
+        payload.version !== 1 ||
+        !month ||
+        !Number.isFinite(total) || total < 0 ||
+        !Number.isFinite(count) || count < 1 ||
+        !/^[a-f0-9]{64}$/i.test(fingerprint)
+      ) throw new Error('PAY SYNCデータが不正です');
+
+      const importedAt = String(payload.importedAt || new Date().toISOString());
+      const fileName = String(payload.fileName || `${month}.csv`).slice(0, 160);
+      const old = state.monthly[month] || { month, coupon: 0 };
+      const tiktok = total + manualTotal(month);
+      state.monthly[month] = {
+        ...old,
+        month,
+        tiktokCsv: total,
+        tiktok,
+        paySync: { count, fingerprint, fileName, importedAt },
+        updatedAt: importedAt,
+        finalized: false
+      };
+      save(KEY.monthly, state.monthly);
+      if (month === state.month) {
+        state.tiktokCsv = total;
+        state.tiktok = tiktok;
+        save(KEY.tiktok, String(total));
+        save(KEY.csv, { fileName, count, month, fingerprint, importedAt, source:'ARUNO ASSIST' });
+      }
+      history.replaceState(null, '', `${location.pathname}${location.search}`);
+      const result = $('csv-result');
+      result.className = 'csv-result success';
+      result.textContent = `PAY SYNC 更新完了\n${month}  ${money(total)}（${count}件）`;
+      $('csv-dialog').showModal();
+    } catch (error) {
+      console.error('PAY SYNC import failed:', error);
+      history.replaceState(null, '', `${location.pathname}${location.search}`);
+      const result = $('csv-result');
+      if (result) {
+        result.className = 'csv-result';
+        result.textContent = `PAY SYNC 読込エラー：${error.message}`;
+      }
+    }
+  }
   function setupCsv() {
     const dialog=$('csv-dialog'),input=$('csv-file'),result=$('csv-result');
     $('open-csv').addEventListener('click',()=>{
@@ -1213,6 +1267,7 @@
   safeSetup('Work usage', setupWorkUsage);
   safeSetup('Povo expiry order', setupPovoExpiryOrder);
   safeSetup('Verification', setupVerification);
+  safeSetup('PAY SYNC', applyPaySyncFromHash);
   safeSetup('Initial render', renderAll);
   syncCoupon();
   setInterval(()=>{checkMonth();renderAll();},60000);
