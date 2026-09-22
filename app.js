@@ -362,6 +362,100 @@
     return canvas;
   }
 
+  // The Codex analytics page always draws the weekly allowance as a green
+  // horizontal bar. Keep a local, OCR-free fallback so a blocked CDN or a
+  // temporary language-data failure does not make screenshot sharing a no-op.
+  async function detectProUsageByBar(file) {
+    const bitmap = await createImageBitmap(file);
+    const canvas = document.createElement('canvas');
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+    const context = canvas.getContext('2d', {willReadFrequently:true});
+    context.drawImage(bitmap, 0, 0);
+    bitmap.close?.();
+    const {width, height} = canvas;
+    const pixels = context.getImageData(0, 0, width, height).data;
+    const xMin = Math.floor(width * .22), xMax = Math.ceil(width * .72);
+    const yMin = Math.floor(height * .28), yMax = Math.ceil(height * .43);
+    const colorAt = (x,y) => {
+      const offset = (y * width + x) * 4;
+      return [pixels[offset], pixels[offset+1], pixels[offset+2]];
+    };
+    const green = (r,g,b) => g >= 130 && g-r >= 45 && g-b >= 35;
+    const track = (r,g,b) => {
+      const high = Math.max(r,g,b), low = Math.min(r,g,b);
+      return low >= 205 && high <= 249 && high-low <= 30;
+    };
+    let best = null;
+    for (let y = yMin; y < yMax; y++) {
+      let start = -1, end = -1, runStart = -1, gap = 0;
+      for (let x = xMin; x < xMax; x++) {
+        if (green(...colorAt(x,y))) {
+          if (runStart < 0) runStart = x;
+          end = x;
+          gap = 0;
+        } else if (runStart >= 0 && gap < 2) {
+          gap++;
+        } else if (runStart >= 0) {
+          if (!best || end-runStart > best.end-best.start) best = {y,start:runStart,end};
+          runStart = -1; end = -1; gap = 0;
+        }
+      }
+      if (runStart >= 0 && (!best || end-runStart > best.end-best.start)) best = {y,start:runStart,end};
+    }
+    if (!best || best.end-best.start+1 < width * .035) return null;
+
+    // Continue through the unfilled light-gray part of the same track. Four
+    // white pixels mark the card background after the rounded track end.
+    let trackEnd = best.end, misses = 0;
+    for (let x = best.start; x < Math.min(xMax, best.start + width * .34); x++) {
+      const color = colorAt(x,best.y);
+      if (green(...color) || track(...color)) {
+        trackEnd = x;
+        misses = 0;
+      } else if (++misses >= 4) {
+        break;
+      }
+    }
+    const filledWidth = best.end-best.start+1;
+    const trackWidth = trackEnd-best.start+1;
+    if (trackWidth < width * .11 || trackWidth > width * .34 || filledWidth > trackWidth) return null;
+    const percent = Math.max(1, Math.min(100, Math.floor(filledWidth / trackWidth * 100 + .2)));
+    return {percent};
+  }
+
+  let tesseractFallbackLoading = null;
+  function ensureTesseract() {
+    if (window.Tesseract) return Promise.resolve(window.Tesseract);
+    if (tesseractFallbackLoading) return tesseractFallbackLoading;
+    if (!document.head?.append) return Promise.resolve(null);
+    tesseractFallbackLoading = new Promise(resolve => {
+      const script = document.createElement('script');
+      const finish = () => resolve(window.Tesseract || null);
+      script.src = 'https://unpkg.com/tesseract.js@5/dist/tesseract.min.js';
+      script.async = true;
+      script.onload = finish;
+      script.onerror = finish;
+      document.head.append(script);
+      setTimeout(finish, 12000);
+    });
+    return tesseractFallbackLoading;
+  }
+
+  function saveVisualWorkUsage(result, reset = '――') {
+    const usage = {
+      fivePercent: null,
+      weekPercent: result.percent,
+      fiveReset: '――',
+      weekReset: reset,
+      mode: 'pro',
+      updatedAt: new Date().toISOString()
+    };
+    localStorage.setItem(KEY.workUsage, JSON.stringify(usage));
+    renderWorkUsage();
+    return {kind:'work-visual'};
+  }
+
   function renderPovoExpiry() {
     const data = load(PortalScreenshots.POVO_KEY, {});
     const entries = Array.isArray(data.entries) ? data.entries.slice(0, 2) : [];
@@ -413,9 +507,14 @@
 
   async function readPortalScreenshot(file, id) {
     if (!file?.type?.startsWith('image/')) throw new Error('画像ファイルを選択してください');
-    if (!window.Tesseract) throw new Error('画像読取機能を読み込めませんでした。通信状態を確認して再送してください。');
     // Replaying a queued image after a reload must not push the same receipt twice.
     if (load(PortalScreenshots.POVO_KEY, {}).seenIds?.includes(id)) return {kind:'saved'};
+    const tesseract = await ensureTesseract();
+    if (!tesseract) {
+      const visual = await detectProUsageByBar(file).catch(() => null);
+      if (visual) return saveVisualWorkUsage(visual);
+      throw new Error('画像読取機能を読み込めませんでした。通信状態を確認して再送してください。');
+    }
     const images = [
       {image:await cropWorkUsageImage(file), language:'jpn+eng', usageOnly:false},
       {image:await cropProWorkUsageImage(file), language:'jpn+eng', usageOnly:true},
@@ -423,7 +522,7 @@
     ];
     let lastError = null;
     for (const candidate of images) {
-      const result = await window.Tesseract.recognize(candidate.image, candidate.language, {
+      const result = await tesseract.recognize(candidate.image, candidate.language, {
         logger: progress => {
           if (progress.status === 'recognizing text') {
             screenshotStatus(`画像を読み取り中… ${Math.round((progress.progress || 0) * 100)}％`);
@@ -443,7 +542,10 @@
       }
       let expiry;
       try { expiry = PortalScreenshots.parsePovoExpiry(text); }
-      catch (error) { lastError = error; continue; }
+      // A Codex analytics screenshot can contain the unrelated phrase
+      // "有効期限" in the credit-reset section. A Povo parse miss must not
+      // prevent the same OCR text from being checked as Work usage.
+      catch (error) { lastError = error; }
       if (expiry) {
         const next = PortalScreenshots.pushExpiry(load(PortalScreenshots.POVO_KEY, {}), expiry, id);
         // Do not swallow storage errors: leave the previous dates intact and report failure.
@@ -460,6 +562,8 @@
         } catch (error) { lastError = error; }
       }
     }
+    const visual = await detectProUsageByBar(file).catch(() => null);
+    if (visual) return saveVisualWorkUsage(visual);
     throw lastError || new Error('Povoの有効期限・ChatGPTの利用残量を読み取れませんでした。鮮明な画像を再送してください。');
   }
 
