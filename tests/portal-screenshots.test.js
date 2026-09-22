@@ -72,17 +72,18 @@ test('共有POSTは同じフィールドの全画像を受信する',async()=>{
   assert.deepEqual(received,files);
 });
 
-function appFixture(texts){
+function appFixture(texts,options={}){
   const elements=new Map(),stored=new Map();let calls=0;
   const $=id=>{
     if(!elements.has(id)) elements.set(id,{textContent:'',style:{},classList:{remove(){},add(){},toggle(){}},removeAttribute(){}});
     return elements.get(id);
   };
   const cache=cacheFixture();global.caches={open:async()=>cache};
+  const blankPixels=new Uint8ClampedArray(684*1536*4);
   const context={PortalScreenshots:P,load:(key,fallback)=>stored.has(key)?JSON.parse(stored.get(key)):fallback,
     localStorage:{setItem:(key,value)=>stored.set(key,value)},KEY:{workUsage:'usage'},$,
-    window:{Tesseract:{recognize:async()=>({data:{text:texts[calls++]||''}})}},
-    document:{baseURI:'https://portal.test/',createElement:()=>({getContext:()=>({drawImage(){}})})},
+    window:options.withoutTesseract?{}:{Tesseract:{recognize:async()=>({data:{text:texts[calls++]||''}})}},
+    document:{baseURI:'https://portal.test/',createElement:()=>({getContext:()=>({drawImage(){},getImageData:()=>({data:options.imageData||blankPixels})})})},
     createImageBitmap:async()=>({width:684,height:1536,close(){}}),
     caches:global.caches,navigator:{locks:{request:async(name,fn)=>fn()}},
     setTimeout(){},clearTimeout(){},console:{error(){}},Date,Intl};
@@ -91,6 +92,23 @@ function appFixture(texts){
   vm.runInContext(source.slice(source.indexOf('  function normalizedWorkUsage'),source.indexOf('  function setupHomeAmounts')),context);
   return {context,stored,cache,$,calls:()=>calls};
 }
+
+test('OCRを読み込めない場合も緑バーからPro週間残量を更新する',async()=>{
+  const pixels=new Uint8ClampedArray(684*1536*4);
+  const paint=(x,y,r,g,b)=>{const i=(y*684+x)*4;pixels[i]=r;pixels[i+1]=g;pixels[i+2]=b;pixels[i+3]=255};
+  for(let y=560;y<=567;y++){
+    for(let x=232;x<=396;x++)paint(x,y,35,197,94);
+    for(let x=397;x<=402;x++)paint(x,y,237,236,241);
+  }
+  const f=appFixture([],{withoutTesseract:true,imageData:pixels});
+  const result=await f.context.readPortalScreenshot(new Blob(['image'],{type:'image/jpeg'}),'visual-pro');
+  const usage=JSON.parse(f.stored.get('usage'));
+  assert.equal(result.kind,'work-visual');
+  assert.equal(usage.mode,'pro');
+  assert.equal(usage.weekPercent,96);
+  assert.equal(usage.weekReset,'――');
+  delete global.caches;
+});
 
 test('切抜き失敗時は全体で読み、失敗画像は既存期限を変えず次の2枚を処理する',async()=>{
   const valid='有効期限 2026年 9月 16日 午後7:23';
