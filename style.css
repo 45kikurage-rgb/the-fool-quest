@@ -107,6 +107,7 @@ button,a,input{font:inherit;color:inherit}
 .secondary,.wide-button{background:var(--black)}
 .csv-dialog p{line-height:1.65;margin:22px 0}
 .wide-button{width:100%;padding:14px}
+.csv-download-link{display:flex;align-items:center;justify-content:center;margin-bottom:12px;text-align:center;text-decoration:none}
 .wide-button:hover,.wide-button:focus-visible{background:var(--white);color:var(--black);outline:none}
 .csv-result{min-height:86px;margin:18px 0;padding:14px;border:2px solid var(--white);display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.5;white-space:pre-line}
 .csv-result.success{background:var(--white);color:var(--black)}
