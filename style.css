@@ -33,7 +33,7 @@ button,a,input{font:inherit;color:inherit}
 .character-panel .character-row{width:100%}
 .character-row strong{font-weight:400}
 .name-command,.modal-close{appearance:none;border:0;background:transparent;padding:0;cursor:pointer}
-.name-command{font-size:calc(var(--panel-font-size) + 3px);line-height:1}
+.name-command{font-size:calc(var(--panel-font-size) + 3px);line-height:1;text-decoration:none}
 .name-command:hover,.name-command:focus-visible{color:var(--black);background:var(--white);outline:none}
 .rule{height:3px;background:var(--white);margin:clamp(16px,2vw,28px) 0 clamp(28px,3vw,42px)}
 .metric{position:relative;margin:10px 0}

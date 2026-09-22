@@ -774,11 +774,12 @@
   }
   function setupCsv() {
     const dialog=$('csv-dialog'),input=$('csv-file'),result=$('csv-result');
-    $('open-csv').addEventListener('click',()=>{
-      result.className='csv-result';const meta=load(KEY.csv);
-      result.textContent=meta.fileName?`前回：${meta.fileName}\n${new Date(meta.importedAt).toLocaleString('ja-JP')}`:'CSVを選択してください';
-      dialog.showModal();
-    });
+    const opener=$('open-csv');
+    if(opener.tagName==='BUTTON')opener.addEventListener('click',()=>{
+        result.className='csv-result';const meta=load(KEY.csv);
+        result.textContent=meta.fileName?`前回：${meta.fileName}\n${new Date(meta.importedAt).toLocaleString('ja-JP')}`:'CSVを選択してください';
+        dialog.showModal();
+      });
     $('choose-csv').addEventListener('click',()=>input.click());
     input.addEventListener('change',async()=>{
       const file=input.files?.[0];if(!file)return;
