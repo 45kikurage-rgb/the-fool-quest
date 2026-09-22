@@ -11,7 +11,7 @@
     action: 'https://the-fool-head.45kikurage.workers.dev',
     text: 'https://45kikurage-rgb.github.io/copy-paste',
     win: 'https://winning-url-manager.45kikurage.workers.dev',
-    capture: 'https://coupon-capture.45kikurage.workers.dev/checker/',
+    capture: 'https://coupon-analyzer.45kikurage.workers.dev/',
     summary: 'https://lightweight-links.pages.dev/r8k2mq7vn4xp.html'
   };
   const LINK_LABELS = { assets:'ASSET MANAGER', action:'ACTION TOOL', text:'TEXT FORMAT', win:'WIN LINK MANAGER', capture:'COUPON CHECK', summary:'SITE LINK Ver.LIGHT' };
