@@ -23,7 +23,7 @@
               id="open-csv"
               class="name-command"
               aria-label="ARUNO ASSISTのPAY SYNCを開く"
-              href="intent://pay/sync#Intent;scheme=arunoassist;package=com.aruno.assist;S.browser_fallback_url=https%3A%2F%2Fwallet.vaton.jp%2Fpoint%2Fpoint_logs;end"
+              href="intent://sync/start#Intent;scheme=arunoassist;package=com.aruno.assist;S.browser_fallback_url=https%3A%2F%2Fchatgpt.com%2Fcodex%2Fsettings%2Fusage;end"
             >あるの</a>
             <span>Lv <strong id="level">00</strong></span>
           </header>
@@ -298,7 +298,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="./portal-screenshots.js?v=20260923-usage-fallback-v8"></script>
-  <script src="./app.js?v=20260923-pay-sync-v3"></script>
+  <script src="./app.js?v=20260923-auto-sync-v1"></script>
   <script>
     if ('serviceWorker' in navigator) {
       let refreshing = false;
@@ -307,7 +307,7 @@
         refreshing = true;
         location.reload();
       });
-      navigator.serviceWorker.register('./sw.js?v=20260923-pay-sync-v2', { updateViaCache: 'none' })
+      navigator.serviceWorker.register('./sw.js?v=20260923-auto-sync-v1', { updateViaCache: 'none' })
         .then(registration => registration.update())
         .catch(error => console.error('Service Worker update failed:', error));
     }

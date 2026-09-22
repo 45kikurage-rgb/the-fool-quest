@@ -718,6 +718,40 @@
     persistCurrent(); renderAll();
     return {total,count};
   }
+  function applyWorkUsageFromHash() {
+    const params = new URLSearchParams(location.hash.replace(/^#/,''));
+    const raw = params.get('workUsage');
+    if (!raw) return;
+    try {
+      const payload = JSON.parse(raw);
+      const percent = value => value === null || value === undefined
+        ? null : Math.round(Number(value));
+      const fivePercent = percent(payload.fivePercent);
+      const weekPercent = percent(payload.weekPercent);
+      if (
+        payload.source !== 'aruno-assist' ||
+        payload.version !== 1 ||
+        !Number.isFinite(weekPercent) || weekPercent < 0 || weekPercent > 100 ||
+        (fivePercent !== null && (!Number.isFinite(fivePercent) || fivePercent < 0 || fivePercent > 100))
+      ) throw new Error('GPT残量データが不正です');
+      save(KEY.workUsage, {
+        fivePercent,
+        weekPercent,
+        fiveReset: String(payload.fiveReset || '――').slice(0,40),
+        weekReset: String(payload.weekReset || '――').slice(0,40),
+        mode: payload.mode === 'pro' ? 'pro' : 'standard',
+        updatedAt: String(payload.updatedAt || new Date().toISOString())
+      });
+      screenshotStatus('GPT残量を自動更新しました');
+    } catch (error) {
+      console.error('GPT usage import failed:', error);
+      screenshotStatus(`GPT残量の更新エラー：${error.message}`, true);
+    } finally {
+      params.delete('workUsage');
+      const remaining=params.toString();
+      history.replaceState(null,'',`${location.pathname}${location.search}${remaining?`#${remaining}`:''}`);
+    }
+  }
   function applyPaySyncFromHash() {
     const params = new URLSearchParams(location.hash.replace(/^#/,''));
     const raw = params.get('paySync');
@@ -777,9 +811,9 @@
     const opener=$('open-csv');
     if(opener.tagName==='A'){
       const returnUrl=`${location.origin}${location.pathname}`;
-      opener.href='intent://pay/sync?return_url='+encodeURIComponent(returnUrl)+
+      opener.href='intent://sync/start?return_url='+encodeURIComponent(returnUrl)+
         '#Intent;scheme=arunoassist;package=com.aruno.assist;'+
-        'S.browser_fallback_url='+encodeURIComponent('https://wallet.vaton.jp/point/point_logs')+';end';
+        'S.browser_fallback_url='+encodeURIComponent('https://chatgpt.com/codex/settings/usage')+';end';
     }else opener.addEventListener('click',()=>{
         result.className='csv-result';const meta=load(KEY.csv);
         result.textContent=meta.fileName?`前回：${meta.fileName}\n${new Date(meta.importedAt).toLocaleString('ja-JP')}`:'CSVを選択してください';
@@ -1273,6 +1307,7 @@
   safeSetup('Work usage', setupWorkUsage);
   safeSetup('Povo expiry order', setupPovoExpiryOrder);
   safeSetup('Verification', setupVerification);
+  safeSetup('GPT usage sync', applyWorkUsageFromHash);
   safeSetup('PAY SYNC', applyPaySyncFromHash);
   safeSetup('Initial render', renderAll);
   syncCoupon();
