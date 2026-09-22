@@ -775,7 +775,12 @@
   function setupCsv() {
     const dialog=$('csv-dialog'),input=$('csv-file'),result=$('csv-result');
     const opener=$('open-csv');
-    if(opener.tagName==='BUTTON')opener.addEventListener('click',()=>{
+    if(opener.tagName==='A'){
+      const returnUrl=`${location.origin}${location.pathname}`;
+      opener.href='intent://pay/sync?return_url='+encodeURIComponent(returnUrl)+
+        '#Intent;scheme=arunoassist;package=com.aruno.assist;'+
+        'S.browser_fallback_url='+encodeURIComponent('https://wallet.vaton.jp/point/point_logs')+';end';
+    }else opener.addEventListener('click',()=>{
         result.className='csv-result';const meta=load(KEY.csv);
         result.textContent=meta.fileName?`前回：${meta.fileName}\n${new Date(meta.importedAt).toLocaleString('ja-JP')}`:'CSVを選択してください';
         dialog.showModal();
