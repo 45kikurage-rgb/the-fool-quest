@@ -7,7 +7,7 @@
   <title>THE FOOL QUEST</title>
   <link rel="manifest" href="./manifest.webmanifest?v=20260914-white-splash">
   <link rel="apple-touch-icon" href="./icon-any-192.png?v=20260914-white-splash">
-  <link rel="stylesheet" href="./style.css?v=20260924-povo-manual-v1">
+  <link rel="stylesheet" href="./style.css?v=20260924-povo-manual-v2">
 </head>
 <body>
   <main class="screen">
@@ -75,11 +75,11 @@
           </span>
         </a>
       </section>
-      <section class="povo-expiry-panel" aria-labelledby="povo-expiry-heading" role="button" tabindex="0" aria-label="Povoデータ使用期限。押すと端末1thと端末2ndの期限を更新できます">
+      <button id="povo-expiry-open" class="povo-expiry-panel" type="button" aria-labelledby="povo-expiry-heading" aria-label="Povoデータ使用期限。押すと端末1thと端末2ndの期限を更新できます">
         <h2 id="povo-expiry-heading"><span>Povo</span><span>データ使用期限</span></h2>
         <div class="povo-expiry-row" aria-label="端末1th データ使用期限"><span class="povo-device-label">端末1th</span><time id="povo-expiry-one">--/-- --:--</time></div>
         <div class="povo-expiry-row" aria-label="端末2nd データ使用期限"><span class="povo-device-label">端末2nd</span><time id="povo-expiry-two">--/-- --:--</time></div>
-      </section>
+      </button>
       <p id="work-usage-status" class="work-usage-status" aria-live="polite" hidden></p>
       </section>
 
@@ -321,7 +321,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="./portal-screenshots.js?v=20260923-usage-fallback-v8"></script>
-  <script src="./app.js?v=20260924-povo-manual-v1"></script>
+  <script src="./app.js?v=20260924-povo-manual-v2"></script>
   <script>
     if ('serviceWorker' in navigator) {
       let refreshing = false;
@@ -330,7 +330,7 @@
         refreshing = true;
         location.reload();
       });
-      navigator.serviceWorker.register('./sw.js?v=20260924-povo-manual-v1', { updateViaCache: 'none' })
+      navigator.serviceWorker.register('./sw.js?v=20260924-povo-manual-v2', { updateViaCache: 'none' })
         .then(registration => registration.update())
         .catch(error => console.error('Service Worker update failed:', error));
     }
