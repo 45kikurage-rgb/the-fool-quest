@@ -693,9 +693,22 @@ button,a,input{font:inherit;color:inherit}
 .povo-expiry-row time.expiry-yellow{color:#ffd43b}
 .povo-expiry-row time.expiry-red{color:#ff2d2d}
 .usage-povo-panel > .work-usage-status{grid-column:1/-1;margin-top:5px}
+.povo-expiry-dialog{width:min(460px,calc(100% - 24px))}
+.povo-expiry-dialog .modal-card{width:100%;padding:18px}
+.povo-expiry-help{margin:0 0 16px;color:var(--subtext);font-size:15px;line-height:1.45;text-align:center}
+.povo-expiry-help strong{color:var(--white);font-variant-numeric:tabular-nums}
+.povo-expiry-input-row{display:grid;grid-template-columns:90px minmax(0,1fr);align-items:center;gap:10px;margin:12px 0;font-size:19px}
+.povo-expiry-input-row input{width:100%;min-width:0;min-height:48px;padding:6px 9px;border:2px solid var(--white);border-radius:0;outline:0;background:var(--black);color:var(--white);font:inherit;font-size:22px;text-align:center;font-variant-numeric:tabular-nums;letter-spacing:.03em}
+.povo-expiry-input-row input:focus{box-shadow:0 0 0 2px var(--blue)}
+.povo-expiry-input-row input::placeholder{color:#777;opacity:1}
+.povo-expiry-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.povo-expiry-actions button{min-height:46px;border:2px solid var(--white);cursor:pointer}
 @media(max-width:520px){
   .dashboard > .usage-povo-panel{margin-bottom:16px}
   .usage-povo-panel .work-usage-copy{font-size:clamp(10px,2.6vw,13px)}
+  .povo-expiry-dialog .modal-card{padding:15px 13px}
+  .povo-expiry-input-row{grid-template-columns:78px minmax(0,1fr);font-size:17px}
+  .povo-expiry-input-row input{font-size:20px}
 }
 
 /* 2026-09-17 Cursor Grok is link-only; keep the original Magic Point / Povo ratio. */

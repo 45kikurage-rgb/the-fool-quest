@@ -7,7 +7,7 @@
   <title>THE FOOL QUEST</title>
   <link rel="manifest" href="./manifest.webmanifest?v=20260914-white-splash">
   <link rel="apple-touch-icon" href="./icon-any-192.png?v=20260914-white-splash">
-  <link rel="stylesheet" href="./style.css?v=20260923-vaton-entry-v1">
+  <link rel="stylesheet" href="./style.css?v=20260924-povo-manual-v1">
 </head>
 <body>
   <main class="screen">
@@ -75,7 +75,7 @@
           </span>
         </a>
       </section>
-      <section class="povo-expiry-panel" aria-labelledby="povo-expiry-heading" role="button" tabindex="0" aria-label="Povoデータ使用期限。押すと端末1thと端末2ndの日付を入れ替えます">
+      <section class="povo-expiry-panel" aria-labelledby="povo-expiry-heading" role="button" tabindex="0" aria-label="Povoデータ使用期限。押すと端末1thと端末2ndの期限を更新できます">
         <h2 id="povo-expiry-heading"><span>Povo</span><span>データ使用期限</span></h2>
         <div class="povo-expiry-row" aria-label="端末1th データ使用期限"><span class="povo-device-label">端末1th</span><time id="povo-expiry-one">--/-- --:--</time></div>
         <div class="povo-expiry-row" aria-label="端末2nd データ使用期限"><span class="povo-device-label">端末2nd</span><time id="povo-expiry-two">--/-- --:--</time></div>
@@ -150,7 +150,7 @@
       </div>
       <div class="manage-bottom-commands">
         <input id="work-usage-file" type="file" multiple accept="image/png,image/jpeg,image/webp" hidden>
-        <button id="work-usage-file-open" class="wide-button" type="button">▶ ChatGPT・Povo スクショ読取</button>
+        <button id="work-usage-file-open" class="wide-button" type="button">▶ ChatGPT スクショ読取</button>
         <button id="verification-open" class="wide-button verification-open" type="button">▶ 稼働数検証</button>
         <button id="link-manage-open" class="wide-button link-manage-open" type="button">▶ リンク修正</button>
       </div>
@@ -249,6 +249,29 @@
     </form>
   </dialog>
 
+  <dialog id="povo-expiry-dialog" class="modal povo-expiry-dialog">
+    <form method="dialog" class="modal-card pixel-frame">
+      <header class="modal-title">
+        <span>Povo 使用期限</span>
+        <button class="modal-close" value="cancel" aria-label="閉じる">×</button>
+      </header>
+      <p class="povo-expiry-help">数字8桁で入力すると、自動で<br><strong>MM/dd hh:mm</strong> の形になります。</p>
+      <label class="povo-expiry-input-row">
+        <span>端末1th</span>
+        <input id="povo-expiry-input-one" type="text" inputmode="numeric" maxlength="11" placeholder="MM/dd hh:mm" autocomplete="off">
+      </label>
+      <label class="povo-expiry-input-row">
+        <span>端末2nd</span>
+        <input id="povo-expiry-input-two" type="text" inputmode="numeric" maxlength="11" placeholder="MM/dd hh:mm" autocomplete="off">
+      </label>
+      <div id="povo-expiry-message" class="goal-message" aria-live="polite"></div>
+      <div class="povo-expiry-actions">
+        <button class="secondary" value="cancel">キャンセル</button>
+        <button id="povo-expiry-save" class="primary" type="button">更新</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog id="csv-dialog" class="modal csv-dialog">
     <form method="dialog" class="modal-card pixel-frame">
       <header class="modal-title">
@@ -298,7 +321,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="./portal-screenshots.js?v=20260923-usage-fallback-v8"></script>
-  <script src="./app.js?v=20260923-auto-sync-v1"></script>
+  <script src="./app.js?v=20260924-povo-manual-v1"></script>
   <script>
     if ('serviceWorker' in navigator) {
       let refreshing = false;
@@ -307,7 +330,7 @@
         refreshing = true;
         location.reload();
       });
-      navigator.serviceWorker.register('./sw.js?v=20260923-auto-sync-v1', { updateViaCache: 'none' })
+      navigator.serviceWorker.register('./sw.js?v=20260924-povo-manual-v1', { updateViaCache: 'none' })
         .then(registration => registration.update())
         .catch(error => console.error('Service Worker update failed:', error));
     }

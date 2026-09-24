@@ -20,8 +20,8 @@ test('PAY SYNC replaces the month total instead of adding it', () => {
 test('PAY SYNC JavaScript uses a fresh PWA cache version', () => {
   const html = fs.readFileSync(require('node:path').join(__dirname, '..', 'index.html'), 'utf8');
   const worker = fs.readFileSync(require('node:path').join(__dirname, '..', 'sw.js'), 'utf8');
-  assert.match(html, /app\.js\?v=20260923-auto-sync-v1/);
-  assert.match(worker, /the-fool-quest-20260923-auto-sync-v1/);
+  assert.match(html, /app\.js\?v=20260924-povo-manual-v1/);
+  assert.match(worker, /the-fool-quest-20260924-povo-manual-v1/);
 });
 
 test('PAY SYNC receives the exact launching THE FOOL QUEST origin', () => {

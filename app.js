@@ -491,18 +491,100 @@
     });
   }
 
-  function setupPovoExpiryOrder() {
+  function formatPovoEditorInput(value) {
+    const digits = String(value || '').replace(/\D/g, '').slice(0, 8);
+    if (!digits) return '';
+    let output = digits.slice(0, 2);
+    if (digits.length > 2) output += `/${digits.slice(2, 4)}`;
+    if (digits.length > 4) output += ` ${digits.slice(4, 6)}`;
+    if (digits.length > 6) output += `:${digits.slice(6, 8)}`;
+    return output;
+  }
+
+  function parsePovoEditorExpiry(raw, previousExpiry = '') {
+    const value = String(raw || '').trim();
+    if (!value) return null;
+    const match = value.match(/^(\d{2})\/(\d{2})\s(\d{2}):(\d{2})$/);
+    if (!match) throw new Error('MM/dd hh:mm の形で入力してください');
+    const month = Number(match[1]), day = Number(match[2]);
+    const hour = Number(match[3]), minute = Number(match[4]);
+    const nowParts = new Intl.DateTimeFormat('en-CA', {
+      timeZone:'Asia/Tokyo', year:'numeric', month:'2-digit', day:'2-digit'
+    }).formatToParts(new Date());
+    const currentYear = Number(nowParts.find(part => part.type === 'year')?.value);
+    const previous = String(previousExpiry).match(/^(20\d{2})-(\d{2})-(\d{2})T/);
+    const preservesPreviousYear = Boolean(previous && Number(previous[2]) === month && Number(previous[3]) === day);
+    let year = preservesPreviousYear ? Number(previous[1]) : currentYear;
+    const dateCheck = new Date(Date.UTC(year, month - 1, day, hour, minute));
+    if (
+      month < 1 || month > 12 || day < 1 || hour > 23 || minute > 59 ||
+      dateCheck.getUTCFullYear() !== year || dateCheck.getUTCMonth() !== month - 1 || dateCheck.getUTCDate() !== day
+    ) throw new Error('正しい日時を入力してください');
+    const pad = number => String(number).padStart(2, '0');
+    let expiry = `${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(minute)}:00+09:00`;
+    if (!preservesPreviousYear && Date.parse(expiry) < Date.now() - 30 * 24 * 60 * 60 * 1000) {
+      year += 1;
+      expiry = `${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(minute)}:00+09:00`;
+    }
+    return expiry;
+  }
+
+  function setupPovoExpiryEditor() {
     const panel = document.querySelector('.povo-expiry-panel');
-    if (!panel) return;
-    const swap = () => {
-      save(KEY.povoOrder, load(KEY.povoOrder, false) !== true);
-      renderPovoExpiry();
+    const dialog = $('povo-expiry-dialog');
+    const first = $('povo-expiry-input-one'), second = $('povo-expiry-input-two');
+    const message = $('povo-expiry-message'), saveButton = $('povo-expiry-save');
+    if (!panel || !dialog || !first || !second || !message || !saveButton) return;
+    let displayedEntries = [];
+    const open = () => {
+      const data = load(PortalScreenshots.POVO_KEY, {});
+      displayedEntries = Array.isArray(data.entries) ? data.entries.slice(0, 2) : [];
+      if (load(KEY.povoOrder, false) === true) displayedEntries.reverse();
+      first.value = displayedEntries[0]?.expiry ? PortalScreenshots.formatExpiry(displayedEntries[0].expiry) : '';
+      second.value = displayedEntries[1]?.expiry ? PortalScreenshots.formatExpiry(displayedEntries[1].expiry) : '';
+      message.textContent = '';
+      dialog.showModal();
+      first.focus();
     };
-    panel.addEventListener('click', swap);
+    [first, second].forEach(input => input.addEventListener('input', () => {
+      const formatted = formatPovoEditorInput(input.value);
+      if (input.value !== formatted) input.value = formatted;
+      message.textContent = '';
+    }));
+    saveButton.addEventListener('click', () => {
+      try {
+        const data = load(PortalScreenshots.POVO_KEY, {});
+        const values = [
+          parsePovoEditorExpiry(first.value, displayedEntries[0]?.expiry),
+          parsePovoEditorExpiry(second.value, displayedEntries[1]?.expiry)
+        ];
+        const savedAt = new Date().toISOString();
+        const entries = values.map((expiry, index) => {
+          const old = displayedEntries[index];
+          if (old?.expiry === expiry) return old;
+          return {id:`manual-povo-${index + 1}-${Date.now()}`, expiry, receivedAt:savedAt};
+        });
+        localStorage.setItem(PortalScreenshots.POVO_KEY, JSON.stringify({
+          ...data,
+          entries,
+          seenIds:Array.isArray(data.seenIds) ? data.seenIds : []
+        }));
+        save(KEY.povoOrder, false);
+        message.textContent = '更新しました';
+        renderPovoExpiry();
+        setTimeout(() => dialog.close(), 450);
+      } catch (error) {
+        message.textContent = error.message || '入力内容を確認してください';
+      }
+    });
+    panel.addEventListener('click', open);
     panel.addEventListener('keydown', event => {
       if (event.key !== 'Enter' && event.key !== ' ') return;
       event.preventDefault();
-      swap();
+      open();
+    });
+    dialog.addEventListener('close', () => {
+      message.textContent = '';
     });
   }
 
@@ -1305,7 +1387,7 @@
   safeSetup('Revenue log', setupRevenueLog);
   safeSetup('Links', setupLinks);
   safeSetup('Work usage', setupWorkUsage);
-  safeSetup('Povo expiry order', setupPovoExpiryOrder);
+  safeSetup('Povo expiry editor', setupPovoExpiryEditor);
   safeSetup('Verification', setupVerification);
   safeSetup('GPT usage sync', applyWorkUsageFromHash);
   safeSetup('PAY SYNC', applyPaySyncFromHash);
