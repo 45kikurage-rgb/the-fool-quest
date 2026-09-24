@@ -683,7 +683,7 @@ button,a,input{font:inherit;color:inherit}
 .usage-povo-panel .work-usage-copy{grid-template-columns:auto auto minmax(0,1fr);gap:4px;padding-inline:4px;font-size:clamp(10px,1.85vw,24px);letter-spacing:-.03em}
 .usage-povo-panel .work-usage-reset{display:flex;flex-wrap:wrap;justify-content:flex-end;column-gap:.25em;font-size:.9em;line-height:1.05}
 .usage-povo-panel .work-usage-reset time{white-space:nowrap}
-.povo-expiry-panel{min-width:0;border-left:1px solid #bbb;padding-left:clamp(5px,1vw,12px);display:grid;grid-template-rows:var(--usage-heading-height) repeat(2,var(--usage-row-height));gap:6px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.povo-expiry-panel{appearance:none;width:100%;min-width:0;margin:0;border:0;border-left:1px solid #bbb;border-radius:0;padding:0 0 0 clamp(5px,1vw,12px);background:transparent;color:inherit;font:inherit;text-align:inherit;display:grid;grid-template-rows:var(--usage-heading-height) repeat(2,var(--usage-row-height));gap:6px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .povo-expiry-panel:focus-visible{outline:2px solid var(--white);outline-offset:2px}
 .povo-expiry-panel h2{margin:0;display:grid}
 .povo-expiry-panel h2 span{white-space:nowrap}
