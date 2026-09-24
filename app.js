@@ -578,11 +578,6 @@
       }
     });
     panel.addEventListener('click', open);
-    panel.addEventListener('keydown', event => {
-      if (event.key !== 'Enter' && event.key !== ' ') return;
-      event.preventDefault();
-      open();
-    });
     dialog.addEventListener('close', () => {
       message.textContent = '';
     });
