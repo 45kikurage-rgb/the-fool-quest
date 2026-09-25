@@ -753,3 +753,24 @@ button,a,input{font:inherit;color:inherit}
     align-self:start;
   }
 }
+
+
+/* 2026-09-25 portal layout: preserve existing font sizes while expanding links to 3x3. */
+.link-panel{padding:clamp(6px,1vw,12px);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(5px,.8vw,10px);background:transparent}
+.link-panel .command{min-height:clamp(86px,10vw,132px);border:1px solid rgba(255,255,255,.58);padding:8px 5px;grid-template-columns:auto minmax(0,1fr);align-items:center}
+.link-panel .command-copy{text-align:center;justify-items:center;width:100%}
+.link-panel .command-arrow{align-self:center}
+.link-panel .command-disabled{color:rgba(255,255,255,.52);cursor:default;pointer-events:none}
+.link-panel .command-disabled .command-copy{grid-column:1 / -1}
+.link-panel .command-disabled .command-copy>span{overflow:visible}
+.work-usage-heading>span:first-child{white-space:nowrap}
+.work-usage-heading>span:first-child strong{font-weight:400}
+.povo-expiry-panel{padding-top:clamp(8px,1vw,14px);padding-bottom:clamp(8px,1vw,14px)}
+.povo-expiry-panel h2{display:block;white-space:nowrap}
+.povo-expiry-row{display:flex;align-items:center;gap:.35em;white-space:nowrap}
+.povo-device-label{min-width:1.1em}
+.manage-command{padding-top:6px;padding-bottom:6px}
+@media (max-width:520px){
+  .link-panel .command{min-height:82px;font-size:var(--panel-font-size)}
+  .link-panel{gap:5px;padding:6px}
+}
