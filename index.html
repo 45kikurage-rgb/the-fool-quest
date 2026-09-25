@@ -7,7 +7,7 @@
   <title>THE FOOL QUEST</title>
   <link rel="manifest" href="./manifest.webmanifest?v=20260914-white-splash">
   <link rel="apple-touch-icon" href="./icon-any-192.png?v=20260914-white-splash">
-  <link rel="stylesheet" href="./style.css?v=20260924-povo-manual-v2">
+  <link rel="stylesheet" href="./style.css?v=20260925-portal-grid-v1">
 </head>
 <body>
   <main class="screen">
@@ -52,11 +52,10 @@
       <h2 class="category-divider"><span>SYSTEM &amp; TOOLS</span></h2>
 
       <section class="usage-povo-panel" aria-label="ChatGPT利用残量とPovoデータ使用期限">
-      <section class="work-usage-panel" aria-label="ChatGPT Magic Point">
+      <section class="work-usage-panel" aria-label="ChatGPT利用状況">
         <header class="work-usage-heading">
-          <span>ChatGPT Magic Point</span>
+          <span>ChatGPT plan:<strong id="work-usage-plan">PRO</strong></span>
           <a class="grok-dashboard-link" href="https://cursor.com/dashboard/spending?" target="_blank" rel="noopener noreferrer" aria-label="Cursor Grok利用状況を開く">Grok ▶</a>
-          <span class="work-usage-plan">PLAN: <strong id="work-usage-plan">PLUS</strong></span>
         </header>
         <a class="work-usage-gauge" href="https://chatgpt.com/codex/settings/usage" target="_blank" rel="noopener noreferrer" aria-label="OpenAI利用状況画面で5時間の残量を確認">
           <span id="work-five-fill" class="work-usage-fill" aria-hidden="true"></span>
@@ -75,21 +74,24 @@
           </span>
         </a>
       </section>
-      <button id="povo-expiry-open" class="povo-expiry-panel" type="button" aria-labelledby="povo-expiry-heading" aria-label="Povoデータ使用期限。押すと端末1thと端末2ndの期限を更新できます">
-        <h2 id="povo-expiry-heading"><span>Povo</span><span>データ使用期限</span></h2>
-        <div class="povo-expiry-row" aria-label="端末1th データ使用期限"><span class="povo-device-label">端末1th</span><time id="povo-expiry-one">--/-- --:--</time></div>
-        <div class="povo-expiry-row" aria-label="端末2nd データ使用期限"><span class="povo-device-label">端末2nd</span><time id="povo-expiry-two">--/-- --:--</time></div>
+      <button id="povo-expiry-open" class="povo-expiry-panel" type="button" aria-labelledby="povo-expiry-heading" aria-label="Povoデータ期限。押すと2回線の期限を更新できます">
+        <h2 id="povo-expiry-heading">Povoデータ期限</h2>
+        <div class="povo-expiry-row" aria-label="1番目の回線 データ期限"><span class="povo-device-label">①</span><time id="povo-expiry-one">--/-- --:--</time></div>
+        <div class="povo-expiry-row" aria-label="2番目の回線 データ期限"><span class="povo-device-label">②</span><time id="povo-expiry-two">--/-- --:--</time></div>
       </button>
       <p id="work-usage-status" class="work-usage-status" aria-live="polite" hidden></p>
       </section>
 
-      <nav class="link-panel pixel-frame" aria-label="ポータルリンク">
+      <nav class="link-panel" aria-label="ポータルリンク">
         <a href="https://assets-management-8os.pages.dev" class="command" data-link-key="assets"><span class="command-arrow">▶</span><span class="command-copy"><span>ASSET</span><span>MANAGER</span></span></a>
         <a href="https://the-fool-head.45kikurage.workers.dev" class="command" data-link-key="action"><span class="command-arrow">▶</span><span class="command-copy"><span>ACTION</span><span>TOOL</span></span></a>
         <a href="https://45kikurage-rgb.github.io/copy-paste" class="command" data-link-key="text"><span class="command-arrow">▶</span><span class="command-copy"><span>TEXT</span><span>FORMAT</span></span></a>
-        <a href="https://winning-url-manager.45kikurage.workers.dev" class="command" data-link-key="win"><span class="command-arrow">▶</span><span class="command-copy"><span>WIN LINK</span><span>MANAGER</span></span></a>
+        <a href="https://winning-url-manager.45kikurage.workers.dev" class="command" data-link-key="win"><span class="command-arrow">▶</span><span class="command-copy"><span>URL</span><span>Manager</span></span></a>
         <a href="https://coupon-analyzer.45kikurage.workers.dev/" class="command" data-link-key="capture"><span class="command-arrow">▶</span><span class="command-copy"><span>COUPON</span><span>CHECK</span></span></a>
-        <a href="https://lightweight-links.pages.dev/r8k2mq7vn4xp.html" class="command lightweight-link-command" data-link-key="summary"><span class="command-arrow">▶</span><span class="command-copy"><span>SITE LINK</span><span>Ver.LIGHT</span></span></a>
+        <a href="https://lightweight-links.pages.dev/r8k2mq7vn4xp.html" class="command lightweight-link-command" data-link-key="summary"><span class="command-arrow">▶</span><span class="command-copy"><span>SITE LINK</span></span></a>
+        <span class="command command-disabled" aria-disabled="true"><span class="command-copy"><span>Coming</span><span>soon...</span></span></span>
+        <span class="command command-disabled" aria-disabled="true"><span class="command-copy"><span>Coming</span><span>soon...</span></span></span>
+        <span class="command command-disabled" aria-disabled="true"><span class="command-copy"><span>Coming</span><span>soon...</span></span></span>
       </nav>
     </section>
   </main>
