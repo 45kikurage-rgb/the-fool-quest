@@ -14,7 +14,7 @@
     capture: 'https://coupon-analyzer.45kikurage.workers.dev/',
     summary: 'https://lightweight-links.pages.dev/r8k2mq7vn4xp.html'
   };
-  const LINK_LABELS = { assets:'ASSET MANAGER', action:'ACTION TOOL', text:'TEXT FORMAT', win:'WIN LINK MANAGER', capture:'COUPON CHECK', summary:'SITE LINK Ver.LIGHT' };
+  const LINK_LABELS = { assets:'ASSET MANAGER', action:'ACTION TOOL', text:'TEXT FORMAT', win:'URL Manager', capture:'COUPON CHECK', summary:'SITE LINK' };
 
   const KEY = {
     tiktok: 'tfq_tiktok', csv: 'tfq_tiktok_csv_meta',
