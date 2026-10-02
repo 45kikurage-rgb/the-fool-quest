@@ -20,11 +20,11 @@ test('2026-10の初回切替で旧Coupon値を0円へ分離し、PWAキャッシ
  assert.match(app,/state\.month < '2026-10'/);
  assert.match(app,/couponSource:'central-ledger-v1'/);
  assert.match(app,/state\.coupon = 0/);
- assert.match(worker,/20261002-pwa-scroll-v1/);
+ assert.match(worker,/20261002-pay-dashboard-v2/);
 });
 
-test('小画面PWAでも縦スクロールでき、リンク3段目とsafe-areaへ到達できる',()=>{
- assert.match(html,/style\.css\?v=20261002-pwa-scroll-v1/);
+test('小画面PWAでも縦スクロールでき、dashboard下端とsafe-areaへ到達できる',()=>{
+ assert.match(html,/style\.css\?v=20261002-pay-dashboard-v2/);
  assert.match(style,/@media\(max-width:520px\)[\s\S]*overflow-y:auto/);
  assert.match(style,/@media\(max-width:520px\)[\s\S]*height:auto;[\s\S]*min-height:100dvh;[\s\S]*overflow:visible/);
  assert.match(style,/safe-area-inset-bottom/);
