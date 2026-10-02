@@ -24,8 +24,8 @@ test('Povo枠から端末1th・2ndの期限を手動更新できる', () => {
 test('Povo手動更新用のPWAキャッシュへ更新されている', () => {
   const html = read('index.html');
   const worker = read('sw.js');
-  assert.match(html, /20260924-povo-manual-v2/);
-  assert.match(worker, /the-fool-quest-20260924-povo-manual-v2/);
+  assert.match(html, /20261002-ledger-revenue-v1/);
+  assert.match(worker, /the-fool-quest-20261002-ledger-revenue-v1/);
 });
 
 test('数字8桁を表示形式へ整形し、不正な日時は保存しない', () => {
