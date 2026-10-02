@@ -776,3 +776,18 @@ button,a,input{font:inherit;color:inherit}
   .link-panel .command{min-height:82px;font-size:var(--panel-font-size)}
   .link-panel{gap:5px;padding:6px}
 }
+
+/* 2026-10-02 dashboard-only home: the separate link collection owns navigation. */
+.usage-povo-panel{
+  --usage-heading-size:clamp(15px,4vw,27px);
+  --usage-heading-height:calc(var(--usage-heading-size) * 2.5);
+  --usage-row-height:clamp(34px,8vw,56px);
+}
+.povo-expiry-row{font-size:clamp(18px,4.7vw,31px)}
+@media(max-width:520px){
+  .dashboard{gap:10px}
+  .dashboard > .overview-grid{margin-bottom:10px}
+  .dashboard > .middle-metrics{margin-bottom:12px}
+  .dashboard > .usage-povo-panel{margin-bottom:0}
+  .usage-povo-panel .work-usage-copy{font-size:clamp(11px,2.85vw,14px)}
+}

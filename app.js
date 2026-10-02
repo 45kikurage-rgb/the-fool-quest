@@ -6,22 +6,12 @@
     metrics: [['total','Total'],['tiktok','TikTok'],['coupon','Coupon']]
   };
   const LEGACY_TIKTOK_MONTHLY = {"2024-09":110990,"2024-10":479624,"2024-11":508979,"2024-12":646046,"2025-01":406131,"2025-02":158977,"2025-03":142341,"2025-04":174674,"2025-05":128657,"2025-06":154275,"2025-07":170453,"2025-08":108470,"2025-09":372034,"2025-10":1489675,"2025-11":682854,"2025-12":1224053,"2026-01":1295198,"2026-02":1770810,"2026-03":1181047,"2026-04":328699,"2026-05":147208,"2026-06":427918,"2026-07":539764};
-  const DEFAULT_LINKS = {
-    assets: 'https://assets-management-8os.pages.dev',
-    action: 'https://the-fool-head.45kikurage.workers.dev',
-    text: 'https://45kikurage-rgb.github.io/copy-paste',
-    win: 'https://winning-url-manager.45kikurage.workers.dev',
-    capture: 'https://coupon-analyzer.45kikurage.workers.dev/',
-    summary: 'https://lightweight-links.pages.dev/r8k2mq7vn4xp.html'
-  };
-  const LINK_LABELS = { assets:'ASSET MANAGER', action:'ACTION TOOL', text:'TEXT FORMAT', win:'URL Manager', capture:'COUPON CHECK', summary:'SITE LINK' };
-
   const KEY = {
     tiktok: 'tfq_tiktok', csv: 'tfq_tiktok_csv_meta',
     coupon: 'foolQuestCouponRevenueLastGood', couponMeta: 'foolQuestCouponRevenueLastGoodMeta',
     couponSource: 'foolQuestCouponRevenueSourceV2',
     goals: 'foolQuestGoalAmounts', monthly: 'foolQuestMonthlyRevenueV1',
-    simulation: 'foolQuestOperationSimulationV1', links: 'foolQuestPortalLinksV1',
+    simulation: 'foolQuestOperationSimulationV1',
     tiktokManual: 'foolQuestTiktokManualChargesV1', paceColors: 'foolQuestPaceColorsEnabledV1',
     homeAmounts: 'foolQuestHomeAmountsVisibleV1', legacyRevenueMigration: 'foolQuestLegacyRevenueMigration20260905V1',
     tiktokStarts: 'foolQuestTiktokDailyStartsV1', workUsage: 'foolQuestWorkUsageV1',
@@ -901,7 +891,7 @@
       const returnUrl=`${location.origin}${location.pathname}`;
       opener.href='intent://sync/start?return_url='+encodeURIComponent(returnUrl)+
         '#Intent;scheme=arunoassist;package=com.aruno.assist;'+
-        'S.browser_fallback_url='+encodeURIComponent('https://chatgpt.com/codex/settings/usage')+';end';
+        'S.browser_fallback_url='+encodeURIComponent('https://wallet.vaton.jp/point/point_logs')+';end';
     }else opener.addEventListener('click',()=>{
         result.className='csv-result';const meta=load(KEY.csv);
         result.textContent=meta.fileName?`前回：${meta.fileName}\n${new Date(meta.importedAt).toLocaleString('ja-JP')}`:'CSVを選択してください';
@@ -1065,71 +1055,6 @@
       const next={tiktok,coupon,total:tiktok+coupon};
       state.goals=next;save(KEY.goals,next);renderAll();message.textContent='保存しました ✓';
       setTimeout(()=>dialog.close(),450);
-    });
-  }
-
-  function setupLinks() {
-    const dialog = $('link-manage-dialog');
-    const manageDialog = $('goal-manage-dialog');
-    const message = $('link-manage-message');
-    const readLinks = () => {
-      const stored = load(KEY.links, {});
-      const links = { ...DEFAULT_LINKS, ...stored };
-      // Migrate the old built-in destinations without overwriting a user's custom URL.
-      if (!stored.capture || stored.capture === 'https://coupon-capture.45kikurage.workers.dev') {
-        links.capture = DEFAULT_LINKS.capture;
-      }
-      if (!stored.summary
-        || stored.summary === 'https://the-fool-links.45kikurage.workers.dev/'
-        || stored.summary === 'https://lightweight-links.pages.dev/'
-        || stored.summary === 'https://lightweight-links.pages.dev') {
-        links.summary = DEFAULT_LINKS.summary;
-      }
-      return links;
-    };
-    const applyLinks = links => {
-      document.querySelectorAll('[data-link-key]').forEach(anchor => {
-        const key = anchor.dataset.linkKey;
-        anchor.href = links[key] || DEFAULT_LINKS[key];
-      });
-    };
-    const fill = links => {
-      $('link-inputs').innerHTML = Object.keys(DEFAULT_LINKS).map(key => `
-        <label class="link-input-row"><span>${LINK_LABELS[key]}</span><span class="link-input-wrap">
-          <input id="link-${key}" type="url" inputmode="url" value="${String(links[key] || DEFAULT_LINKS[key]).replace(/&/g,'&amp;').replace(/"/g,'&quot;')}">
-        </span></label>`).join('');
-    };
-    const validUrl = value => {
-      try { const u = new URL(value); return u.protocol === 'http:' || u.protocol === 'https:'; } catch { return false; }
-    };
-    let links = readLinks();
-    applyLinks(links);
-    const openBtn = $('link-manage-open');
-    const resetBtn = $('link-reset-btn');
-    const saveBtn = $('link-save-btn');
-    if (!dialog || !message || !openBtn || !resetBtn || !saveBtn || !$('link-inputs')) {
-      console.error('Link editor UI is incomplete');
-      return;
-    }
-    openBtn.addEventListener('click', () => {
-      fill(links);
-      message.textContent='';
-      if (manageDialog?.open) manageDialog.close();
-      dialog.showModal();
-    });
-    dialog.addEventListener('close', () => {
-      if (!manageDialog?.open) { renderHistory(); manageDialog?.showModal(); }
-    });
-    resetBtn.addEventListener('click', () => { fill(DEFAULT_LINKS); message.textContent='初期値を入力しました'; });
-    saveBtn.addEventListener('click', () => {
-      const next = {};
-      for (const key of Object.keys(DEFAULT_LINKS)) {
-        const value = String($(`link-${key}`).value || '').trim();
-        if (!validUrl(value)) { message.textContent = `${LINK_LABELS[key]} のURLを確認してください`; return; }
-        next[key] = value;
-      }
-      links = next; save(KEY.links, links); applyLinks(links); message.textContent='保存しました ✓';
-      setTimeout(() => dialog.close(), 450);
     });
   }
 
@@ -1392,7 +1317,6 @@
   safeSetup('TikTok Management', setupTiktokManagement);
   safeSetup('Goals', setupGoals);
   safeSetup('Revenue log', setupRevenueLog);
-  safeSetup('Links', setupLinks);
   safeSetup('Work usage', setupWorkUsage);
   safeSetup('Povo expiry editor', setupPovoExpiryEditor);
   safeSetup('Verification', setupVerification);
