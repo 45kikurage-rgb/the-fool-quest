@@ -1,8 +1,7 @@
 無料枠対応版 THE FOOL QUEST
 
-winning-url-api の更新後に、このリポジトリをデプロイしてください。
+aruno-Consolidated-Ledger の更新後に、このリポジトリをデプロイしてください。
 
-Coupon月収益は /api/portal-revenue から取得します。
-このAPIが読むのは「重複確認済みの継続箱」から作られた月別収益の集計行だけです。
-一時箱の未確認URLや当選URL明細は読みません。
-起動時と10分ごとの更新は維持していますが、D1消費はごく少量です。
+Coupon月収益は中央管理台帳Readerの /api/v1/revenue/monthly から取得します。
+当選URL・コード明細は読みません。2026-10以降の新集計だけを使用します。
+更新は起動時とCoupon見出しの手動操作だけです。

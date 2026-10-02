@@ -323,7 +323,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="./portal-screenshots.js?v=20260923-usage-fallback-v8"></script>
-  <script src="./app.js?v=20260924-povo-manual-v2"></script>
+  <script src="./app.js?v=20261002-ledger-revenue-v1"></script>
   <script>
     if ('serviceWorker' in navigator) {
       let refreshing = false;
@@ -332,7 +332,7 @@
         refreshing = true;
         location.reload();
       });
-      navigator.serviceWorker.register('./sw.js?v=20260924-povo-manual-v2', { updateViaCache: 'none' })
+      navigator.serviceWorker.register('./sw.js?v=20261002-ledger-revenue-v1', { updateViaCache: 'none' })
         .then(registration => registration.update())
         .catch(error => console.error('Service Worker update failed:', error));
     }

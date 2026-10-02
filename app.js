@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   const CONFIG = {
-    api: 'https://winning-url-api.45kikurage.workers.dev',
+    api: 'https://aruno-consolidated-ledger-api.45kikurage.workers.dev',
     goals: { total: 1000000, tiktok: 500000, coupon: 500000 },
     metrics: [['total','Total'],['tiktok','TikTok'],['coupon','Coupon']]
   };
@@ -19,6 +19,7 @@
   const KEY = {
     tiktok: 'tfq_tiktok', csv: 'tfq_tiktok_csv_meta',
     coupon: 'foolQuestCouponRevenueLastGood', couponMeta: 'foolQuestCouponRevenueLastGoodMeta',
+    couponSource: 'foolQuestCouponRevenueSourceV2',
     goals: 'foolQuestGoalAmounts', monthly: 'foolQuestMonthlyRevenueV1',
     simulation: 'foolQuestOperationSimulationV1', links: 'foolQuestPortalLinksV1',
     tiktokManual: 'foolQuestTiktokManualChargesV1', paceColors: 'foolQuestPaceColorsEnabledV1',
@@ -127,6 +128,16 @@
     persistCurrent();
     renderAll();
   }
+  function initializeCouponSource() {
+    if (state.month < '2026-10' || load(KEY.couponSource, '') === 'central-ledger-v1') return;
+    state.coupon = 0;
+    state.monthly[state.month] = {...(state.monthly[state.month] || {}),month:state.month,coupon:0,finalized:false,
+      couponSource:'central-ledger-v1',updatedAt:new Date().toISOString()};
+    save(KEY.coupon,'0');
+    save(KEY.couponMeta,{month:state.month,value:0,source:'central-ledger-v1',savedAt:new Date().toISOString()});
+    save(KEY.couponSource,'central-ledger-v1');
+    persistCurrent();
+  }
   function valueOf(name) {
     return name === 'tiktok' ? state.tiktok : name === 'coupon' ? state.coupon : state.tiktok + state.coupon;
   }
@@ -142,7 +153,7 @@
           ? `<button id="open-tiktok-manual" class="metric-label metric-label-button" type="button" aria-label="TikTokチャージを手動追加">${label}:</button>`
           : name === 'total'
             ? `<button id="open-revenue-log" class="metric-label metric-label-button" type="button" aria-label="収益ログを開く">${label}:</button>`
-            : `<div class="metric-label">${label}:</div>`}
+            : `<button id="refresh-coupon" class="metric-label metric-label-button" type="button" aria-label="Coupon収益を更新">${label}:</button>`}
         <div class="metric-achieved"><b id="${name}-value">¥0</b></div>
         <div class="metric-target-to-date"><b id="${name}-target-to-date">¥0</b></div>
         <div id="${name}-target" class="metric-target"></div>
@@ -1350,21 +1361,21 @@
     save(KEY.monthly,state.monthly);
   }
   async function syncCoupon() {
+    const refreshButton=$('refresh-coupon');if(refreshButton)refreshButton.disabled=true;
     try{
-      // URL明細や一時箱には触れず、継続箱から集計済みの月収益行だけを取得する。
-      const response=await fetch(`${CONFIG.api}/api/portal-revenue`,{headers:{Accept:'application/json'},cache:'no-store'});
+      // URL・コード本体には触れず、中央管理台帳の商品月集計から当月合計だけを取得する。
+      const response=await fetch(`${CONFIG.api}/api/v1/revenue/monthly?month=${encodeURIComponent(state.month)}`,{headers:{Accept:'application/json'},cache:'no-store'});
       if(!response.ok)throw new Error(`HTTP ${response.status}`);
-      const data=await response.json(),rows=Array.isArray(data.revenues)?data.revenues:[];
-      finalize(rows);
-      const current=rows.find(row=>normalizeMonth(row?.month)===state.month);
-      const coupon=Number(data.amount??current?.amount);
-      if(!current||!Number.isFinite(coupon)||coupon<0)throw new Error('当月収益が不正です');
-      if(coupon===0&&state.coupon>0)throw new Error('同月の収益が突然0円になったため前回値を維持しました');
+      const data=await response.json(),coupon=Number(data.coupon_revenue);
+      if(normalizeMonth(data.month)!==state.month||!Number.isSafeInteger(coupon)||coupon<0)throw new Error('当月収益が不正です');
       state.coupon=coupon;save(KEY.coupon,String(coupon));
-      save(KEY.couponMeta,{month:state.month,value:coupon,savedAt:new Date().toISOString()});
+      save(KEY.couponMeta,{month:state.month,value:coupon,source:'central-ledger-v1',savedAt:new Date().toISOString()});
+      save(KEY.couponSource,'central-ledger-v1');
       persistCurrent();renderAll();
     }catch(error){console.error('Coupon revenue sync failed; keeping last good value:',error);}
+    finally{if(refreshButton)refreshButton.disabled=false;}
   }
+  function setupCouponRefresh(){$('refresh-coupon')?.addEventListener('click',syncCoupon);}
 
   const safeSetup = (name, setup) => {
     try { setup(); }
@@ -1373,6 +1384,7 @@
   safeSetup('UI', buildUi);
   safeSetup('Logo refresh', setupLogoRefresh);
   safeSetup('Month', initializeMonth);
+  safeSetup('Coupon source', initializeCouponSource);
   safeSetup('Home amounts', setupHomeAmounts);
   safeSetup('Pace colors', setupPaceColors);
   safeSetup('CSV', setupCsv);
@@ -1387,7 +1399,7 @@
   safeSetup('GPT usage sync', applyWorkUsageFromHash);
   safeSetup('PAY SYNC', applyPaySyncFromHash);
   safeSetup('Initial render', renderAll);
+  safeSetup('Coupon refresh', setupCouponRefresh);
   syncCoupon();
   setInterval(()=>{checkMonth();renderAll();},60000);
-  setInterval(syncCoupon,600000);
 })();
