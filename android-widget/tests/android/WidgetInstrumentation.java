@@ -76,14 +76,15 @@ public class WidgetInstrumentation extends Instrumentation {
             ok(manager.bindAppWidgetIdIfAllowed(id,new ComponentName(c,RevenueWidget.class)),"bind Android widget host");
             host.startListening();
             final AppWidgetHostView[] view={null};
+            final int hostWidth=Math.min(360,Math.round(activity.getResources().getDisplayMetrics().widthPixels/activity.getResources().getDisplayMetrics().density)-24);
             runOnMainSync(()->{
                 view[0]=host.createView(activity,id,manager.getAppWidgetInfo(id));
                 android.widget.FrameLayout frame=new android.widget.FrameLayout(activity);frame.setBackgroundColor(0xff20302c);
-                int densityWidth=Math.round(360*activity.getResources().getDisplayMetrics().density),densityHeight=Math.round(126*activity.getResources().getDisplayMetrics().density);
+                int densityWidth=Math.round(hostWidth*activity.getResources().getDisplayMetrics().density),densityHeight=Math.round(126*activity.getResources().getDisplayMetrics().density);
                 android.widget.FrameLayout.LayoutParams lp=new android.widget.FrameLayout.LayoutParams(densityWidth,densityHeight);lp.gravity=android.view.Gravity.CENTER;
                 frame.addView(view[0],lp);activity.setContentView(frame);
             });
-            Bundle dimensions=new Bundle();dimensions.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,360);dimensions.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,126);manager.updateAppWidgetOptions(id,dimensions);
+            Bundle dimensions=new Bundle();dimensions.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,hostWidth);dimensions.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,126);manager.updateAppWidgetOptions(id,dimensions);
             RevenueWidget.renderAll(c);waitForIdleSync();Thread.sleep(700);png(getUiAutomation().takeScreenshot(),"native-widget-host-live");
             java.lang.reflect.Field busyField=RevenueUpdate.class.getDeclaredField("BUSY");busyField.setAccessible(true);
             java.util.concurrent.atomic.AtomicBoolean gate=(java.util.concurrent.atomic.AtomicBoolean)busyField.get(null);
