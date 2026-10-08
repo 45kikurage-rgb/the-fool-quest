@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.aruno.foolquest.widget.test" android:versionCode="1" android:versionName="1">
+ <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="35" />
+ <application android:label="Widget tests" />
+ <instrumentation android:name="com.aruno.foolquest.widget.WidgetInstrumentation" android:targetPackage="com.aruno.foolquest.widget" android:label="Widget native tests" />
+</manifest>

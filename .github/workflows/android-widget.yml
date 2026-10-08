@@ -1,0 +1,60 @@
+name: Android revenue widget verification
+on:
+  push:
+    paths: ['android-widget/**', '.github/workflows/android-widget.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: android-widget
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: SDK and local checks
+        run: |
+          sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+          bash scripts/test.sh
+      - name: Build isolated CI test packages
+        env:
+          SIGNING_STORE_PASSWORD: ci-test-only
+        run: |
+          export ANDROID_JAR="$ANDROID_HOME/platforms/android-35/android.jar"
+          export ANDROID_BUILD_TOOLS="$ANDROID_HOME/build-tools/35.0.0"
+          export SIGNING_STORE="$RUNNER_TEMP/widget-ci.jks"
+          keytool -genkeypair -keystore "$SIGNING_STORE" -storepass:env SIGNING_STORE_PASSWORD -keypass:env SIGNING_STORE_PASSWORD -alias foolquestwidget -keyalg RSA -keysize 2048 -validity 2 -dname 'CN=CI TEST ONLY'
+          bash scripts/build.sh
+          bash scripts/build-android-tests.sh
+      - name: Enable emulator acceleration
+        working-directory: .
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Native Android 35 renderer and production Reader
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          target: google_apis
+          disable-animations: true
+          script: |
+            adb install android-widget/build/out/fool-quest-widget-0.1.0.apk
+            adb install android-widget/build/android-test/widget-tests.apk
+            mkdir -p android-widget/build/native-results
+            adb shell am instrument -w com.aruno.foolquest.widget.test/com.aruno.foolquest.widget.WidgetInstrumentation | tee android-widget/build/native-results/instrumentation.txt
+            grep -q 'PASS .* native Android checks' android-widget/build/native-results/instrumentation.txt
+            adb pull /sdcard/Android/data/com.aruno.foolquest.widget/files/verification android-widget/build/native-results/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: widget-native-results
+          path: android-widget/build/native-results/
+          retention-days: 14
