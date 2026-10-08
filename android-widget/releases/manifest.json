@@ -1,0 +1,12 @@
+{
+  "applicationId": "com.aruno.foolquest.widget",
+  "version": "0.1.0",
+  "versionCode": 1,
+  "minSdk": 26,
+  "targetSdk": 35,
+  "size": 33483,
+  "sha256": "4922e2948d343f16550bb73c1c35767b9f9ad7420cb1595ef5e0494d9d54791b",
+  "certificateSha256": "18946d320bb61c58aa627abbf2b53ea521b273b218eaec57f7fbc662f375bdb1",
+  "couponUpdate": "30-minute JobScheduler and manual tap",
+  "tiktokUpdate": "read-only source browser snapshot; no automatic API exists"
+}
