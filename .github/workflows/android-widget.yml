@@ -5,6 +5,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: android-revenue-widget
+  cancel-in-progress: true
 jobs:
   native-android:
     runs-on: ubuntu-latest
@@ -52,9 +55,20 @@ jobs:
           script: |
             adb install android-widget/build/out/fool-quest-widget-0.1.0.apk
             adb install android-widget/build/android-test/widget-tests.apk
+            adb shell appwidget grantbind --package com.aruno.foolquest.widget --user 0
             mkdir -p android-widget/build/native-results
             adb shell am instrument -w com.aruno.foolquest.widget.test/com.aruno.foolquest.widget.WidgetInstrumentation | tee android-widget/build/native-results/instrumentation.txt
             grep -q 'PASS .* native Android checks' android-widget/build/native-results/instrumentation.txt
+            adb shell svc wifi disable
+            adb shell svc data disable
+            adb shell cmd connectivity airplane-mode enable
+            adb shell am instrument -w -e mode offline com.aruno.foolquest.widget.test/com.aruno.foolquest.widget.WidgetInstrumentation | tee android-widget/build/native-results/offline.txt
+            grep -q 'PASS .* native offline checks' android-widget/build/native-results/offline.txt
+            adb reboot
+            adb wait-for-device
+            timeout 180 bash -c 'until adb shell getprop sys.boot_completed | grep -q 1; do sleep 2; done'
+            adb shell am instrument -w -e mode reboot com.aruno.foolquest.widget.test/com.aruno.foolquest.widget.WidgetInstrumentation | tee android-widget/build/native-results/reboot.txt
+            grep -q 'PASS .* native reboot checks' android-widget/build/native-results/reboot.txt
             adb pull /sdcard/Android/data/com.aruno.foolquest.widget/files/verification android-widget/build/native-results/
       - uses: actions/upload-artifact@v4
         if: always()
