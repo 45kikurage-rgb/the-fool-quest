@@ -1,7 +1,7 @@
 name: Android revenue widget verification
 on:
   push:
-    paths: ['android-widget/**', '.github/workflows/android-widget.yml']
+    paths: ['android-widget/**', '.github/workflows/android-widget.yml', '!android-widget/**/*.md', '!android-widget/releases/**']
   workflow_dispatch:
 permissions:
   contents: read
