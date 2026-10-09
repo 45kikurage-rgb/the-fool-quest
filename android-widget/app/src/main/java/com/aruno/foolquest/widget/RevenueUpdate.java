@@ -1,8 +1,7 @@
 package com.aruno.foolquest.widget;
 
 import android.content.Context;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
+import android.net.ConnectivityManager;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.ExecutorService;
@@ -21,23 +20,15 @@ final class RevenueUpdate {
             HttpURLConnection con=null;
             try {
                 String month=RevenueMath.month(System.currentTimeMillis());
+                ConnectivityManager connectivity=app.getSystemService(ConnectivityManager.class);
+                if(connectivity!=null&&connectivity.getActiveNetwork()==null)throw new RevenueHttp.Offline();
                 con=(HttpURLConnection)new URL(RevenueStore.API+month).openConnection();
-                con.setConnectTimeout(2500);con.setReadTimeout(2500);con.setInstanceFollowRedirects(false);
-                con.setRequestMethod("GET");con.setRequestProperty("Accept","application/json");con.setRequestProperty("Cache-Control","no-cache");
-                if(con.getResponseCode()!=200)throw new Exception("HTTP "+con.getResponseCode());
-                ByteArrayOutputStream bytes=new ByteArrayOutputStream();
-                try(InputStream in=con.getInputStream()){
-                    byte[] buffer=new byte[2048];int n;long deadline=System.nanoTime()+2500000000L;
-                    while((n=in.read(buffer))!=-1){
-                        if(bytes.size()+n>32768||System.nanoTime()>deadline)throw new Exception("応答が大きすぎるか遅延しています");
-                        bytes.write(buffer,0,n);
-                    }
-                }
-                long value=RevenueStore.validateCoupon(bytes.toString("UTF-8"),month);
+                String raw=RevenueHttp.read(con);long value;
+                try{value=RevenueStore.validateCoupon(raw,month);}catch(Exception invalid){throw new RevenueHttp.InvalidResponse();}
                 // A request crossing the JST month boundary must not become the new current month.
                 RevenueStore.saveCoupon(app,month,value);
             }catch(Exception e){
-                RevenueStore.prefs(app).edit().putString("error","通信失敗。前回正常値を保持しています").apply();
+                RevenueStore.saveFailure(app,RevenueFailure.code(e));
             }finally{
                 if(con!=null)con.disconnect();BUSY.set(false);RevenueWidget.renderAll(app);if(done!=null)done.run();
             }

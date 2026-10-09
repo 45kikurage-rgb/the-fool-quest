@@ -33,7 +33,7 @@ public final class RevenueWidget extends AppWidgetProvider {
     }
     @Override public void onReceive(Context c,Intent i){
         if(REFRESH.equals(i.getAction())){
-            PendingResult p=goAsync();RevenueUpdate.start(c,p::finish);return;
+            RevenueJob.requestRefresh(c);return;
         }
         super.onReceive(c,i);
         if(Intent.ACTION_BOOT_COMPLETED.equals(i.getAction())||Intent.ACTION_MY_PACKAGE_REPLACED.equals(i.getAction())){
@@ -41,7 +41,7 @@ public final class RevenueWidget extends AppWidgetProvider {
         }
     }
     @Override public void onUpdate(Context c,AppWidgetManager m,int[] ids){
-        renderAll(c);RevenueJob.schedule(c);PendingResult p=goAsync();RevenueUpdate.start(c,p::finish);
+        renderAll(c);RevenueJob.schedule(c);RevenueJob.requestRefresh(c);
     }
     @Override public void onAppWidgetOptionsChanged(Context c,AppWidgetManager m,int id,Bundle o){renderAll(c);}
     @Override public void onEnabled(Context c){RevenueJob.schedule(c);}

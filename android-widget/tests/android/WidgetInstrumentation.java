@@ -101,8 +101,11 @@ public class WidgetInstrumentation extends Instrumentation {
                 for(int n=0;n<50&&RevenueUpdate.busy();n++)Thread.sleep(100);
                 ok(!RevenueUpdate.busy(),"previous update finished before offline snapshot");
                 RevenueStore.Data before=RevenueStore.read(c);CountDownLatch latch=new CountDownLatch(1);
-                RevenueUpdate.start(c,latch::countDown);ok(latch.await(20,TimeUnit.SECONDS),"offline request finished");
+                RevenueUpdate.start(c,latch::countDown);ok(latch.await(35,TimeUnit.SECONDS),"offline request finished");
                 RevenueStore.Data after=RevenueStore.read(c);ok(after.coupon==before.coupon&&after.couponAt==before.couponAt,"offline keeps good amount and timestamp");ok(!after.error.isEmpty(),"offline error is visible");
+                ok("OFFLINE".equals(after.errorCode),"offline failure is classified");
+                ok("OFFLINE".equals(RevenueStore.prefs(c).getString("lastFailureCode","")),"failure history retained locally");
+                ok(RevenueStore.prefs(c).getLong("lastFailureAt",0)>0,"failure history has a timestamp outside the widget");
                 png(WidgetRenderer.render(c,after,new DisplaySettings(),360,126).bitmap,"native-offline-retained");
                 result.putString("stream","PASS "+checks+" native offline checks");finish(ActivityResult.OK,result);return;
             }
@@ -185,8 +188,14 @@ public class WidgetInstrumentation extends Instrumentation {
             s.save(RevenueStore.prefs(c));ok(DisplaySettings.load(RevenueStore.prefs(c)).font==24,"settings persist");
             new DisplaySettings().save(RevenueStore.prefs(c));
             RevenueStore.prefs(c).edit().remove("importMonth").remove("tiktok").remove("importAt").apply();
-            CountDownLatch fetched=new CountDownLatch(1);RevenueUpdate.start(c,fetched::countDown);ok(fetched.await(20,TimeUnit.SECONDS),"fetch completed");
-            RevenueStore.Data live=RevenueStore.read(c);ok(live.coupon>=0&&live.error.isEmpty(),"production API received");ok(live.tiktok==-1&&live.values()[0]==-1,"missing TikTok not zero");
+            CountDownLatch fetched=new CountDownLatch(1);RevenueUpdate.start(c,fetched::countDown);ok(fetched.await(35,TimeUnit.SECONDS),"fetch completed");
+            RevenueStore.Data live=RevenueStore.read(c);ok(live.coupon>=0&&live.error.isEmpty(),"production API received");
+            RevenueStore.saveFailure(c,"TIMEOUT");RevenueStore.Data timedOut=RevenueStore.read(c);
+            ok(timedOut.coupon==live.coupon&&timedOut.couponAt==live.couponAt,"timeout preserves last good amount and timestamp");
+            ok(WidgetRenderer.footer(timedOut).startsWith("通信時間切れ"),"widget exposes controlled failure reason");
+            RevenueStore.saveCoupon(c,month,live.coupon);RevenueStore.Data restored=RevenueStore.read(c);
+            ok(restored.error.isEmpty()&&restored.errorCode.isEmpty(),"successful recovery clears current failure");
+            ok("TIMEOUT".equals(RevenueStore.prefs(c).getString("lastFailureCode","")),"recovery preserves last failure for diagnosis");ok(live.tiktok==-1&&live.values()[0]==-1,"missing TikTok not zero");
             png(WidgetRenderer.render(c,live,new DisplaySettings(),360,126).bitmap,"native-live-coupon");
             // Actual Android AppWidgetHostView: applies the production RemoteViews and PendingIntent.
             Activity activity=startActivitySync(new Intent(c,SettingsActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
@@ -221,8 +230,9 @@ public class WidgetInstrumentation extends Instrumentation {
             ok(duplicate.await(1,TimeUnit.SECONDS)&&RevenueStore.read(c).couponAt==beforeDuplicate,"busy request coalesced without network");gate.set(false);
             long beforeTap=RevenueStore.read(c).couponAt;
             runOnMainSync(()->{ok(view[0].findViewById(R.id.widget_root)!=null,"production RemoteViews applied");view[0].findViewById(R.id.widget_root).performClick();});
-            for(int n=0;n<100&&RevenueStore.read(c).couponAt<=beforeTap;n++)Thread.sleep(100);
-            ok(RevenueStore.read(c).couponAt>beforeTap,"normal widget tap updates API timestamp");
+            for(int n=0;n<350&&RevenueStore.read(c).couponAt<=beforeTap;n++)Thread.sleep(100);
+            ok(RevenueStore.read(c).couponAt>beforeTap,"normal widget tap updates API timestamp through one-shot job");
+            ok(RevenueStore.read(c).error.isEmpty(),"manual job refresh finishes without error");
             dimensions.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,280);dimensions.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,100);exactSizes.clear();exactSizes.add(new android.util.SizeF(280,100));dimensions.putParcelableArrayList(AppWidgetManager.OPTION_APPWIDGET_SIZES,exactSizes);manager.updateAppWidgetOptions(id,dimensions);
             runOnMainSync(()->{android.view.ViewGroup.LayoutParams lp=view[0].getLayoutParams();lp.width=Math.round(280*activity.getResources().getDisplayMetrics().density);lp.height=Math.round(100*activity.getResources().getDisplayMetrics().density);view[0].setLayoutParams(lp);});
             Thread.sleep(700);png(getUiAutomation().takeScreenshot(),"native-widget-host-resized");host.stopListening();runOnMainSync(activity::finish);

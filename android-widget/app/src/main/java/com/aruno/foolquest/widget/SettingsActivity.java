@@ -27,7 +27,7 @@ public final class SettingsActivity extends Activity {
     private DisplaySettings settings;
     private LinearLayout body;
     private android.widget.FrameLayout preview;
-    private TextView warning,description;
+    private TextView warning,description,communication;
     private final Map<String,EditText> colors=new LinkedHashMap<>();
     private int widgetId=AppWidgetManager.INVALID_APPWIDGET_ID;
     private boolean colorValid=true;
@@ -47,7 +47,7 @@ public final class SettingsActivity extends Activity {
     private void build(){
         colors.clear();ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.setFitsSystemWindows(true);
         body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);body.setPadding(dp(18),dp(24),dp(18),dp(28));body.setBackgroundColor(0xfff6f5f2);scroll.addView(body);setContentView(scroll);
-        body.addView(text("THE FOOL QUEST",24));body.addView(text("収益ウィジェット 0.1.6",14));
+        body.addView(text("THE FOOL QUEST",24));body.addView(text("収益ウィジェット 0.1.7",14));
         description=text("",12);body.addView(description);
         preview=new android.widget.FrameLayout(this);
         body.addView(preview,new LinearLayout.LayoutParams(-1,dp(126)));
@@ -71,6 +71,7 @@ public final class SettingsActivity extends Activity {
             new AlertDialog.Builder(this).setTitle("連携データ").setView(input).setNegativeButton("キャンセル",null)
                 .setPositiveButton("確認",(d,w)->receive(input.getText().toString().trim())).show();
         });
+        communication=text("",12);body.addView(communication);
         body.addView(text("表示設定",18));
         button("黒背景／白背景を反転",()->{
             boolean dark=Color.red(settings.background)+Color.green(settings.background)+Color.blue(settings.background)<384;
@@ -131,6 +132,12 @@ public final class SettingsActivity extends Activity {
         String status=!colorValid?"色コードを確認してください。":r.adjusted?"この枠では文字・ゲージ・余白を安全に調整します（文字 "+String.format(java.util.Locale.JAPAN,"%.1f",r.font)+"dp）。":"数値列の位置を固定して表示します。ホーム画面の角で欠けないよう外周8dpを確保します。";
         if(settings.text==settings.background&&settings.opacity==100)status+=" 文字と背景が同じ色です。";
         warning.setText(status);
+        if(communication!=null){
+            android.content.SharedPreferences p=RevenueStore.prefs(this);
+            String last=p.getString("lastFailureCode","");
+            communication.setText("通信状態："+(d.loading?"更新中":!d.error.isEmpty()?RevenueFailure.label(d.errorCode):d.couponAt>0?"正常取得":"初回取得待ち")
+                +(last.isEmpty()?"":"\n直近の失敗："+RevenueFailure.label(last)+"（"+RevenueMath.date("MM/dd HH:mm",p.getLong("lastFailureAt",0))+"）"));
+        }
     }
     private void save(){
         if(!validateColors()){updatePreview();return;}

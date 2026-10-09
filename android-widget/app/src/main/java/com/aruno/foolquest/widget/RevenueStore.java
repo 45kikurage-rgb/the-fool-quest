@@ -10,7 +10,7 @@ final class RevenueStore {
     static final String API = "https://aruno-consolidated-ledger-api.45kikurage.workers.dev/api/v1/revenue/monthly?month=";
     static SharedPreferences prefs(Context c){ return c.getSharedPreferences("widget",Context.MODE_PRIVATE); }
     static final class Data {
-        String month, importMonth, couponMonth, error;
+        String month, importMonth, couponMonth, error, errorCode;
         long tiktok=-1,coupon=-1,goalTotal=-1,goalTiktok=-1,goalCoupon=-1,couponAt,importAt;
         boolean loading;
         long[] values(){ return new long[]{RevenueMath.total(tiktok,coupon),tiktok,coupon}; }
@@ -29,7 +29,7 @@ final class RevenueStore {
             d.month=d.couponMonth; d.coupon=p.getLong("coupon",-1);
             d.tiktok=d.importMonth.equals(d.month)?p.getLong("tiktok",-1):-1;
         }
-        d.loading=RevenueUpdate.busy(); d.error=p.getString("error",""); return d;
+        d.loading=RevenueUpdate.busy(); d.error=p.getString("error",""); d.errorCode=p.getString("errorCode",""); return d;
     }
     static long validateCoupon(String raw,String expected) throws Exception {
         JSONObject j=new JSONObject(raw);
@@ -41,7 +41,12 @@ final class RevenueStore {
         return (long)v;
     }
     static void saveCoupon(Context c,String month,long value) {
-        prefs(c).edit().putString("couponMonth",month).putLong("coupon",value).putLong("couponAt",System.currentTimeMillis()).remove("error").apply();
+        prefs(c).edit().putString("couponMonth",month).putLong("coupon",value).putLong("couponAt",System.currentTimeMillis()).remove("error").remove("errorCode").apply();
+    }
+    static void saveFailure(Context c,String code) {
+        long now=System.currentTimeMillis();
+        prefs(c).edit().putString("error",RevenueFailure.label(code)).putString("errorCode",code)
+            .putString("lastFailureCode",code).putLong("lastFailureAt",now).apply();
     }
     static final class Import {
         String month; long tiktok,goalTotal,goalTiktok,goalCoupon,at;

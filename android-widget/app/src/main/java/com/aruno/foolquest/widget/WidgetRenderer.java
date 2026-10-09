@@ -68,7 +68,7 @@ final class WidgetRenderer {
     }
     static String footer(RevenueStore.Data d){
         if(d.loading) return "更新中";
-        if(!d.error.isEmpty()) return "通信失敗・前回値を表示";
+        if(!d.error.isEmpty()) return RevenueFailure.label(d.errorCode)+"・前回値を表示";
         if(d.couponAt==0) return "初回取得待ち";
         return d.importAt==0 ? "TikTok・目標未連携" : "";
     }
