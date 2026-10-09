@@ -15,7 +15,7 @@ import android.widget.RemoteViews;
 
 /** Native text takes its width from the actual host, not from a bitmap or orientation map. */
 final class NativeWidgetViews {
-    static final class Result {RemoteViews views;float font;int gauge;boolean adjusted;}
+    static final class Result {RemoteViews views;float font,captionFont;int gauge;boolean adjusted;}
     static final int[][] TEXT={
         {R.id.total_label,R.id.total_current,R.id.total_slash,R.id.total_goal,R.id.total_percent},
         {R.id.tiktok_label,R.id.tiktok_current,R.id.tiktok_slash,R.id.tiktok_goal,R.id.tiktok_percent},
@@ -37,7 +37,6 @@ final class NativeWidgetViews {
         // Baseline is a 126dp-high card with default 6dp top/bottom padding.
         // Gauge height follows vertical resizing independently of the font width cap.
         float preferredGauge=s.gauge*(innerH-top-bottom)/98f;
-        int gauge=Math.max(1,Math.min(48,Math.min(Math.round(preferredGauge),Math.round(rowHeight*.2f))));
         float preferred=s.font*(float)Math.sqrt(Math.max(.25f,innerW/324f*innerH/110f));
         float font=preferred,content=innerW-left-right;
         Paint measure=new Paint();measure.setTypeface(Typeface.create("monospace",Typeface.NORMAL));measure.setTextSize(100);
@@ -50,13 +49,18 @@ final class NativeWidgetViews {
             font=Math.min(font,available[3]*100/measure.measureText(RevenueMath.money(goals[i])));
             font=Math.min(font,available[4]*100/measure.measureText(RevenueMath.percent(values[i],goals[i])));
         }
+        // Reserve a readable caption inside the gauge; spare row gap yields first.
+        int gauge=Math.max(1,Math.min(48,Math.min(Math.round(preferredGauge)+8,(int)(rowHeight*.45f))));
+        gap=Math.min(gap,Math.max(0,rowHeight-font*1.3f-gauge-2));
         font=Math.max(1,Math.min(font,(rowHeight-gap-gauge-2)/1.3f));
         Result result=new Result();result.font=font;result.gauge=gauge;
-        result.adjusted=font<preferred-.25f||gauge<Math.round(preferredGauge)||gap<s.gap||left<s.left||right<s.right||top<s.top||bottom<s.bottom;
-        RemoteViews rv=new RemoteViews(c.getPackageName(),R.layout.widget_gauge_scaled);result.views=rv;
+        result.captionFont=Math.max(1,Math.min(11,Math.min(font*.8f,(gauge-2)/1.2f)));
+        result.adjusted=font<preferred-.25f||gauge<Math.round(preferredGauge)+8||gap<s.gap||left<s.left||right<s.right||top<s.top||bottom<s.bottom;
+        RemoteViews rv=new RemoteViews(c.getPackageName(),R.layout.widget_target_overlay);result.views=rv;
         rv.setViewPadding(R.id.widget_content,px(c,left),px(c,top),px(c,right),px(c,bottom));
         rv.setInt(R.id.widget_panel,"setBackgroundColor",(s.background&0xffffff)|(Math.round(s.opacity*2.55f)<<24));
         int[] colors={s.total,s.tiktok,s.coupon};
+        long now=System.currentTimeMillis();StringBuilder accessible=new StringBuilder(WidgetRenderer.description(d));
         for(int i=0;i<3;i++){
             String[] texts={WidgetRenderer.LABELS[i],RevenueMath.money(values[i]),"/",RevenueMath.money(goals[i]),RevenueMath.percent(values[i],goals[i])};
             for(int j=0;j<5;j++){
@@ -64,13 +68,18 @@ final class NativeWidgetViews {
                 rv.setTextViewTextSize(TEXT[i][j],TypedValue.COMPLEX_UNIT_DIP,result.font);
             }
             rv.setViewPadding(ROW[i],0,0,0,i<2?px(c,gap):0);
-            RemoteViews bar=new RemoteViews(c.getPackageName(),R.layout.gauge_adaptive);
+            RemoteViews bar=new RemoteViews(c.getPackageName(),R.layout.gauge_target_overlay);
             bar.setImageViewBitmap(R.id.gauge_image,gauge(s.text,colors[i],RevenueMath.progress(values[i],goals[i]),gauge));
+            String target=RevenueMath.money(RevenueMath.targetThroughToday(d.month,goals[i],now));
+            bar.setTextViewText(R.id.gauge_target,target);
+            bar.setTextViewTextSize(R.id.gauge_target,TypedValue.COMPLEX_UNIT_DIP,result.captionFont);
+            bar.setContentDescription(R.id.gauge_target,"今日までの目標 "+target);
+            accessible.append(' ').append(WidgetRenderer.LABELS[i]).append(" 今日までの目標 ").append(target).append('。');
             rv.removeAllViews(HOLDER[i]);rv.addView(HOLDER[i],bar);
         }
         rv.setTextViewText(R.id.widget_footer,status);rv.setTextColor(R.id.widget_footer,s.text);
         rv.setViewVisibility(R.id.widget_footer,showStatus?View.VISIBLE:View.GONE);
-        rv.setContentDescription(R.id.widget_root,WidgetRenderer.description(d));
+        rv.setContentDescription(R.id.widget_root,accessible.toString());
         rv.setOnClickPendingIntent(R.id.widget_root,PendingIntent.getBroadcast(c,0,new Intent(c,RevenueWidget.class).setAction(RevenueWidget.REFRESH),PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE));
         return result;
     }

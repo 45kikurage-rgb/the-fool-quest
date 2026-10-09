@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.Calendar;
 
 /** Pure display calculations. No source records or revenue database. */
 public final class RevenueMath {
@@ -20,6 +21,14 @@ public final class RevenueMath {
     }
     public static float progress(long value, long goal) {
         return value < 0 || goal <= 0 ? 0 : (float)Math.min(1d, (double)value / goal);
+    }
+    /** Inclusive JST day, ceiling to yen; stale-month data has no current-day target. */
+    public static long targetThroughToday(String displayedMonth,long monthlyGoal,long time) {
+        if(monthlyGoal<=0||monthlyGoal>MAX_YEN||!month(time).equals(displayedMonth))return -1;
+        Calendar day=Calendar.getInstance(TimeZone.getTimeZone("Asia/Tokyo"),Locale.JAPAN);
+        day.setTimeInMillis(time);
+        int elapsed=day.get(Calendar.DAY_OF_MONTH),days=day.getActualMaximum(Calendar.DAY_OF_MONTH);
+        return monthlyGoal/days*elapsed+((monthlyGoal%days)*elapsed+days-1)/days;
     }
     public static long total(long a, long b) {
         if (a < 0 || b < 0) return -1;

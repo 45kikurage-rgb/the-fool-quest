@@ -47,11 +47,12 @@ public final class SettingsActivity extends Activity {
     private void build(){
         colors.clear();ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.setFitsSystemWindows(true);
         body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);body.setPadding(dp(18),dp(24),dp(18),dp(28));body.setBackgroundColor(0xfff6f5f2);scroll.addView(body);setContentView(scroll);
-        body.addView(text("THE FOOL QUEST",24));body.addView(text("収益ウィジェット 0.1.4",14));
+        body.addView(text("THE FOOL QUEST",24));body.addView(text("収益ウィジェット 0.1.5",14));
         description=text("",12);body.addView(description);
         preview=new android.widget.FrameLayout(this);
-        body.addView(preview,new LinearLayout.LayoutParams(-1,-2));
+        body.addView(preview,new LinearLayout.LayoutParams(-1,dp(126)));
         preview.addOnLayoutChangeListener((v,a,b,c,d,e,f,g,h)->{if(c-a!=g-e)updatePreview();});
+        body.addView(text("ゲージ右端：今日までの目標額（月間目標の日割り・1円未満切り上げ）。",12));
         warning=text("",12);warning.setTextColor(0xff9b4100);body.addView(warning);
         body.addView(text("プレビューは即時反映。ホーム画面には「設定を保存」で反映します。設定はすべての同種ウィジェットに共通です。",12));
         button("設定を保存",this::save);

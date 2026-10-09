@@ -61,6 +61,13 @@ public class WidgetInstrumentation extends Instrumentation {
                 int[] textPos=new int[2],barPos=new int[2];amount.getLocationInWindow(textPos);bar.getLocationInWindow(barPos);
                 ok(barPos[1]>=textPos[1]+amount.getHeight(),"adaptive gauge does not overlap numbers");
                 if(row==0)measuredGaugeHeights.put(name,bar.getHeight()/density);
+                android.widget.TextView target=bar.findViewById(R.id.gauge_target);
+                long daily=RevenueMath.targetThroughToday(data.month,data.goals()[row],System.currentTimeMillis());
+                ok(target.getText().toString().equals(RevenueMath.money(daily)),"gauge shows daily target itself, not remaining revenue");
+                ok(target.getCurrentTextColor()==android.graphics.Color.WHITE&&target.getShadowColor()==android.graphics.Color.BLACK&&target.getShadowRadius()>0,"target is white with a black shadow in both themes");
+                ok((target.getGravity()&android.view.Gravity.HORIZONTAL_GRAVITY_MASK)==android.view.Gravity.RIGHT,"daily target is aligned at gauge right edge");
+                ok(target.getPaint().measureText(target.getText().toString())<=target.getWidth()-target.getPaddingRight(),"daily target fits gauge width");
+                ok(target.getLayout().getHeight()<=target.getHeight()+1,"daily target fits gauge height");
             }
         });
         android.graphics.Bitmap bitmap=android.graphics.Bitmap.createBitmap(tree[0].getWidth(),tree[0].getHeight(),android.graphics.Bitmap.Config.ARGB_8888);
@@ -79,6 +86,17 @@ public class WidgetInstrumentation extends Instrumentation {
                     int color=bitmap.getPixel(x,y);if(android.graphics.Color.alpha(color)>0&&Math.abs(android.graphics.Color.red(color)-android.graphics.Color.red(settings.text))<50&&Math.abs(android.graphics.Color.green(color)-android.graphics.Color.green(settings.text))<50&&Math.abs(android.graphics.Color.blue(color)-android.graphics.Color.blue(settings.text))<50)ink++;
                 }
             ok(ink>4,"current goal percent glyphs are actually drawn: "+name+" col="+col+" ink="+ink+" bounds="+java.util.Arrays.toString(position)+" size="+text.getWidth()+"x"+text.getHeight()+" baseline="+text.getBaseline()+" scroll="+text.getScrollX()+","+text.getScrollY());
+        }
+        for(int row=0;row<3;row++){
+            android.view.ViewGroup holder=tree[0].findViewById(NativeWidgetViews.HOLDER[row]);
+            android.widget.TextView target=holder.findViewById(R.id.gauge_target);
+            int[] origin=new int[2],pos=new int[2];tree[0].getLocationInWindow(origin);target.getLocationInWindow(pos);
+            int whiteInk=0;
+            for(int y=Math.max(0,pos[1]-origin[1]);y<Math.min(bitmap.getHeight(),pos[1]-origin[1]+target.getHeight());y++)
+                for(int x=Math.max(0,pos[0]-origin[0]+target.getWidth()/2);x<Math.min(bitmap.getWidth(),pos[0]-origin[0]+target.getWidth());x++){
+                    int color=bitmap.getPixel(x,y);if(android.graphics.Color.alpha(color)>0&&android.graphics.Color.red(color)>200&&android.graphics.Color.green(color)>200&&android.graphics.Color.blue(color)>200)whiteInk++;
+                }
+            ok(whiteInk>2,"daily target glyphs are drawn inside each gauge");
         }
         png(bitmap,name);
     }
@@ -148,7 +166,7 @@ public class WidgetInstrumentation extends Instrumentation {
             nativeTextLayout(nativeData,new DisplaySettings(),360,300,320,"native-text-tall-card");
             ok(measuredGaugeHeights.get("native-text-360x100-dpi320")<measuredGaugeHeights.get("native-text-360x196-dpi320"),"gauge thickens when card height increases");
             ok(measuredGaugeHeights.get("native-text-360x196-dpi320")<measuredGaugeHeights.get("native-text-tall-card"),"gauge continues to scale above two-row height");
-            ok(Math.abs(measuredGaugeHeights.get("native-text-white")-4)<1,"default-size gauge preserves configured baseline");
+            ok(measuredGaugeHeights.get("native-text-white")>=10,"default-size gauge reserves readable daily caption height");
             ok(NativeWidgetViews.create(c,nativeData,new DisplaySettings(),360,196).font>NativeWidgetViews.create(c,nativeData,new DisplaySettings(),360,100).font,"larger card increases font within safe column limits");
             runOnMainSync(nativeFixture::finish);nativeFixture=null;
             s.background=android.graphics.Color.WHITE;s.text=android.graphics.Color.BLACK;png(WidgetRenderer.render(c,d,s,360,126).bitmap,"native-white");

@@ -13,6 +13,18 @@ public class RevenueMathTest {
         eq(RevenueMath.progress(1000001,1000000),1f);eq(RevenueMath.progress(500000,1000000),.5f);eq(RevenueMath.progress(-1,1000000),0f);
         eq(RevenueMath.total(500000,302990),802990L);eq(RevenueMath.total(-1,302990),-1L);eq(RevenueMath.total(RevenueMath.MAX_YEN,1),-1L);
         eq(RevenueMath.month(Instant.parse("2026-09-30T14:59:59Z").toEpochMilli()),"2026-09");eq(RevenueMath.month(Instant.parse("2026-09-30T15:00:00Z").toEpochMilli()),"2026-10");
+        long ninth=Instant.parse("2026-10-09T04:00:00Z").toEpochMilli();
+        eq(RevenueMath.targetThroughToday("2026-10",1200000,ninth),348388L);
+        eq(RevenueMath.targetThroughToday("2026-10",600000,ninth),174194L);
+        eq(RevenueMath.targetThroughToday("2026-10",1,ninth),1L);
+        eq(RevenueMath.targetThroughToday("2026-10",-1,ninth),-1L);
+        eq(RevenueMath.targetThroughToday("2026-10",0,ninth),-1L);
+        eq(RevenueMath.targetThroughToday("2026-09",1200000,ninth),-1L);
+        eq(RevenueMath.targetThroughToday("2026-10",1000000,Instant.parse("2026-09-30T15:00:00Z").toEpochMilli()),32259L);
+        eq(RevenueMath.targetThroughToday("2026-10",1000000,Instant.parse("2026-10-31T14:59:59Z").toEpochMilli()),1000000L);
+        eq(RevenueMath.targetThroughToday("2026-10",RevenueMath.MAX_YEN,Instant.parse("2026-10-31T14:59:59Z").toEpochMilli()),RevenueMath.MAX_YEN);
+        eq(RevenueMath.targetThroughToday("2028-02",2900,Instant.parse("2028-02-29T00:00:00Z").toEpochMilli()),2900L);
+        eq(RevenueMath.targetThroughToday("2026-02",2800,Instant.parse("2026-02-28T00:00:00Z").toEpochMilli()),2800L);
         eq(RevenueMath.yen("0",false),0L);eq(RevenueMath.yen("9007199254740991",false),9007199254740991L);
         invalid("9007199254740992",false);invalid("-1",false);invalid("NaN",false);invalid("1.5",false);invalid("1e5",false);invalid("0",true);invalid(null,false);
         ok(RevenueMath.validMonth("2026-10"));ok(!RevenueMath.validMonth("2026-13"));
