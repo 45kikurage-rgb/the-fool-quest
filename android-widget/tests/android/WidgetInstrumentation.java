@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 /** Only in the separate test APK, never in the shipped app. */
 public class WidgetInstrumentation extends Instrumentation {
     int checks; Context c; File output; Bundle args; Activity nativeFixture;
+    java.util.Map<String,Float> measuredGaugeHeights=new java.util.HashMap<>();
     void ok(boolean x,String name){checks++;if(!x)throw new AssertionError(name);}
     void png(android.graphics.Bitmap b,String name)throws Exception{try(FileOutputStream f=new FileOutputStream(new File(output,name+".png"))){b.compress(android.graphics.Bitmap.CompressFormat.PNG,100,f);}}
     void invalid(String raw,String month)throws Exception{checks++;try{RevenueStore.validateCoupon(raw,month);throw new AssertionError("accepted invalid "+raw);}catch(IllegalArgumentException|org.json.JSONException expected){}}
@@ -51,10 +52,24 @@ public class WidgetInstrumentation extends Instrumentation {
             ok(!footer.getText().toString().matches(".*[0-9]{2}:[0-9]{2}.*"),"widget never displays update times");
             if(data.importAt>0&&data.couponAt>0&&!data.loading&&data.error.isEmpty())ok(footer.getVisibility()==android.view.View.GONE,"normal display has no footer");
             if(height>=196)ok(lastRow.getTop()-firstRow.getTop()>height*density*.4f,"taller card distributes rows across its height");
+            for(int row=0;row<3;row++){
+                android.view.ViewGroup holder=tree[0].findViewById(NativeWidgetViews.HOLDER[row]);
+                android.view.View bar=holder.getChildAt(0);
+                ok(bar.getHeight()>0&&bar.getHeight()<tree[0].findViewById(NativeWidgetViews.ROW[row]).getHeight(),"gauge has visible height and fits its row");
+                ok(Math.abs(bar.getHeight()/density-result[0].gauge)<1,"intrinsic bitmap gauge height respects host density");
+                android.widget.TextView amount=tree[0].findViewById(NativeWidgetViews.TEXT[row][1]);
+                int[] textPos=new int[2],barPos=new int[2];amount.getLocationInWindow(textPos);bar.getLocationInWindow(barPos);
+                ok(barPos[1]>=textPos[1]+amount.getHeight(),"adaptive gauge does not overlap numbers");
+                if(row==0)measuredGaugeHeights.put(name,bar.getHeight()/density);
+            }
         });
         android.graphics.Bitmap bitmap=android.graphics.Bitmap.createBitmap(tree[0].getWidth(),tree[0].getHeight(),android.graphics.Bitmap.Config.ARGB_8888);
         runOnMainSync(()->tree[0].draw(new android.graphics.Canvas(bitmap)));
         png(bitmap,name);
+        android.view.View panel=tree[0].findViewById(R.id.widget_panel);
+        int background=(settings.background&0xffffff)|(Math.round(settings.opacity*2.55f)<<24);
+        ok(bitmap.getPixel(panel.getLeft(),panel.getTop())==background,"top corner has background without widget border");
+        ok(bitmap.getPixel(panel.getRight()-1,panel.getBottom()-1)==background,"bottom corner has background without widget border");
         // A width check alone can pass when an unattached TextView has not drawn its text.
         for(int col:new int[]{1,3,4}){
             android.widget.TextView text=tree[0].findViewById(NativeWidgetViews.TEXT[0][col]);
@@ -131,6 +146,9 @@ public class WidgetInstrumentation extends Instrumentation {
             DisplaySettings extremeNative=new DisplaySettings();extremeNative.font=24;extremeNative.left=32;extremeNative.right=32;extremeNative.top=24;extremeNative.bottom=24;extremeNative.gap=18;extremeNative.gauge=12;
             nativeTextLayout(nativeData,extremeNative,280,100,320,"native-text-extreme-settings");
             nativeTextLayout(nativeData,new DisplaySettings(),360,300,320,"native-text-tall-card");
+            ok(measuredGaugeHeights.get("native-text-360x100-dpi320")<measuredGaugeHeights.get("native-text-360x196-dpi320"),"gauge thickens when card height increases");
+            ok(measuredGaugeHeights.get("native-text-360x196-dpi320")<measuredGaugeHeights.get("native-text-tall-card"),"gauge continues to scale above two-row height");
+            ok(Math.abs(measuredGaugeHeights.get("native-text-white")-4)<1,"default-size gauge preserves configured baseline");
             ok(NativeWidgetViews.create(c,nativeData,new DisplaySettings(),360,196).font>NativeWidgetViews.create(c,nativeData,new DisplaySettings(),360,100).font,"larger card increases font within safe column limits");
             runOnMainSync(nativeFixture::finish);nativeFixture=null;
             s.background=android.graphics.Color.WHITE;s.text=android.graphics.Color.BLACK;png(WidgetRenderer.render(c,d,s,360,126).bitmap,"native-white");

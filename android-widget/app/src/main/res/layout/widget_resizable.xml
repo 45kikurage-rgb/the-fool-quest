@@ -34,9 +34,5 @@
 </LinearLayout>
 <TextView android:id="@+id/widget_footer" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="8dp" android:fontFamily="monospace" android:textColor="#FFFFFF" android:includeFontPadding="false" android:maxLines="1" android:scrollHorizontally="false" android:paddingTop="3dp"/>
 </LinearLayout>
-<ImageView android:id="@+id/edge_top" android:layout_width="match_parent" android:layout_height="1dp" android:layout_gravity="top" android:importantForAccessibility="no"/>
-<ImageView android:id="@+id/edge_bottom" android:layout_width="match_parent" android:layout_height="1dp" android:layout_gravity="bottom" android:importantForAccessibility="no"/>
-<ImageView android:id="@+id/edge_left" android:layout_width="1dp" android:layout_height="match_parent" android:layout_gravity="left" android:importantForAccessibility="no"/>
-<ImageView android:id="@+id/edge_right" android:layout_width="1dp" android:layout_height="match_parent" android:layout_gravity="right" android:importantForAccessibility="no"/>
 </FrameLayout>
 </FrameLayout>

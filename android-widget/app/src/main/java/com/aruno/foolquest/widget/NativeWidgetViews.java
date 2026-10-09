@@ -7,7 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.RectF;
+import android.util.DisplayMetrics;
 import android.graphics.Typeface;
 import android.util.TypedValue;
 import android.view.View;
@@ -15,14 +15,13 @@ import android.widget.RemoteViews;
 
 /** Native text takes its width from the actual host, not from a bitmap or orientation map. */
 final class NativeWidgetViews {
-    static final class Result {RemoteViews views;float font;boolean adjusted;}
+    static final class Result {RemoteViews views;float font;int gauge;boolean adjusted;}
     static final int[][] TEXT={
         {R.id.total_label,R.id.total_current,R.id.total_slash,R.id.total_goal,R.id.total_percent},
         {R.id.tiktok_label,R.id.tiktok_current,R.id.tiktok_slash,R.id.tiktok_goal,R.id.tiktok_percent},
         {R.id.coupon_label,R.id.coupon_current,R.id.coupon_slash,R.id.coupon_goal,R.id.coupon_percent}};
     static final int[] ROW={R.id.row_total,R.id.row_tiktok,R.id.row_coupon};
     static final int[] HOLDER={R.id.total_gauge_holder,R.id.tiktok_gauge_holder,R.id.coupon_gauge_holder};
-    static final int[] GAUGE={R.layout.gauge_1,R.layout.gauge_2,R.layout.gauge_3,R.layout.gauge_4,R.layout.gauge_5,R.layout.gauge_6,R.layout.gauge_7,R.layout.gauge_8,R.layout.gauge_9,R.layout.gauge_10,R.layout.gauge_11,R.layout.gauge_12};
     private static int px(Context c,float dp){return Math.round(dp*c.getResources().getDisplayMetrics().density);}
     static Result create(Context c,RevenueStore.Data d,DisplaySettings s,int width,int height){
         width=Math.max(120,width);height=Math.max(65,height);
@@ -35,7 +34,10 @@ final class NativeWidgetViews {
         boolean showStatus=!status.isEmpty()&&height>=100;
         float rowHeight=(innerH-top-bottom-(showStatus?13:0))/3;
         float gap=Math.min(s.gap,Math.max(0,rowHeight*.15f));
-        int gauge=Math.max(1,Math.min(s.gauge,Math.round(rowHeight*.2f)));
+        // Baseline is a 126dp-high card with default 6dp top/bottom padding.
+        // Gauge height follows vertical resizing independently of the font width cap.
+        float preferredGauge=s.gauge*(innerH-top-bottom)/98f;
+        int gauge=Math.max(1,Math.min(48,Math.min(Math.round(preferredGauge),Math.round(rowHeight*.2f))));
         float preferred=s.font*(float)Math.sqrt(Math.max(.25f,innerW/324f*innerH/110f));
         float font=preferred,content=innerW-left-right;
         Paint measure=new Paint();measure.setTypeface(Typeface.create("monospace",Typeface.NORMAL));measure.setTextSize(100);
@@ -49,12 +51,11 @@ final class NativeWidgetViews {
             font=Math.min(font,available[4]*100/measure.measureText(RevenueMath.percent(values[i],goals[i])));
         }
         font=Math.max(1,Math.min(font,(rowHeight-gap-gauge-2)/1.3f));
-        Result result=new Result();result.font=font;
-        result.adjusted=font<preferred-.25f||gauge<s.gauge||gap<s.gap||left<s.left||right<s.right||top<s.top||bottom<s.bottom;
-        RemoteViews rv=new RemoteViews(c.getPackageName(),R.layout.widget_resizable);result.views=rv;
+        Result result=new Result();result.font=font;result.gauge=gauge;
+        result.adjusted=font<preferred-.25f||gauge<Math.round(preferredGauge)||gap<s.gap||left<s.left||right<s.right||top<s.top||bottom<s.bottom;
+        RemoteViews rv=new RemoteViews(c.getPackageName(),R.layout.widget_gauge_scaled);result.views=rv;
         rv.setViewPadding(R.id.widget_content,px(c,left),px(c,top),px(c,right),px(c,bottom));
         rv.setInt(R.id.widget_panel,"setBackgroundColor",(s.background&0xffffff)|(Math.round(s.opacity*2.55f)<<24));
-        for(int edge:new int[]{R.id.edge_top,R.id.edge_bottom,R.id.edge_left,R.id.edge_right})rv.setInt(edge,"setBackgroundColor",s.text);
         int[] colors={s.total,s.tiktok,s.coupon};
         for(int i=0;i<3;i++){
             String[] texts={WidgetRenderer.LABELS[i],RevenueMath.money(values[i]),"/",RevenueMath.money(goals[i]),RevenueMath.percent(values[i],goals[i])};
@@ -63,8 +64,8 @@ final class NativeWidgetViews {
                 rv.setTextViewTextSize(TEXT[i][j],TypedValue.COMPLEX_UNIT_DIP,result.font);
             }
             rv.setViewPadding(ROW[i],0,0,0,i<2?px(c,gap):0);
-            RemoteViews bar=new RemoteViews(c.getPackageName(),GAUGE[gauge-1]);
-            bar.setImageViewBitmap(R.id.gauge_image,gauge(s.text,colors[i],RevenueMath.progress(values[i],goals[i])));
+            RemoteViews bar=new RemoteViews(c.getPackageName(),R.layout.gauge_adaptive);
+            bar.setImageViewBitmap(R.id.gauge_image,gauge(s.text,colors[i],RevenueMath.progress(values[i],goals[i]),gauge));
             rv.removeAllViews(HOLDER[i]);rv.addView(HOLDER[i],bar);
         }
         rv.setTextViewText(R.id.widget_footer,status);rv.setTextColor(R.id.widget_footer,s.text);
@@ -73,9 +74,9 @@ final class NativeWidgetViews {
         rv.setOnClickPendingIntent(R.id.widget_root,PendingIntent.getBroadcast(c,0,new Intent(c,RevenueWidget.class).setAction(RevenueWidget.REFRESH),PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE));
         return result;
     }
-    private static Bitmap gauge(int text,int color,float progress){
-        Bitmap b=Bitmap.createBitmap(512,4,Bitmap.Config.ARGB_8888);b.setDensity(Bitmap.DENSITY_NONE);
+    private static Bitmap gauge(int text,int color,float progress,int heightDp){
+        Bitmap b=Bitmap.createBitmap(512,heightDp,Bitmap.Config.ARGB_8888);b.setDensity(DisplayMetrics.DENSITY_DEFAULT);
         Canvas c=new Canvas(b);c.drawColor(Color.argb(72,Color.red(text),Color.green(text),Color.blue(text)));
-        Paint p=new Paint();p.setColor(color);c.drawRect(0,0,512*progress,4,p);return b;
+        Paint p=new Paint();p.setColor(color);c.drawRect(0,0,512*progress,heightDp,p);return b;
     }
 }

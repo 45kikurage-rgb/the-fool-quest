@@ -46,8 +46,6 @@ final class WidgetRenderer {
         Canvas c=new Canvas(result.bitmap); c.scale(2,2);
         p.setColor((s.background&0x00ffffff)|(Math.round(s.opacity*2.55f)<<24));
         c.drawRoundRect(new RectF(.5f,.5f,w-.5f,panelHeight-.5f),5,5,p);
-        p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(.7f);p.setColor(s.text);
-        c.drawRoundRect(new RectF(.5f,.5f,w-.5f,panelHeight-.5f),5,5,p);p.setStyle(Paint.Style.FILL);
         for(int i=0;i<3;i++) {
             float y=l.top+i*(rowHeight+gap), baseline=y-fm.top;
             p.setColor(s.text);p.setTextAlign(Paint.Align.LEFT);c.drawText(LABELS[i],l.left,baseline,p);
