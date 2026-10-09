@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 /** Only in the separate test APK, never in the shipped app. */
 public class WidgetInstrumentation extends Instrumentation {
-    int checks; Context c; File output; Bundle args;
+    int checks; Context c; File output; Bundle args; Activity nativeFixture;
     void ok(boolean x,String name){checks++;if(!x)throw new AssertionError(name);}
     void png(android.graphics.Bitmap b,String name)throws Exception{try(FileOutputStream f=new FileOutputStream(new File(output,name+".png"))){b.compress(android.graphics.Bitmap.CompressFormat.PNG,100,f);}}
     void invalid(String raw,String month)throws Exception{checks++;try{RevenueStore.validateCoupon(raw,month);throw new AssertionError("accepted invalid "+raw);}catch(IllegalArgumentException|org.json.JSONException expected){}}
@@ -31,8 +31,10 @@ public class WidgetInstrumentation extends Instrumentation {
         runOnMainSync(()->{
             result[0]=NativeWidgetViews.create(hostContext,data,settings,width,height);
             tree[0]=result[0].views.apply(hostContext,null);
-            tree[0].measure(android.view.View.MeasureSpec.makeMeasureSpec(Math.round(width*density),android.view.View.MeasureSpec.EXACTLY),android.view.View.MeasureSpec.makeMeasureSpec(Math.round(height*density),android.view.View.MeasureSpec.AT_MOST));
-            tree[0].layout(0,0,tree[0].getMeasuredWidth(),tree[0].getMeasuredHeight());
+            nativeFixture.setContentView(tree[0],new android.view.ViewGroup.LayoutParams(Math.round(width*density),Math.round(height*density)));
+        });
+        waitForIdleSync();Thread.sleep(120);
+        runOnMainSync(()->{
             for(int row=0;row<3;row++)for(int col=0;col<5;col++){
                 android.widget.TextView text=tree[0].findViewById(NativeWidgetViews.TEXT[row][col]);
                 ok(Math.abs(text.getTextSize()-result[0].font*density)<.1,"host density preserves requested native font");
@@ -42,7 +44,18 @@ public class WidgetInstrumentation extends Instrumentation {
             ok(tree[0].getMeasuredHeight()<=height*density+1,"native content fits host height");
         });
         android.graphics.Bitmap bitmap=android.graphics.Bitmap.createBitmap(tree[0].getWidth(),tree[0].getHeight(),android.graphics.Bitmap.Config.ARGB_8888);
-        runOnMainSync(()->tree[0].draw(new android.graphics.Canvas(bitmap)));png(bitmap,name);
+        runOnMainSync(()->tree[0].draw(new android.graphics.Canvas(bitmap)));
+        // A width check alone can pass when an unattached TextView has not drawn its text.
+        for(int col:new int[]{1,3,4}){
+            android.widget.TextView text=tree[0].findViewById(NativeWidgetViews.TEXT[0][col]);
+            int[] origin=new int[2],position=new int[2];tree[0].getLocationInWindow(origin);text.getLocationInWindow(position);
+            int ink=0;for(int y=Math.max(0,position[1]-origin[1]);y<Math.min(bitmap.getHeight(),position[1]-origin[1]+text.getHeight());y++)
+                for(int x=Math.max(0,position[0]-origin[0]+2);x<Math.min(bitmap.getWidth(),position[0]-origin[0]+text.getWidth()-2);x++){
+                    int color=bitmap.getPixel(x,y);if(android.graphics.Color.alpha(color)>0&&Math.abs(android.graphics.Color.red(color)-android.graphics.Color.red(settings.text))<50&&Math.abs(android.graphics.Color.green(color)-android.graphics.Color.green(settings.text))<50&&Math.abs(android.graphics.Color.blue(color)-android.graphics.Color.blue(settings.text))<50)ink++;
+                }
+            ok(ink>4,"current goal percent glyphs are actually drawn");
+        }
+        png(bitmap,name);
     }
     @Override public void onCreate(Bundle args){super.onCreate(args);this.args=args;start();}
     @Override public void onStart(){
@@ -94,10 +107,12 @@ public class WidgetInstrumentation extends Instrumentation {
             d.tiktok=9999999;d.coupon=9999999;d.goalTotal=1000000;d.goalTiktok=1000000;d.goalCoupon=1000000;
             png(WidgetRenderer.render(c,d,s,360,126).bitmap,"native-seven-digits-over100");
             RevenueStore.Data nativeData=RevenueStore.read(c);nativeData.tiktok=1000000;nativeData.coupon=500000;nativeData.goalTotal=1000000;nativeData.goalTiktok=9999999;nativeData.goalCoupon=9999999;
+            nativeFixture=startActivitySync(new Intent(c,SettingsActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             for(int width:new int[]{280,320,360,400})for(int height:new int[]{100,196})for(int dpi:new int[]{160,320})
                 nativeTextLayout(nativeData,new DisplaySettings(),width,height,dpi,"native-text-"+width+"x"+height+"-dpi"+dpi);
             DisplaySettings nativeWhite=new DisplaySettings();nativeWhite.background=android.graphics.Color.WHITE;nativeWhite.text=android.graphics.Color.BLACK;
             nativeTextLayout(nativeData,nativeWhite,360,126,320,"native-text-white");
+            runOnMainSync(nativeFixture::finish);nativeFixture=null;
             s.background=android.graphics.Color.WHITE;s.text=android.graphics.Color.BLACK;png(WidgetRenderer.render(c,d,s,360,126).bitmap,"native-white");
             s.opacity=30;s.font=24;s.left=32;s.right=32;s.top=24;s.bottom=24;s.gap=18;s.gauge=12;
             WidgetRenderer.Render adjusted=WidgetRenderer.render(c,d,s,280,100);ok(adjusted.adjusted,"unsafe settings adjusted");png(adjusted.bitmap,"native-extreme-settings");

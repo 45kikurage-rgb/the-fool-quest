@@ -53,6 +53,8 @@ jobs:
           target: google_apis
           disable-animations: true
           script: |
+            adb shell wm size 1080x1920
+            adb shell wm density 480
             adb install android-widget/build/out/fool-quest-widget-0.1.2.apk
             adb install android-widget/build/android-test/widget-tests.apk
             adb shell appwidget grantbind --package com.aruno.foolquest.widget --user 0
