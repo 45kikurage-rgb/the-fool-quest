@@ -51,7 +51,7 @@ final class NativeWidgetViews {
         font=Math.max(1,Math.min(font,(rowHeight-gap-gauge-2)/1.3f));
         Result result=new Result();result.font=font;
         result.adjusted=font<preferred-.25f||gauge<s.gauge||gap<s.gap||left<s.left||right<s.right||top<s.top||bottom<s.bottom;
-        RemoteViews rv=new RemoteViews(c.getPackageName(),R.layout.widget);result.views=rv;
+        RemoteViews rv=new RemoteViews(c.getPackageName(),R.layout.widget_resizable);result.views=rv;
         rv.setViewPadding(R.id.widget_content,px(c,left),px(c,top),px(c,right),px(c,bottom));
         rv.setInt(R.id.widget_panel,"setBackgroundColor",(s.background&0xffffff)|(Math.round(s.opacity*2.55f)<<24));
         for(int edge:new int[]{R.id.edge_top,R.id.edge_bottom,R.id.edge_left,R.id.edge_right})rv.setInt(edge,"setBackgroundColor",s.text);
