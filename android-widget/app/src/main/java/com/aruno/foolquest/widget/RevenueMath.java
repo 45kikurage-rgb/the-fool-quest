@@ -30,6 +30,18 @@ public final class RevenueMath {
         int elapsed=day.get(Calendar.DAY_OF_MONTH),days=day.getActualMaximum(Calendar.DAY_OF_MONTH);
         return monthlyGoal/days*elapsed+((monthlyGoal%days)*elapsed+days-1)/days;
     }
+    public static final int PACE_UNKNOWN=0, PACE_LOW=1, PACE_BEHIND=2, PACE_ON_TRACK=3;
+    /** Same inclusive JST daily pace thresholds as THE FOOL QUEST renderMetric. */
+    public static int pace(long value,long monthlyGoal,String displayedMonth,long time) {
+        long daily=targetThroughToday(displayedMonth,monthlyGoal,time);
+        if(value<0||value>MAX_YEN||daily<0)return PACE_UNKNOWN;
+        if(value>=daily)return PACE_ON_TRACK;
+        Calendar day=Calendar.getInstance(TimeZone.getTimeZone("Asia/Tokyo"),Locale.JAPAN);
+        day.setTimeInMillis(time);
+        int elapsed=day.get(Calendar.DAY_OF_MONTH),divisor=day.getActualMaximum(Calendar.DAY_OF_MONTH)*2;
+        long half=monthlyGoal/divisor*elapsed+((monthlyGoal%divisor)*elapsed+divisor-1)/divisor;
+        return value>=half?PACE_BEHIND:PACE_LOW;
+    }
     public static long total(long a, long b) {
         if (a < 0 || b < 0) return -1;
         if (a > MAX_YEN - b) return -1;

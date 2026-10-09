@@ -25,6 +25,29 @@ public class RevenueMathTest {
         eq(RevenueMath.targetThroughToday("2026-10",RevenueMath.MAX_YEN,Instant.parse("2026-10-31T14:59:59Z").toEpochMilli()),RevenueMath.MAX_YEN);
         eq(RevenueMath.targetThroughToday("2028-02",2900,Instant.parse("2028-02-29T00:00:00Z").toEpochMilli()),2900L);
         eq(RevenueMath.targetThroughToday("2026-02",2800,Instant.parse("2026-02-28T00:00:00Z").toEpochMilli()),2800L);
+        // Integer revenues surrounding the exact site 50% and 100% daily pace boundaries.
+        eq(RevenueMath.pace(348388,1200000,"2026-10",ninth),RevenueMath.PACE_ON_TRACK);
+        eq(RevenueMath.pace(348387,1200000,"2026-10",ninth),RevenueMath.PACE_BEHIND);
+        eq(RevenueMath.pace(174194,1200000,"2026-10",ninth),RevenueMath.PACE_BEHIND);
+        eq(RevenueMath.pace(174193,1200000,"2026-10",ninth),RevenueMath.PACE_LOW);
+        eq(RevenueMath.pace(0,1200000,"2026-10",ninth),RevenueMath.PACE_LOW);
+        eq(RevenueMath.pace(2000000,1200000,"2026-10",ninth),RevenueMath.PACE_ON_TRACK);
+        eq(RevenueMath.pace(-1,1200000,"2026-10",ninth),RevenueMath.PACE_UNKNOWN);
+        eq(RevenueMath.pace(1,-1,"2026-10",ninth),RevenueMath.PACE_UNKNOWN);
+        eq(RevenueMath.pace(1,0,"2026-10",ninth),RevenueMath.PACE_UNKNOWN);
+        eq(RevenueMath.pace(1000000,1200000,"2026-09",ninth),RevenueMath.PACE_UNKNOWN);
+        eq(RevenueMath.pace(0,1,"2026-10",ninth),RevenueMath.PACE_LOW);
+        eq(RevenueMath.pace(1,1,"2026-10",ninth),RevenueMath.PACE_ON_TRACK);
+        long midnight=Instant.parse("2026-10-09T15:00:00Z").toEpochMilli();
+        eq(RevenueMath.pace(350000,1200000,"2026-10",ninth),RevenueMath.PACE_ON_TRACK);
+        eq(RevenueMath.pace(350000,1200000,"2026-10",midnight),RevenueMath.PACE_BEHIND);
+        for(String date:new String[]{"2026-10-01T00:00:00Z","2026-10-31T00:00:00Z","2028-02-29T00:00:00Z","2026-02-28T00:00:00Z"}){
+            long time=Instant.parse(date).toEpochMilli();String month=RevenueMath.month(time);
+            long goal=RevenueMath.MAX_YEN,target=RevenueMath.targetThroughToday(month,goal,time);
+            eq(RevenueMath.pace(target,goal,month,time),RevenueMath.PACE_ON_TRACK);
+            eq(RevenueMath.pace(target-1,goal,month,time),RevenueMath.PACE_BEHIND);
+            eq(RevenueMath.pace(0,goal,month,time),RevenueMath.PACE_LOW);
+        }
         eq(RevenueMath.yen("0",false),0L);eq(RevenueMath.yen("9007199254740991",false),9007199254740991L);
         invalid("9007199254740992",false);invalid("-1",false);invalid("NaN",false);invalid("1.5",false);invalid("1e5",false);invalid("0",true);invalid(null,false);
         ok(RevenueMath.validMonth("2026-10"));ok(!RevenueMath.validMonth("2026-13"));

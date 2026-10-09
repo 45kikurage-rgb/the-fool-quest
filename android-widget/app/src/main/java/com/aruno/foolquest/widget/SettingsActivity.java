@@ -47,12 +47,12 @@ public final class SettingsActivity extends Activity {
     private void build(){
         colors.clear();ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.setFitsSystemWindows(true);
         body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);body.setPadding(dp(18),dp(24),dp(18),dp(28));body.setBackgroundColor(0xfff6f5f2);scroll.addView(body);setContentView(scroll);
-        body.addView(text("THE FOOL QUEST",24));body.addView(text("収益ウィジェット 0.1.5",14));
+        body.addView(text("THE FOOL QUEST",24));body.addView(text("収益ウィジェット 0.1.6",14));
         description=text("",12);body.addView(description);
         preview=new android.widget.FrameLayout(this);
         body.addView(preview,new LinearLayout.LayoutParams(-1,dp(126)));
         preview.addOnLayoutChangeListener((v,a,b,c,d,e,f,g,h)->{if(c-a!=g-e)updatePreview();});
-        body.addView(text("ゲージ右端：今日までの目標額（月間目標の日割り・1円未満切り上げ）。",12));
+        body.addView(text("進歩カラー：今日までの目標に対して100%以上＝緑、50%以上＝黄、50%未満＝赤。ゲージの長さと％は月間目標に対する達成率です。",12));
         warning=text("",12);warning.setTextColor(0xff9b4100);body.addView(warning);
         body.addView(text("プレビューは即時反映。ホーム画面には「設定を保存」で反映します。設定はすべての同種ウィジェットに共通です。",12));
         button("設定を保存",this::save);
@@ -83,7 +83,10 @@ public final class SettingsActivity extends Activity {
         slider("左余白",0,32,settings.left,v->settings.left=v);slider("右余白",0,32,settings.right,v->settings.right=v);
         slider("上余白",0,24,settings.top,v->settings.top=v);slider("下余白",0,24,settings.bottom,v->settings.bottom=v);
         slider("ステータス行間",0,18,settings.gap,v->settings.gap=v);slider("ゲージ太さ（基準・高さに合わせて調整）",1,12,settings.gauge,v->settings.gauge=v);
-        color("total","Total ゲージ色",settings.total);color("tiktok","TikTok ゲージ色",settings.tiktok);color("coupon","Coupon ゲージ色",settings.coupon);
+        android.widget.CheckBox pace=new android.widget.CheckBox(this);pace.setText("進歩カラー（THE FOOL QUESTと同じ）");pace.setChecked(settings.paceColors);body.addView(pace);
+        pace.setOnCheckedChangeListener((v,checked)->{settings.paceColors=checked;for(String key:new String[]{"total","tiktok","coupon"})colors.get(key).setEnabled(!checked);updatePreview();});
+        color("total","Total 固定色（進歩カラーOFF時）",settings.total);color("tiktok","TikTok 固定色（進歩カラーOFF時）",settings.tiktok);color("coupon","Coupon 固定色（進歩カラーOFF時）",settings.coupon);
+        for(String key:new String[]{"total","tiktok","coupon"})colors.get(key).setEnabled(!settings.paceColors);
         button("表示設定を初期化",()->new AlertDialog.Builder(this).setMessage("表示設定を初期値に戻します。収益データは保持します。保存でホーム画面へ反映します。")
             .setNegativeButton("キャンセル",null).setPositiveButton("初期化",(d,w)->{settings=new DisplaySettings();build();}).show());
         body.addView(text("操作：ウィジェット全体をタップして更新。長押しでサイズ変更。表示設定のメニューはホームアプリによって異なります。このアプリからも設定できます。",12));

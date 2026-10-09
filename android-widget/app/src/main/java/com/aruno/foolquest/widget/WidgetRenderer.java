@@ -36,7 +36,7 @@ final class WidgetRenderer {
         font=Math.max(1,Math.min(font,(l.rowHeight-gauge-3)/1.3f));
         result.font=font; result.adjusted=font<s.font-.25f||gauge<s.gauge||l.adjustedPadding||s.gap>h*.1f;
         p.setTextSize(font); Paint.FontMetrics fm=p.getFontMetrics();
-        int[] colors={s.total,s.tiktok,s.coupon}; float gap=Math.min(s.gap,h*.1f);
+        int[] colors={s.total,s.tiktok,s.coupon}; long now=System.currentTimeMillis(); float gap=Math.min(s.gap,h*.1f);
         // Height follows content, never the launcher's spare vertical area.
         float rowHeight=Math.min(l.rowHeight,fm.bottom-fm.top+2+gauge);
         float panelHeight=l.top+rowHeight*3+gap*2+l.footerHeight+(h-l.bottom);
@@ -56,7 +56,7 @@ final class WidgetRenderer {
             p.setColor(Color.argb(72,Color.red(s.text),Color.green(s.text),Color.blue(s.text)));
             c.drawRoundRect(new RectF(l.left,gy,l.right,gy+gauge),gauge/2,gauge/2,p);
             float fill=RevenueMath.progress(values[i],goals[i]);
-            if(fill>0){p.setColor(colors[i]);c.drawRoundRect(new RectF(l.left,gy,l.left+(l.right-l.left)*fill,gy+gauge),gauge/2,gauge/2,p);}
+            if(fill>0){p.setColor(s.gaugeColor(values[i],goals[i],data.month,now,colors[i]));c.drawRoundRect(new RectF(l.left,gy,l.left+(l.right-l.left)*fill,gy+gauge),gauge/2,gauge/2,p);}
         }
         if(l.footerHeight>0){
             p.setTextSize(8);p.setTextAlign(Paint.Align.LEFT);p.setColor(s.text);

@@ -61,13 +61,13 @@ public class WidgetInstrumentation extends Instrumentation {
                 int[] textPos=new int[2],barPos=new int[2];amount.getLocationInWindow(textPos);bar.getLocationInWindow(barPos);
                 ok(barPos[1]>=textPos[1]+amount.getHeight(),"adaptive gauge does not overlap numbers");
                 if(row==0)measuredGaugeHeights.put(name,bar.getHeight()/density);
-                android.widget.TextView target=bar.findViewById(R.id.gauge_target);
-                long daily=RevenueMath.targetThroughToday(data.month,data.goals()[row],System.currentTimeMillis());
-                ok(target.getText().toString().equals(RevenueMath.money(daily)),"gauge shows daily target itself, not remaining revenue");
-                ok(target.getCurrentTextColor()==android.graphics.Color.WHITE&&target.getShadowColor()==android.graphics.Color.BLACK&&target.getShadowRadius()>0,"target is white with a black shadow in both themes");
-                ok((target.getGravity()&android.view.Gravity.HORIZONTAL_GRAVITY_MASK)==android.view.Gravity.RIGHT,"daily target is aligned at gauge right edge");
-                ok(target.getPaint().measureText(target.getText().toString())<=target.getWidth()-target.getPaddingRight(),"daily target fits gauge width");
-                ok(target.getLayout().getHeight()<=target.getHeight()+1,"daily target fits gauge height");
+                ok(bar instanceof android.widget.ImageView,"v0.1.4 gauge has no embedded target text");
+                android.graphics.Bitmap fill=((android.graphics.drawable.BitmapDrawable)((android.widget.ImageView)bar).getDrawable()).getBitmap();
+                int[] fixed={settings.total,settings.tiktok,settings.coupon};
+                int expected=settings.gaugeColor(data.values()[row],data.goals()[row],data.month,System.currentTimeMillis(),fixed[row]);
+                float progress=RevenueMath.progress(data.values()[row],data.goals()[row]);
+                if(progress>0)ok(fill.getPixel(0,0)==expected,"actual native gauge pixel uses daily pace palette");
+                ok(result[0].gauge<=48,"v0.1.4 gauge keeps its original height limit");
             }
         });
         android.graphics.Bitmap bitmap=android.graphics.Bitmap.createBitmap(tree[0].getWidth(),tree[0].getHeight(),android.graphics.Bitmap.Config.ARGB_8888);
@@ -86,17 +86,6 @@ public class WidgetInstrumentation extends Instrumentation {
                     int color=bitmap.getPixel(x,y);if(android.graphics.Color.alpha(color)>0&&Math.abs(android.graphics.Color.red(color)-android.graphics.Color.red(settings.text))<50&&Math.abs(android.graphics.Color.green(color)-android.graphics.Color.green(settings.text))<50&&Math.abs(android.graphics.Color.blue(color)-android.graphics.Color.blue(settings.text))<50)ink++;
                 }
             ok(ink>4,"current goal percent glyphs are actually drawn: "+name+" col="+col+" ink="+ink+" bounds="+java.util.Arrays.toString(position)+" size="+text.getWidth()+"x"+text.getHeight()+" baseline="+text.getBaseline()+" scroll="+text.getScrollX()+","+text.getScrollY());
-        }
-        for(int row=0;row<3;row++){
-            android.view.ViewGroup holder=tree[0].findViewById(NativeWidgetViews.HOLDER[row]);
-            android.widget.TextView target=holder.findViewById(R.id.gauge_target);
-            int[] origin=new int[2],pos=new int[2];tree[0].getLocationInWindow(origin);target.getLocationInWindow(pos);
-            int whiteInk=0;
-            for(int y=Math.max(0,pos[1]-origin[1]);y<Math.min(bitmap.getHeight(),pos[1]-origin[1]+target.getHeight());y++)
-                for(int x=Math.max(0,pos[0]-origin[0]+target.getWidth()/2);x<Math.min(bitmap.getWidth(),pos[0]-origin[0]+target.getWidth());x++){
-                    int color=bitmap.getPixel(x,y);if(android.graphics.Color.alpha(color)>0&&android.graphics.Color.red(color)>200&&android.graphics.Color.green(color)>200&&android.graphics.Color.blue(color)>200)whiteInk++;
-                }
-            ok(whiteInk>2,"daily target glyphs are drawn inside each gauge");
         }
         png(bitmap,name);
     }
@@ -166,8 +155,29 @@ public class WidgetInstrumentation extends Instrumentation {
             nativeTextLayout(nativeData,new DisplaySettings(),360,300,320,"native-text-tall-card");
             ok(measuredGaugeHeights.get("native-text-360x100-dpi320")<measuredGaugeHeights.get("native-text-360x196-dpi320"),"gauge thickens when card height increases");
             ok(measuredGaugeHeights.get("native-text-360x196-dpi320")<measuredGaugeHeights.get("native-text-tall-card"),"gauge continues to scale above two-row height");
-            ok(measuredGaugeHeights.get("native-text-white")>=10,"default-size gauge reserves readable daily caption height");
+            ok(measuredGaugeHeights.get("native-text-white")==4,"default-size gauge restores v0.1.4 four-dp thickness");
             ok(NativeWidgetViews.create(c,nativeData,new DisplaySettings(),360,196).font>NativeWidgetViews.create(c,nativeData,new DisplaySettings(),360,100).font,"larger card increases font within safe column limits");
+            // Screenshot and explicit palette assertions for green / yellow / red in the same card.
+            java.util.Calendar date=java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("Asia/Tokyo"));
+            int days=date.getActualMaximum(java.util.Calendar.DAY_OF_MONTH),today=date.get(java.util.Calendar.DAY_OF_MONTH);
+            RevenueStore.Data paceData=RevenueStore.read(c);paceData.tiktok=today*75000L;paceData.coupon=today*25000L;
+            paceData.goalTotal=days*50000L;paceData.goalTiktok=days*100000L;paceData.goalCoupon=days*100000L;
+            paceData.month=month;paceData.importAt=System.currentTimeMillis();paceData.couponAt=paceData.importAt;paceData.error="";paceData.loading=false;
+            DisplaySettings palette=new DisplaySettings();
+            ok(palette.paceColors,"new and saved v0.1.4 settings use progress colors by default");
+            ok(palette.gaugeColor(paceData.values()[0],paceData.goalTotal,month,System.currentTimeMillis(),palette.total)==0xff31d158,"site green at or above daily target");
+            ok(palette.gaugeColor(paceData.tiktok,paceData.goalTiktok,month,System.currentTimeMillis(),palette.tiktok)==0xffffd43b,"site yellow between half and daily target");
+            ok(palette.gaugeColor(paceData.coupon,paceData.goalCoupon,month,System.currentTimeMillis(),palette.coupon)==0xffff4545,"site red below half daily target");
+            nativeTextLayout(paceData,palette,360,126,320,"native-pace-three-colors");
+            palette.paceColors=false;palette.total=0xff112233;palette.tiktok=0xff445566;palette.coupon=0xff778899;
+            nativeTextLayout(paceData,palette,360,126,320,"native-pace-off-custom");
+            palette.save(RevenueStore.prefs(c));ok(!DisplaySettings.load(RevenueStore.prefs(c)).paceColors,"progress-color preference persists");
+            palette.paceColors=true;palette.save(RevenueStore.prefs(c));ok(DisplaySettings.load(RevenueStore.prefs(c)).paceColors,"progress colors can be reenabled without losing fixed colors");
+            ok(DisplaySettings.load(RevenueStore.prefs(c)).total==0xff112233,"fixed custom color retained after toggling progress colors");
+            new DisplaySettings().save(RevenueStore.prefs(c));
+            paceData.month="2000-01";
+            ok(palette.gaugeColor(paceData.tiktok,paceData.goalTiktok,paceData.month,System.currentTimeMillis(),palette.tiktok)==0xff888888,"stale month has neutral color instead of false achievement");
+            nativeTextLayout(paceData,palette,360,126,320,"native-pace-stale-month");
             runOnMainSync(nativeFixture::finish);nativeFixture=null;
             s.background=android.graphics.Color.WHITE;s.text=android.graphics.Color.BLACK;png(WidgetRenderer.render(c,d,s,360,126).bitmap,"native-white");
             s.opacity=30;s.font=24;s.left=32;s.right=32;s.top=24;s.bottom=24;s.gap=18;s.gauge=12;
