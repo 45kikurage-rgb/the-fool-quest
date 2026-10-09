@@ -38,6 +38,7 @@ public class WidgetInstrumentation extends Instrumentation {
             for(int row=0;row<3;row++)for(int col=0;col<5;col++){
                 android.widget.TextView text=tree[0].findViewById(NativeWidgetViews.TEXT[row][col]);
                 ok(Math.abs(text.getTextSize()-result[0].font*density)<.1,"host density preserves requested native font");
+                ok(text.getScrollX()==0,"fixed text columns never scroll horizontally");
                 ok(text.getPaint().measureText(text.getText().toString())<=text.getWidth()-text.getPaddingLeft()-text.getPaddingRight()+1,"actual native column has no text clipping");
                 if(row>0){android.widget.TextView first=tree[0].findViewById(NativeWidgetViews.TEXT[0][col]);ok(text.getLeft()==first.getLeft()&&text.getRight()==first.getRight(),"all native rows share the same column bounds");}
             }

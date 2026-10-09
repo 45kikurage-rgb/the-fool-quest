@@ -38,15 +38,15 @@ final class NativeWidgetViews {
         int gauge=Math.max(1,Math.min(s.gauge,Math.round(rowHeight*.2f)));
         float preferred=s.font*(float)Math.sqrt(Math.max(.25f,innerW/324f*innerH/110f));
         float font=preferred,content=innerW-left-right;
-        Paint measure=new Paint();measure.setTypeface(Typeface.create("monospace",Typeface.NORMAL));measure.setTextSize(1);
+        Paint measure=new Paint();measure.setTypeface(Typeface.create("monospace",Typeface.NORMAL));measure.setTextSize(100);
         float[] available={content*.16f-2,content*.29f-3,content*.03f,content*.29f-3,content*.23f-2};
         String[] reserved={"Coupon","¥9,999,999","/","¥9,999,999","9999.99%"};
         long[] values=d.values(),goals=d.goals();
-        for(int j=0;j<5;j++)font=Math.min(font,available[j]/measure.measureText(reserved[j]));
+        for(int j=0;j<5;j++)font=Math.min(font,available[j]*100/measure.measureText(reserved[j]));
         for(int i=0;i<3;i++){
-            font=Math.min(font,available[1]/measure.measureText(RevenueMath.money(values[i])));
-            font=Math.min(font,available[3]/measure.measureText(RevenueMath.money(goals[i])));
-            font=Math.min(font,available[4]/measure.measureText(RevenueMath.percent(values[i],goals[i])));
+            font=Math.min(font,available[1]*100/measure.measureText(RevenueMath.money(values[i])));
+            font=Math.min(font,available[3]*100/measure.measureText(RevenueMath.money(goals[i])));
+            font=Math.min(font,available[4]*100/measure.measureText(RevenueMath.percent(values[i],goals[i])));
         }
         font=Math.max(1,Math.min(font,(rowHeight-gap-gauge-2)/1.3f));
         Result result=new Result();result.font=font;
