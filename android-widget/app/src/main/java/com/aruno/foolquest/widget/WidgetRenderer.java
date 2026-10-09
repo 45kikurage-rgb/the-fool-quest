@@ -11,7 +11,9 @@ import android.graphics.Typeface;
 final class WidgetRenderer {
     static final String[] LABELS={"Total","TikTok","Coupon"};
     static final class Render { Bitmap bitmap; float font; boolean adjusted; float rowHeight,panelHeight; WidgetLayout layout; }
-    static Render render(Context context,RevenueStore.Data data,DisplaySettings s,int w,int h) {
+    static Render render(Context context,RevenueStore.Data data,DisplaySettings s,int w,int h) {return layout(context,data,s,w,h,true);}
+    static Render measure(Context context,RevenueStore.Data data,DisplaySettings s,int w,int h) {return layout(context,data,s,w,h,false);}
+    private static Render layout(Context context,RevenueStore.Data data,DisplaySettings s,int w,int h,boolean draw) {
         w=Math.max(120,Math.min(900,w)); h=Math.max(65,Math.min(600,h));
         // Render at twice dp resolution for crisp text, with a bounded RemoteViews payload.
         Render result=new Render();
@@ -39,6 +41,7 @@ final class WidgetRenderer {
         float rowHeight=Math.min(l.rowHeight,fm.bottom-fm.top+2+gauge);
         float panelHeight=l.top+rowHeight*3+gap*2+l.footerHeight+(h-l.bottom);
         result.rowHeight=rowHeight; result.panelHeight=panelHeight; result.layout=l;
+        if(!draw)return result;
         result.bitmap=Bitmap.createBitmap(w*2,(int)Math.ceil(panelHeight*2),Bitmap.Config.ARGB_8888);
         Canvas c=new Canvas(result.bitmap); c.scale(2,2);
         p.setColor((s.background&0x00ffffff)|(Math.round(s.opacity*2.55f)<<24));

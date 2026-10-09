@@ -24,6 +24,26 @@ public class WidgetInstrumentation extends Instrumentation {
     void ok(boolean x,String name){checks++;if(!x)throw new AssertionError(name);}
     void png(android.graphics.Bitmap b,String name)throws Exception{try(FileOutputStream f=new FileOutputStream(new File(output,name+".png"))){b.compress(android.graphics.Bitmap.CompressFormat.PNG,100,f);}}
     void invalid(String raw,String month)throws Exception{checks++;try{RevenueStore.validateCoupon(raw,month);throw new AssertionError("accepted invalid "+raw);}catch(IllegalArgumentException|org.json.JSONException expected){}}
+    void nativeTextLayout(RevenueStore.Data data,DisplaySettings settings,int width,int height,int dpi,String name)throws Exception {
+        android.content.res.Configuration config=new android.content.res.Configuration(c.getResources().getConfiguration());config.densityDpi=dpi;
+        Context hostContext=c.createConfigurationContext(config);float density=hostContext.getResources().getDisplayMetrics().density;
+        final android.view.View[] tree={null};final NativeWidgetViews.Result[] result={null};
+        runOnMainSync(()->{
+            result[0]=NativeWidgetViews.create(hostContext,data,settings,width,height);
+            tree[0]=result[0].views.apply(hostContext,null);
+            tree[0].measure(android.view.View.MeasureSpec.makeMeasureSpec(Math.round(width*density),android.view.View.MeasureSpec.EXACTLY),android.view.View.MeasureSpec.makeMeasureSpec(Math.round(height*density),android.view.View.MeasureSpec.AT_MOST));
+            tree[0].layout(0,0,tree[0].getMeasuredWidth(),tree[0].getMeasuredHeight());
+            for(int row=0;row<3;row++)for(int col=0;col<5;col++){
+                android.widget.TextView text=tree[0].findViewById(NativeWidgetViews.TEXT[row][col]);
+                ok(Math.abs(text.getTextSize()-result[0].font*density)<.1,"host density preserves requested native font");
+                ok(text.getPaint().measureText(text.getText().toString())<=text.getWidth()-text.getPaddingLeft()-text.getPaddingRight()+1,"actual native column has no text clipping");
+                if(row>0){android.widget.TextView first=tree[0].findViewById(NativeWidgetViews.TEXT[0][col]);ok(text.getLeft()==first.getLeft()&&text.getRight()==first.getRight(),"all native rows share the same column bounds");}
+            }
+            ok(tree[0].getMeasuredHeight()<=height*density+1,"native content fits host height");
+        });
+        android.graphics.Bitmap bitmap=android.graphics.Bitmap.createBitmap(tree[0].getWidth(),tree[0].getHeight(),android.graphics.Bitmap.Config.ARGB_8888);
+        runOnMainSync(()->tree[0].draw(new android.graphics.Canvas(bitmap)));png(bitmap,name);
+    }
     @Override public void onCreate(Bundle args){super.onCreate(args);this.args=args;start();}
     @Override public void onStart(){
         Bundle result=new Bundle();
@@ -73,6 +93,11 @@ public class WidgetInstrumentation extends Instrumentation {
             }
             d.tiktok=9999999;d.coupon=9999999;d.goalTotal=1000000;d.goalTiktok=1000000;d.goalCoupon=1000000;
             png(WidgetRenderer.render(c,d,s,360,126).bitmap,"native-seven-digits-over100");
+            RevenueStore.Data nativeData=RevenueStore.read(c);nativeData.tiktok=1000000;nativeData.coupon=500000;nativeData.goalTotal=1000000;nativeData.goalTiktok=9999999;nativeData.goalCoupon=9999999;
+            for(int width:new int[]{280,320,360,400})for(int height:new int[]{100,196})for(int dpi:new int[]{160,320})
+                nativeTextLayout(nativeData,new DisplaySettings(),width,height,dpi,"native-text-"+width+"x"+height+"-dpi"+dpi);
+            DisplaySettings nativeWhite=new DisplaySettings();nativeWhite.background=android.graphics.Color.WHITE;nativeWhite.text=android.graphics.Color.BLACK;
+            nativeTextLayout(nativeData,nativeWhite,360,126,320,"native-text-white");
             s.background=android.graphics.Color.WHITE;s.text=android.graphics.Color.BLACK;png(WidgetRenderer.render(c,d,s,360,126).bitmap,"native-white");
             s.opacity=30;s.font=24;s.left=32;s.right=32;s.top=24;s.bottom=24;s.gap=18;s.gauge=12;
             WidgetRenderer.Render adjusted=WidgetRenderer.render(c,d,s,280,100);ok(adjusted.adjusted,"unsafe settings adjusted");png(adjusted.bitmap,"native-extreme-settings");
@@ -99,9 +124,15 @@ public class WidgetInstrumentation extends Instrumentation {
                 frame.addView(view[0],lp);activity.setContentView(frame);
             });
             Bundle dimensions=new Bundle();dimensions.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,hostWidth);dimensions.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,126);
-            ArrayList<android.util.SizeF> exactSizes=new ArrayList<>();exactSizes.add(new android.util.SizeF(hostWidth,126));
+            ArrayList<android.util.SizeF> exactSizes=new ArrayList<>();exactSizes.add(new android.util.SizeF(900,100));
             dimensions.putParcelableArrayList(AppWidgetManager.OPTION_APPWIDGET_SIZES,exactSizes);manager.updateAppWidgetOptions(id,dimensions);
             RevenueWidget.renderAll(c);waitForIdleSync();Thread.sleep(700);png(getUiAutomation().takeScreenshot(),"native-widget-host-live");
+            runOnMainSync(()->{
+                android.widget.TextView label=view[0].findViewById(R.id.total_label);
+                ok(label!=null,"production widget uses native TextView");
+                ok(label.getTextSize()/activity.getResources().getDisplayMetrics().density>=9,"oversized reported layout cannot shrink native text");
+                ok(label.getLeft()>=0&&label.getPaint().measureText("Total")<=label.getWidth(),"launcher host title not clipped");
+            });
             java.lang.reflect.Field busyField=RevenueUpdate.class.getDeclaredField("BUSY");busyField.setAccessible(true);
             java.util.concurrent.atomic.AtomicBoolean gate=(java.util.concurrent.atomic.AtomicBoolean)busyField.get(null);
             for(int n=0;n<100&&RevenueUpdate.busy();n++)Thread.sleep(100);

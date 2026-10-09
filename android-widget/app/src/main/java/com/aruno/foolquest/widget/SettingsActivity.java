@@ -26,7 +26,7 @@ import java.util.Map;
 public final class SettingsActivity extends Activity {
     private DisplaySettings settings;
     private LinearLayout body;
-    private ImageView preview;
+    private android.widget.FrameLayout preview;
     private TextView warning,description;
     private final Map<String,EditText> colors=new LinkedHashMap<>();
     private int widgetId=AppWidgetManager.INVALID_APPWIDGET_ID;
@@ -47,11 +47,11 @@ public final class SettingsActivity extends Activity {
     private void build(){
         colors.clear();ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.setFitsSystemWindows(true);
         body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);body.setPadding(dp(18),dp(24),dp(18),dp(28));body.setBackgroundColor(0xfff6f5f2);scroll.addView(body);setContentView(scroll);
-        body.addView(text("THE FOOL QUEST",24));body.addView(text("収益ウィジェット 0.1.1",14));
+        body.addView(text("THE FOOL QUEST",24));body.addView(text("収益ウィジェット 0.1.2",14));
         description=text("",12);body.addView(description);
-        preview=new ImageView(this);preview.setScaleType(ImageView.ScaleType.FIT_START);preview.setAdjustViewBounds(true);
+        preview=new android.widget.FrameLayout(this);
         body.addView(preview,new LinearLayout.LayoutParams(-1,-2));
-        preview.addOnLayoutChangeListener((v,a,b,c,d,e,f,g,h)->updatePreview());
+        preview.addOnLayoutChangeListener((v,a,b,c,d,e,f,g,h)->{if(c-a!=g-e)updatePreview();});
         warning=text("",12);warning.setTextColor(0xff9b4100);body.addView(warning);
         body.addView(text("プレビューは即時反映。ホーム画面には「設定を保存」で反映します。設定はすべての同種ウィジェットに共通です。",12));
         button("設定を保存",this::save);
@@ -121,9 +121,10 @@ public final class SettingsActivity extends Activity {
         if(preview==null||isFinishing()||isDestroyed())return;
         int w=preview.getWidth()>0?Math.round(preview.getWidth()/getResources().getDisplayMetrics().density):340;
         RevenueStore.Data d=RevenueStore.read(this);
-        WidgetRenderer.Render r=WidgetRenderer.render(this,d,settings,w,126);preview.setImageBitmap(r.bitmap);
+        NativeWidgetViews.Result r=NativeWidgetViews.create(this,d,settings,w,126);
+        preview.removeAllViews();preview.addView(r.views.apply(this,preview));
         preview.setContentDescription(WidgetRenderer.description(d));description.setText(d.month+" · "+WidgetRenderer.footer(d));
-        String status=!colorValid?"色コードを確認してください。":r.adjusted?"この幅では文字・余白を安全に調整します（文字 "+String.format(java.util.Locale.JAPAN,"%.1f",r.font)+"dp）。":"数値列の位置を固定して表示します。";
+        String status=!colorValid?"色コードを確認してください。":r.adjusted?"この幅では文字・余白を安全に調整します（文字 "+String.format(java.util.Locale.JAPAN,"%.1f",r.font)+"dp）。":"数値列の位置を固定して表示します。ホーム画面の角で欠けないよう外周8dpを確保します。";
         if(settings.text==settings.background&&settings.opacity==100)status+=" 文字と背景が同じ色です。";
         warning.setText(status);
     }

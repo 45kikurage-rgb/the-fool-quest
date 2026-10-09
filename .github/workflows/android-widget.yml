@@ -53,7 +53,7 @@ jobs:
           target: google_apis
           disable-animations: true
           script: |
-            adb install android-widget/build/out/fool-quest-widget-0.1.1.apk
+            adb install android-widget/build/out/fool-quest-widget-0.1.2.apk
             adb install android-widget/build/android-test/widget-tests.apk
             adb shell appwidget grantbind --package com.aruno.foolquest.widget --user 0
             mkdir -p android-widget/build/native-results
