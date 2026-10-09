@@ -42,6 +42,14 @@ public class WidgetInstrumentation extends Instrumentation {
                 if(row>0){android.widget.TextView first=tree[0].findViewById(NativeWidgetViews.TEXT[0][col]);ok(text.getLeft()==first.getLeft()&&text.getRight()==first.getRight(),"all native rows share the same column bounds");}
             }
             ok(tree[0].getMeasuredHeight()<=height*density+1,"native content fits host height");
+            android.view.View panel=tree[0].findViewById(R.id.widget_panel);
+            ok(Math.abs(panel.getHeight()-(height-16)*density)<2,"card background follows resized host height");
+            android.view.View firstRow=tree[0].findViewById(R.id.row_total),lastRow=tree[0].findViewById(R.id.row_coupon);
+            ok(Math.abs(firstRow.getHeight()-lastRow.getHeight())<=2,"three rows share resized height equally");
+            android.widget.TextView footer=tree[0].findViewById(R.id.widget_footer);
+            ok(!footer.getText().toString().matches(".*[0-9]{2}:[0-9]{2}.*"),"widget never displays update times");
+            if(data.importAt>0&&data.couponAt>0&&!data.loading&&data.error.isEmpty())ok(footer.getVisibility()==android.view.View.GONE,"normal display has no footer");
+            if(height>=196)ok(lastRow.getTop()-firstRow.getTop()>height*density*.4f,"taller card distributes rows across its height");
         });
         android.graphics.Bitmap bitmap=android.graphics.Bitmap.createBitmap(tree[0].getWidth(),tree[0].getHeight(),android.graphics.Bitmap.Config.ARGB_8888);
         runOnMainSync(()->tree[0].draw(new android.graphics.Canvas(bitmap)));
@@ -112,11 +120,16 @@ public class WidgetInstrumentation extends Instrumentation {
             d.tiktok=9999999;d.coupon=9999999;d.goalTotal=1000000;d.goalTiktok=1000000;d.goalCoupon=1000000;
             png(WidgetRenderer.render(c,d,s,360,126).bitmap,"native-seven-digits-over100");
             RevenueStore.Data nativeData=RevenueStore.read(c);nativeData.tiktok=1000000;nativeData.coupon=500000;nativeData.goalTotal=1000000;nativeData.goalTiktok=9999999;nativeData.goalCoupon=9999999;
+            nativeData.importAt=System.currentTimeMillis();nativeData.couponAt=nativeData.importAt;nativeData.loading=false;nativeData.error="";
             nativeFixture=startActivitySync(new Intent(c,SettingsActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             for(int width:new int[]{280,320,360,400})for(int height:new int[]{100,196})for(int dpi:new int[]{160,320})
                 nativeTextLayout(nativeData,new DisplaySettings(),width,height,dpi,"native-text-"+width+"x"+height+"-dpi"+dpi);
             DisplaySettings nativeWhite=new DisplaySettings();nativeWhite.background=android.graphics.Color.WHITE;nativeWhite.text=android.graphics.Color.BLACK;
             nativeTextLayout(nativeData,nativeWhite,360,126,320,"native-text-white");
+            DisplaySettings extremeNative=new DisplaySettings();extremeNative.font=24;extremeNative.left=32;extremeNative.right=32;extremeNative.top=24;extremeNative.bottom=24;extremeNative.gap=18;extremeNative.gauge=12;
+            nativeTextLayout(nativeData,extremeNative,280,100,320,"native-text-extreme-settings");
+            nativeTextLayout(nativeData,new DisplaySettings(),360,300,320,"native-text-tall-card");
+            ok(NativeWidgetViews.create(c,nativeData,new DisplaySettings(),360,196).font>NativeWidgetViews.create(c,nativeData,new DisplaySettings(),360,100).font,"larger card increases font within safe column limits");
             runOnMainSync(nativeFixture::finish);nativeFixture=null;
             s.background=android.graphics.Color.WHITE;s.text=android.graphics.Color.BLACK;png(WidgetRenderer.render(c,d,s,360,126).bitmap,"native-white");
             s.opacity=30;s.font=24;s.left=32;s.right=32;s.top=24;s.bottom=24;s.gap=18;s.gauge=12;

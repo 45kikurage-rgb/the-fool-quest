@@ -70,10 +70,9 @@ final class WidgetRenderer {
     }
     static String footer(RevenueStore.Data d){
         if(d.loading) return "更新中";
-        if(!d.error.isEmpty()) return d.month+" 通信失敗・前回値を表示";
-        if(d.couponAt==0) return "初回取得待ち · TikTok・目標はサイトから連携";
-        String coupon="C "+RevenueMath.date("MM/dd HH:mm",d.couponAt);
-        return d.importAt==0 ? coupon+" · TikTok・目標未連携" : coupon+" · T "+RevenueMath.date("MM/dd HH:mm",d.importAt);
+        if(!d.error.isEmpty()) return "通信失敗・前回値を表示";
+        if(d.couponAt==0) return "初回取得待ち";
+        return d.importAt==0 ? "TikTok・目標未連携" : "";
     }
     static String description(RevenueStore.Data d){
         StringBuilder b=new StringBuilder(d.month+" ");long[] v=d.values(),g=d.goals();

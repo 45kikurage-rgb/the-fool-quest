@@ -47,7 +47,7 @@ public final class SettingsActivity extends Activity {
     private void build(){
         colors.clear();ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.setFitsSystemWindows(true);
         body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);body.setPadding(dp(18),dp(24),dp(18),dp(28));body.setBackgroundColor(0xfff6f5f2);scroll.addView(body);setContentView(scroll);
-        body.addView(text("THE FOOL QUEST",24));body.addView(text("収益ウィジェット 0.1.2",14));
+        body.addView(text("THE FOOL QUEST",24));body.addView(text("収益ウィジェット 0.1.3",14));
         description=text("",12);body.addView(description);
         preview=new android.widget.FrameLayout(this);
         body.addView(preview,new LinearLayout.LayoutParams(-1,-2));
@@ -78,7 +78,7 @@ public final class SettingsActivity extends Activity {
         });
         color("text","文字色",settings.text);color("background","背景色",settings.background);
         slider("背景の濃さ（100%＝不透明）",0,100,settings.opacity,v->settings.opacity=v);
-        slider("文字サイズ",9,24,settings.font,v->settings.font=v);
+        slider("文字サイズ（基準・枠に合わせて調整）",9,24,settings.font,v->settings.font=v);
         slider("左余白",0,32,settings.left,v->settings.left=v);slider("右余白",0,32,settings.right,v->settings.right=v);
         slider("上余白",0,24,settings.top,v->settings.top=v);slider("下余白",0,24,settings.bottom,v->settings.bottom=v);
         slider("ステータス行間",0,18,settings.gap,v->settings.gap=v);slider("ゲージ太さ",1,12,settings.gauge,v->settings.gauge=v);
@@ -123,7 +123,7 @@ public final class SettingsActivity extends Activity {
         RevenueStore.Data d=RevenueStore.read(this);
         NativeWidgetViews.Result r=NativeWidgetViews.create(this,d,settings,w,126);
         preview.removeAllViews();preview.addView(r.views.apply(this,preview));
-        preview.setContentDescription(WidgetRenderer.description(d));description.setText(d.month+" · "+WidgetRenderer.footer(d));
+        preview.setContentDescription(WidgetRenderer.description(d));description.setText(WidgetRenderer.footer(d));
         String status=!colorValid?"色コードを確認してください。":r.adjusted?"この幅では文字・余白を安全に調整します（文字 "+String.format(java.util.Locale.JAPAN,"%.1f",r.font)+"dp）。":"数値列の位置を固定して表示します。ホーム画面の角で欠けないよう外周8dpを確保します。";
         if(settings.text==settings.background&&settings.opacity==100)status+=" 文字と背景が同じ色です。";
         warning.setText(status);

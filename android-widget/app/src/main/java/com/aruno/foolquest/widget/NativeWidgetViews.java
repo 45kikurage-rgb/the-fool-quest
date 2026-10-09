@@ -8,6 +8,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.graphics.Typeface;
 import android.util.TypedValue;
 import android.view.View;
 import android.widget.RemoteViews;
@@ -25,28 +26,49 @@ final class NativeWidgetViews {
     private static int px(Context c,float dp){return Math.round(dp*c.getResources().getDisplayMetrics().density);}
     static Result create(Context c,RevenueStore.Data d,DisplaySettings s,int width,int height){
         width=Math.max(120,width);height=Math.max(65,height);
-        WidgetRenderer.Render layout=WidgetRenderer.measure(c,d,s,width-16,height-16);
-        Result result=new Result();result.font=layout.font;result.adjusted=layout.adjusted;
+        // The card fills the real host. Text scales within fixed columns, reserving
+        // seven-digit money fields even while the displayed amounts are smaller.
+        float innerW=width-16,innerH=height-16;
+        float left=Math.min(s.left,innerW*.08f),right=Math.min(s.right,innerW*.08f);
+        float top=Math.min(s.top,innerH*.12f),bottom=Math.min(s.bottom,innerH*.12f);
+        String status=WidgetRenderer.footer(d);
+        boolean showStatus=!status.isEmpty()&&height>=100;
+        float rowHeight=(innerH-top-bottom-(showStatus?13:0))/3;
+        float gap=Math.min(s.gap,Math.max(0,rowHeight*.15f));
+        int gauge=Math.max(1,Math.min(s.gauge,Math.round(rowHeight*.2f)));
+        float preferred=s.font*(float)Math.sqrt(Math.max(.25f,innerW/324f*innerH/110f));
+        float font=preferred,content=innerW-left-right;
+        Paint measure=new Paint();measure.setTypeface(Typeface.create("monospace",Typeface.NORMAL));measure.setTextSize(1);
+        float[] available={content*.16f-2,content*.29f-3,content*.03f,content*.29f-3,content*.23f-2};
+        String[] reserved={"Coupon","¥9,999,999","/","¥9,999,999","9999.99%"};
+        long[] values=d.values(),goals=d.goals();
+        for(int j=0;j<5;j++)font=Math.min(font,available[j]/measure.measureText(reserved[j]));
+        for(int i=0;i<3;i++){
+            font=Math.min(font,available[1]/measure.measureText(RevenueMath.money(values[i])));
+            font=Math.min(font,available[3]/measure.measureText(RevenueMath.money(goals[i])));
+            font=Math.min(font,available[4]/measure.measureText(RevenueMath.percent(values[i],goals[i])));
+        }
+        font=Math.max(1,Math.min(font,(rowHeight-gap-gauge-2)/1.3f));
+        Result result=new Result();result.font=font;
+        result.adjusted=font<preferred-.25f||gauge<s.gauge||gap<s.gap||left<s.left||right<s.right||top<s.top||bottom<s.bottom;
         RemoteViews rv=new RemoteViews(c.getPackageName(),R.layout.widget);result.views=rv;
-        WidgetLayout l=layout.layout;
-        rv.setViewPadding(R.id.widget_content,px(c,l.left),px(c,l.top),px(c,(width-16)-l.right),px(c,(height-16)-l.bottom));
+        rv.setViewPadding(R.id.widget_content,px(c,left),px(c,top),px(c,right),px(c,bottom));
         rv.setInt(R.id.widget_panel,"setBackgroundColor",(s.background&0xffffff)|(Math.round(s.opacity*2.55f)<<24));
         for(int edge:new int[]{R.id.edge_top,R.id.edge_bottom,R.id.edge_left,R.id.edge_right})rv.setInt(edge,"setBackgroundColor",s.text);
-        int[] colors={s.total,s.tiktok,s.coupon};long[] values=d.values(),goals=d.goals();
-        int gauge=Math.max(1,Math.min(s.gauge,Math.round(layout.rowHeight*.2f)));
+        int[] colors={s.total,s.tiktok,s.coupon};
         for(int i=0;i<3;i++){
             String[] texts={WidgetRenderer.LABELS[i],RevenueMath.money(values[i]),"/",RevenueMath.money(goals[i]),RevenueMath.percent(values[i],goals[i])};
             for(int j=0;j<5;j++){
                 rv.setTextViewText(TEXT[i][j],texts[j]);rv.setTextColor(TEXT[i][j],s.text);
                 rv.setTextViewTextSize(TEXT[i][j],TypedValue.COMPLEX_UNIT_DIP,result.font);
             }
-            rv.setViewPadding(ROW[i],0,0,0,i<2?px(c,Math.min(s.gap,height*.1f)):0);
+            rv.setViewPadding(ROW[i],0,0,0,i<2?px(c,gap):0);
             RemoteViews bar=new RemoteViews(c.getPackageName(),GAUGE[gauge-1]);
             bar.setImageViewBitmap(R.id.gauge_image,gauge(s.text,colors[i],RevenueMath.progress(values[i],goals[i])));
             rv.removeAllViews(HOLDER[i]);rv.addView(HOLDER[i],bar);
         }
-        rv.setTextViewText(R.id.widget_footer,WidgetRenderer.footer(d));rv.setTextColor(R.id.widget_footer,s.text);
-        rv.setViewVisibility(R.id.widget_footer,height>=100?View.VISIBLE:View.GONE);
+        rv.setTextViewText(R.id.widget_footer,status);rv.setTextColor(R.id.widget_footer,s.text);
+        rv.setViewVisibility(R.id.widget_footer,showStatus?View.VISIBLE:View.GONE);
         rv.setContentDescription(R.id.widget_root,WidgetRenderer.description(d));
         rv.setOnClickPendingIntent(R.id.widget_root,PendingIntent.getBroadcast(c,0,new Intent(c,RevenueWidget.class).setAction(RevenueWidget.REFRESH),PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE));
         return result;
