@@ -1,19 +1,19 @@
 {
   "applicationId": "com.aruno.foolquest.widget",
-  "version": "0.1.4",
-  "versionCode": 5,
+  "version": "0.1.5",
+  "versionCode": 6,
   "minSdk": 26,
   "targetSdk": 35,
-  "size": 46822,
-  "sha256": "fdfead94edf3f8a3e3c97eea899fb609b4571c1a8c0cca86b931a47132989cea",
+  "size": 51081,
+  "sha256": "4c21d43bf79ae5074767e21adfeb1c1c71f8db3dea4fa536a9c6120bea193b07",
   "certificateSha256": "18946d320bb61c58aa627abbf2b53ea521b273b218eaec57f7fbc662f375bdb1",
   "couponUpdate": "30-minute JobScheduler and manual tap",
   "tiktokUpdate": "read-only source browser snapshot; no automatic API exists",
   "changes": [
-    "Gauge thickness follows actual card height independently of font limits",
-    "Configured gauge thickness remains the baseline; unsafe heights are capped",
-    "No widget border in home view or previews",
-    "Same fixed numeric columns and no visible timestamps",
-    "Existing signing certificate, cache and update/data responsibilities retained"
+    "White native daily-target amount with black shadow at each gauge right edge",
+    "JST inclusive calendar-day proration of the existing monthly goal, ceiling to yen",
+    "No shortage calculation; unknown or stale-month target stays unknown",
+    "Readable gauge caption height; safe spacing adjustment; minimum resize height 100 dp",
+    "Existing revenue API, cache, signature, fixed numeric columns and no border retained"
   ]
 }
