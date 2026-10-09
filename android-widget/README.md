@@ -1,6 +1,6 @@
 # THE FOOL QUEST Android収益ウィジェット
 
-独立APK `com.aruno.foolquest.widget`、v0.1.1 / versionCode 2。Android 8.0以上。既存のTHE FOOL QUEST、ARUNOMATIC、Vault、Ledgerへの書き込みを行いません。
+独立APK `com.aruno.foolquest.widget`、v0.1.2 / versionCode 3。Android 8.0以上。既存のTHE FOOL QUEST、ARUNOMATIC、Vault、Ledgerへの書き込みを行いません。
 
 ## 現在のデータ責任
 
@@ -43,3 +43,11 @@ bash scripts/build.sh
 文字のすぐ下にゲージを置き、文字サイズと行間設定から行の高さを決定します。ホーム画面の空き高さに合わせて行を引き伸ばしません。Android 12以上ではランチャーから提供された実サイズごとのRemoteViewsを使用し、未対応ランチャーと旧Androidでは縦横のサイズを切り替えます。
 
 前のAPKと同じ署名、versionCode 2のため、アンインストールせずに更新できます。表示キャッシュと設定キーは維持します。
+
+## v0.1.2 実ランチャーの表示修正
+
+ホーム画面の文字・金額・達成率はAndroid標準TextViewを直接表示し、画像全体の縮小を廃止します。5つの固定欄（ステータス・現在額・スラッシュ・目標額・達成率）を3行すべて同じ割合で配分。設定プレビューも同じRemoteViewsを適用します。
+
+ランチャーのOPTION_APPWIDGET_SIZESによるビットマップ候補切り替えは使用しません。画面幅と最小幅から安全な共通文字サイズを計算し、実際の欄幅は標準LinearLayoutが決めます。外周8dpで角による欠けを防止。初期5×2を維持し、最小リサイズ高さを65dpに変更して縦方向を縮められる範囲を増やします。ホームアプリが確保する配置セル数そのものはアプリから変更できません。
+
+背景・細枠は標準View、ゲージだけ軽量ビットマップ。versionCode 3、同じ署名。データ連携・保存済み設定・定期更新の処理は変更なし。
