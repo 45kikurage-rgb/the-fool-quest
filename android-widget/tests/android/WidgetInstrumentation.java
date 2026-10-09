@@ -53,6 +53,7 @@ public class WidgetInstrumentation extends Instrumentation {
         });
         android.graphics.Bitmap bitmap=android.graphics.Bitmap.createBitmap(tree[0].getWidth(),tree[0].getHeight(),android.graphics.Bitmap.Config.ARGB_8888);
         runOnMainSync(()->tree[0].draw(new android.graphics.Canvas(bitmap)));
+        png(bitmap,name);
         // A width check alone can pass when an unattached TextView has not drawn its text.
         for(int col:new int[]{1,3,4}){
             android.widget.TextView text=tree[0].findViewById(NativeWidgetViews.TEXT[0][col]);
@@ -61,7 +62,7 @@ public class WidgetInstrumentation extends Instrumentation {
                 for(int x=Math.max(0,position[0]-origin[0]+2);x<Math.min(bitmap.getWidth(),position[0]-origin[0]+text.getWidth()-2);x++){
                     int color=bitmap.getPixel(x,y);if(android.graphics.Color.alpha(color)>0&&Math.abs(android.graphics.Color.red(color)-android.graphics.Color.red(settings.text))<50&&Math.abs(android.graphics.Color.green(color)-android.graphics.Color.green(settings.text))<50&&Math.abs(android.graphics.Color.blue(color)-android.graphics.Color.blue(settings.text))<50)ink++;
                 }
-            ok(ink>4,"current goal percent glyphs are actually drawn");
+            ok(ink>4,"current goal percent glyphs are actually drawn: "+name+" col="+col+" ink="+ink+" bounds="+java.util.Arrays.toString(position)+" size="+text.getWidth()+"x"+text.getHeight()+" baseline="+text.getBaseline()+" scroll="+text.getScrollX()+","+text.getScrollY());
         }
         png(bitmap,name);
     }
