@@ -61,9 +61,15 @@ jobs:
             mkdir -p android-widget/build/native-results
             adb shell am instrument -w com.aruno.foolquest.widget.test/com.aruno.foolquest.widget.WidgetInstrumentation | tee android-widget/build/native-results/instrumentation.txt
             grep -q 'PASS .* native Android checks' android-widget/build/native-results/instrumentation.txt
+            adb wait-for-device
+            adb pull /sdcard/Android/data/com.aruno.foolquest.widget/files/verification android-widget/build/native-results/
+            adb wait-for-device
             adb shell svc wifi disable
+            adb wait-for-device
             adb shell svc data disable
+            adb wait-for-device
             adb shell cmd connectivity airplane-mode enable
+            adb wait-for-device
             adb shell am instrument -w -e mode offline com.aruno.foolquest.widget.test/com.aruno.foolquest.widget.WidgetInstrumentation | tee android-widget/build/native-results/offline.txt
             grep -q 'PASS .* native offline checks' android-widget/build/native-results/offline.txt
             adb reboot

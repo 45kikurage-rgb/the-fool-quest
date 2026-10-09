@@ -27,6 +27,7 @@ public final class RevenueWidget extends AppWidgetProvider {
         float screen=c.getResources().getDisplayMetrics().widthPixels/c.getResources().getDisplayMetrics().density;
         int w=Math.min(o.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,340),Math.round(screen));
         int h=o.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,130);
+        if(w<=0)w=Math.round(screen)>0?Math.round(screen):340;if(h<=0)h=130;
         NativeWidgetViews.Result result=NativeWidgetViews.create(c,d,s,w,h);
         m.updateAppWidget(id,result.views);
     }

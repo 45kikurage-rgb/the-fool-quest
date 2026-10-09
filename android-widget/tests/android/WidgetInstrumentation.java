@@ -63,6 +63,11 @@ public class WidgetInstrumentation extends Instrumentation {
         try{
             c=getTargetContext();output=new File(c.getExternalFilesDir(null),"verification");output.mkdirs();
             if("offline".equals(args.getString("mode"))){
+                android.net.ConnectivityManager connectivity=c.getSystemService(android.net.ConnectivityManager.class);
+                for(int n=0;n<100&&connectivity.getActiveNetwork()!=null;n++)Thread.sleep(200);
+                ok(connectivity.getActiveNetwork()==null,"offline fixture has no active network");
+                for(int n=0;n<50&&RevenueUpdate.busy();n++)Thread.sleep(100);
+                ok(!RevenueUpdate.busy(),"previous update finished before offline snapshot");
                 RevenueStore.Data before=RevenueStore.read(c);CountDownLatch latch=new CountDownLatch(1);
                 RevenueUpdate.start(c,latch::countDown);ok(latch.await(20,TimeUnit.SECONDS),"offline request finished");
                 RevenueStore.Data after=RevenueStore.read(c);ok(after.coupon==before.coupon&&after.couponAt==before.couponAt,"offline keeps good amount and timestamp");ok(!after.error.isEmpty(),"offline error is visible");
