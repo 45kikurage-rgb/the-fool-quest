@@ -1,19 +1,19 @@
 {
   "applicationId": "com.aruno.foolquest.widget",
-  "version": "0.1.5",
-  "versionCode": 6,
+  "version": "0.1.6",
+  "versionCode": 7,
   "minSdk": 26,
   "targetSdk": 35,
-  "size": 51081,
-  "sha256": "4c21d43bf79ae5074767e21adfeb1c1c71f8db3dea4fa536a9c6120bea193b07",
+  "size": 50990,
+  "sha256": "e9ea3eae6e503710bdb476565dff679e42cf1e59fece1a8591c460e46ef963ff",
   "certificateSha256": "18946d320bb61c58aa627abbf2b53ea521b273b218eaec57f7fbc662f375bdb1",
   "couponUpdate": "30-minute JobScheduler and manual tap",
   "tiktokUpdate": "read-only source browser snapshot; no automatic API exists",
   "changes": [
-    "White native daily-target amount with black shadow at each gauge right edge",
-    "JST inclusive calendar-day proration of the existing monthly goal, ceiling to yen",
-    "No shortage calculation; unknown or stale-month target stays unknown",
-    "Readable gauge caption height; safe spacing adjustment; minimum resize height 100 dp",
-    "Existing revenue API, cache, signature, fixed numeric columns and no border retained"
+    "Restore v0.1.4 geometry and gauge thickness; remove embedded daily-target amounts",
+    "Match site daily pace colors: green #31D158 at >=100%, yellow #FFD43B at >=50%, red #FF4545 below 50%",
+    "Inclusive JST calendar-day target used internally; monthly percent and fill length unchanged",
+    "Unknown or stale-month data uses neutral gray; saved custom colors remain available with pace colors off",
+    "Minimum resize height restored to 65 dp; original signature, fixed columns, cache, no border and no times retained"
   ]
 }
