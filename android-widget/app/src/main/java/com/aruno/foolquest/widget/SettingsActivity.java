@@ -47,10 +47,10 @@ public final class SettingsActivity extends Activity {
     private void build(){
         colors.clear();ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.setFitsSystemWindows(true);
         body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);body.setPadding(dp(18),dp(24),dp(18),dp(28));body.setBackgroundColor(0xfff6f5f2);scroll.addView(body);setContentView(scroll);
-        body.addView(text("THE FOOL QUEST",24));body.addView(text("収益ウィジェット 0.1.0",14));
+        body.addView(text("THE FOOL QUEST",24));body.addView(text("収益ウィジェット 0.1.1",14));
         description=text("",12);body.addView(description);
-        preview=new ImageView(this);preview.setScaleType(ImageView.ScaleType.FIT_XY);
-        body.addView(preview,new LinearLayout.LayoutParams(-1,dp(126)));
+        preview=new ImageView(this);preview.setScaleType(ImageView.ScaleType.FIT_START);preview.setAdjustViewBounds(true);
+        body.addView(preview,new LinearLayout.LayoutParams(-1,-2));
         preview.addOnLayoutChangeListener((v,a,b,c,d,e,f,g,h)->updatePreview());
         warning=text("",12);warning.setTextColor(0xff9b4100);body.addView(warning);
         body.addView(text("プレビューは即時反映。ホーム画面には「設定を保存」で反映します。設定はすべての同種ウィジェットに共通です。",12));

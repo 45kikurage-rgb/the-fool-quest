@@ -19,6 +19,7 @@ public class RevenueMathTest {
         for(int width:new int[]{280,320,360,400,500})for(int height:new int[]{100,110,126,150,200}){
             WidgetLayout l=new WidgetLayout(width,height,8,8,6,6,5);
             ok(l.left<l.labelEnd&&l.labelEnd<l.amountEnd&&l.amountEnd<l.right);ok(l.rowHeight>0);ok(l.amountWidth()>0&&l.percentWidth()>0);
+            ok(l.currentEnd<l.slashCenter&&l.slashCenter<l.goalEnd);ok(l.moneyWidth()>0);
             // Cash amounts never participate in column allocation.
             WidgetLayout same=new WidgetLayout(width,height,8,8,6,6,5);eq(l.amountEnd,same.amountEnd);
         }

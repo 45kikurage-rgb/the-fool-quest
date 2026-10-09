@@ -7,6 +7,11 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Build;
+import android.util.SizeF;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import android.widget.RemoteViews;
 
 public final class RevenueWidget extends AppWidgetProvider {
@@ -19,14 +24,32 @@ public final class RevenueWidget extends AppWidgetProvider {
     }
     private static void render(Context c,AppWidgetManager m,int id,RevenueStore.Data d,DisplaySettings s){
         Bundle o=m.getAppWidgetOptions(id);
-        int w=o.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,340),h=o.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,130);
+        if(Build.VERSION.SDK_INT>=31) {
+            ArrayList<SizeF> sizes=o.getParcelableArrayList(AppWidgetManager.OPTION_APPWIDGET_SIZES);
+            if(sizes!=null&&!sizes.isEmpty()) {
+                Map<SizeF,RemoteViews> views=new LinkedHashMap<>();
+                for(SizeF size:sizes) {
+                    if(size.getWidth()>0&&size.getHeight()>0&&views.size()<4)
+                        views.put(size,views(c,d,s,Math.round(size.getWidth()),Math.round(size.getHeight())));
+                }
+                if(!views.isEmpty()){m.updateAppWidget(id,new RemoteViews(views));return;}
+            }
+        }
+        int pw=o.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,340),ph=o.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,130);
+        int lw=o.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH,pw),lh=o.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT,ph);
+        RemoteViews portrait=views(c,d,s,pw,ph);
+        m.updateAppWidget(id,lw>0&&lh>0&&(lw!=pw||lh!=ph)?new RemoteViews(views(c,d,s,lw,lh),portrait):portrait);
+    }
+    private static RemoteViews views(Context c,RevenueStore.Data d,DisplaySettings s,int w,int h){
         if(w<=0)w=340;if(h<=0)h=130;
         RemoteViews rv=new RemoteViews(c.getPackageName(),R.layout.widget);
-        rv.setImageViewBitmap(R.id.widget_image,WidgetRenderer.render(c,d,s,w,h).bitmap);
+        WidgetRenderer.Render rendered=WidgetRenderer.render(c,d,s,w,h);
+        rv.setImageViewBitmap(R.id.widget_image,rendered.bitmap);
+        if(Build.VERSION.SDK_INT>=31)rv.setViewLayoutHeight(R.id.widget_image,(float)Math.ceil(rendered.panelHeight),android.util.TypedValue.COMPLEX_UNIT_DIP);
         rv.setContentDescription(R.id.widget_image,WidgetRenderer.description(d));
         Intent i=new Intent(c,RevenueWidget.class).setAction(REFRESH);
         rv.setOnClickPendingIntent(R.id.widget_root,PendingIntent.getBroadcast(c,0,i,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE));
-        m.updateAppWidget(id,rv);
+        return rv;
     }
     @Override public void onReceive(Context c,Intent i){
         if(REFRESH.equals(i.getAction())){

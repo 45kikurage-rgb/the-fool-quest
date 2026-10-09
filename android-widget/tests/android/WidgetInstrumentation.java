@@ -12,6 +12,7 @@ import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
+import java.util.ArrayList;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.concurrent.CountDownLatch;
@@ -53,9 +54,22 @@ public class WidgetInstrumentation extends Instrumentation {
             for(int width:new int[]{280,320,360,400,500})for(int height:new int[]{100,110,126,150}){
                 WidgetRenderer.Render r=WidgetRenderer.render(c,d,s,width,height);WidgetLayout l=new WidgetLayout(width,height,s.left,s.right,s.top,s.bottom,s.gap);p.setTextSize(r.font);
                 ok(p.measureText("Coupon")<=l.labelWidth()+.1,"label fits");
-                ok(p.measureText("¥9,999,999/¥9,999,999")<=l.amountWidth()+.1,"7 digit money fits");
+                ok(p.measureText("¥9,999,999")<=l.moneyWidth()+.1,"7 digit individual money fields fit");
                 ok(p.measureText("9999.99%")<=l.percentWidth()+.1,"percent fits");
                 if(height==126)png(r.bitmap,"native-"+width+"x"+height+"-dummy");
+            }
+            // Screenshot from the physical phone exposed spacing and slash movement.
+            d.tiktok=21649;d.coupon=322990;d.goalTotal=1200000;d.goalTiktok=600000;d.goalCoupon=600000;
+            WidgetRenderer.Render compact=WidgetRenderer.render(c,d,s,340,196);
+            png(compact.bitmap,"native-compact-user-values");
+            ok(compact.panelHeight<110,"tall widget stays compact");
+            ok(compact.rowHeight<30,"gauge stays immediately below text");
+            for(long v:new long[]{1,999,21649,344639,1000000,9999999}){
+                d.tiktok=v;d.coupon=v;d.goalTiktok=v;d.goalCoupon=v;
+                WidgetRenderer.Render r=WidgetRenderer.render(c,d,s,340,196);
+                ok(r.layout.currentEnd==compact.layout.currentEnd&&r.layout.slashCenter==compact.layout.slashCenter&&r.layout.goalEnd==compact.layout.goalEnd,"current slash goal columns do not move with digits");
+                ok(r.font==compact.font,"seven digit inputs preserve font cell width");
+                png(r.bitmap,"native-fixed-money-"+v);
             }
             d.tiktok=9999999;d.coupon=9999999;d.goalTotal=1000000;d.goalTiktok=1000000;d.goalCoupon=1000000;
             png(WidgetRenderer.render(c,d,s,360,126).bitmap,"native-seven-digits-over100");
@@ -84,7 +98,9 @@ public class WidgetInstrumentation extends Instrumentation {
                 android.widget.FrameLayout.LayoutParams lp=new android.widget.FrameLayout.LayoutParams(densityWidth,densityHeight);lp.gravity=android.view.Gravity.CENTER;
                 frame.addView(view[0],lp);activity.setContentView(frame);
             });
-            Bundle dimensions=new Bundle();dimensions.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,hostWidth);dimensions.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,126);manager.updateAppWidgetOptions(id,dimensions);
+            Bundle dimensions=new Bundle();dimensions.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,hostWidth);dimensions.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,126);
+            ArrayList<android.util.SizeF> exactSizes=new ArrayList<>();exactSizes.add(new android.util.SizeF(hostWidth,126));
+            dimensions.putParcelableArrayList(AppWidgetManager.OPTION_APPWIDGET_SIZES,exactSizes);manager.updateAppWidgetOptions(id,dimensions);
             RevenueWidget.renderAll(c);waitForIdleSync();Thread.sleep(700);png(getUiAutomation().takeScreenshot(),"native-widget-host-live");
             java.lang.reflect.Field busyField=RevenueUpdate.class.getDeclaredField("BUSY");busyField.setAccessible(true);
             java.util.concurrent.atomic.AtomicBoolean gate=(java.util.concurrent.atomic.AtomicBoolean)busyField.get(null);
@@ -95,7 +111,7 @@ public class WidgetInstrumentation extends Instrumentation {
             runOnMainSync(()->{ok(view[0].findViewById(R.id.widget_root)!=null,"production RemoteViews applied");view[0].findViewById(R.id.widget_root).performClick();});
             for(int n=0;n<100&&RevenueStore.read(c).couponAt<=beforeTap;n++)Thread.sleep(100);
             ok(RevenueStore.read(c).couponAt>beforeTap,"normal widget tap updates API timestamp");
-            dimensions.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,280);dimensions.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,100);manager.updateAppWidgetOptions(id,dimensions);
+            dimensions.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,280);dimensions.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,100);exactSizes.clear();exactSizes.add(new android.util.SizeF(280,100));dimensions.putParcelableArrayList(AppWidgetManager.OPTION_APPWIDGET_SIZES,exactSizes);manager.updateAppWidgetOptions(id,dimensions);
             runOnMainSync(()->{android.view.ViewGroup.LayoutParams lp=view[0].getLayoutParams();lp.width=Math.round(280*activity.getResources().getDisplayMetrics().density);lp.height=Math.round(100*activity.getResources().getDisplayMetrics().density);view[0].setLayoutParams(lp);});
             Thread.sleep(700);png(getUiAutomation().takeScreenshot(),"native-widget-host-resized");host.stopListening();runOnMainSync(activity::finish);
             result.putString("stream","PASS "+checks+" native Android checks; Coupon "+live.coupon+"; screenshots "+output);
