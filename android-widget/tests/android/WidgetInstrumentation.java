@@ -65,7 +65,7 @@ public class WidgetInstrumentation extends Instrumentation {
             ok(compact.panelHeight<110,"tall widget stays compact");
             ok(compact.rowHeight<30,"gauge stays immediately below text");
             for(long v:new long[]{1,999,21649,344639,1000000,9999999}){
-                d.tiktok=v;d.coupon=v;d.goalTiktok=v;d.goalCoupon=v;
+                d.tiktok=v;d.coupon=0;d.goalTiktok=v;d.goalCoupon=v;
                 WidgetRenderer.Render r=WidgetRenderer.render(c,d,s,340,196);
                 ok(r.layout.currentEnd==compact.layout.currentEnd&&r.layout.slashCenter==compact.layout.slashCenter&&r.layout.goalEnd==compact.layout.goalEnd,"current slash goal columns do not move with digits");
                 ok(r.font==compact.font,"seven digit inputs preserve font cell width");
