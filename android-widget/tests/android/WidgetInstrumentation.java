@@ -271,7 +271,7 @@ public class WidgetInstrumentation extends Instrumentation {
             scheduler.schedule(new android.app.job.JobInfo.Builder(RevenueJob.MANUAL,new ComponentName(c,RevenueJob.class)).setMinimumLatency(60000).setOverrideDeadline(120000).build());
             ok(scheduler.getPendingJob(RevenueJob.MANUAL)!=null,"delayed background job fixture queued");
             CountDownLatch tapBlockEntered=new CountDownLatch(1),releaseTap=new CountDownLatch(1);
-            executor.execute(()->{tapBlockEntered.countDown();try{releaseTap.await(40,TimeUnit.SECONDS);}catch(InterruptedException e){Thread.currentThread().interrupt();}});
+            executor.execute(()->{tapBlockEntered.countDown();try{releaseTap.await(120,TimeUnit.SECONDS);}catch(InterruptedException e){Thread.currentThread().interrupt();}});
             ok(tapBlockEntered.await(2,TimeUnit.SECONDS),"tap executor fixture active");
             ActivityMonitor tapMonitor=addMonitor(RefreshActivity.class.getName(),null,false);
             final android.view.View touchSurface=((android.view.ViewGroup)activity.findViewById(android.R.id.content)).getChildAt(0);
@@ -280,7 +280,8 @@ public class WidgetInstrumentation extends Instrumentation {
             pointerTap(40,400);
             ok(touches.get()==1,"host pointer fixture receives input before refresh");touches.set(0);
             long beforeTap=RevenueStore.read(c).couponAt;
-            runOnMainSync(()->{ok(view[0].findViewById(R.id.widget_root)!=null,"production RemoteViews applied");view[0].findViewById(R.id.widget_root).performClick();});
+            long tapTestStarted=android.os.SystemClock.uptimeMillis();
+            runOnMainSync(()->{ok(view[0].findViewById(R.id.widget_root)!=null,"production RemoteViews applied");ok(view[0].findViewById(R.id.widget_root).performClick(),"initial production widget tap is handled");});
             Activity refresh=waitForMonitorWithTimeout(tapMonitor,5000);
             ok(refresh!=null,"actual widget PendingIntent opens foreground refresh activity");
             waitForIdleSync();
@@ -326,14 +327,16 @@ public class WidgetInstrumentation extends Instrumentation {
             pointerTap(40,400);
             ok(touches.get()==1,"underlying home host receives actual touches during refresh; observed="+touches.get()+"; focus="+activity.hasWindowFocus());
             runOnMainSync(()->touchSurface.setOnTouchListener(null));
+            removeMonitor(tapMonitor);
+            ActivityMonitor repeatMonitor=addMonitor(RefreshActivity.class.getName(),null,false);
             // Use the actual RemoteViews click path again; a raw PendingIntent
             // send does not carry the launcher's background-start options.
-            runOnMainSync(()->view[0].findViewById(R.id.widget_root).performClick());
-            Activity repeated=waitForMonitorWithTimeout(tapMonitor,500);
+            runOnMainSync(()->ok(view[0].findViewById(R.id.widget_root).performClick(),"repeated production widget tap is handled"));
+            Activity repeated=waitForMonitorWithTimeout(repeatMonitor,500);
             // Android may suppress an additional behind launch while the first
             // request is active. Ignoring that tap is valid duplicate prevention.
             waitForIdleSync();Thread.sleep(150);
-            ok(RevenueUpdate.busy()&&!refresh.isFinishing(),"repeated tap does not close ongoing refresh");
+            ok(RevenueUpdate.busy()&&!refresh.isFinishing(),"repeated tap does not close ongoing refresh; busy="+RevenueUpdate.busy()+"; finishing="+refresh.isFinishing()+"; destroyed="+refresh.isDestroyed()+"; elapsed="+(android.os.SystemClock.uptimeMillis()-tapTestStarted));
             ok(activity.hasWindowFocus()&&(repeated==null||!repeated.hasWindowFocus()),"repeated behind launch also preserves host focus");
             CountDownLatch tapDone=new CountDownLatch(1);RevenueUpdate.start(c,tapDone::countDown);
             ok(!tapDone.await(100,TimeUnit.MILLISECONDS),"observer waits for same tap request");
@@ -348,18 +351,20 @@ public class WidgetInstrumentation extends Instrumentation {
             ok(RevenueStore.read(c).error.isEmpty(),"foreground refresh finishes without error");
             ok(scheduler.getPendingJob(RevenueJob.MANUAL)==null,"tap completion leaves no duplicate manual job");
             waitForIdleSync();Thread.sleep(200);png(getUiAutomation().takeScreenshot(),"native-tap-complete");
+            removeMonitor(repeatMonitor);
+            ActivityMonitor nextMonitor=addMonitor(RefreshActivity.class.getName(),null,false);
             // A tap after completion must start a fresh request, not be stuck on
             // the retired behind task. Exercise the production click path again.
             long beforeNextTap=RevenueStore.read(c).couponAt;
-            runOnMainSync(()->view[0].findViewById(R.id.widget_root).performClick());
-            Activity next=waitForMonitorWithTimeout(tapMonitor,5000);
+            runOnMainSync(()->ok(view[0].findViewById(R.id.widget_root).performClick(),"next production widget tap is handled"));
+            Activity next=waitForMonitorWithTimeout(nextMonitor,5000);
             ok(next!=null&&next!=refresh,"next normal widget tap opens a fresh behind task");
             CountDownLatch nextDone=new CountDownLatch(1);RevenueUpdate.start(c,nextDone::countDown);
             ok(nextDone.await(35,TimeUnit.SECONDS),"next normal widget tap completes");
             for(int n=0;n<100&&!next.isDestroyed();n++)Thread.sleep(100);
             ok(next.isDestroyed()&&RevenueStore.read(c).couponAt>beforeNextTap&&RevenueStore.read(c).error.isEmpty(),"fresh widget tap advances API timestamp and closes");
             ok(activity.hasWindowFocus(),"home host retains focus after successive completed updates");
-            removeMonitor(tapMonitor);
+            removeMonitor(nextMonitor);
             dimensions.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,280);dimensions.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,100);exactSizes.clear();exactSizes.add(new android.util.SizeF(280,100));dimensions.putParcelableArrayList(AppWidgetManager.OPTION_APPWIDGET_SIZES,exactSizes);manager.updateAppWidgetOptions(id,dimensions);
             runOnMainSync(()->{android.view.ViewGroup.LayoutParams lp=view[0].getLayoutParams();lp.width=Math.round(280*activity.getResources().getDisplayMetrics().density);lp.height=Math.round(100*activity.getResources().getDisplayMetrics().density);view[0].setLayoutParams(lp);});
             Thread.sleep(700);png(getUiAutomation().takeScreenshot(),"native-widget-host-resized");host.stopListening();runOnMainSync(activity::finish);
