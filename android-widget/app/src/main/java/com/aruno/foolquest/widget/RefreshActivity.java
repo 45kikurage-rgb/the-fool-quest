@@ -1,6 +1,7 @@
 package com.aruno.foolquest.widget;
 
 import android.app.Activity;
+import android.app.ActivityOptions;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -10,19 +11,19 @@ import android.view.Gravity;
 import android.view.WindowManager;
 import android.view.View;
 
-/** User-initiated fetch, using the same foreground path as the settings screen. */
+/** User-initiated direct fetch in a task launched behind the user's home. */
 public final class RefreshActivity extends Activity {
     static PendingIntent tapIntent(Context c) {
-        Intent intent=new Intent(c,RefreshActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        return PendingIntent.getActivity(c,1,intent,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
+        Intent intent=new Intent(c,RefreshActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_NEW_DOCUMENT|Intent.FLAG_ACTIVITY_MULTIPLE_TASK|Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        return PendingIntent.getActivity(c,1,intent,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE,ActivityOptions.makeTaskLaunchBehind().toBundle());
     }
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         setFinishOnTouchOutside(false);
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
         getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(Color.TRANSPARENT));
-        // Keep the same user-triggered Activity lifetime, without drawing a float
-        // or consuming the launcher's input. Alpha=0 also permits cross-UID touch
+        // Launch behind the home task, without drawing a float or taking input.
+        // Alpha=0 also permits cross-UID touch
         // pass-through on Android 12+, unlike merely transparent view content.
         View content=new View(this);content.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
         setContentView(content);
@@ -36,6 +37,5 @@ public final class RefreshActivity extends Activity {
             if(!isFinishing()&&!isDestroyed()){finishAndRemoveTask();overridePendingTransition(0,0);}
         }));
     }
-    // singleTask keeps repeated taps attached to this request; no duplicate fetch.
-    @Override protected void onNewIntent(Intent intent){super.onNewIntent(intent);}
+    // Repeated behind-task launches join RevenueUpdate's single in-flight fetch.
 }

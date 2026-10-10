@@ -291,6 +291,7 @@ public class WidgetInstrumentation extends Instrumentation {
             ok((quiet.flags&android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)!=0,"refresh window cannot intercept home touches");
             ok((quiet.flags&android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE)!=0,"refresh window does not steal key input");
             ok(!refresh.hasWindowFocus(),"quiet refresh does not take focus from widget host");
+            ok(activity.hasWindowFocus(),"behind launch preserves the user's host focus");
             // Starting a separate task may pause the host Activity even though its
             // window remains visible. Verify compositor pixels and routed input
             // instead of mistaking Activity focus for launcher touch delivery.
@@ -325,15 +326,20 @@ public class WidgetInstrumentation extends Instrumentation {
             pointerTap(40,400);
             ok(touches.get()==1,"underlying home host receives actual touches during refresh; observed="+touches.get()+"; focus="+activity.hasWindowFocus());
             runOnMainSync(()->touchSurface.setOnTouchListener(null));
-            runOnMainSync(()->refresh.startActivity(new Intent(refresh,RefreshActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)));
+            RefreshActivity.tapIntent(c).send();
+            Activity repeated=waitForMonitorWithTimeout(tapMonitor,5000);
+            ok(repeated!=null&&repeated!=refresh,"repeated real widget tap creates a behind task");
             waitForIdleSync();Thread.sleep(150);
             ok(RevenueUpdate.busy()&&!refresh.isFinishing(),"repeated tap does not close ongoing refresh");
+            ok(activity.hasWindowFocus()&&!repeated.hasWindowFocus(),"repeated behind launch also preserves host focus");
             CountDownLatch tapDone=new CountDownLatch(1);RevenueUpdate.start(c,tapDone::countDown);
             ok(!tapDone.await(100,TimeUnit.MILLISECONDS),"observer waits for same tap request");
             releaseTap.countDown();
             ok(tapDone.await(35,TimeUnit.SECONDS),"quiet foreground tap fetch completes");
             for(int n=0;n<100&&!refresh.isDestroyed();n++)Thread.sleep(100);
             ok(refresh.isDestroyed(),"refresh task closes automatically after fetch");
+            for(int n=0;n<100&&!repeated.isDestroyed();n++)Thread.sleep(100);
+            ok(repeated.isDestroyed(),"coalesced behind task also closes after fetch");
             ok(!activity.isFinishing()&&!activity.isDestroyed(),"settings host task survives refresh completion");
             removeMonitor(tapMonitor);
             ok(RevenueStore.read(c).couponAt>beforeTap,"normal widget tap updates API timestamp through foreground path");
