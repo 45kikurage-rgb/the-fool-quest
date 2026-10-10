@@ -77,6 +77,10 @@ public class WidgetInstrumentation extends Instrumentation {
                 int expected=settings.gaugeColor(data.values()[row],data.goals()[row],data.month,System.currentTimeMillis(),fixed[row]);
                 float progress=RevenueMath.progress(data.values()[row],data.goals()[row]);
                 if(progress>0)ok(fill.getPixel(0,0)==expected,"actual native gauge pixel uses daily pace palette");
+                 if(name.equals("native-second-lap-115-percent") && row==0){
+                     ok(fill.getPixel(fill.getWidth()/10,0)==DisplaySettings.OVER_GOAL_GREEN,"115% first 10% of native gauge is dark green");
+                     ok(fill.getPixel(fill.getWidth()/5,0)!=DisplaySettings.OVER_GOAL_GREEN,"115% native gauge stops before 20% rather than filling to 100%");
+                 }
                 ok(result[0].gauge<=48,"v0.1.4 gauge keeps its original height limit");
             }
         });
@@ -199,6 +203,21 @@ public class WidgetInstrumentation extends Instrumentation {
             ok(palette.gaugeColor(paceData.tiktok,paceData.goalTiktok,month,System.currentTimeMillis(),palette.tiktok)==0xffffd43b,"site yellow between half and daily target");
             ok(palette.gaugeColor(paceData.coupon,paceData.goalCoupon,month,System.currentTimeMillis(),palette.coupon)==0xffff4545,"site red below half daily target");
             nativeTextLayout(paceData,palette,360,126,320,"native-pace-three-colors");
+            // The percentage stays cumulative, while the colored fill restarts at 15%.
+            RevenueStore.Data secondLap=RevenueStore.read(c);
+            secondLap.month=month;secondLap.tiktok=1150000;secondLap.coupon=0;
+            secondLap.goalTotal=1000000;secondLap.goalTiktok=1000000;secondLap.goalCoupon=1000000;
+            secondLap.importAt=System.currentTimeMillis();secondLap.couponAt=secondLap.importAt;
+            secondLap.loading=false;secondLap.error="";
+            ok(RevenueMath.percent(secondLap.values()[0],secondLap.goals()[0]).equals("115.00%"),"native text keeps cumulative 115%");
+            ok(RevenueMath.progress(secondLap.values()[0],secondLap.goals()[0])==.15f,"native gauge starts second lap at 15%");
+            ok(palette.gaugeColor(secondLap.values()[0],secondLap.goals()[0],month,System.currentTimeMillis(),palette.total)==DisplaySettings.OVER_GOAL_GREEN,"over 100% uses dark green");
+            nativeTextLayout(secondLap,palette,360,126,320,"native-second-lap-115-percent");
+            secondLap.tiktok=2000000;
+            ok(RevenueMath.percent(secondLap.values()[0],secondLap.goals()[0]).equals("200.00%"),"native text keeps cumulative 200%");
+            ok(RevenueMath.progress(secondLap.values()[0],secondLap.goals()[0])==1f,"completed 200% lap shows full gauge");
+            secondLap.month="2000-01";
+            ok(palette.gaugeColor(secondLap.values()[0],secondLap.goals()[0],secondLap.month,System.currentTimeMillis(),palette.total)==0xff888888,"stale overflow does not falsely display dark green");
             palette.paceColors=false;palette.total=0xff112233;palette.tiktok=0xff445566;palette.coupon=0xff778899;
             nativeTextLayout(paceData,palette,360,126,320,"native-pace-off-custom");
             palette.save(RevenueStore.prefs(c));ok(!DisplaySettings.load(RevenueStore.prefs(c)).paceColors,"progress-color preference persists");

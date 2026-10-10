@@ -10,7 +10,22 @@ public class RevenueMathTest {
     public static void main(String[] args){
         eq(RevenueMath.money(1000000),"¥1,000,000");eq(RevenueMath.money(9999999),"¥9,999,999");eq(RevenueMath.money(15),"¥15");eq(RevenueMath.money(-1),"—");
         eq(RevenueMath.percent(1000000,1000000),"100.00%");eq(RevenueMath.percent(1234567,1000000),"123.46%");eq(RevenueMath.percent(10000000,1),"1000000000.00%");eq(RevenueMath.percent(-1,500000),"—%");
-        eq(RevenueMath.progress(1000001,1000000),1f);eq(RevenueMath.progress(500000,1000000),.5f);eq(RevenueMath.progress(-1,1000000),0f);
+        eq(RevenueMath.percent(1380000,1200000),"115.00%");
+        eq(RevenueMath.percent(2400000,1200000),"200.00%");
+        eq(RevenueMath.progress(500000,1000000),.5f);
+        eq(RevenueMath.progress(1000000,1000000),1f);
+        eq(RevenueMath.progress(1150000,1000000),.15f);
+        eq(RevenueMath.progress(1380000,1200000),.15f);
+        eq(RevenueMath.progress(2000000,1000000),1f);
+        eq(RevenueMath.progress(2150000,1000000),.15f);
+        eq(RevenueMath.progress(1000001,1000000),.000001f);
+        eq(RevenueMath.progress(-1,1000000),0f);
+        eq(RevenueMath.progress(500000,0),0f);
+        eq(RevenueMath.progress(0,1000000),0f);
+        eq(RevenueMath.progress(RevenueMath.MAX_YEN,RevenueMath.MAX_YEN),1f);
+        ok(!RevenueMath.beyondGoal(1000000,1000000));
+        ok(RevenueMath.beyondGoal(1150000,1000000));
+        ok(!RevenueMath.beyondGoal(-1,1000000));
         eq(RevenueMath.total(500000,302990),802990L);eq(RevenueMath.total(-1,302990),-1L);eq(RevenueMath.total(RevenueMath.MAX_YEN,1),-1L);
         eq(RevenueMath.month(Instant.parse("2026-09-30T14:59:59Z").toEpochMilli()),"2026-09");eq(RevenueMath.month(Instant.parse("2026-09-30T15:00:00Z").toEpochMilli()),"2026-10");
         long ninth=Instant.parse("2026-10-09T04:00:00Z").toEpochMilli();
