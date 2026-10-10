@@ -19,8 +19,17 @@ public final class RevenueMath {
     public static String percent(long value, long goal) {
         return value < 0 || goal <= 0 ? "—%" : String.format(Locale.US, "%.2f%%", (double)value / goal * 100);
     }
+    /** A completed first lap is full; values above 100% start another lap. */
+    public static boolean beyondGoal(long value,long goal) {
+        return goal > 0 && value > goal && value <= MAX_YEN;
+    }
     public static float progress(long value, long goal) {
-        return value < 0 || goal <= 0 ? 0 : (float)Math.min(1d, (double)value / goal);
+        if (value < 0 || goal <= 0) return 0f;
+        if (value <= goal) return (float)((double)value / goal);
+        // At exact multiples (200%, 300%, ...), show the completed lap full.
+        // Use remainder arithmetic to avoid overflow for large yen amounts.
+        long remainder = value % goal;
+        return remainder == 0 ? 1f : (float)((double)remainder / goal);
     }
     /** Inclusive JST day, ceiling to yen; stale-month data has no current-day target. */
     public static long targetThroughToday(String displayedMonth,long monthlyGoal,long time) {
