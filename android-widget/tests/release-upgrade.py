@@ -19,9 +19,12 @@ def prefs():
     root = ET.fromstring(adb('shell', 'cat', PREFS))
     return {e.attrib['name']: e.attrib.get('value', e.text or '') for e in root}
 
-def check_preserved():
+def check_preserved(after_fetch=False):
     actual = prefs()
     for name, value in expected.items():
+        if after_fetch and name == 'lastFailureAt':
+            assert int(actual[name]) >= int(value)
+            continue
         assert actual.get(name) == value, (name, actual.get(name), value)
 
 adb('root')
@@ -65,7 +68,8 @@ adb('shell', 'restorecon', '-RF', '/data/user/0/' + PACKAGE)
 adb('shell', 'am', 'start', '-W', '-n', PACKAGE + '/.SettingsActivity')
 time.sleep(3)
 adb('shell', 'am', 'force-stop', PACKAGE)
-check_preserved()
+check_preserved(after_fetch=True)
+expected['lastFailureAt'] = prefs()['lastFailureAt']
 assert 'Success' in adb('install', '-r', 'android-widget/releases/fool-quest-widget-0.1.10.apk')
 check_preserved()
 info = adb('shell', 'dumpsys', 'package', PACKAGE)
@@ -81,6 +85,6 @@ assert '収益ウィジェット 0.1.10' in ui
 assert '115.00%' in ui
 assert '1,150,000' in ui
 adb('shell', 'am', 'force-stop', PACKAGE)
-check_preserved()
-(OUT / 'result.txt').write_text('PASS official v0.1.9/code10 -> v0.1.10/code11 adb install -r; same UID; all 25 saved settings/cache/history fields preserved before and after first launch; native cumulative 115.00% UI verified.\n')
+check_preserved(after_fetch=True)
+(OUT / 'result.txt').write_text('PASS official v0.1.9/code10 -> v0.1.10/code11 adb install -r; same UID; all 25 saved settings/cache/history fields preserved across installation; 24 values preserved after first launch, with lastFailureAt refreshed by the expected offline fetch; native cumulative 115.00% UI verified.\n')
 print((OUT / 'result.txt').read_text())
