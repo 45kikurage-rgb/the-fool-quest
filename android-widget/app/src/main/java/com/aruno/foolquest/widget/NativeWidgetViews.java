@@ -66,7 +66,11 @@ final class NativeWidgetViews {
             }
             rv.setViewPadding(ROW[i],0,0,0,i<2?px(c,gap):0);
             RemoteViews bar=new RemoteViews(c.getPackageName(),R.layout.gauge_adaptive);
-            bar.setImageViewBitmap(R.id.gauge_image,gauge(s.text,s.gaugeColor(values[i],goals[i],d.month,now,colors[i]),RevenueMath.progress(values[i],goals[i]),gauge));
+            boolean second=s.isSecondLap(values[i],goals[i],d.month,now);
+            float progress=RevenueMath.progress(values[i],goals[i]);
+            bar.setImageViewBitmap(R.id.gauge_image,gauge(s.text,
+                second?s.paceAchieved:s.gaugeColor(values[i],goals[i],d.month,now,colors[i]),
+                second?1f:progress,second?s.secondLap:0,second?progress:0f,gauge));
             rv.removeAllViews(HOLDER[i]);rv.addView(HOLDER[i],bar);
         }
         rv.setTextViewText(R.id.widget_footer,status);rv.setTextColor(R.id.widget_footer,s.text);
@@ -75,9 +79,11 @@ final class NativeWidgetViews {
         rv.setOnClickPendingIntent(R.id.widget_root,RefreshActivity.tapIntent(c));
         return result;
     }
-    private static Bitmap gauge(int text,int color,float progress,int heightDp){
+    private static Bitmap gauge(int text,int color,float progress,int overlayColor,float overlay,int heightDp){
         Bitmap b=Bitmap.createBitmap(512,heightDp,Bitmap.Config.ARGB_8888);b.setDensity(DisplayMetrics.DENSITY_DEFAULT);
         Canvas c=new Canvas(b);c.drawColor(Color.argb(72,Color.red(text),Color.green(text),Color.blue(text)));
-        Paint p=new Paint();p.setColor(color);c.drawRect(0,0,512*progress,heightDp,p);return b;
+        Paint p=new Paint();p.setColor(color);c.drawRect(0,0,512*progress,heightDp,p);
+        if(overlay>0f){p.setColor(overlayColor);c.drawRect(0,0,512*overlay,heightDp,p);}
+        return b;
     }
 }

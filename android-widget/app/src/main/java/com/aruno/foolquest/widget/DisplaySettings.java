@@ -7,24 +7,31 @@ public final class DisplaySettings {
     int text = Color.WHITE, background = Color.BLACK;
     int total = 0xffffe24d, tiktok = 0xffff5252, coupon = 0xff4ade80;
     boolean paceColors = true;
+    int paceAchieved = 0xff31d158, paceBehind = 0xffffd43b, paceLow = 0xffff4545, secondLap = 0xffbaff00;
     int opacity = 100, font = 13, left = 8, right = 8, top = 6, bottom = 6, gap = 5, gauge = 4;
     static DisplaySettings load(SharedPreferences p) {
         DisplaySettings s = new DisplaySettings();
         s.paceColors=p.getBoolean("paceColors",true);
+        s.paceAchieved=p.getInt("colorPaceAchieved",s.paceAchieved);
+        s.paceBehind=p.getInt("colorPaceBehind",s.paceBehind);
+        s.paceLow=p.getInt("colorPaceLow",s.paceLow);
+        s.secondLap=p.getInt("colorSecondLap",s.secondLap);
         s.text=p.getInt("text",s.text); s.background=p.getInt("background",s.background);
         s.total=p.getInt("colorTotal",s.total); s.tiktok=p.getInt("colorTiktok",s.tiktok); s.coupon=p.getInt("colorCoupon",s.coupon);
         s.opacity=p.getInt("opacity",100); s.font=p.getInt("font",13);
         s.left=p.getInt("left",8); s.right=p.getInt("right",8); s.top=p.getInt("top",6); s.bottom=p.getInt("bottom",6);
         s.gap=p.getInt("gap",5); s.gauge=p.getInt("gauge",4); s.clamp(); return s;
     }
-    static final int OVER_GOAL_GREEN = 0xff147a39;
+    boolean isSecondLap(long value,long goal,String month,long now) {
+        return RevenueMath.beyondGoal(value,goal) && RevenueMath.month(now).equals(month);
+    }
     int gaugeColor(long value,long goal,String month,long now,int fixed) {
-        if(RevenueMath.beyondGoal(value,goal) && RevenueMath.month(now).equals(month))return OVER_GOAL_GREEN;
+        if(isSecondLap(value,goal,month,now))return secondLap;
         if(!paceColors)return fixed;
         switch(RevenueMath.pace(value,goal,month,now)) {
-            case RevenueMath.PACE_ON_TRACK:return 0xff31d158;
-            case RevenueMath.PACE_BEHIND:return 0xffffd43b;
-            case RevenueMath.PACE_LOW:return 0xffff4545;
+            case RevenueMath.PACE_ON_TRACK:return paceAchieved;
+            case RevenueMath.PACE_BEHIND:return paceBehind;
+            case RevenueMath.PACE_LOW:return paceLow;
             default:return 0xff888888;
         }
     }
@@ -37,6 +44,7 @@ public final class DisplaySettings {
     void save(SharedPreferences p) {
         clamp(); p.edit().putBoolean("paceColors",paceColors).putInt("text",text).putInt("background",background).putInt("colorTotal",total)
             .putInt("colorTiktok",tiktok).putInt("colorCoupon",coupon).putInt("opacity",opacity).putInt("font",font)
-            .putInt("left",left).putInt("right",right).putInt("top",top).putInt("bottom",bottom).putInt("gap",gap).putInt("gauge",gauge).apply();
+            .putInt("colorPaceAchieved",paceAchieved).putInt("colorPaceBehind",paceBehind)
+            .putInt("colorPaceLow",paceLow).putInt("colorSecondLap",secondLap).putInt("left",left).putInt("right",right).putInt("top",top).putInt("bottom",bottom).putInt("gap",gap).putInt("gauge",gauge).apply();
     }
 }

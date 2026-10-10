@@ -32,6 +32,7 @@ public final class SettingsActivity extends Activity {
     private int widgetId=AppWidgetManager.INVALID_APPWIDGET_ID;
     private boolean colorValid=true;
     private boolean resumed=false;
+    private boolean secondLapPreview=false;
     private int dp(float n){return Math.round(n*getResources().getDisplayMetrics().density);}
     @Override public void onCreate(Bundle b){
         super.onCreate(b); setResult(RESULT_CANCELED);
@@ -47,12 +48,13 @@ public final class SettingsActivity extends Activity {
     private void build(){
         colors.clear();ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.setFitsSystemWindows(true);
         body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);body.setPadding(dp(18),dp(24),dp(18),dp(28));body.setBackgroundColor(0xfff6f5f2);scroll.addView(body);setContentView(scroll);
-        body.addView(text("THE FOOL QUEST",24));body.addView(text("収益ウィジェット 0.1.10",14));
+        body.addView(text("THE FOOL QUEST",24));body.addView(text("収益ウィジェット 0.1.11",14));
         description=text("",12);body.addView(description);
         preview=new android.widget.FrameLayout(this);
         body.addView(preview,new LinearLayout.LayoutParams(-1,dp(126)));
         preview.addOnLayoutChangeListener((v,a,b,c,d,e,f,g,h)->{if(c-a!=g-e)updatePreview();});
-        body.addView(text("進歩カラー：今日までの目標に対して100%以上＝緑、50%以上＝黄、50%未満＝赤。ゲージの長さと％は月間目標に対する達成率です。",12));
+        body.addView(text("日別の進歩カラー：達成・未達・不足の3色。月間目標を超えると1周目の緑が満タンのまま残り、2周目の黄緑が上に重なります。達成率の数字は累計表示です。",12));
+        button("2周目 182.09% サンプル表示 ON/OFF",()->{secondLapPreview=!secondLapPreview;updatePreview();});
         warning=text("",12);warning.setTextColor(0xff9b4100);body.addView(warning);
         body.addView(text("プレビューは即時反映。ホーム画面には「設定を保存」で反映します。設定はすべての同種ウィジェットに共通です。",12));
         button("設定を保存",this::save);
@@ -88,6 +90,11 @@ public final class SettingsActivity extends Activity {
         pace.setOnCheckedChangeListener((v,checked)->{settings.paceColors=checked;for(String key:new String[]{"total","tiktok","coupon"})colors.get(key).setEnabled(!checked);updatePreview();});
         color("total","Total 固定色（進歩カラーOFF時）",settings.total);color("tiktok","TikTok 固定色（進歩カラーOFF時）",settings.tiktok);color("coupon","Coupon 固定色（進歩カラーOFF時）",settings.coupon);
         for(String key:new String[]{"total","tiktok","coupon"})colors.get(key).setEnabled(!settings.paceColors);
+        body.addView(text("日別進歩カラー・2周目カラー（色見本から変更できます）",18));
+        colorPalette("paceAchieved","今日までの目標達成：100%以上",settings.paceAchieved);
+        colorPalette("paceBehind","今日までの目標未達：50%以上100%未満",settings.paceBehind);
+        colorPalette("paceLow","今日までの目標不足：50%未満",settings.paceLow);
+        colorPalette("secondLap","2周目：月間目標100%超",settings.secondLap);
         button("表示設定を初期化",()->new AlertDialog.Builder(this).setMessage("表示設定を初期値に戻します。収益データは保持します。保存でホーム画面へ反映します。")
             .setNegativeButton("キャンセル",null).setPositiveButton("初期化",(d,w)->{settings=new DisplaySettings();build();}).show());
         body.addView(text("操作：ウィジェット全体をタップして更新。長押しでサイズ変更。表示設定のメニューはホームアプリによって異なります。このアプリからも設定できます。",12));
@@ -110,6 +117,38 @@ public final class SettingsActivity extends Activity {
             public void beforeTextChanged(CharSequence s,int a,int c,int f){}public void onTextChanged(CharSequence s,int a,int b,int c){validateColors();updatePreview();}public void afterTextChanged(Editable e){}
         });
     }
+    private void colorPalette(String key,String title,int value) {
+        color(key,title,value);
+        button("● "+title+"：色見本から選ぶ",()->openColorPalette(key,title));
+    }
+    private void openColorPalette(String key,String title) {
+        final int[] samples={0xff31d158,0xff39ff6a,0xffbaff00,0xff87ff17,
+            0xffffd43b,0xffff9c24,0xffff4545,0xffff78ad,
+            0xff3dbdff,0xff9570ff,0xffffffff,0xff147a39};
+        LinearLayout grid=new LinearLayout(this);
+        grid.setOrientation(LinearLayout.VERTICAL);
+        grid.setPadding(dp(10),dp(12),dp(10),dp(12));
+        AlertDialog dialog=new AlertDialog.Builder(this).setTitle(title).setView(grid)
+            .setNegativeButton("キャンセル",null).create();
+        for(int row=0;row<3;row++){
+            LinearLayout line=new LinearLayout(this);line.setOrientation(LinearLayout.HORIZONTAL);
+            for(int col=0;col<4;col++){
+                final int sample=samples[row*4+col];
+                Button swatch=new Button(this);
+                swatch.setAllCaps(false);
+                swatch.setText(hex(sample).equalsIgnoreCase(colors.get(key).getText().toString())?"✓":"");
+                swatch.setTextColor(Color.BLACK);
+                swatch.setContentDescription("色 "+hex(sample)+" を選択");
+                swatch.setBackgroundColor(sample);
+                LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(0,dp(52),1f);
+                params.setMargins(dp(3),dp(3),dp(3),dp(3));
+                line.addView(swatch,params);
+                swatch.setOnClickListener(v->{colors.get(key).setText(hex(sample));dialog.dismiss();});
+            }
+            grid.addView(line,new LinearLayout.LayoutParams(-1,-2));
+        }
+        dialog.show();
+    }
     private boolean validateColors(){
         colorValid=true;
         for(Map.Entry<String,EditText> entry:colors.entrySet()){
@@ -118,6 +157,10 @@ public final class SettingsActivity extends Activity {
             int v=Color.parseColor(raw);switch(entry.getKey()){
                 case "text":settings.text=v;break;case "background":settings.background=v;break;
                 case "total":settings.total=v;break;case "tiktok":settings.tiktok=v;break;case "coupon":settings.coupon=v;break;
+                case "paceAchieved":settings.paceAchieved=v;break;
+                case "paceBehind":settings.paceBehind=v;break;
+                case "paceLow":settings.paceLow=v;break;
+                case "secondLap":settings.secondLap=v;break;
             }
         }
         return colorValid;
@@ -126,9 +169,15 @@ public final class SettingsActivity extends Activity {
         if(preview==null||isFinishing()||isDestroyed())return;
         int w=preview.getWidth()>0?Math.round(preview.getWidth()/getResources().getDisplayMetrics().density):340;
         RevenueStore.Data d=RevenueStore.read(this);
+        if(secondLapPreview){
+            d.month=RevenueMath.month(System.currentTimeMillis());
+            d.tiktok=0;d.coupon=546270;d.goalTotal=300000;d.goalTiktok=300000;d.goalCoupon=300000;
+            d.importAt=System.currentTimeMillis();d.couponAt=d.importAt;d.loading=false;d.error="";
+        }
         NativeWidgetViews.Result r=NativeWidgetViews.create(this,d,settings,w,126);
         preview.removeAllViews();preview.addView(r.views.apply(this,preview));
-        preview.setContentDescription(WidgetRenderer.description(d));description.setText(WidgetRenderer.footer(d));
+        preview.setContentDescription(WidgetRenderer.description(d));
+        description.setText(secondLapPreview?"サンプルデータ：Coupon 182.09%（保存収益には影響しません）":WidgetRenderer.footer(d));
         String status=!colorValid?"色コードを確認してください。":r.adjusted?"この枠では文字・ゲージ・余白を安全に調整します（文字 "+String.format(java.util.Locale.JAPAN,"%.1f",r.font)+"dp）。":"数値列の位置を固定して表示します。ホーム画面の角で欠けないよう外周8dpを確保します。";
         if(settings.text==settings.background&&settings.opacity==100)status+=" 文字と背景が同じ色です。";
         warning.setText(status);

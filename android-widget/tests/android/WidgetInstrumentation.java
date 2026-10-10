@@ -77,10 +77,11 @@ public class WidgetInstrumentation extends Instrumentation {
                 int expected=settings.gaugeColor(data.values()[row],data.goals()[row],data.month,System.currentTimeMillis(),fixed[row]);
                 float progress=RevenueMath.progress(data.values()[row],data.goals()[row]);
                 if(progress>0)ok(fill.getPixel(0,0)==expected,"actual native gauge pixel uses daily pace palette");
-                 if(name.equals("native-second-lap-115-percent") && row==0){
-                     ok(fill.getPixel(fill.getWidth()/10,0)==DisplaySettings.OVER_GOAL_GREEN,"115% first 10% of native gauge is dark green");
-                     ok(fill.getPixel(fill.getWidth()/5,0)!=DisplaySettings.OVER_GOAL_GREEN,"115% native gauge stops before 20% rather than filling to 100%");
-                 }
+                if(name.equals("native-second-lap-115-percent") && row==0){
+                    ok(fill.getPixel(fill.getWidth()/10,0)==settings.secondLap,"115% second lap uses configurable yellow green");
+                    ok(fill.getPixel(fill.getWidth()/5,0)==settings.paceAchieved,"115% retains first green lap behind overlay");
+                    ok(fill.getPixel(fill.getWidth()-2,0)==settings.paceAchieved,"first lap stays full at the right edge");
+                }
                 ok(result[0].gauge<=48,"v0.1.4 gauge keeps its original height limit");
             }
         });
@@ -211,8 +212,11 @@ public class WidgetInstrumentation extends Instrumentation {
             secondLap.loading=false;secondLap.error="";
             ok(RevenueMath.percent(secondLap.values()[0],secondLap.goals()[0]).equals("115.00%"),"native text keeps cumulative 115%");
             ok(RevenueMath.progress(secondLap.values()[0],secondLap.goals()[0])==.15f,"native gauge starts second lap at 15%");
-            ok(palette.gaugeColor(secondLap.values()[0],secondLap.goals()[0],month,System.currentTimeMillis(),palette.total)==DisplaySettings.OVER_GOAL_GREEN,"over 100% uses dark green");
+            ok(palette.gaugeColor(secondLap.values()[0],secondLap.goals()[0],month,System.currentTimeMillis(),palette.total)==palette.secondLap,"over 100% uses configured second-lap color");
             nativeTextLayout(secondLap,palette,360,126,320,"native-second-lap-115-percent");
+            palette.paceAchieved=0xff116622;palette.secondLap=0xffbaff00;
+            nativeTextLayout(secondLap,palette,360,126,320,"native-second-lap-custom-colors");
+            palette.paceAchieved=0xff31d158;
             secondLap.tiktok=2000000;
             ok(RevenueMath.percent(secondLap.values()[0],secondLap.goals()[0]).equals("200.00%"),"native text keeps cumulative 200%");
             ok(RevenueMath.progress(secondLap.values()[0],secondLap.goals()[0])==1f,"completed 200% lap shows full gauge");
@@ -223,6 +227,11 @@ public class WidgetInstrumentation extends Instrumentation {
             palette.save(RevenueStore.prefs(c));ok(!DisplaySettings.load(RevenueStore.prefs(c)).paceColors,"progress-color preference persists");
             palette.paceColors=true;palette.save(RevenueStore.prefs(c));ok(DisplaySettings.load(RevenueStore.prefs(c)).paceColors,"progress colors can be reenabled without losing fixed colors");
             ok(DisplaySettings.load(RevenueStore.prefs(c)).total==0xff112233,"fixed custom color retained after toggling progress colors");
+            palette.paceAchieved=0xff112233;palette.paceBehind=0xff224466;palette.paceLow=0xffaa2244;palette.secondLap=0xffbaff00;
+            palette.save(RevenueStore.prefs(c));
+            DisplaySettings persisted=DisplaySettings.load(RevenueStore.prefs(c));
+            ok(persisted.paceAchieved==0xff112233&&persisted.paceBehind==0xff224466&&persisted.paceLow==0xffaa2244&&persisted.secondLap==0xffbaff00,
+                "all four selected palette colors survive settings save and load");
             new DisplaySettings().save(RevenueStore.prefs(c));
             paceData.month="2000-01";
             ok(palette.gaugeColor(paceData.tiktok,paceData.goalTiktok,paceData.month,System.currentTimeMillis(),palette.tiktok)==0xff888888,"stale month has neutral color instead of false achievement");
