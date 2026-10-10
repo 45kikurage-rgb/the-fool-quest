@@ -10,7 +10,9 @@
 - 公開済みv0.1.9のAPKを通常サイトから再取得し、55,086 bytes / SHA-256 b7854797b7567a0f8a8c26239eb44d57afe51044389ba26b31913e9a2a09f8ad、および証明書の一致を確認。既存v0.1.9のAPKは保持。
 - ローカル：Javaの表示・数学・配置229件、HTTP28件、読み取り連携7件に合格。
 - 基準mainのAndroid 35自動テスト：実表示・Reader・更新2078件、通信断12件、再起動2件に合格。実行：https://github.com/45kikurage-rgb/the-fool-quest/actions/runs/38029899491 。115.00%と濃い緑15%ゲージの実Android描画画像を目視確認。
+- 最終製品ソース（版番号修正後）のAndroid 35回帰検証も合格：表示・Reader・更新2078件、通信断12件、再起動2件。実行：https://github.com/45kikurage-rgb/the-fool-quest/actions/runs/38030475667 。配布ページの2周目画像と検証ログはこの実行から取得。CIの一時署名APKは公開しない。
 - 更新処理、RevenueStore、RevenueJob、RevenueWidget、RefreshActivity、既存app.js/index.html/style.css/sw.js/widget-export.jsはv0.1.9からバイト一致。設定の保存キーと保存処理は維持。
+- 正式署名APK同士の上書き更新テスト合格：Android 35でv0.1.9/code10をインストールし、独自色・余白・フォント・背景濃度・進歩カラー設定・目標額・TikTok/Couponキャッシュ・取得日時・通信履歴25項目を準備。v0.1.10/code11をadb install -rで更新し、同一UID・25項目の完全保持を確認。新版初回起動後も設定・キャッシュ24項目を保持し、通信失敗日時のみ既存の通信断取得処理で更新。実UIの0.1.10・115.00%・1,150,000表示も確認。実行：https://github.com/45kikurage-rgb/the-fool-quest/actions/runs/38030681439 。
 - v0.1.10のユーザー実機受入は未確認。Android 35での検証と、ユーザーのNova/Android実機での上書き更新・表示確認は別状態として扱う。
 
 ---
