@@ -8,6 +8,7 @@
 - 実行: https://github.com/45kikurage-rgb/the-fool-quest/actions/runs/38016785866
 - 検証ソース: 9d9eae85fda35b5961c4692f12d1a18bcf6354c5。CIは一時署名、配布APKは同一ソースを秘密の固定署名で別途ビルド。
 - v0.1.9 / code 10 / 55,086 bytes / SHA-256 b7854797b7567a0f8a8c26239eb44d57afe51044389ba26b31913e9a2a09f8ad。v2/v3署名合格、既存証明書SHA-256 18946d320bb61c58aa627abbf2b53ea521b273b218eaec57f7fbc662f375bdb1と一致。
+- 11:30 JST以降、通常サイトのページとAPKをcurlでHTTP200取得し、ページのバイト一致・APK 55,086 bytes / SHA-256一致を確認。APKのContent-Typeはapplication/vnd.android.package-archive。GitHub Pagesの代替ページとAPKもHTTP200・完全一致。配布コミット34ee2bac7b898dbbf2d22a0becbff860641a148b、Pages実行38017068064は成功。最初のPython urllib照会は403だったが同環境のcurlは成功。クライアント差の原因は未確定で、認証・WAF・既存サイトを変更しない。実機のダウンロード受入は別途必要。
 - 本番対象は配布APK・ページ・検証証跡。既存サイト本体、Vault/LedgerのAPI・DB・認証・正本・計算、保存設定・キャッシュ・30分ジョブ・文字列/進歩カラー/ゲージ寸法は変更なし。新規サービス・権限・WakeLockなし。
 - 新版のユーザーNova実機での透明化・ホーム操作・画面OFF中の定期更新・4G/省電力条件は未確認。Android検証と実機受入を区別する。TikTok/目標の完全自動同期は未実装で、変更後は再連携が必要。
 
