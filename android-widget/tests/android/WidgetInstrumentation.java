@@ -70,13 +70,15 @@ public class WidgetInstrumentation extends Instrumentation {
                 ok(lapLabel.getText().toString().equals(lap>=2?"×"+lap:""),"lap suffix correct for every row");
                 ok(Math.abs(lapLabel.getWidth()/density-GaugePalette.LAP_LABEL_WIDTH_DP)<1,"every row reserves the same suffix width");
                 ok(bar.getHeight()>0&&bar.getHeight()<tree[0].findViewById(NativeWidgetViews.ROW[row]).getHeight(),"gauge has visible height and fits its row");
-                ok(Math.abs(bar.getHeight()/density-(result[0].gauge+2*GaugePalette.MARKER_OVERHANG_DP))<1,"gauge bitmap includes the marker overhang");
+                ok(bar.getHeight()/density>=result[0].gauge-1,"native image retains at least the requested bar height");
                 android.widget.TextView amount=tree[0].findViewById(NativeWidgetViews.TEXT[row][1]);
                 int[] textPos=new int[2],barPos=new int[2];amount.getLocationInWindow(textPos);bar.getLocationInWindow(barPos);
                 ok(barPos[1]>=textPos[1]+amount.getHeight(),"adaptive gauge does not overlap numbers");
                 if(row==0)measuredGaugeHeights.put(name,bar.getHeight()/density);
                 ok(bar instanceof android.widget.ImageView,"v0.1.4 gauge has no embedded target text");
                 android.graphics.Bitmap fill=((android.graphics.drawable.BitmapDrawable)((android.widget.ImageView)bar).getDrawable()).getBitmap();
+                ok(fill.getHeight()==result[0].gauge+2*GaugePalette.MARKER_OVERHANG_DP,
+                    "gauge bitmap includes precisely 2dp of top and bottom marker overhang");
                 int[] fixed={settings.total,settings.tiktok,settings.coupon};
                 int expected=settings.gaugeColor(data.values()[row],data.goals()[row],data.month,System.currentTimeMillis(),fixed[row]);
                 float progress=RevenueMath.progress(data.values()[row],data.goals()[row]);
