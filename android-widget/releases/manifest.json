@@ -1,19 +1,19 @@
 {
   "applicationId": "com.aruno.foolquest.widget",
-  "version": "0.1.7",
-  "versionCode": 8,
+  "version": "0.1.8",
+  "versionCode": 9,
   "minSdk": 26,
   "targetSdk": 35,
-  "size": 50990,
-  "sha256": "df39660edf35c948182f7f5117d931cb1f5b6cfb287f7d81e2b0455cf51971f9",
+  "size": 55086,
+  "sha256": "1d4344b1532baacb09ff95edddf6af4a2937926edb3f39c3648943cb42c1aba3",
   "certificateSha256": "18946d320bb61c58aa627abbf2b53ea521b273b218eaec57f7fbc662f375bdb1",
-  "couponUpdate": "30-minute JobScheduler and manual tap",
+  "couponUpdate": "Foreground activity on manual tap; 30-minute JobScheduler in background",
   "tiktokUpdate": "read-only source browser snapshot; no automatic API exists",
   "changes": [
-    "Allow 10-second connect/read waits for transient network delays, with 32KB response cap",
-    "Manual and initial fetch requests use a one-shot JobScheduler job instead of holding a broadcast receiver",
-    "Record controlled local failure reasons without raw exception details or credentials",
-    "Retain last-good values on failure; clear current error on recovery while retaining last failure for diagnosis",
-    "v0.1.6 pace colors and v0.1.4 geometry, original signature, no border or update times retained"
+    "Widget tap starts the same direct foreground fetch as the settings activity",
+    "Small updating dialog closes after success or failure; no independent widget buttons",
+    "Concurrent callers join one in-flight request and receive actual completion",
+    "Cancel queued manual job while preserving periodic updates and active requests",
+    "Existing fixed signature, preferences, last-good data, display geometry and progress colors retained"
   ]
 }
