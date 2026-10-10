@@ -1,0 +1,1 @@
+PASS 2078 native Android checks; Coupon 543140; screenshots /storage/emulated/0/Android/data/com.aruno.foolquest.widget/files/verification
