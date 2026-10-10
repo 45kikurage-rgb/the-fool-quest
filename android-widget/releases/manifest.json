@@ -1,19 +1,20 @@
 {
   "applicationId": "com.aruno.foolquest.widget",
-  "version": "0.1.8",
-  "versionCode": 9,
+  "version": "0.1.9",
+  "versionCode": 10,
   "minSdk": 26,
   "targetSdk": 35,
   "size": 55086,
-  "sha256": "1d4344b1532baacb09ff95edddf6af4a2937926edb3f39c3648943cb42c1aba3",
+  "sha256": "b7854797b7567a0f8a8c26239eb44d57afe51044389ba26b31913e9a2a09f8ad",
   "certificateSha256": "18946d320bb61c58aa627abbf2b53ea521b273b218eaec57f7fbc662f375bdb1",
-  "couponUpdate": "Foreground activity on manual tap; 30-minute JobScheduler in background",
+  "couponUpdate": "Direct Activity fetch on manual tap behind home without visible float; 30-minute JobScheduler",
   "tiktokUpdate": "read-only source browser snapshot; no automatic API exists",
   "changes": [
-    "Widget tap starts the same direct foreground fetch as the settings activity",
-    "Small updating dialog closes after success or failure; no independent widget buttons",
-    "Concurrent callers join one in-flight request and receive actual completion",
-    "Cancel queued manual job while preserving periodic updates and active requests",
-    "Existing fixed signature, preferences, last-good data, display geometry and progress colors retained"
+    "Hide tap-refresh float with a fully transparent, non-touchable, non-focusable 1x1px window",
+    "Show updating status only inside the widget",
+    "Preserve v0.1.8 direct fetch, concurrent completion waiting and last-good cache",
+    "Start direct refresh then return its private singleTask behind home; repeat taps share the request",
+    "Disable refresh window start/finish animations and launch preview",
+    "Original signature, preferences, display geometry, progress colors and API responsibility retained"
   ]
 }
