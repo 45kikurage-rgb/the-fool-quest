@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#131725">
+<title>THE FOOL QUEST｜2周目ゲージ プレビュー</title>
+<style>
+:root{color-scheme:dark;--first:#31d158;--second:#87ff17;--muted:#adb8cb;--ink:#f6f8ff}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at 83% 26%,#6d496a 0%,transparent 45%),linear-gradient(155deg,#172752 0%,#425293 42%,#b47691 75%,#e8a07a 100%);color:var(--ink);font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif}
+main{max-width:780px;margin:auto;padding:28px 12px 70px}
+header{margin:0 9px 24px}
+.kicker{font-size:12px;font-weight:700;letter-spacing:.12em;color:#c8fbc0}
+h1{font-size:clamp(23px,5.8vw,34px);line-height:1.25;letter-spacing:-.02em;margin:7px 0 9px}
+.lead{font-size:13px;line-height:1.7;color:#e0e4f5;margin:0}
+.widget{background:#000;border-radius:25px;padding:15px 13px 13px;box-shadow:0 14px 35px #0005;max-width:680px;margin:0 auto}
+.metric{margin:0 0 17px}
+.metric:last-child{margin-bottom:0}
+.metric-head{display:grid;grid-template-columns:22% minmax(0,1fr) 21%;align-items:baseline;column-gap:0;color:#fff;font-family:ui-monospace,"SFMono-Regular",Consolas,monospace;font-size:clamp(10px,3.18vw,21px);font-variant-numeric:tabular-nums;font-weight:400;line-height:1.14;white-space:nowrap}
+.metric-name{text-align:left}
+.amounts{display:flex;gap:4px;align-items:baseline;justify-content:space-between}
+.metric-current,.metric-goal{white-space:nowrap}
+.metric-percent{text-align:right;white-space:nowrap}
+.track{height:9px;background:#5d5d5d;position:relative;overflow:hidden;margin-top:4px}
+.first,.second,.single{height:100%;position:absolute;top:0;left:0}
+.first{width:0;background:var(--first)}
+.single{width:0;background:#ff4545}
+.second{width:0;background:var(--second);box-shadow:0 0 6px #8eff2844 inset}
+.legend{display:flex;flex-wrap:wrap;gap:15px 20px;margin:16px 9px 3px;font-size:12px}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.legend i{display:block;width:18px;height:8px;background:var(--first)}
+.legend .extra i{background:var(--second)}
+.settings{background:#10192eee;border:1px solid #ffffff30;border-radius:17px;padding:19px 16px 21px;margin-top:28px;box-shadow:0 10px 35px #0003}
+h2{font-size:16px;margin:0 0 13px}
+.control-label{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:11px;font-size:13px}
+.big-num{color:#ccff77;font-weight:700;font-size:22px;font-variant-numeric:tabular-nums}
+input[type=range]{display:block;accent-color:#aaff29;width:100%;height:28px;cursor:pointer}
+.examples{display:flex;flex-wrap:wrap;gap:7px;margin:13px 0 23px}
+.example,.choice{border:1px solid #ffffff40;background:#ffffff0b;color:white;padding:8px 11px;border-radius:8px;font-size:12px;cursor:pointer}
+.example[aria-pressed=true],.choice[aria-pressed=true]{background:#d5ffa91f;border-color:#a1ff4b;box-shadow:0 0 0 1px #a1ff4b}
+.choices{display:flex;gap:9px;flex-wrap:wrap}
+.choice{display:inline-flex;align-items:center;gap:8px}
+.swatch{width:17px;height:17px;border-radius:4px;background:var(--swatch);box-shadow:0 0 0 1px #ffffff42 inset}
+.explain{margin:18px 0 0;padding:12px;background:#ffffff0b;border-radius:9px;font-size:12px;line-height:1.65;color:#edf2fc}
+.note{font-size:12px;line-height:1.8;color:#e8ebf6;padding:0 9px;margin:20px 0 0}
+.note strong{color:#fff}
+@media(min-width:550px){main{padding:40px 24px 75px}.widget{padding:20px 20px 19px;border-radius:28px}.metric{margin-bottom:19px}.metric-head{font-size:clamp(16px,2.6vw,23px)}.track{height:12px;margin-top:6px}.amounts{gap:8px}.settings{margin-top:35px}}
+@media(max-width:365px){.widget{padding:13px 9px;border-radius:22px}.metric-head{font-size:clamp(9px,3vw,11px)}.metric{margin-bottom:16px}.amounts{gap:2px}}
+</style>
+</head>
+<body>
+<main>
+<header>
+<div class="kicker">THE FOOL QUEST / WIDGET DESIGN</div>
+<h1>2周目ゲージ｜表示プレビュー</h1>
+<p class="lead">1周目の緑を満タンのまま残し、超過分だけを鮮やかな色で重ねる表示案です。現在のアプリや収益データは変更しません。</p>
+</header>
+<div class="widget" role="img" aria-label="Total、TikTok、Couponの3段収益ウィジェットのシミュレーション">
+ <section class="metric" data-metric="total">
+  <div class="metric-head"><span class="metric-name">Total</span><span class="amounts"><span class="metric-current">¥567,909</span><span>/</span><span class="metric-goal">¥900,000</span></span><span class="metric-percent">63.10%</span></div>
+  <div class="track"><div class="single"></div><div class="first"></div><div class="second"></div></div>
+ </section>
+ <section class="metric" data-metric="tiktok">
+  <div class="metric-head"><span class="metric-name">TikTok</span><span class="amounts"><span class="metric-current">¥21,649</span><span>/</span><span class="metric-goal">¥600,000</span></span><span class="metric-percent">3.61%</span></div>
+  <div class="track"><div class="single"></div><div class="first"></div><div class="second"></div></div>
+ </section>
+ <section class="metric" data-metric="coupon">
+  <div class="metric-head"><span class="metric-name">Coupon</span><span class="amounts"><span class="metric-current">¥546,260</span><span>/</span><span class="metric-goal">¥300,000</span></span><span class="metric-percent">182.09%</span></div>
+  <div class="track"><div class="single"></div><div class="first"></div><div class="second"></div></div>
+ </section>
+</div>
+<div class="legend"><span><i></i>1周目（緑・100%達成）</span><span class="extra"><i></i>2周目（鮮やかな色・超過分）</span></div>
+<section class="settings">
+<h2>表示を試す</h2>
+<label class="control-label" for="percentage"><span>Coupon 達成率</span><span class="big-num" id="ratio-label">182.09%</span></label>
+<input type="range" id="percentage" min="0" max="250" step="0.01" value="182.09" aria-label="Coupon達成率を変更">
+<div class="examples" role="group" aria-label="達成率の例">
+<button class="example" type="button" data-percent="85">85%</button>
+<button class="example" type="button" data-percent="100">100%</button>
+<button class="example" type="button" data-percent="115">115%</button>
+<button class="example" type="button" data-percent="182.09" aria-pressed="true">182.09%</button>
+<button class="example" type="button" data-percent="200">200%</button>
+<button class="example" type="button" data-percent="215">215%</button>
+</div>
+<h2>2周目の色を比較</h2>
+<div class="choices" role="group" aria-label="2周目の色">
+<button type="button" class="choice" data-color="#87ff17" aria-pressed="true"><span class="swatch" style="--swatch:#87ff17"></span>ライム（推奨）</button>
+<button type="button" class="choice" data-color="#39ff6a" aria-pressed="false"><span class="swatch" style="--swatch:#39ff6a"></span>鮮やかな緑</button>
+<button type="button" class="choice" data-color="#baff00" aria-pressed="false"><span class="swatch" style="--swatch:#baff00"></span>黄緑</button>
+</div>
+<div class="explain" id="explanation" aria-live="polite">182.09%の場合：1周目の緑が100%満タン、上から2周目のライム色を82.09%重ねます。達成率の数字は182.09%のままです。</div>
+</section>
+<p class="note"><strong>このページはデザイン確認専用です。</strong>表示金額は提供されたスクリーンショットをもとにしたサンプルで、実データの読み書き・APKの更新・ウィジェット設定の変更は行いません。ご希望の色と重ね方を確認してからAndroidアプリへ反映します。</p>
+</main>
+<script>
+(function(){
+'use strict';
+var amounts={tiktok:21649,coupon:546260,totalGoal:900000,couponGoal:300000,tiktokGoal:600000};
+var slider=document.getElementById('percentage');
+var label=document.getElementById('ratio-label');
+var explain=document.getElementById('explanation');
+var yen=function(value){return '¥'+Math.round(value).toLocaleString('en-US');};
+var colorName={'#87ff17':'ライム色','#39ff6a':'鮮やかな緑','#baff00':'黄緑'};
+var activeColor='#87ff17';
+function paintRow(key,amount,goal){
+ var row=document.querySelector('[data-metric="'+key+'"]');
+ var ratio=amount/goal*100;
+ row.querySelector('.metric-current').textContent=yen(amount);
+ row.querySelector('.metric-goal').textContent=yen(goal);
+ row.querySelector('.metric-percent').textContent=ratio.toFixed(2)+'%';
+ var green=row.querySelector('.first'),second=row.querySelector('.second'),single=row.querySelector('.single');
+ if(amount>goal){
+    green.style.width='100%';
+    var extra=(amount%goal)/goal*100;
+    if(extra===0)extra=100;
+    second.style.width=extra+'%';
+    single.style.width='0%';
+ }else{
+    green.style.width=(amount===goal?100:0)+'%';
+    second.style.width='0%';
+    single.style.width=(amount<goal?Math.min(100,ratio):0)+'%';
+    // Screenshot's current day-pace colors: Total green, TikTok red.
+    single.style.background=key==='tiktok'?'#ff4545':'#31d158';
+ }
+}
+function redraw(fromInput){
+ var ratio=Number(slider.value);
+ var coupon=fromInput ? Math.round(amounts.couponGoal*ratio/100) : amounts.coupon;
+ amounts.coupon=coupon;
+ var displayed=coupon/amounts.couponGoal*100;
+ label.textContent=displayed.toFixed(2)+'%';
+ paintRow('total',amounts.tiktok+coupon,amounts.totalGoal);
+ paintRow('tiktok',amounts.tiktok,amounts.tiktokGoal);
+ paintRow('coupon',coupon,amounts.couponGoal);
+ var extra=displayed>100?(coupon%amounts.couponGoal)/amounts.couponGoal*100:0;
+ if(displayed>100&&extra===0)extra=100;
+ explain.textContent=displayed>100
+   ? displayed.toFixed(2)+'%の場合：1周目の緑を100%満タンで残し、上から'+colorName[activeColor]+'を'+extra.toFixed(2)+'%重ねます。達成率の数字は'+displayed.toFixed(2)+'%のままです。'
+   : displayed.toFixed(2)+'%の場合：1周目のゲージだけを表示します。100%を超えると、緑の満タンを残して2周目の色が重なります。';
+ document.querySelectorAll('.example').forEach(function(btn){
+  btn.setAttribute('aria-pressed',Math.abs(Number(btn.dataset.percent)-displayed)<0.01?'true':'false');
+ });
+}
+slider.addEventListener('input',function(){redraw(true);});
+document.querySelectorAll('.example').forEach(function(btn){btn.addEventListener('click',function(){slider.value=btn.dataset.percent;redraw(true);});});
+document.querySelectorAll('.choice').forEach(function(btn){btn.addEventListener('click',function(){
+ activeColor=btn.dataset.color;
+ document.documentElement.style.setProperty('--second',activeColor);
+ document.querySelectorAll('.choice').forEach(function(other){other.setAttribute('aria-pressed',other===btn?'true':'false');});
+ redraw(false);
+});});
+redraw(false);
+})();
+</script>
+</body></html>
