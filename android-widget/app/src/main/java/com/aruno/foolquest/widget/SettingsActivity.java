@@ -53,7 +53,7 @@ public final class SettingsActivity extends Activity {
         preview=new android.widget.FrameLayout(this);
         body.addView(preview,new LinearLayout.LayoutParams(-1,dp(126)));
         preview.addOnLayoutChangeListener((v,a,b,c,d,e,f,g,h)->{if(c-a!=g-e)updatePreview();});
-        body.addView(text("日別の進歩カラー：達成・未達・不足の3色。月間目標を超えると1周目の緑が満タンのまま残り、2周目の黄緑が上に重なります。達成率の数字は累計表示です。",12));
+        body.addView(text("日別の進歩カラー：達成・未達・不足の3色。月間目標を超えると前の周を満タンで残し、2周目はライム色・3周目は緑色を交互に重ねます。周数と白い境界線を表示し、達成率の数字は累計表示です。",12));
         button("2周目 182.09% サンプル表示 ON/OFF",()->{secondLapPreview=!secondLapPreview;updatePreview();});
         warning=text("",12);warning.setTextColor(0xff9b4100);body.addView(warning);
         body.addView(text("プレビューは即時反映。ホーム画面には「設定を保存」で反映します。設定はすべての同種ウィジェットに共通です。",12));
@@ -122,15 +122,16 @@ public final class SettingsActivity extends Activity {
         button("● "+title+"：色見本から選ぶ",()->openColorPalette(key,title));
     }
     private void openColorPalette(String key,String title) {
-        final int[] samples={0xff31d158,0xff39ff6a,0xffbaff00,0xff87ff17,
-            0xffffd43b,0xffff9c24,0xffff4545,0xffff78ad,
-            0xff3dbdff,0xff9570ff,0xffffffff,0xff147a39};
+        final int[] samples={GaugePalette.FIRST_GREEN,0xff31d158,GaugePalette.SECOND_LIME,0xffbaff00,
+            0xff39ff6a,0xff87ff17,0xffffd43b,0xffff9c24,
+            0xffff4545,0xffff78ad,0xff3dbdff,0xff9570ff,
+            0xffffffff,0xff147a39,0xff75ffcc,0xffa0a0a0};
         LinearLayout grid=new LinearLayout(this);
         grid.setOrientation(LinearLayout.VERTICAL);
         grid.setPadding(dp(10),dp(12),dp(10),dp(12));
         AlertDialog dialog=new AlertDialog.Builder(this).setTitle(title).setView(grid)
             .setNegativeButton("キャンセル",null).create();
-        for(int row=0;row<3;row++){
+        for(int row=0;row<samples.length/4;row++){
             LinearLayout line=new LinearLayout(this);line.setOrientation(LinearLayout.HORIZONTAL);
             for(int col=0;col<4;col++){
                 final int sample=samples[row*4+col];
