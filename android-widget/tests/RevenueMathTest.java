@@ -10,6 +10,20 @@ public class RevenueMathTest {
     public static void main(String[] args){
         eq(RevenueMath.money(1000000),"¥1,000,000");eq(RevenueMath.money(9999999),"¥9,999,999");eq(RevenueMath.money(15),"¥15");eq(RevenueMath.money(-1),"—");
         eq(RevenueMath.percent(1000000,1000000),"100.00%");eq(RevenueMath.percent(1234567,1000000),"123.46%");eq(RevenueMath.percent(10000000,1),"1000000000.00%");eq(RevenueMath.percent(-1,500000),"—%");
+        // Exact integer lap boundaries; percentages remain cumulative.
+        long[][] lapSamples={{0,1,0},{6310,1,6310},{10000,1,10000},
+            {18859,2,8859},{25000,3,5000},{30000,3,10000}};
+        for(long[] sample:lapSamples){
+            eq(RevenueMath.lapCount(sample[0],10000),sample[1]);
+            ok(Math.abs(RevenueMath.progress(sample[0],10000)-sample[2]/10000f)<.00001f);
+        }
+        eq(RevenueMath.lapCount(-1,10000),1L);
+        eq(RevenueMath.lapCount(500,0),1L);
+        eq(RevenueMath.lapCount(RevenueMath.MAX_YEN,1),RevenueMath.MAX_YEN);
+        eq(RevenueMath.lapCount(RevenueMath.MAX_YEN,RevenueMath.MAX_YEN),1L);
+        eq(RevenueMath.percent(18859,10000),"188.59%");
+        eq(RevenueMath.percent(25000,10000),"250.00%");
+        eq(RevenueMath.percent(30000,10000),"300.00%");
         eq(RevenueMath.percent(1380000,1200000),"115.00%");
         eq(RevenueMath.percent(2400000,1200000),"200.00%");
         eq(RevenueMath.progress(500000,1000000),.5f);

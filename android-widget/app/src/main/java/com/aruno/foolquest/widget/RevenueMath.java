@@ -23,6 +23,10 @@ public final class RevenueMath {
     public static boolean beyondGoal(long value,long goal) {
         return goal > 0 && value > goal && value <= MAX_YEN;
     }
+    /** ceil(value / goal), with exact 100% staying on lap 1 and no overflow. */
+    public static long lapCount(long value,long goal) {
+        return value <= 0 || goal <= 0 ? 1L : 1L + (value - 1L) / goal;
+    }
     public static float progress(long value, long goal) {
         if (value < 0 || goal <= 0) return 0f;
         if (value <= goal) return (float)((double)value / goal);

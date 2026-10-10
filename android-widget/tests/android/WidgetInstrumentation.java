@@ -64,23 +64,44 @@ public class WidgetInstrumentation extends Instrumentation {
             if(height>=196)ok(lastRow.getTop()-firstRow.getTop()>height*density*.4f,"taller card distributes rows across its height");
             for(int row=0;row<3;row++){
                 android.view.ViewGroup holder=tree[0].findViewById(NativeWidgetViews.HOLDER[row]);
-                android.view.View bar=holder.getChildAt(0);
+                android.view.View bar=holder.findViewById(R.id.gauge_image);
+                android.widget.TextView lapLabel=holder.findViewById(R.id.lap_label);
+                long lap=RevenueMath.lapCount(data.values()[row],data.goals()[row]);
+                ok(lapLabel.getText().toString().equals(lap>=2?"×"+lap:""),"lap suffix correct for every row");
+                ok(Math.abs(lapLabel.getWidth()/density-GaugePalette.LAP_LABEL_WIDTH_DP)<1,"every row reserves the same suffix width");
                 ok(bar.getHeight()>0&&bar.getHeight()<tree[0].findViewById(NativeWidgetViews.ROW[row]).getHeight(),"gauge has visible height and fits its row");
-                ok(Math.abs(bar.getHeight()/density-result[0].gauge)<1,"intrinsic bitmap gauge height respects host density");
+                ok(bar.getHeight()/density>=result[0].gauge-1,"native image retains at least the requested bar height");
                 android.widget.TextView amount=tree[0].findViewById(NativeWidgetViews.TEXT[row][1]);
                 int[] textPos=new int[2],barPos=new int[2];amount.getLocationInWindow(textPos);bar.getLocationInWindow(barPos);
                 ok(barPos[1]>=textPos[1]+amount.getHeight(),"adaptive gauge does not overlap numbers");
                 if(row==0)measuredGaugeHeights.put(name,bar.getHeight()/density);
                 ok(bar instanceof android.widget.ImageView,"v0.1.4 gauge has no embedded target text");
                 android.graphics.Bitmap fill=((android.graphics.drawable.BitmapDrawable)((android.widget.ImageView)bar).getDrawable()).getBitmap();
+                ok(fill.getHeight()==result[0].gauge+2*GaugePalette.MARKER_OVERHANG_DP,
+                    "gauge bitmap includes precisely 2dp of top and bottom marker overhang");
                 int[] fixed={settings.total,settings.tiktok,settings.coupon};
                 int expected=settings.gaugeColor(data.values()[row],data.goals()[row],data.month,System.currentTimeMillis(),fixed[row]);
                 float progress=RevenueMath.progress(data.values()[row],data.goals()[row]);
-                if(progress>0)ok(fill.getPixel(0,0)==expected,"actual native gauge pixel uses daily pace palette");
-                if(name.equals("native-second-lap-115-percent") && row==0){
-                    ok(fill.getPixel(fill.getWidth()/10,0)==settings.secondLap,"115% second lap uses configurable yellow green");
-                    ok(fill.getPixel(fill.getWidth()/5,0)==settings.paceAchieved,"115% retains first green lap behind overlay");
-                    ok(fill.getPixel(fill.getWidth()-2,0)==settings.paceAchieved,"first lap stays full at the right edge");
+                int cy=fill.getHeight()/2;
+                boolean layered=lap>=2&&settings.isSecondLap(data.values()[row],data.goals()[row],data.month,System.currentTimeMillis());
+                if(progress>0){
+                    int first=layered?GaugePalette.currentColor(lap,settings.paceAchieved,settings.secondLap):expected;
+                    ok(fill.getPixel(0,cy)==first,"native gauge uses the active lap color");
+                }
+                if(layered){
+                    int near=Math.min(fill.getWidth()-1,Math.max(0,(int)(fill.getWidth()*Math.max(0,progress-.1f))));
+                    int right=fill.getWidth()-2;
+                    int base=GaugePalette.previousColor(lap,settings.paceAchieved,settings.secondLap);
+                    if(progress<.9f)ok(fill.getPixel(right,cy)==base,"full previous lap remains visible");
+                    if(GaugePalette.hasMarker(lap,progress)){
+                        int edge=Math.round(fill.getWidth()*progress);
+                        boolean white=false;
+                        for(int dx=-2;dx<=2;dx++){
+                            int x=Math.max(0,Math.min(fill.getWidth()-1,edge+dx));
+                            if(fill.getPixel(x,0)==GaugePalette.MARKER_WHITE)white=true;
+                        }
+                        ok(white,"white 2dp marker protrudes above the active overlay");
+                    }else ok(lap>=2&&progress==1f,"exact completed lap has no marker");
                 }
                 ok(result[0].gauge<=48,"v0.1.4 gauge keeps its original height limit");
             }
@@ -190,7 +211,8 @@ public class WidgetInstrumentation extends Instrumentation {
             nativeTextLayout(nativeData,new DisplaySettings(),360,300,320,"native-text-tall-card");
             ok(measuredGaugeHeights.get("native-text-360x100-dpi320")<measuredGaugeHeights.get("native-text-360x196-dpi320"),"gauge thickens when card height increases");
             ok(measuredGaugeHeights.get("native-text-360x196-dpi320")<measuredGaugeHeights.get("native-text-tall-card"),"gauge continues to scale above two-row height");
-            ok(measuredGaugeHeights.get("native-text-white")==4,"default-size gauge restores v0.1.4 four-dp thickness");
+            ok(NativeWidgetViews.create(c,nativeData,nativeWhite,360,126).gauge==4,
+                "default-size gauge track keeps v0.1.4 four-dp thickness (marker overhang is separate)");
             ok(NativeWidgetViews.create(c,nativeData,new DisplaySettings(),360,196).font>NativeWidgetViews.create(c,nativeData,new DisplaySettings(),360,100).font,"larger card increases font within safe column limits");
             // Screenshot and explicit palette assertions for green / yellow / red in the same card.
             java.util.Calendar date=java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("Asia/Tokyo"));
@@ -200,7 +222,7 @@ public class WidgetInstrumentation extends Instrumentation {
             paceData.month=month;paceData.importAt=System.currentTimeMillis();paceData.couponAt=paceData.importAt;paceData.error="";paceData.loading=false;
             DisplaySettings palette=new DisplaySettings();
             ok(palette.paceColors,"new and saved v0.1.4 settings use progress colors by default");
-            ok(palette.gaugeColor(paceData.values()[0],paceData.goalTotal,month,System.currentTimeMillis(),palette.total)==0xff31d158,"site green at or above daily target");
+            ok(palette.gaugeColor(paceData.values()[0],paceData.goalTotal,month,System.currentTimeMillis(),palette.total)==GaugePalette.FIRST_GREEN,"configured green at or above daily target");
             ok(palette.gaugeColor(paceData.tiktok,paceData.goalTiktok,month,System.currentTimeMillis(),palette.tiktok)==0xffffd43b,"site yellow between half and daily target");
             ok(palette.gaugeColor(paceData.coupon,paceData.goalCoupon,month,System.currentTimeMillis(),palette.coupon)==0xffff4545,"site red below half daily target");
             nativeTextLayout(paceData,palette,360,126,320,"native-pace-three-colors");
@@ -214,9 +236,15 @@ public class WidgetInstrumentation extends Instrumentation {
             ok(RevenueMath.progress(secondLap.values()[0],secondLap.goals()[0])==.15f,"native gauge starts second lap at 15%");
             ok(palette.gaugeColor(secondLap.values()[0],secondLap.goals()[0],month,System.currentTimeMillis(),palette.total)==palette.secondLap,"over 100% uses configured second-lap color");
             nativeTextLayout(secondLap,palette,360,126,320,"native-second-lap-115-percent");
+            for(long[] spec:new long[][]{{631000L,1L},{1000000L,1L},{1885900L,2L},{2500000L,3L},{3000000L,3L}}){
+                secondLap.tiktok=spec[0];secondLap.coupon=0;
+                ok(RevenueMath.lapCount(secondLap.values()[0],secondLap.goalTotal)==spec[1],"native lap calculation on boundary samples");
+                nativeTextLayout(secondLap,palette,360,126,320,"native-lap-"+spec[0]);
+            }
+            secondLap.tiktok=1150000;
             palette.paceAchieved=0xff116622;palette.secondLap=0xffbaff00;
             nativeTextLayout(secondLap,palette,360,126,320,"native-second-lap-custom-colors");
-            palette.paceAchieved=0xff31d158;
+            palette.paceAchieved=GaugePalette.FIRST_GREEN;
             secondLap.tiktok=2000000;
             ok(RevenueMath.percent(secondLap.values()[0],secondLap.goals()[0]).equals("200.00%"),"native text keeps cumulative 200%");
             ok(RevenueMath.progress(secondLap.values()[0],secondLap.goals()[0])==1f,"completed 200% lap shows full gauge");
