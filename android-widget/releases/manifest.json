@@ -1,18 +1,18 @@
 {
   "applicationId": "com.aruno.foolquest.widget",
-  "version": "0.1.10",
-  "versionCode": 11,
+  "version": "0.1.11",
+  "versionCode": 12,
   "minSdk": 26,
   "targetSdk": 35,
   "size": 55086,
-  "sha256": "d76fbdad7019b29fe90105e4665156c4a70a9b08bec6cb5053886da400fdd626",
+  "sha256": "31174acf7025d3ea5f7907bc652e2b4b86e0b8ef2a839797f785d459debf9450",
   "certificateSha256": "18946d320bb61c58aa627abbf2b53ea521b273b218eaec57f7fbc662f375bdb1",
   "couponUpdate": "Direct Activity fetch on manual tap behind home without visible float; 30-minute JobScheduler",
   "tiktokUpdate": "read-only source browser snapshot; no automatic API exists",
   "changes": [
-    "Total/TikTok/Coupon show dark-green #147A39 second-lap fill after monthly goal is exceeded",
-    "Keep cumulative achievement text: 115.00% uses 15% fill; exact 200% uses 100% fill",
-    "Preserve original fixed certificate and package for in-place upgrade from code 10 to code 11",
+    "Four configurable progress colors with 12-swatch palettes and hex input; default second lap is yellow-green #BAFF00",
+    "Keep a full first lap beneath the second-lap overlay: cumulative 115.00% overlays 15%; exact 200% overlays 100%",
+    "Preserve original certificate and package for in-place upgrade from code 11 to code 12",
     "Preserve preferences, cached revenue, Reader contract, tap refresh and 30-minute JobScheduler"
   ]
 }
