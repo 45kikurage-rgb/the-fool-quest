@@ -77,6 +77,10 @@ public class WidgetInstrumentation extends Instrumentation {
                 int expected=settings.gaugeColor(data.values()[row],data.goals()[row],data.month,System.currentTimeMillis(),fixed[row]);
                 float progress=RevenueMath.progress(data.values()[row],data.goals()[row]);
                 if(progress>0)ok(fill.getPixel(0,0)==expected,"actual native gauge pixel uses daily pace palette");
+                 if(name.equals("native-second-lap-115-percent") && row==0){
+                     ok(fill.getPixel(fill.getWidth()/10,0)==DisplaySettings.OVER_GOAL_GREEN,"115% first 10% of native gauge is dark green");
+                     ok(fill.getPixel(fill.getWidth()/5,0)!=DisplaySettings.OVER_GOAL_GREEN,"115% native gauge stops before 20% rather than filling to 100%");
+                 }
                 ok(result[0].gauge<=48,"v0.1.4 gauge keeps its original height limit");
             }
         });
