@@ -24,6 +24,16 @@ public class WidgetInstrumentation extends Instrumentation {
     java.util.Map<String,Float> measuredGaugeHeights=new java.util.HashMap<>();
     void ok(boolean x,String name){checks++;if(!x)throw new AssertionError(name);}
     void png(android.graphics.Bitmap b,String name)throws Exception{try(FileOutputStream f=new FileOutputStream(new File(output,name+".png"))){b.compress(android.graphics.Bitmap.CompressFormat.PNG,100,f);}}
+    void pointerTap(float x,float y)throws Exception {
+        long time=android.os.SystemClock.uptimeMillis();
+        android.view.MotionEvent down=android.view.MotionEvent.obtain(time,time,android.view.MotionEvent.ACTION_DOWN,x,y,0);
+        down.setSource(android.view.InputDevice.SOURCE_TOUCHSCREEN);
+        boolean sentDown=getUiAutomation().injectInputEvent(down,true);Thread.sleep(40);
+        android.view.MotionEvent up=android.view.MotionEvent.obtain(time,android.os.SystemClock.uptimeMillis(),android.view.MotionEvent.ACTION_UP,x,y,0);
+        up.setSource(android.view.InputDevice.SOURCE_TOUCHSCREEN);
+        boolean sentUp=getUiAutomation().injectInputEvent(up,true);down.recycle();up.recycle();waitForIdleSync();Thread.sleep(100);
+        ok(sentDown&&sentUp,"actual pointer events injected");
+    }
     void invalid(String raw,String month)throws Exception{checks++;try{RevenueStore.validateCoupon(raw,month);throw new AssertionError("accepted invalid "+raw);}catch(IllegalArgumentException|org.json.JSONException expected){}}
     void nativeTextLayout(RevenueStore.Data data,DisplaySettings settings,int width,int height,int dpi,String name)throws Exception {
         android.content.res.Configuration config=new android.content.res.Configuration(c.getResources().getConfiguration());config.densityDpi=dpi;
@@ -264,6 +274,11 @@ public class WidgetInstrumentation extends Instrumentation {
             executor.execute(()->{tapBlockEntered.countDown();try{releaseTap.await(40,TimeUnit.SECONDS);}catch(InterruptedException e){Thread.currentThread().interrupt();}});
             ok(tapBlockEntered.await(2,TimeUnit.SECONDS),"tap executor fixture active");
             ActivityMonitor tapMonitor=addMonitor(RefreshActivity.class.getName(),null,false);
+            final android.view.View touchSurface=((android.view.ViewGroup)activity.findViewById(android.R.id.content)).getChildAt(0);
+            final java.util.concurrent.atomic.AtomicInteger touches=new java.util.concurrent.atomic.AtomicInteger();
+            runOnMainSync(()->{touchSurface.setClickable(true);touchSurface.setOnTouchListener((v,event)->{if(event.getAction()==android.view.MotionEvent.ACTION_UP)touches.incrementAndGet();return true;});});
+            pointerTap(40,400);
+            ok(touches.get()==1,"host pointer fixture receives input before refresh");touches.set(0);
             long beforeTap=RevenueStore.read(c).couponAt;
             runOnMainSync(()->{ok(view[0].findViewById(R.id.widget_root)!=null,"production RemoteViews applied");view[0].findViewById(R.id.widget_root).performClick();});
             Activity refresh=waitForMonitorWithTimeout(tapMonitor,5000);
@@ -306,17 +321,10 @@ public class WidgetInstrumentation extends Instrumentation {
             ok(!info.exported,"refresh activity is private");
             ok((info.flags&android.content.pm.ActivityInfo.FLAG_EXCLUDE_FROM_RECENTS)!=0,"refresh excluded from recent apps");
             ok(RefreshActivity.tapIntent(c).isActivity()&&RefreshActivity.tapIntent(c).isImmutable(),"widget tap uses immutable activity PendingIntent");
-            final java.util.concurrent.atomic.AtomicInteger touches=new java.util.concurrent.atomic.AtomicInteger();
-            runOnMainSync(()->activity.findViewById(android.R.id.content).setOnTouchListener((v,event)->{if(event.getAction()==android.view.MotionEvent.ACTION_UP)touches.incrementAndGet();return true;}));
-            long inputTime=android.os.SystemClock.uptimeMillis();
-            android.view.MotionEvent down=android.view.MotionEvent.obtain(inputTime,inputTime,android.view.MotionEvent.ACTION_DOWN,40,400,0);
-            down.setSource(android.view.InputDevice.SOURCE_TOUCHSCREEN);
-            android.view.MotionEvent up=android.view.MotionEvent.obtain(inputTime,inputTime+40,android.view.MotionEvent.ACTION_UP,40,400,0);
-            up.setSource(android.view.InputDevice.SOURCE_TOUCHSCREEN);
-            ok(getUiAutomation().injectInputEvent(down,true)&&getUiAutomation().injectInputEvent(up,true),"actual pointer events injected during quiet refresh");down.recycle();up.recycle();waitForIdleSync();
-            ok(touches.get()==1,"underlying home host receives actual touches during refresh");
-            runOnMainSync(()->activity.findViewById(android.R.id.content).setOnTouchListener(null));
             png(getUiAutomation().takeScreenshot(),"native-tap-updating");
+            pointerTap(40,400);
+            ok(touches.get()==1,"underlying home host receives actual touches during refresh; observed="+touches.get()+"; focus="+activity.hasWindowFocus());
+            runOnMainSync(()->touchSurface.setOnTouchListener(null));
             runOnMainSync(()->refresh.startActivity(new Intent(refresh,RefreshActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)));
             waitForIdleSync();Thread.sleep(150);
             ok(RevenueUpdate.busy()&&!refresh.isFinishing(),"repeated tap does not close ongoing refresh");
