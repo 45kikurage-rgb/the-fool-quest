@@ -85,8 +85,8 @@ final class WidgetRenderer {
                 while(p.measureText(label)>GaugePalette.LAP_LABEL_WIDTH_DP-1 && p.getTextSize()>5)
                     p.setTextSize(p.getTextSize()-.5f);
                 Paint.FontMetrics lapMetrics=p.getFontMetrics();
-                float baseline=gy+gauge/2f-(lapMetrics.ascent+lapMetrics.descent)/2f;
-                c.drawText(label,l.right,baseline,p);
+                float labelBaseline=gy+gauge/2f-(lapMetrics.ascent+lapMetrics.descent)/2f;
+                c.drawText(label,l.right,labelBaseline,p);
                 p.setTextSize(font);
             }
         }
