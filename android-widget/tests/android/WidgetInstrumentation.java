@@ -211,7 +211,8 @@ public class WidgetInstrumentation extends Instrumentation {
             nativeTextLayout(nativeData,new DisplaySettings(),360,300,320,"native-text-tall-card");
             ok(measuredGaugeHeights.get("native-text-360x100-dpi320")<measuredGaugeHeights.get("native-text-360x196-dpi320"),"gauge thickens when card height increases");
             ok(measuredGaugeHeights.get("native-text-360x196-dpi320")<measuredGaugeHeights.get("native-text-tall-card"),"gauge continues to scale above two-row height");
-            ok(measuredGaugeHeights.get("native-text-white")==4,"default-size gauge restores v0.1.4 four-dp thickness");
+            ok(NativeWidgetViews.create(c,nativeData,nativeWhite,360,126).gauge==4,
+                "default-size gauge track keeps v0.1.4 four-dp thickness (marker overhang is separate)");
             ok(NativeWidgetViews.create(c,nativeData,new DisplaySettings(),360,196).font>NativeWidgetViews.create(c,nativeData,new DisplaySettings(),360,100).font,"larger card increases font within safe column limits");
             // Screenshot and explicit palette assertions for green / yellow / red in the same card.
             java.util.Calendar date=java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("Asia/Tokyo"));
