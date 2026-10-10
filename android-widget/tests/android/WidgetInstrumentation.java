@@ -276,12 +276,29 @@ public class WidgetInstrumentation extends Instrumentation {
             ok((quiet.flags&android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)!=0,"refresh window cannot intercept home touches");
             ok((quiet.flags&android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE)!=0,"refresh window does not steal key input");
             ok(!refresh.hasWindowFocus(),"quiet refresh does not take focus from widget host");
-            ok(activity.hasWindowFocus(),"underlying host retains focus while refreshing");
-            // The active accessibility tree belongs to the host, not a floating badge.
-            android.view.accessibility.AccessibilityNodeInfo active=getUiAutomation().getRootInActiveWindow();
-            ok(active!=null&&!active.findAccessibilityNodeInfosByText("Coupon").isEmpty(),"widget remains visible through quiet refresh");
-            android.view.accessibility.AccessibilityNodeInfo container=getUiAutomation().getRootInActiveWindow();
-            ok(container!=null&&container.findAccessibilityNodeInfosByText("更新中").size()==1,"only widget footer displays updating; no floating label");
+            // Starting a separate task may pause the host Activity even though its
+            // window remains visible. Verify compositor pixels and routed input
+            // instead of mistaking Activity focus for launcher touch delivery.
+            final android.graphics.Bitmap[] expectedWidget={null};final int[] origin=new int[2];
+            runOnMainSync(()->{
+                view[0].getLocationOnScreen(origin);
+                expectedWidget[0]=android.graphics.Bitmap.createBitmap(view[0].getWidth(),view[0].getHeight(),android.graphics.Bitmap.Config.ARGB_8888);
+                view[0].draw(new android.graphics.Canvas(expectedWidget[0]));
+            });
+            android.graphics.Bitmap display=getUiAutomation().takeScreenshot();
+            int compared=0,matching=0;
+            for(int y=0;y<expectedWidget[0].getHeight();y+=3)for(int x=0;x<expectedWidget[0].getWidth();x+=3){
+                int expected=expectedWidget[0].getPixel(x,y);
+                if(android.graphics.Color.alpha(expected)<255)continue;
+                int actual=display.getPixel(origin[0]+x,origin[1]+y);compared++;
+                if(Math.abs(android.graphics.Color.red(expected)-android.graphics.Color.red(actual))<30
+                    &&Math.abs(android.graphics.Color.green(expected)-android.graphics.Color.green(actual))<30
+                    &&Math.abs(android.graphics.Color.blue(expected)-android.graphics.Color.blue(actual))<30)matching++;
+            }
+            ok(compared>1000&&matching>compared*.98,"real widget remains visible without an obscuring float");
+            final String[] footer={null};
+            runOnMainSync(()->footer[0]=((android.widget.TextView)view[0].findViewById(R.id.widget_footer)).getText().toString());
+            ok("更新中".equals(footer[0]),"widget itself displays updating status");
             ok(RevenueUpdate.busy(),"widget tap immediately starts direct fetch without a scheduled job");
             ok(scheduler.getPendingJob(RevenueJob.MANUAL)==null,"foreground tap cancels previously queued manual job");
             ok(refresh.getTaskId()!=activity.getTaskId(),"refresh uses a separate task from settings");
