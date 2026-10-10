@@ -336,7 +336,11 @@ public class WidgetInstrumentation extends Instrumentation {
             // Android may suppress an additional behind launch while the first
             // request is active. Ignoring that tap is valid duplicate prevention.
             waitForIdleSync();Thread.sleep(150);
-            ok(RevenueUpdate.busy()&&!refresh.isFinishing(),"repeated tap does not close ongoing refresh; busy="+RevenueUpdate.busy()+"; finishing="+refresh.isFinishing()+"; destroyed="+refresh.isDestroyed()+"; elapsed="+(android.os.SystemClock.uptimeMillis()-tapTestStarted));
+            // Android may replace/destroy an already-background Activity when
+            // another task launch arrives. The application-scoped fetch must
+            // remain active, keep the cache unchanged until completion, and
+            // deliver the result regardless of that UI lifecycle.
+            ok(RevenueUpdate.busy()&&RevenueStore.read(c).couponAt==beforeTap,"repeated tap retains the single in-flight fetch and last-good cache; elapsed="+(android.os.SystemClock.uptimeMillis()-tapTestStarted));
             ok(activity.hasWindowFocus()&&(repeated==null||!repeated.hasWindowFocus()),"repeated behind launch also preserves host focus");
             CountDownLatch tapDone=new CountDownLatch(1);RevenueUpdate.start(c,tapDone::countDown);
             ok(!tapDone.await(100,TimeUnit.MILLISECONDS),"observer waits for same tap request");
