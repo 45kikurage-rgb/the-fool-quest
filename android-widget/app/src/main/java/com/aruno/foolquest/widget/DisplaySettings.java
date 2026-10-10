@@ -17,7 +17,9 @@ public final class DisplaySettings {
         s.left=p.getInt("left",8); s.right=p.getInt("right",8); s.top=p.getInt("top",6); s.bottom=p.getInt("bottom",6);
         s.gap=p.getInt("gap",5); s.gauge=p.getInt("gauge",4); s.clamp(); return s;
     }
+    static final int OVER_GOAL_GREEN = 0xff147a39;
     int gaugeColor(long value,long goal,String month,long now,int fixed) {
+        if(RevenueMath.beyondGoal(value,goal) && RevenueMath.month(now).equals(month))return OVER_GOAL_GREEN;
         if(!paceColors)return fixed;
         switch(RevenueMath.pace(value,goal,month,now)) {
             case RevenueMath.PACE_ON_TRACK:return 0xff31d158;
