@@ -7,7 +7,7 @@ public final class DisplaySettings {
     int text = Color.WHITE, background = Color.BLACK;
     int total = 0xffffe24d, tiktok = 0xffff5252, coupon = 0xff4ade80;
     boolean paceColors = true;
-    int paceAchieved = 0xff31d158, paceBehind = 0xffffd43b, paceLow = 0xffff4545, secondLap = 0xffbaff00;
+    int paceAchieved = GaugePalette.FIRST_GREEN, paceBehind = GaugePalette.PACE_BEHIND, paceLow = GaugePalette.PACE_LOW, secondLap = GaugePalette.SECOND_LIME;
     int opacity = 100, font = 13, left = 8, right = 8, top = 6, bottom = 6, gap = 5, gauge = 4;
     static DisplaySettings load(SharedPreferences p) {
         DisplaySettings s = new DisplaySettings();
@@ -32,7 +32,7 @@ public final class DisplaySettings {
             case RevenueMath.PACE_ON_TRACK:return paceAchieved;
             case RevenueMath.PACE_BEHIND:return paceBehind;
             case RevenueMath.PACE_LOW:return paceLow;
-            default:return 0xff888888;
+            default:return GaugePalette.PACE_UNKNOWN;
         }
     }
     void clamp() {
