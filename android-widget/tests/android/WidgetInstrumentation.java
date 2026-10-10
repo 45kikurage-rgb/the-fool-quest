@@ -269,6 +269,16 @@ public class WidgetInstrumentation extends Instrumentation {
             Activity refresh=waitForMonitorWithTimeout(tapMonitor,5000);
             ok(refresh!=null,"actual widget PendingIntent opens foreground refresh activity");
             waitForIdleSync();
+            for(int n=0;n<50&&!refresh.hasWindowFocus();n++)Thread.sleep(100);
+            ok(refresh.hasWindowFocus(),"updating activity becomes the visible focused window");
+            boolean updatingVisible=false;
+            for(int n=0;n<30&&!updatingVisible;n++){
+                android.view.accessibility.AccessibilityNodeInfo root=getUiAutomation().getRootInActiveWindow();
+                if(root!=null)updatingVisible=!root.findAccessibilityNodeInfosByText("更新中").isEmpty();
+                if(!updatingVisible)Thread.sleep(100);
+            }
+            ok(updatingVisible,"updating text is visible in the actual active window");
+            Thread.sleep(300);
             ok(RevenueUpdate.busy(),"widget tap immediately starts direct fetch without a scheduled job");
             ok(scheduler.getPendingJob(RevenueJob.MANUAL)==null,"foreground tap cancels previously queued manual job");
             ok(refresh.getTaskId()!=activity.getTaskId(),"refresh uses a separate task from settings");
