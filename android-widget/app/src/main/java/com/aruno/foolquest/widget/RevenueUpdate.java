@@ -7,14 +7,21 @@ import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.ArrayList;
+import java.util.List;
 
 final class RevenueUpdate {
     private static final AtomicBoolean BUSY=new AtomicBoolean(false);
     private static final ExecutorService EXECUTOR=Executors.newSingleThreadExecutor();
+    private static final Object LOCK=new Object();
+    private static final List<Runnable> WAITERS=new ArrayList<>();
     static boolean busy(){return BUSY.get();}
     static void start(Context c,Runnable done){
         Context app=c.getApplicationContext();
-        if(!BUSY.compareAndSet(false,true)){ if(done!=null)done.run(); return; }
+        synchronized(LOCK){
+            if(done!=null)WAITERS.add(done);
+            if(!BUSY.compareAndSet(false,true))return;
+        }
         RevenueWidget.renderAll(app);
         EXECUTOR.execute(()->{
             HttpURLConnection con=null;
@@ -30,7 +37,11 @@ final class RevenueUpdate {
             }catch(Exception e){
                 RevenueStore.saveFailure(app,RevenueFailure.code(e));
             }finally{
-                if(con!=null)con.disconnect();BUSY.set(false);RevenueWidget.renderAll(app);if(done!=null)done.run();
+                if(con!=null)con.disconnect();
+                List<Runnable> completed;
+                synchronized(LOCK){BUSY.set(false);completed=new ArrayList<>(WAITERS);WAITERS.clear();}
+                RevenueWidget.renderAll(app);
+                for(Runnable callback:completed){try{callback.run();}catch(RuntimeException ignored){}}
             }
         });
     }

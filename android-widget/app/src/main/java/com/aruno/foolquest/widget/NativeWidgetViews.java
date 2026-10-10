@@ -72,7 +72,7 @@ final class NativeWidgetViews {
         rv.setTextViewText(R.id.widget_footer,status);rv.setTextColor(R.id.widget_footer,s.text);
         rv.setViewVisibility(R.id.widget_footer,showStatus?View.VISIBLE:View.GONE);
         rv.setContentDescription(R.id.widget_root,WidgetRenderer.description(d));
-        rv.setOnClickPendingIntent(R.id.widget_root,PendingIntent.getBroadcast(c,0,new Intent(c,RevenueWidget.class).setAction(RevenueWidget.REFRESH),PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE));
+        rv.setOnClickPendingIntent(R.id.widget_root,RefreshActivity.tapIntent(c));
         return result;
     }
     private static Bitmap gauge(int text,int color,float progress,int heightDp){

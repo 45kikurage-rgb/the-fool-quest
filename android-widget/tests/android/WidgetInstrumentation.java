@@ -89,6 +89,10 @@ public class WidgetInstrumentation extends Instrumentation {
         }
         png(bitmap,name);
     }
+    java.util.concurrent.ExecutorService executor()throws Exception {
+        java.lang.reflect.Field field=RevenueUpdate.class.getDeclaredField("EXECUTOR");field.setAccessible(true);
+        return (java.util.concurrent.ExecutorService)field.get(null);
+    }
     @Override public void onCreate(Bundle args){super.onCreate(args);this.args=args;start();}
     @Override public void onStart(){
         Bundle result=new Bundle();
@@ -106,7 +110,20 @@ public class WidgetInstrumentation extends Instrumentation {
                 ok("OFFLINE".equals(after.errorCode),"offline failure is classified");
                 ok("OFFLINE".equals(RevenueStore.prefs(c).getString("lastFailureCode","")),"failure history retained locally");
                 ok(RevenueStore.prefs(c).getLong("lastFailureAt",0)>0,"failure history has a timestamp outside the widget");
-                png(WidgetRenderer.render(c,after,new DisplaySettings(),360,126).bitmap,"native-offline-retained");
+                Activity offlineHost=startActivitySync(new Intent(c,SettingsActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                waitForIdleSync();
+                for(int n=0;n<100&&RevenueUpdate.busy();n++)Thread.sleep(100);
+                ActivityMonitor offlineMonitor=addMonitor(RefreshActivity.class.getName(),null,false);
+                runOnMainSync(()->{try{RefreshActivity.tapIntent(c).send();}catch(android.app.PendingIntent.CanceledException e){throw new AssertionError(e);}});
+                Activity refresh=waitForMonitorWithTimeout(offlineMonitor,5000);
+                ok(refresh!=null,"offline tap path opens foreground refresh");
+                for(int n=0;n<100&&!refresh.isDestroyed();n++)Thread.sleep(100);
+                ok(refresh.isDestroyed(),"offline refresh closes automatically");
+                RevenueStore.Data tapped=RevenueStore.read(c);
+                ok(tapped.coupon==before.coupon&&tapped.couponAt==before.couponAt,"offline foreground refresh keeps good cache");
+                ok("OFFLINE".equals(tapped.errorCode),"offline foreground refresh reports reason");
+                removeMonitor(offlineMonitor);runOnMainSync(offlineHost::finish);
+                png(WidgetRenderer.render(c,tapped,new DisplaySettings(),360,126).bitmap,"native-offline-retained");
                 result.putString("stream","PASS "+checks+" native offline checks");finish(ActivityResult.OK,result);return;
             }
             if("reboot".equals(args.getString("mode"))){
@@ -223,16 +240,58 @@ public class WidgetInstrumentation extends Instrumentation {
                 ok(label.getTextSize()/activity.getResources().getDisplayMetrics().density>=9,"oversized reported layout cannot shrink native text");
                 ok(label.getLeft()>=0&&label.getPaint().measureText("Total")<=label.getWidth(),"launcher host title not clipped");
             });
-            java.lang.reflect.Field busyField=RevenueUpdate.class.getDeclaredField("BUSY");busyField.setAccessible(true);
-            java.util.concurrent.atomic.AtomicBoolean gate=(java.util.concurrent.atomic.AtomicBoolean)busyField.get(null);
-            for(int n=0;n<100&&RevenueUpdate.busy();n++)Thread.sleep(100);
-            gate.set(true);long beforeDuplicate=RevenueStore.read(c).couponAt;CountDownLatch duplicate=new CountDownLatch(1);RevenueUpdate.start(c,duplicate::countDown);
-            ok(duplicate.await(1,TimeUnit.SECONDS)&&RevenueStore.read(c).couponAt==beforeDuplicate,"busy request coalesced without network");gate.set(false);
+            for(int n=0;n<350&&RevenueUpdate.busy();n++)Thread.sleep(100);
+            ok(!RevenueUpdate.busy(),"earlier requests finish before foreground tap test");
+            java.util.concurrent.ExecutorService executor=executor();
+            CountDownLatch blockEntered=new CountDownLatch(1),releaseBlock=new CountDownLatch(1);
+            executor.execute(()->{blockEntered.countDown();try{releaseBlock.await(40,TimeUnit.SECONDS);}catch(InterruptedException e){Thread.currentThread().interrupt();}});
+            ok(blockEntered.await(2,TimeUnit.SECONDS),"controlled network executor blocker active");
+            long beforeDuplicate=RevenueStore.read(c).couponAt;
+            CountDownLatch firstDone=new CountDownLatch(1),secondDone=new CountDownLatch(1);
+            RevenueUpdate.start(c,firstDone::countDown);RevenueUpdate.start(c,secondDone::countDown);
+            ok(RevenueUpdate.busy(),"coalesced requests share in-flight update");
+            ok(!secondDone.await(100,TimeUnit.MILLISECONDS),"second caller waits for actual completion");
+            ok(RevenueStore.read(c).couponAt==beforeDuplicate,"no premature cache update while waiting");
+            releaseBlock.countDown();
+            ok(firstDone.await(35,TimeUnit.SECONDS)&&secondDone.await(1,TimeUnit.SECONDS),"both callers notified after fetch completes");
+            ok(RevenueStore.read(c).couponAt>beforeDuplicate&&!RevenueUpdate.busy(),"coalesced fetch completes and releases gate");
+
+            android.app.job.JobScheduler scheduler=c.getSystemService(android.app.job.JobScheduler.class);
+            scheduler.cancel(RevenueJob.MANUAL);
+            scheduler.schedule(new android.app.job.JobInfo.Builder(RevenueJob.MANUAL,new ComponentName(c,RevenueJob.class)).setMinimumLatency(60000).setOverrideDeadline(120000).build());
+            ok(scheduler.getPendingJob(RevenueJob.MANUAL)!=null,"delayed background job fixture queued");
+            CountDownLatch tapBlockEntered=new CountDownLatch(1),releaseTap=new CountDownLatch(1);
+            executor.execute(()->{tapBlockEntered.countDown();try{releaseTap.await(40,TimeUnit.SECONDS);}catch(InterruptedException e){Thread.currentThread().interrupt();}});
+            ok(tapBlockEntered.await(2,TimeUnit.SECONDS),"tap executor fixture active");
+            ActivityMonitor tapMonitor=addMonitor(RefreshActivity.class.getName(),null,false);
             long beforeTap=RevenueStore.read(c).couponAt;
             runOnMainSync(()->{ok(view[0].findViewById(R.id.widget_root)!=null,"production RemoteViews applied");view[0].findViewById(R.id.widget_root).performClick();});
-            for(int n=0;n<350&&RevenueStore.read(c).couponAt<=beforeTap;n++)Thread.sleep(100);
-            ok(RevenueStore.read(c).couponAt>beforeTap,"normal widget tap updates API timestamp through one-shot job");
-            ok(RevenueStore.read(c).error.isEmpty(),"manual job refresh finishes without error");
+            Activity refresh=waitForMonitorWithTimeout(tapMonitor,5000);
+            ok(refresh!=null,"actual widget PendingIntent opens foreground refresh activity");
+            waitForIdleSync();
+            ok(RevenueUpdate.busy(),"widget tap immediately starts direct fetch without a scheduled job");
+            ok(scheduler.getPendingJob(RevenueJob.MANUAL)==null,"foreground tap cancels previously queued manual job");
+            ok(refresh.getTaskId()!=activity.getTaskId(),"refresh uses a separate task from settings");
+            android.content.pm.ActivityInfo info=c.getPackageManager().getActivityInfo(new ComponentName(c,RefreshActivity.class),0);
+            ok(!info.exported,"refresh activity is private");
+            ok((info.flags&android.content.pm.ActivityInfo.FLAG_EXCLUDE_FROM_RECENTS)!=0,"refresh excluded from recent apps");
+            ok(RefreshActivity.tapIntent(c).isActivity()&&RefreshActivity.tapIntent(c).isImmutable(),"widget tap uses immutable activity PendingIntent");
+            png(getUiAutomation().takeScreenshot(),"native-tap-updating");
+            runOnMainSync(()->refresh.startActivity(new Intent(refresh,RefreshActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)));
+            waitForIdleSync();Thread.sleep(150);
+            ok(RevenueUpdate.busy()&&!refresh.isFinishing(),"repeated tap does not close ongoing refresh");
+            CountDownLatch tapDone=new CountDownLatch(1);RevenueUpdate.start(c,tapDone::countDown);
+            ok(!tapDone.await(100,TimeUnit.MILLISECONDS),"observer waits for same tap request");
+            releaseTap.countDown();
+            ok(tapDone.await(35,TimeUnit.SECONDS),"foreground tap fetch completes");
+            for(int n=0;n<100&&!refresh.isDestroyed();n++)Thread.sleep(100);
+            ok(refresh.isDestroyed(),"refresh task closes automatically after fetch");
+            ok(!activity.isFinishing()&&!activity.isDestroyed(),"settings host task survives refresh completion");
+            removeMonitor(tapMonitor);
+            ok(RevenueStore.read(c).couponAt>beforeTap,"normal widget tap updates API timestamp through foreground path");
+            ok(RevenueStore.read(c).error.isEmpty(),"foreground refresh finishes without error");
+            ok(scheduler.getPendingJob(RevenueJob.MANUAL)==null,"tap completion leaves no duplicate manual job");
+            waitForIdleSync();Thread.sleep(200);png(getUiAutomation().takeScreenshot(),"native-tap-complete");
             dimensions.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,280);dimensions.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,100);exactSizes.clear();exactSizes.add(new android.util.SizeF(280,100));dimensions.putParcelableArrayList(AppWidgetManager.OPTION_APPWIDGET_SIZES,exactSizes);manager.updateAppWidgetOptions(id,dimensions);
             runOnMainSync(()->{android.view.ViewGroup.LayoutParams lp=view[0].getLayoutParams();lp.width=Math.round(280*activity.getResources().getDisplayMetrics().density);lp.height=Math.round(100*activity.getResources().getDisplayMetrics().density);view[0].setLayoutParams(lp);});
             Thread.sleep(700);png(getUiAutomation().takeScreenshot(),"native-widget-host-resized");host.stopListening();runOnMainSync(activity::finish);

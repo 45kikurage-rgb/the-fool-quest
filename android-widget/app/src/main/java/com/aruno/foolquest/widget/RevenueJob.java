@@ -24,6 +24,10 @@ public final class RevenueJob extends JobService {
         int result=js.schedule(new JobInfo.Builder(MANUAL,new ComponentName(c,RevenueJob.class)).setOverrideDeadline(0).build());
         if(result!=JobScheduler.RESULT_SUCCESS){RevenueStore.saveFailure(c,"SCHEDULE");RevenueWidget.renderAll(c);}
     }
+    static void cancelQueuedManual(Context c){
+        // Do not cancel the service owning an already running request.
+        if(!RevenueUpdate.busy())c.getSystemService(JobScheduler.class).cancel(MANUAL);
+    }
     static void cancel(Context c){JobScheduler js=c.getSystemService(JobScheduler.class);js.cancel(PERIODIC);js.cancel(MANUAL);}
     @Override public boolean onStartJob(JobParameters p){
         RevenueUpdate.start(this,()->jobFinished(p,false));return true;
