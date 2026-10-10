@@ -1,6 +1,6 @@
 # THE FOOL QUEST Android収益ウィジェット
 
-独立APK `com.aruno.foolquest.widget`。Android 8.0以上。公開済み正式版は v0.1.9 / versionCode 10。開発中候補は v0.1.10 / versionCode 11（未配布）。既存のTHE FOOL QUEST、ARUNOMATIC、Vault、Ledgerへの書き込みを行いません。
+独立APK `com.aruno.foolquest.widget`。Android 8.0以上。公開済み正式版は v0.1.10 / versionCode 11。既存のTHE FOOL QUEST、ARUNOMATIC、Vault、Ledgerへの書き込みを行いません。
 
 ## 現在のデータ責任
 
@@ -137,10 +137,10 @@ Windowの透明度と入力透過の根拠: https://developer.android.com/refere
 検証：計算・配置216件、HTTP28件、読み取り連携7件。Android 35で1988件、通信断12件、再起動2件に合格。非表示・実タッチ透過・通信中の追加タップ・完了後の再タップ更新を確認。実行：https://github.com/45kikurage-rgb/the-fool-quest/actions/runs/38016785866 。ユーザーNova実機での新版受入は未確認。
 
 
-## v0.1.10（code 11）開発候補：目標超過の2周目表示
+## v0.1.10（code 11）：目標超過の2周目表示
 
 Total / TikTok / Coupon の月間目標超過分を、ゲージ内で次の周回として表示。達成率テキストは引き続き累計値を表示し、115%なら「115.00%」のまま、色付きバーのみ15%の長さに戻して濃い緑 `#147A39` にする。100%ちょうどは通常の緑で満タン、200%ちょうどは濃い緑で満タン、215%なら濃い緑で15%。桁揃え・フォント・3行配置には手を加えない。現在月であることが確認できない古い月のデータは進歩カラーが有効なら従来通り灰色。カスタム固定色設定は保存したまま保持し、当月の目標超過時だけ濃い緑を優先する。
 
 計算・描画・Androidテスト対象のみを変更。収益の取得元・更新タイミング・タップしたときの透明フロート・既存設定と保存データ・API・DB・署名方式は変更なし。
 
-**配布状態：未配布。** CIで作成するテストAPKは使い捨てのCI専用署名であり、v0.1.9に上書きインストールできる正式APKではない。固定署名鍵で署名したAPKの証明書SHA-256が既存公開版と一致することを確認してから、`releases/manifest.json` とダウンロードページを新版へ切り替える。
+**配布状態：正式署名APKを公開。** v0.1.9と同じ固定鍵を使用し、証明書SHA-256が一致。APKはv0.1.10 / code 11、55,086 bytes、SHA-256 `d76fbdad7019b29fe90105e4665156c4a70a9b08bec6cb5053886da400fdd626`。APK生成に使用するAndroidManifestと設定画面の版表示も0.1.10へ統一。CIの使い捨て署名APKは配布しない。アンインストールせず上書き更新する。

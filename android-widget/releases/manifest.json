@@ -1,20 +1,18 @@
 {
   "applicationId": "com.aruno.foolquest.widget",
-  "version": "0.1.9",
-  "versionCode": 10,
+  "version": "0.1.10",
+  "versionCode": 11,
   "minSdk": 26,
   "targetSdk": 35,
   "size": 55086,
-  "sha256": "b7854797b7567a0f8a8c26239eb44d57afe51044389ba26b31913e9a2a09f8ad",
+  "sha256": "d76fbdad7019b29fe90105e4665156c4a70a9b08bec6cb5053886da400fdd626",
   "certificateSha256": "18946d320bb61c58aa627abbf2b53ea521b273b218eaec57f7fbc662f375bdb1",
   "couponUpdate": "Direct Activity fetch on manual tap behind home without visible float; 30-minute JobScheduler",
   "tiktokUpdate": "read-only source browser snapshot; no automatic API exists",
   "changes": [
-    "Hide tap-refresh float with a fully transparent, non-touchable, non-focusable 1x1px window",
-    "Show updating status only inside the widget",
-    "Preserve v0.1.8 direct fetch, concurrent completion waiting and last-good cache",
-    "Start direct refresh then return its private singleTask behind home; repeat taps share the request",
-    "Disable refresh window start/finish animations and launch preview",
-    "Original signature, preferences, display geometry, progress colors and API responsibility retained"
+    "Total/TikTok/Coupon show dark-green #147A39 second-lap fill after monthly goal is exceeded",
+    "Keep cumulative achievement text: 115.00% uses 15% fill; exact 200% uses 100% fill",
+    "Preserve original fixed certificate and package for in-place upgrade from code 10 to code 11",
+    "Preserve preferences, cached revenue, Reader contract, tap refresh and 30-minute JobScheduler"
   ]
 }

@@ -1,0 +1,1 @@
+PASS official v0.1.9/code10 -> v0.1.10/code11 adb install -r; same UID; all 25 saved settings/cache/history fields preserved across installation; 24 values preserved after first launch, with lastFailureAt refreshed by the expected offline fetch; native cumulative 115.00% UI verified.

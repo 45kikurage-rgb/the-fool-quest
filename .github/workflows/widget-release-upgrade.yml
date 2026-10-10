@@ -1,0 +1,48 @@
+name: Widget official APK upgrade verification
+on:
+  push:
+    paths: ['android-widget/releases/fool-quest-widget-0.1.10.apk', 'android-widget/tests/release-upgrade.py', '.github/workflows/widget-release-upgrade.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  official-upgrade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+      - name: Verify original fixed certificate and release versions
+        run: |
+          sdkmanager 'build-tools;35.0.0'
+          for version in 0.1.9 0.1.10; do
+            "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "android-widget/releases/fool-quest-widget-$version.apk" > "$RUNNER_TEMP/certificate-$version.txt"
+            grep -q 'Signer #1 certificate SHA-256 digest: 18946d320bb61c58aa627abbf2b53ea521b273b218eaec57f7fbc662f375bdb1' "$RUNNER_TEMP/certificate-$version.txt"
+          done
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging android-widget/releases/fool-quest-widget-0.1.10.apk | grep "versionCode='11' versionName='0.1.10'"
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Update official APK with saved settings and cache
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          target: google_apis
+          disable-animations: true
+          script: python3 android-widget/tests/release-upgrade.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: widget-official-upgrade-results
+          path: android-widget/build/release-upgrade/
+          retention-days: 14
