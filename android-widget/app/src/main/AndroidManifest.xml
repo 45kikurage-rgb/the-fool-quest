@@ -10,7 +10,7 @@
             <intent-filter><action android:name="android.intent.action.VIEW" /><category android:name="android.intent.category.DEFAULT" /><category android:name="android.intent.category.BROWSABLE" /><data android:scheme="tfqwidget" android:host="snapshot" /></intent-filter>
             <intent-filter><action android:name="android.intent.action.SEND" /><category android:name="android.intent.category.DEFAULT" /><data android:mimeType="text/plain" /></intent-filter>
         </activity>
-        <activity android:name=".RefreshActivity" android:exported="false" android:theme="@style/QuietRefresh" android:taskAffinity="com.aruno.foolquest.widget.refresh" android:excludeFromRecents="true" android:configChanges="orientation|screenSize" />
+        <activity android:name=".RefreshActivity" android:exported="false" android:theme="@style/QuietRefresh" android:taskAffinity="com.aruno.foolquest.widget.refresh" android:excludeFromRecents="true" android:launchMode="singleTask" android:configChanges="orientation|screenSize" />
         <receiver android:name=".RevenueWidget" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /><action android:name="android.intent.action.BOOT_COMPLETED" /><action android:name="android.intent.action.MY_PACKAGE_REPLACED" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/revenue_widget" />
