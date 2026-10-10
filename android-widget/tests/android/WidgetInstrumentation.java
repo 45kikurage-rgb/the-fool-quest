@@ -326,7 +326,9 @@ public class WidgetInstrumentation extends Instrumentation {
             pointerTap(40,400);
             ok(touches.get()==1,"underlying home host receives actual touches during refresh; observed="+touches.get()+"; focus="+activity.hasWindowFocus());
             runOnMainSync(()->touchSurface.setOnTouchListener(null));
-            RefreshActivity.tapIntent(c).send();
+            // Use the actual RemoteViews click path again; a raw PendingIntent
+            // send does not carry the launcher's background-start options.
+            runOnMainSync(()->view[0].findViewById(R.id.widget_root).performClick());
             Activity repeated=waitForMonitorWithTimeout(tapMonitor,5000);
             ok(repeated!=null&&repeated!=refresh,"repeated real widget tap creates a behind task");
             waitForIdleSync();Thread.sleep(150);
