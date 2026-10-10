@@ -75,7 +75,8 @@ check_preserved()
 info = adb('shell', 'dumpsys', 'package', PACKAGE)
 assert re.search(r'versionCode=11\b', info)
 assert 'versionName=0.1.10' in info
-assert re.search(r'userId=' + uid + r'\b', info)
+updated_uid = re.search(r'uid:(\d+)', adb('shell', 'cmd', 'package', 'list', 'packages', '-U', PACKAGE)).group(1)
+assert updated_uid == uid
 adb('shell', 'am', 'start', '-W', '-n', PACKAGE + '/.SettingsActivity')
 time.sleep(3)
 adb('shell', 'uiautomator', 'dump', '/sdcard/upgrade-ui.xml')
