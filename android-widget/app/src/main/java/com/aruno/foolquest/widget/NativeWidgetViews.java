@@ -66,11 +66,21 @@ final class NativeWidgetViews {
             }
             rv.setViewPadding(ROW[i],0,0,0,i<2?px(c,gap):0);
             RemoteViews bar=new RemoteViews(c.getPackageName(),R.layout.gauge_adaptive);
-            boolean second=s.isSecondLap(values[i],goals[i],d.month,now);
+            long lap=RevenueMath.lapCount(values[i],goals[i]);
             float progress=RevenueMath.progress(values[i],goals[i]);
+            boolean layered=lap>=2 && s.isSecondLap(values[i],goals[i],d.month,now);
+            int current=GaugePalette.currentColor(lap,s.paceAchieved,s.secondLap);
+            int previous=GaugePalette.previousColor(lap,s.paceAchieved,s.secondLap);
+            int base=layered?previous:s.gaugeColor(values[i],goals[i],d.month,now,colors[i]);
             bar.setImageViewBitmap(R.id.gauge_image,gauge(s.text,
-                second?s.paceAchieved:s.gaugeColor(values[i],goals[i],d.month,now,colors[i]),
-                second?1f:progress,second?s.secondLap:0,second?progress:0f,gauge));
+                base,layered?1f:progress,layered?current:0,layered?progress:0f,
+                layered&&GaugePalette.hasMarker(lap,progress),gauge,
+                Math.max(1,Math.round(content-GaugePalette.LAP_LABEL_WIDTH_DP))));
+            String suffix=lap>=2?"×"+lap:"";
+            bar.setTextViewText(R.id.lap_label,suffix);
+            bar.setTextColor(R.id.lap_label,layered?current:GaugePalette.PACE_UNKNOWN);
+            bar.setTextViewTextSize(R.id.lap_label,TypedValue.COMPLEX_UNIT_DIP,
+                Math.max(5f,Math.min(GaugePalette.LAP_FONT_DP,30f/Math.max(2,suffix.length()))));
             rv.removeAllViews(HOLDER[i]);rv.addView(HOLDER[i],bar);
         }
         rv.setTextViewText(R.id.widget_footer,status);rv.setTextColor(R.id.widget_footer,s.text);
@@ -79,11 +89,24 @@ final class NativeWidgetViews {
         rv.setOnClickPendingIntent(R.id.widget_root,RefreshActivity.tapIntent(c));
         return result;
     }
-    private static Bitmap gauge(int text,int color,float progress,int overlayColor,float overlay,int heightDp){
-        Bitmap b=Bitmap.createBitmap(512,heightDp,Bitmap.Config.ARGB_8888);b.setDensity(DisplayMetrics.DENSITY_DEFAULT);
-        Canvas c=new Canvas(b);c.drawColor(Color.argb(72,Color.red(text),Color.green(text),Color.blue(text)));
-        Paint p=new Paint();p.setColor(color);c.drawRect(0,0,512*progress,heightDp,p);
-        if(overlay>0f){p.setColor(overlayColor);c.drawRect(0,0,512*overlay,heightDp,p);}
+    private static Bitmap gauge(int text,int color,float progress,int overlayColor,
+                                float overlay,boolean marker,int heightDp,int widthDp){
+        int over=GaugePalette.MARKER_OVERHANG_DP;
+        Bitmap b=Bitmap.createBitmap(widthDp,heightDp+2*over,Bitmap.Config.ARGB_8888);
+        b.setDensity(DisplayMetrics.DENSITY_DEFAULT);
+        Canvas c=new Canvas(b);
+        Paint p=new Paint();p.setColor(Color.argb(72,Color.red(text),Color.green(text),Color.blue(text)));
+        c.drawRect(0,over,widthDp,over+heightDp,p);
+        p.setColor(color);c.drawRect(0,over,widthDp*progress,over+heightDp,p);
+        if(overlay>0f){
+            p.setColor(overlayColor);c.drawRect(0,over,widthDp*overlay,over+heightDp,p);
+            if(marker){
+                float x=widthDp*overlay;
+                p.setColor(GaugePalette.MARKER_WHITE);
+                float half=GaugePalette.MARKER_WIDTH_DP/2f;
+                c.drawRect(x-half,0,x+half,heightDp+2*over,p);
+            }
+        }
         return b;
     }
 }
