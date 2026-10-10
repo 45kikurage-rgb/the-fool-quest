@@ -1,3 +1,15 @@
+# v0.1.11：正式APKの公開 — 2026-10-10 JST
+
+- 保存済み正式署名APKを再ビルドせず公開。製品ソースは `63720b2e7b6f72954197e0513f78697499c77fb1`。4色設定・満タンの1周目に黄緑の2周目を重ねる表示を含む。
+- v0.1.11 / code 12 / 55,086 bytes / SHA-256 `31174acf7025d3ea5f7907bc652e2b4b86e0b8ef2a839797f785d459debf9450`。APK v2/v3署名合格。既存v0.1.10と証明書SHA-256 `18946d320bb61c58aa627abbf2b53ea521b273b218eaec57f7fbc662f375bdb1`が一致。秘密鍵・パスワードは公開ファイルに含めない。
+- 生成時の検証：Java計算・配置229件、HTTP28件、読み取り連携7件。最新版Android 35検証2162件、通信断12件、再起動2件に合格。実行：https://github.com/45kikurage-rgb/the-fool-quest/actions/runs/38033384866 。115.00%・緑100%に黄緑15%の画像を配布ページへ掲載。
+- 正式APK v0.1.10/code11からv0.1.11/code12への `adb install -r` 合格。同一UID・保存設定/収益キャッシュ/通信履歴25項目がインストール前後で一致。初回起動後も24項目を保持し、lastFailureAtのみ既存の通信断取得で更新。実UIの新版・累計115.00%を確認。実際の設定保存で4色の既定値を追加しても既存設定・キャッシュを保持。実行：https://github.com/45kikurage-rgb/the-fool-quest/actions/runs/38034164167 。結果：`../widget-verification/v0.1.11/official-upgrade-result.txt`。
+- 今回の変更は配布APK・manifest・ダウンロードページ・検証記録のみ。更新処理、収益連携、ウィジェット設定の製品ソースは変更しない。旧版APKを削除・置換しない。
+- 既存のmain公開手順でGitHub Pagesへ反映し、Cloudflare配布URLでも反映を確認する。公開後に両URLからAPKを再取得してハッシュ・署名を照合する。
+- ユーザーのNova実機でのv0.1.11受入は未確認。Android 35検証と実機受入を区別する。
+
+---
+
 # v0.1.10 正式署名・公開検証 — 2026-10-10 JST
 
 - 統括CURRENTを確認：Version 2026-10-09.1、更新日時2026-10-08T20:50:11.617998Z。FOOL QUESTの表示責務・Vault→Ledger→FOOL QUESTの収益経路は変更なし。
