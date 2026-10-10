@@ -269,16 +269,19 @@ public class WidgetInstrumentation extends Instrumentation {
             Activity refresh=waitForMonitorWithTimeout(tapMonitor,5000);
             ok(refresh!=null,"actual widget PendingIntent opens foreground refresh activity");
             waitForIdleSync();
-            for(int n=0;n<50&&!refresh.hasWindowFocus();n++)Thread.sleep(100);
-            ok(refresh.hasWindowFocus(),"updating activity becomes the visible focused window");
-            boolean updatingVisible=false;
-            for(int n=0;n<30&&!updatingVisible;n++){
-                android.view.accessibility.AccessibilityNodeInfo root=getUiAutomation().getRootInActiveWindow();
-                if(root!=null)updatingVisible=!root.findAccessibilityNodeInfosByText("更新中").isEmpty();
-                if(!updatingVisible)Thread.sleep(100);
-            }
-            ok(updatingVisible,"updating text is visible in the actual active window");
-            Thread.sleep(300);
+            Thread.sleep(600);
+            android.view.WindowManager.LayoutParams quiet=refresh.getWindow().getAttributes();
+            ok(quiet.alpha==0f,"refresh window fully transparent rather than just its content");
+            ok(quiet.width==1&&quiet.height==1,"refresh window does not cover the widget or home icons");
+            ok((quiet.flags&android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)!=0,"refresh window cannot intercept home touches");
+            ok((quiet.flags&android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE)!=0,"refresh window does not steal key input");
+            ok(!refresh.hasWindowFocus(),"quiet refresh does not take focus from widget host");
+            ok(activity.hasWindowFocus(),"underlying host retains focus while refreshing");
+            // The active accessibility tree belongs to the host, not a floating badge.
+            android.view.accessibility.AccessibilityNodeInfo active=getUiAutomation().getRootInActiveWindow();
+            ok(active!=null&&!active.findAccessibilityNodeInfosByText("Coupon").isEmpty(),"widget remains visible through quiet refresh");
+            android.view.accessibility.AccessibilityNodeInfo container=getUiAutomation().getRootInActiveWindow();
+            ok(container!=null&&container.findAccessibilityNodeInfosByText("更新中").size()==1,"only widget footer displays updating; no floating label");
             ok(RevenueUpdate.busy(),"widget tap immediately starts direct fetch without a scheduled job");
             ok(scheduler.getPendingJob(RevenueJob.MANUAL)==null,"foreground tap cancels previously queued manual job");
             ok(refresh.getTaskId()!=activity.getTaskId(),"refresh uses a separate task from settings");
@@ -286,6 +289,16 @@ public class WidgetInstrumentation extends Instrumentation {
             ok(!info.exported,"refresh activity is private");
             ok((info.flags&android.content.pm.ActivityInfo.FLAG_EXCLUDE_FROM_RECENTS)!=0,"refresh excluded from recent apps");
             ok(RefreshActivity.tapIntent(c).isActivity()&&RefreshActivity.tapIntent(c).isImmutable(),"widget tap uses immutable activity PendingIntent");
+            final java.util.concurrent.atomic.AtomicInteger touches=new java.util.concurrent.atomic.AtomicInteger();
+            runOnMainSync(()->activity.findViewById(android.R.id.content).setOnTouchListener((v,event)->{if(event.getAction()==android.view.MotionEvent.ACTION_UP)touches.incrementAndGet();return true;}));
+            long inputTime=android.os.SystemClock.uptimeMillis();
+            android.view.MotionEvent down=android.view.MotionEvent.obtain(inputTime,inputTime,android.view.MotionEvent.ACTION_DOWN,40,400,0);
+            down.setSource(android.view.InputDevice.SOURCE_TOUCHSCREEN);
+            android.view.MotionEvent up=android.view.MotionEvent.obtain(inputTime,inputTime+40,android.view.MotionEvent.ACTION_UP,40,400,0);
+            up.setSource(android.view.InputDevice.SOURCE_TOUCHSCREEN);
+            ok(getUiAutomation().injectInputEvent(down,true)&&getUiAutomation().injectInputEvent(up,true),"actual pointer events injected during quiet refresh");down.recycle();up.recycle();waitForIdleSync();
+            ok(touches.get()==1,"underlying home host receives actual touches during refresh");
+            runOnMainSync(()->activity.findViewById(android.R.id.content).setOnTouchListener(null));
             png(getUiAutomation().takeScreenshot(),"native-tap-updating");
             runOnMainSync(()->refresh.startActivity(new Intent(refresh,RefreshActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)));
             waitForIdleSync();Thread.sleep(150);
@@ -293,7 +306,7 @@ public class WidgetInstrumentation extends Instrumentation {
             CountDownLatch tapDone=new CountDownLatch(1);RevenueUpdate.start(c,tapDone::countDown);
             ok(!tapDone.await(100,TimeUnit.MILLISECONDS),"observer waits for same tap request");
             releaseTap.countDown();
-            ok(tapDone.await(35,TimeUnit.SECONDS),"foreground tap fetch completes");
+            ok(tapDone.await(35,TimeUnit.SECONDS),"quiet foreground tap fetch completes");
             for(int n=0;n<100&&!refresh.isDestroyed();n++)Thread.sleep(100);
             ok(refresh.isDestroyed(),"refresh task closes automatically after fetch");
             ok(!activity.isFinishing()&&!activity.isDestroyed(),"settings host task survives refresh completion");
