@@ -1,18 +1,18 @@
 {
   "applicationId": "com.aruno.foolquest.widget",
-  "version": "0.1.11",
-  "versionCode": 12,
+  "version": "0.1.12",
+  "versionCode": 13,
   "minSdk": 26,
   "targetSdk": 35,
-  "size": 55086,
-  "sha256": "31174acf7025d3ea5f7907bc652e2b4b86e0b8ef2a839797f785d459debf9450",
+  "size": 59182,
+  "sha256": "8218ea59dc2cd4c1aac82f12bffd350f8c5736e54e506a931c1400c581c97ffc",
   "certificateSha256": "18946d320bb61c58aa627abbf2b53ea521b273b218eaec57f7fbc662f375bdb1",
   "couponUpdate": "Direct Activity fetch on manual tap behind home without visible float; 30-minute JobScheduler",
   "tiktokUpdate": "read-only source browser snapshot; no automatic API exists",
   "changes": [
-    "Four configurable progress colors with 12-swatch palettes and hex input; default second lap is yellow-green #BAFF00",
-    "Keep a full first lap beneath the second-lap overlay: cumulative 115.00% overlays 15%; exact 200% overlays 100%",
-    "Preserve original certificate and package for in-place upgrade from code 11 to code 12",
-    "Preserve preferences, cached revenue, Reader contract, tap refresh and 30-minute JobScheduler"
+    "Multi-lap gauge alternates configured first/second colors while retaining cumulative achievement percentages",
+    "Keep the previous lap full beneath the current lap; 188.59% shows lap 2 at 88.59%, 250% shows lap 3 at 50%, exact 300% shows lap 3 full",
+    "Add a white 2dp boundary marker and aligned current-lap labels such as ×2 and ×3; match native widget and preview",
+    "Preserve the existing fixed certificate, saved four-color palette, preferences, revenue cache, Reader contract, tap refresh and 30-minute JobScheduler"
   ]
 }

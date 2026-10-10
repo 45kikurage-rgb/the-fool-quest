@@ -1,3 +1,17 @@
+# v0.1.12：正式署名・上書き更新・公開検証 — 2026-10-10 JST
+
+- 統括CURRENTはVersion 2026-10-09.1、更新日時2026-10-08T20:50:11.617998Zから変更なし。製品ソースは指定main `c86b1468ebfefe3ca8fda7d0069a89117f9c1563`をそのまま使用。既存機能の再実装・製品ソース変更なし。
+- 前回と同じ非公開の固定JKSを既存ビルド環境で利用。秘密鍵・パスワードをGitHub・公開ログ・APKへ保存しない。新しい署名鍵は作成しない。
+- 正式APK：`com.aruno.foolquest.widget` / v0.1.12 / code 13 / minSdk26 / targetSdk35 / 59,182 bytes。SHA-256 `8218ea59dc2cd4c1aac82f12bffd350f8c5736e54e506a931c1400c581c97ffc`。v2/v3署名合格、既存v0.1.11の証明書SHA-256 `18946d320bb61c58aa627abbf2b53ea521b273b218eaec57f7fbc662f375bdb1`と一致。
+- 多周回ゲージ：前周の満タンを残し、現在周の余りを色交互で重ねる。188.59%=2周目88.59%、250%=3周目50%、300%=3周目満タン。金額と達成率は累計を維持。白い2dp境界線・右端の×2/×3表示を含む。掲載画像は実Androidの検証用値で、実収益ではない。保存済みの4色を初期色の変更で上書きしない。
+- 指定mainのAndroid 35 CI実行：https://github.com/45kikurage-rgb/the-fool-quest/actions/runs/38042433222 。Java計算/配置248件、HTTP28件、読み取り連携7件、ネイティブ2891件、通信断12件、再起動2件に合格。CIのテスト署名APKは配布しない。
+- 実際の正式APK同士の上書き更新：https://github.com/45kikurage-rgb/the-fool-quest/actions/runs/38043031048 。v0.1.11/code12へ保存済み4色・独自色・余白・文字・背景濃度・進歩カラー・目標額・TikTok/Couponキャッシュ・取得日時・通信履歴29項目を準備し、`adb install -r`でv0.1.12/code13へ更新。同一UID・29項目が完全一致。新版初回起動後も28項目を保持し、lastFailureAtのみ既存の通信断取得で更新。実UIの0.1.12・累計115.00%・1,150,000を確認。実際の設定保存後も4色と既存設定・収益キャッシュを保持。結果：`../widget-verification/v0.1.12/official-upgrade-result.txt`。
+- RevenueStore、RevenueUpdate、RevenueJob、RevenueWidget、RefreshActivityは前回v0.1.11製品ソースからバイト一致。今回の公開変更はAPK・manifest・ダウンロードページ・検証記録のみ。旧版APKを削除・置換しない。
+- 既存のmain公開手順でGitHub Pagesへ反映し、Cloudflare配布URLにも反映。公開後に両配布先からページ・manifest・正式APK・旧v0.1.11を再取得して照合する。
+- ユーザーのNova実機でのv0.1.12受入は未確認。Android 35検証と実機受入を区別する。
+
+---
+
 # v0.1.11：正式APKの公開 — 2026-10-10 JST
 
 - 保存済み正式署名APKを再ビルドせず公開。製品ソースは `63720b2e7b6f72954197e0513f78697499c77fb1`。4色設定・満タンの1周目に黄緑の2周目を重ねる表示を含む。
