@@ -24,6 +24,14 @@ public class WidgetInstrumentation extends Instrumentation {
     java.util.Map<String,Float> measuredGaugeHeights=new java.util.HashMap<>();
     void ok(boolean x,String name){checks++;if(!x)throw new AssertionError(name);}
     void png(android.graphics.Bitmap b,String name)throws Exception{try(FileOutputStream f=new FileOutputStream(new File(output,name+".png"))){b.compress(android.graphics.Bitmap.CompressFormat.PNG,100,f);}}
+    android.widget.Button button(android.view.View view,String text){
+        if(view instanceof android.widget.Button&&((android.widget.Button)view).getText().toString().equals(text))return (android.widget.Button)view;
+        if(view instanceof android.view.ViewGroup){
+            android.view.ViewGroup group=(android.view.ViewGroup)view;
+            for(int i=0;i<group.getChildCount();i++){android.widget.Button found=button(group.getChildAt(i),text);if(found!=null)return found;}
+        }
+        return null;
+    }
     void pointerTap(float x,float y)throws Exception {
         long time=android.os.SystemClock.uptimeMillis();
         android.view.MotionEvent down=android.view.MotionEvent.obtain(time,time,android.view.MotionEvent.ACTION_DOWN,x,y,0);
@@ -328,6 +336,29 @@ public class WidgetInstrumentation extends Instrumentation {
             // Actual Android AppWidgetHostView: applies the production RemoteViews and PendingIntent.
             Activity activity=startActivitySync(new Intent(c,SettingsActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             waitForIdleSync();Thread.sleep(500);png(getUiAutomation().takeScreenshot(),"native-settings-screen");
+            long storedCoupon=RevenueStore.read(c).coupon;
+            runOnMainSync(()->{
+                android.widget.Button sample=button(activity.getWindow().getDecorView(),"2周目 182.09% サンプル表示 ON/OFF");
+                ok(sample!=null,"settings retains 182.09% sample toggle");sample.performClick();
+            });
+            waitForIdleSync();
+            runOnMainSync(()->{
+                android.widget.TextView percent=activity.findViewById(R.id.coupon_percent);
+                ok(percent.getText().toString().equals("182.09%"),"settings sample shows cumulative 182.09%");
+                android.view.ViewGroup holder=activity.findViewById(R.id.coupon_gauge_holder);
+                ok(holder.findViewById(R.id.lap_label).getContentDescription().toString().equals("×2"),"settings sample uses new second-lap suffix");
+                android.widget.ImageView image=holder.findViewById(R.id.gauge_image);
+                android.graphics.Bitmap sample=((android.graphics.drawable.BitmapDrawable)image.getDrawable()).getBitmap();
+                int y=sample.getHeight()/2;
+                for(int percentValue:new int[]{20,40,60,80}){
+                    int x=Math.round(sample.getWidth()*percentValue/100f);boolean white=false;
+                    for(int dx=-1;dx<=1;dx++)white|=sample.getPixel(x+dx,y)==GaugePalette.MARKER_WHITE;
+                    ok(white,"settings sample displays reached divider "+percentValue);
+                }
+            });
+            png(getUiAutomation().takeScreenshot(),"native-settings-18209-sample");
+            ok(RevenueStore.read(c).coupon==storedCoupon,"sample toggle does not change stored revenue");
+            runOnMainSync(()->button(activity.getWindow().getDecorView(),"2周目 182.09% サンプル表示 ON/OFF").performClick());
             AppWidgetHost host=new AppWidgetHost(c,1234);AppWidgetManager manager=AppWidgetManager.getInstance(c);
             int id=host.allocateAppWidgetId();
             ok(manager.bindAppWidgetIdIfAllowed(id,new ComponentName(c,RevenueWidget.class)),"bind Android widget host");
