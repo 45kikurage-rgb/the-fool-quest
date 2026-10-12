@@ -6,6 +6,8 @@ cd "$(dirname "$0")/.."
 : "${WIDGET_JAVAC:=javac}"
 : "${SIGNING_STORE:?Set SIGNING_STORE to private fixed keystore}"
 : "${SIGNING_STORE_PASSWORD:?Set SIGNING_STORE_PASSWORD}"
+# Prevent classes from a previous namespace/build entering the release APK.
+rm -rf build/classes build/generated build/dex
 mkdir -p build/classes build/generated build/dex build/out
 "$ANDROID_BUILD_TOOLS/aapt2" compile --dir app/src/main/res -o build/resources.zip
 "$ANDROID_BUILD_TOOLS/aapt2" link -o build/out/resources.apk --manifest app/src/main/AndroidManifest.xml -I "$ANDROID_JAR" --java build/generated build/resources.zip

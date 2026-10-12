@@ -1,12 +1,12 @@
-name: Widget official APK upgrade verification
+name: Widget official successor coexistence and reinstall verification
 on:
   push:
-    paths: ['android-widget/releases/fool-quest-widget-0.1.12.apk', 'android-widget/releases/fool-quest-widget-0.1.13.apk', 'android-widget/tests/release-upgrade.py', '.github/workflows/widget-release-upgrade.yml']
+    paths: ['android-widget/releases/fool-quest-widget-0.1.12.apk', 'android-widget/releases/fool-quest-widget-0.1.13.apk', 'android-widget/releases/manifest.json', 'android-widget/tests/release-upgrade.py', '.github/workflows/widget-release-upgrade.yml']
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
-  official-upgrade:
+  official-successor:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -19,22 +19,14 @@ jobs:
         with:
           packages: platform-tools
           log-accepted-android-sdk-licenses: false
-      - name: Verify original fixed certificate and release versions
-        run: |
-          sdkmanager 'build-tools;35.0.0'
-          for version in 0.1.12 0.1.13; do
-            "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "android-widget/releases/fool-quest-widget-$version.apk" > "$RUNNER_TEMP/certificate-$version.txt"
-            grep -q 'Signer #1 certificate SHA-256 digest: 18946d320bb61c58aa627abbf2b53ea521b273b218eaec57f7fbc662f375bdb1' "$RUNNER_TEMP/certificate-$version.txt"
-            code=13
-            if [ "$version" = '0.1.13' ]; then code=14; fi
-            "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "android-widget/releases/fool-quest-widget-$version.apk" | grep "package: name='com.aruno.foolquest.widget' versionCode='$code' versionName='$version'"
-          done
+      - name: Install APK verification tools
+        run: sdkmanager 'build-tools;35.0.0'
       - name: Enable emulator acceleration
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-      - name: Update official APK with saved settings and cache
+      - name: Verify old-app preservation and successor reinstall
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
@@ -45,6 +37,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: widget-official-upgrade-v012-to-v013-results
+          name: widget-official-successor-v013-coexistence-reinstall-results
           path: android-widget/build/release-upgrade/
           retention-days: 14

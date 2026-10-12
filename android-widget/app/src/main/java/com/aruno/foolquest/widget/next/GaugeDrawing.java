@@ -1,4 +1,4 @@
-package com.aruno.foolquest.widget;
+package com.aruno.foolquest.widget.next;
 
 import android.graphics.Canvas;
 import android.graphics.Paint;
