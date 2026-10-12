@@ -1,0 +1,29 @@
+{
+  "origin": "https://45kikurage-rgb.github.io/the-fool-quest",
+  "result": "PASS",
+  "checks": [
+    {
+      "path": "widget-download.html",
+      "status": 200,
+      "bytes": 10911
+    },
+    {
+      "path": "android-widget/releases/manifest.json",
+      "status": 200,
+      "bytes": 1373
+    },
+    {
+      "path": "android-widget/releases/fool-quest-widget-0.1.13.apk",
+      "status": 200,
+      "bytes": 59182
+    },
+    {
+      "path": "android-widget/releases/fool-quest-widget-0.1.12.apk",
+      "status": 200,
+      "bytes": 59182
+    }
+  ],
+  "releaseCommit": "dd88c1c1a9253bd928a999a6ce2673a23c548c61",
+  "apkSha256": "c896ee019bedaa983ef9362c06be83452d9111aaefe80247466e932f2eeb9f31",
+  "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730"
+}
