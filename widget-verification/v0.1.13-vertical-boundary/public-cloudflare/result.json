@@ -1,0 +1,93 @@
+{
+  "origin": "https://the-fool-quest.45kikurage.workers.dev",
+  "result": "PASS",
+  "requestProfile": "standard browser User-Agent",
+  "apk": {
+    "applicationId": "com.aruno.foolquest.widget.next",
+    "version": "0.1.13",
+    "versionCode": 14,
+    "size": 59182,
+    "sha256": "5ab426a1dcf8f3673651b99bd69a39bb74053287fa3d7cf2829c296cdda0650f",
+    "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730"
+  },
+  "assertions": [
+    "download link fetched successfully",
+    "current native image matches",
+    "manifest matches",
+    "all four APK sizes and SHA-256 hashes match previously verified formal binaries; certificate/version identity inherited from exact byte match; signature verifier was not rerun"
+  ],
+  "checks": [
+    {
+      "path": "widget-download",
+      "status": 200,
+      "bytes": 11489
+    },
+    {
+      "path": "widget-verification/v0.1.13-vertical-boundary/native/native-lap-2500000.png",
+      "status": 200,
+      "bytes": 15422
+    },
+    {
+      "path": "android-widget/releases/manifest.json",
+      "status": 200,
+      "bytes": 2284
+    },
+    {
+      "path": "android-widget/releases/fool-quest-widget-0.1.13.apk?revision=vertical-20261012-5ab426a1",
+      "status": 200,
+      "bytes": 59182
+    },
+    {
+      "path": "android-widget/releases/fool-quest-widget-0.1.13-bracket.apk",
+      "status": 200,
+      "bytes": 59182
+    },
+    {
+      "path": "android-widget/releases/fool-quest-widget-0.1.13-original.apk",
+      "status": 200,
+      "bytes": 59182
+    },
+    {
+      "path": "android-widget/releases/fool-quest-widget-0.1.12.apk",
+      "status": 200,
+      "bytes": 59182
+    }
+  ],
+  "mainCommit": "9afd9ccf64da65a17f8f0930382e5a4cffa5fea5",
+  "workersBuild": {
+    "status": "success",
+    "id": "db1cd1f7-b9e5-4d95-b738-b4f10ad2570c",
+    "checkId": 115041574680
+  },
+  "signatureVerification": "Not rerun in this retrieval. Downloaded APK SHA-256 and size match the previously verified formal binaries exactly.",
+  "apkChecks": [
+    {
+      "file": "fool-quest-widget-0.1.13.apk",
+      "size": 59182,
+      "sha256": "5ab426a1dcf8f3673651b99bd69a39bb74053287fa3d7cf2829c296cdda0650f",
+      "previouslyVerifiedCertificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+      "identityEvidence": "Exact size and SHA-256 match to previously formally verified binary"
+    },
+    {
+      "file": "fool-quest-widget-0.1.13-bracket.apk",
+      "size": 59182,
+      "sha256": "83ebbf6405e5b2056e2e25af57e13c4c3b5ad9367b763cbf1c47fc3129f7cea2",
+      "previouslyVerifiedCertificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+      "identityEvidence": "Exact size and SHA-256 match to previously formally verified binary"
+    },
+    {
+      "file": "fool-quest-widget-0.1.13-original.apk",
+      "size": 59182,
+      "sha256": "c896ee019bedaa983ef9362c06be83452d9111aaefe80247466e932f2eeb9f31",
+      "previouslyVerifiedCertificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+      "identityEvidence": "Exact size and SHA-256 match to previously formally verified binary"
+    },
+    {
+      "file": "fool-quest-widget-0.1.12.apk",
+      "size": 59182,
+      "sha256": "8218ea59dc2cd4c1aac82f12bffd350f8c5736e54e506a931c1400c581c97ffc",
+      "previouslyVerifiedCertificateSha256": "18946d320bb61c58aa627abbf2b53ea521b273b218eaec57f7fbc662f375bdb1",
+      "identityEvidence": "Exact size and SHA-256 match to previously formally verified binary"
+    }
+  ]
+}
