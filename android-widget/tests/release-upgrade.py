@@ -17,8 +17,8 @@ OLD_PACKAGE = 'com.aruno.foolquest.widget'
 PACKAGE = OLD_PACKAGE + '.next'
 OLD_CERTIFICATE = '18946d320bb61c58aa627abbf2b53ea521b273b218eaec57f7fbc662f375bdb1'
 OLD_APK = pathlib.Path('android-widget/releases/fool-quest-widget-0.1.12.apk')
-BASE_APK = pathlib.Path('android-widget/releases/fool-quest-widget-0.1.13-original.apk')
-BASE_SHA256 = 'c896ee019bedaa983ef9362c06be83452d9111aaefe80247466e932f2eeb9f31'
+BASE_APK = pathlib.Path('android-widget/releases/fool-quest-widget-0.1.13-bracket.apk')
+BASE_SHA256 = '83ebbf6405e5b2056e2e25af57e13c4c3b5ad9367b763cbf1c47fc3129f7cea2'
 BASE_SIZE = 59182
 SUCCESSOR_CERTIFICATE = '8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730'
 NEW_APK = pathlib.Path('android-widget/releases/fool-quest-widget-0.1.13.apk')
@@ -186,13 +186,13 @@ adb('shell', 'am', 'force-stop', PACKAGE)
 check_preserved(PACKAGE, expected, after_fetch=True)
 assert uid(OLD_PACKAGE) == old_uid and prefs(OLD_PACKAGE) == old_snapshot
 (OUT / 'result.txt').write_text(
-    'PASS previous official v0.1.13/code14 successor updated to revised v0.1.13/code14 '
+    'PASS previous official bracket v0.1.13/code14 updated to vertical-boundary v0.1.13/code14 '
     'using adb install -r with unchanged official certificate; two distinct APKs verified; '
     'successor UID and all 29 fixture fields retained exactly after update; '
     '28 fixture values retained after launch with offline lastFailureAt refreshed; '
     'legacy v0.1.12/code13 UID and all 29 fixture fields remain untouched; '
     'native preview cumulative revenue 115.00% verified and screenshot recorded; '
-    'exact revised gauge rendering is separately checked by native instrumentation CI. '
+    'exact restored vertical boundary rendering is separately checked by native instrumentation CI. '
     'No uninstall and no automatic legacy-to-successor migration. '
     'Physical-device checks remain unverified.\n')
 print((OUT / 'result.txt').read_text())

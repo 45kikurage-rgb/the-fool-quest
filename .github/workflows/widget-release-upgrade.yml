@@ -1,7 +1,7 @@
 name: Widget official successor revised-APK upgrade verification
 on:
   push:
-    paths: ['android-widget/releases/fool-quest-widget-0.1.12.apk', 'android-widget/releases/fool-quest-widget-0.1.13-original.apk', 'android-widget/releases/fool-quest-widget-0.1.13.apk', 'android-widget/releases/manifest.json', 'android-widget/tests/release-upgrade.py', '.github/workflows/widget-release-upgrade.yml']
+    paths: ['android-widget/releases/fool-quest-widget-0.1.12.apk', 'android-widget/releases/fool-quest-widget-0.1.13-original.apk', 'android-widget/releases/fool-quest-widget-0.1.13-bracket.apk', 'android-widget/releases/fool-quest-widget-0.1.13.apk', 'android-widget/releases/manifest.json', 'android-widget/tests/release-upgrade.py', '.github/workflows/widget-release-upgrade.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -37,6 +37,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: widget-official-successor-v013-revised-upgrade-results
+          name: widget-official-successor-v013-vertical-upgrade-results
           path: android-widget/build/release-upgrade/
           retention-days: 14

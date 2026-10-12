@@ -181,14 +181,14 @@ public class WidgetInstrumentation extends Instrumentation {
             Paint digit=GaugeDrawing.textPaint();digit.setTextSize(font);
             int edge=Math.round(150*density),cap=Math.round(digit.measureText("0")*density);
             int top=Math.round(GaugePalette.MARKER_OVERHANG_DP*density),bottom=top+Math.round(16*density);
-            ok(b.getPixel(edge-cap+2,top)==GaugePalette.MARKER_WHITE,"upper bracket cap is inside track and spans one money digit at font "+font);
-            ok(b.getPixel(edge-cap+2,bottom-1)==GaugePalette.MARKER_WHITE,"lower bracket cap is inside track and spans one money digit at font "+font);
-            ok(b.getPixel(edge-cap-3,top)!=GaugePalette.MARKER_WHITE,"bracket cap does not extend beyond one digit");
-            ok(android.graphics.Color.alpha(b.getPixel(edge-cap+2,0))==0,"upper cap never protrudes outside track");
-            ok(android.graphics.Color.alpha(b.getPixel(edge-cap+2,b.getHeight()-1))==0,"lower cap never protrudes outside track");
-            ok(android.graphics.Color.alpha(b.getPixel(edge+Math.round(3*density),0))==0,"bracket faces left into active fill");
-            ok(b.getPixel(edge-cap+2,b.getHeight()/2)==GaugePalette.SECOND_LIME,"bracket leaves inner track color intact");
-            png(b,"gauge-bracket-font-"+font);
+            ok(b.getPixel(edge-cap+2,top)==GaugePalette.SECOND_LIME,"upper horizontal cap removed at font "+font);
+            ok(b.getPixel(edge-cap+2,bottom-1)==GaugePalette.SECOND_LIME,"lower horizontal cap removed at font "+font);
+            ok(b.getPixel(edge,0)==GaugePalette.MARKER_WHITE,"original vertical marker protrudes above track");
+            ok(b.getPixel(edge,b.getHeight()-1)==GaugePalette.MARKER_WHITE,"original vertical marker protrudes below track");
+            ok(android.graphics.Color.alpha(b.getPixel(edge-cap+2,0))==0,"vertical marker has no upper side stroke");
+            ok(android.graphics.Color.alpha(b.getPixel(edge+Math.round(3*density),0))==0,"vertical marker retains original width");
+            ok(b.getPixel(edge-cap+2,b.getHeight()/2)==GaugePalette.SECOND_LIME,"track color remains intact");
+            png(b,"gauge-vertical-font-"+font);
         }
     }
     java.util.concurrent.ExecutorService executor()throws Exception {

@@ -1,4 +1,17 @@
-## v0.1.13 / code14 gauge revision — 2026-10-12
+## v0.1.13 / code14 vertical boundary restoration — 2026-10-12
+
+- Restore only the bracket-shaped progress boundary to the original white vertical line. Preserve 2dp stroke width and 2dp vertical overhang, restored gauge width, 34dp lap-label reservation and lap-label height, tick strokes without intermediate percentage text. Revenue/settings/cache/API/DB remain unchanged.
+- Keep successor package `com.aruno.foolquest.widget.next`, versionName `0.1.13`, versionCode `14` and formal certificate `8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730`.
+- Actual prior published bracket APK preserved at `releases/fool-quest-widget-0.1.13-bracket.apk`, 59182 bytes, SHA-256 `83ebbf6405e5b2056e2e25af57e13c4c3b5ad9367b763cbf1c47fc3129f7cea2`. Initial successor original and all legacy APKs are retained. `previousRelease` identifies the bracket APK; `archives` retains the initial successor.
+- Official upgrade test now installs that actual bracket APK, seeds 29 settings/cache/history fields and applies the new vertical-boundary APK via `adb install -r` without uninstalling. Same UID/signature and preservation must be verified for this pair; earlier release tests below are historical.
+- Revised official APK: 59182 bytes, SHA-256 `5ab426a1dcf8f3673651b99bd69a39bb74053287fa3d7cf2829c296cdda0650f`; version/package/formal certificate and v2/v3 verification PASS. No test instrumentation classes or private key files in product APK.
+- Actual official bracket-to-vertical APK update PASS: https://github.com/45kikurage-rgb/the-fool-quest/actions/runs/38253105573 on source `b46fe858425e5b8a5e010094931afb4c3613f9a8`. Same official certificate/UID; all 29 fixture fields retained immediately after `adb install -r`; after offline launch 28 retained and only the existing failure timestamp refreshed. Legacy UID and 29 fields unchanged. Formal preview independently checked: white vertical marker, no horizontal caps.
+- Signing-key recovery steps remain in README. Current Android 35 CI PASS: 3388 native, 123 offline, 113 reboot checks at https://github.com/45kikurage-rgb/the-fool-quest/actions/runs/38253105553 on source `b46fe858425e5b8a5e010094931afb4c3613f9a8`. Artifact 11748618490, SHA-256 `acf6b0d9a54eba940349a4183f84f7b295d915bc00b4f8c01268af0bb5e13bd9`. New vertical marker, 115%/250% samples, 34dp column and lap glyph height, and removal of percentage text independently checked in current screenshots. Local checks: 248 layout/math, 28 HTTP and 9 export PASS. Independent public retrieval follows merge.
+- Physical Nova acceptance remains unverified.
+
+---
+
+## Prior v0.1.13 / code14 bracket gauge revision — 2026-10-12
 
 - Same successor package `com.aruno.foolquest.widget.next`, same versionName `0.1.13`, same versionCode `14`, and same official certificate `8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730`.
 - Preserve the 34dp right-side lap-label reservation and lap-label height. Remove only the intermediate 20/40/60/80% text; retain tick strokes. Progress boundary becomes a white left-facing bracket with top/bottom strokes, one monetary-digit wide. Vertical line keeps the existing 2dp overhang; horizontal caps lie inside the gauge at its top and bottom. Revenue/settings/storage/API/DB unchanged; no new setting keys.
