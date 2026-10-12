@@ -1,0 +1,56 @@
+{
+  "origin": "https://45kikurage-rgb.github.io/the-fool-quest",
+  "result": "PASS",
+  "requestProfile": "standard browser User-Agent",
+  "apk": {
+    "applicationId": "com.aruno.foolquest.widget.next",
+    "version": "0.1.13",
+    "versionCode": 14,
+    "size": 59182,
+    "sha256": "5ab426a1dcf8f3673651b99bd69a39bb74053287fa3d7cf2829c296cdda0650f",
+    "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730"
+  },
+  "assertions": [
+    "download link fetched successfully",
+    "current native image matches",
+    "manifest matches",
+    "all four APK sizes, hashes, versions and certificates match"
+  ],
+  "checks": [
+    {
+      "path": "widget-download.html",
+      "status": 200,
+      "bytes": 11402
+    },
+    {
+      "path": "widget-verification/v0.1.13-vertical-boundary/native/native-lap-2500000.png",
+      "status": 200,
+      "bytes": 15422
+    },
+    {
+      "path": "android-widget/releases/manifest.json",
+      "status": 200,
+      "bytes": 2284
+    },
+    {
+      "path": "android-widget/releases/fool-quest-widget-0.1.13.apk?revision=vertical-20261012-5ab426a1",
+      "status": 200,
+      "bytes": 59182
+    },
+    {
+      "path": "android-widget/releases/fool-quest-widget-0.1.13-bracket.apk",
+      "status": 200,
+      "bytes": 59182
+    },
+    {
+      "path": "android-widget/releases/fool-quest-widget-0.1.13-original.apk",
+      "status": 200,
+      "bytes": 59182
+    },
+    {
+      "path": "android-widget/releases/fool-quest-widget-0.1.12.apk",
+      "status": 200,
+      "bytes": 59182
+    }
+  ]
+}
