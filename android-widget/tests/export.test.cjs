@@ -1,5 +1,5 @@
 const test=require('node:test'),assert=require('node:assert/strict');
-const {readSnapshot,toUri,currentMonth}=require('../web-export.js');
+const {readSnapshot,toUri,toIntentUri,currentMonth}=require('../web-export.js');
 const at=Date.parse('2026-10-08T23:00:00Z');
 function storage(data){return {getItem:k=>k in data?typeof data[k]==='string'?data[k]:JSON.stringify(data[k]):null,setItem:()=>{throw Error('must not write')}};}
 test('same monthly CSV + manual formula, custom targets, read-only',()=>{
@@ -12,3 +12,16 @@ test('different CSV month with existing history resets current base',()=>{const 
 test('currentMonth respects JST boundary',()=>{assert.equal(currentMonth(Date.parse('2026-09-30T14:59:59Z')),'2026-09');assert.equal(currentMonth(Date.parse('2026-09-30T15:00:00Z')),'2026-10');});
 test('malformed/negative/unsafe values fail before emitting a snapshot',()=>{for(const n of [-1,1.5,Number.MAX_SAFE_INTEGER+1])assert.throws(()=>readSnapshot(storage({foolQuestMonthlyRevenueV1:{'2026-10':{tiktok:n}}}),at));assert.throws(()=>readSnapshot(storage({foolQuestMonthlyRevenueV1:'{' }),at));});
 test('manual amounts must be valid and no old-month manual data included',()=>assert.throws(()=>readSnapshot(storage({tfq_tiktok:'2',foolQuestTiktokManualChargesV1:[{date:'2026-10-01',amount:-10}]}),at)));
+
+test('browser handoff defaults to successor and preserves the validated snapshot query',()=>{
+ const snapshot=readSnapshot(storage({tfq_tiktok:'125000'}),at);
+ const intent=toIntentUri(snapshot);
+ assert.equal(intent,'intent://snapshot?'+toUri(snapshot).split('?')[1]+'#Intent;scheme=tfqwidget;package=com.aruno.foolquest.widget.next;end');
+ assert.equal(new URL('tfqwidget://snapshot?'+intent.split('?')[1].split('#Intent')[0]).searchParams.get('tiktok'),'125000');
+});
+test('legacy handoff is explicit and other intent package targets are rejected',()=>{
+ const snapshot=readSnapshot(storage({tfq_tiktok:'125000'}),at);
+ assert.match(toIntentUri(snapshot,'com.aruno.foolquest.widget'),/;package=com\.aruno\.foolquest\.widget;end$/);
+ for(const target of ['com.example.app','com.aruno.foolquest.widget;component=evil',''])
+  assert.throws(()=>toIntentUri(snapshot,target));
+});

@@ -29,6 +29,10 @@
     return {v:'1',month,tiktok,goalTotal:goal('total',1000000),goalTiktok:goal('tiktok',500000),goalCoupon:goal('coupon',500000),at:now};
   }
   function toUri(snapshot){return 'tfqwidget://snapshot?'+new URLSearchParams(snapshot).toString();}
-  const api={readSnapshot,toUri,currentMonth};
+  function toIntentUri(snapshot,packageName='com.aruno.foolquest.widget.next'){
+    if(!['com.aruno.foolquest.widget.next','com.aruno.foolquest.widget'].includes(packageName))throw new Error('連携先アプリが不正です');
+    return 'intent://snapshot?'+new URLSearchParams(snapshot).toString()+'#Intent;scheme=tfqwidget;package='+packageName+';end';
+  }
+  const api={readSnapshot,toUri,toIntentUri,currentMonth};
   if(typeof module==='object'&&module.exports)module.exports=api;else root.FoolQuestExport=api;
 })(typeof globalThis==='object'?globalThis:this);

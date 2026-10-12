@@ -1,3 +1,13 @@
+## Browser handoff routing fix — 2026-10-12
+
+- Root cause: `widget-export.html` still explicitly targeted the legacy package in its Android intent URI. This bypassed normal default-app selection and opened the old app even when the successor was installed.
+- Main button now explicitly targets `com.aruno.foolquest.widget.next`; legacy routing is available only under the collapsed legacy section. Browser JS cache is versioned.
+- Existing snapshot payload, tfqwidget scheme, storage reads, API/DB and APK/version/signature are unchanged. No APK reinstall or Android default-setting reset is needed for this web fix.
+- Export adapter route tests and direct page click simulation validate both packages, unchanged fresh query values, invalid-target rejection and no localStorage writes. Android intent filter/parser compatibility verified against the existing signed v0.1.13 APK.
+- Public deployment verification is performed after PR merge. User physical-device return to successor remains to be confirmed.
+
+---
+
 ## v0.1.13 / code14 successor release candidate — 2026-10-12
 
 - User authorized a new signing identity and separate app after the old key could not be obtained. Old app remains installed and all legacy APKs remain unchanged.
