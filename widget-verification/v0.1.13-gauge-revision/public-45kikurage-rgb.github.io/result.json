@@ -1,0 +1,47 @@
+{
+  "origin": "https://45kikurage-rgb.github.io/the-fool-quest",
+  "result": "PASS",
+  "requestProfile": "standard browser User-Agent",
+  "checks": [
+    {
+      "path": "widget-download.html",
+      "status": 200,
+      "bytes": 11129
+    },
+    {
+      "path": "android-widget/releases/manifest.json",
+      "status": 200,
+      "bytes": 1883
+    },
+    {
+      "path": "android-widget/releases/fool-quest-widget-0.1.13.apk?revision=gauge-20261012-83ebbf64",
+      "status": 200,
+      "bytes": 59182
+    },
+    {
+      "path": "android-widget/releases/fool-quest-widget-0.1.13-original.apk",
+      "status": 200,
+      "bytes": 59182
+    },
+    {
+      "path": "android-widget/releases/fool-quest-widget-0.1.12.apk",
+      "status": 200,
+      "bytes": 59182
+    }
+  ],
+  "mainCommit": "ca69cf2152828bd5b391231e24245883212bfd95",
+  "apk": {
+    "applicationId": "com.aruno.foolquest.widget.next",
+    "version": "0.1.13",
+    "versionCode": 14,
+    "size": 59182,
+    "sha256": "83ebbf6405e5b2056e2e25af57e13c4c3b5ad9367b763cbf1c47fc3129f7cea2",
+    "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730"
+  },
+  "assertions": [
+    "download link fetched successfully",
+    "manifest equals release record",
+    "all three APK versions/sizes/hashes verified",
+    "all three APK formal certificates verified"
+  ]
+}

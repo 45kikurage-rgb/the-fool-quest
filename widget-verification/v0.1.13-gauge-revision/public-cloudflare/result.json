@@ -1,0 +1,72 @@
+{
+  "origin": "https://the-fool-quest.45kikurage.workers.dev",
+  "result": "PASS",
+  "requestProfile": "standard browser User-Agent",
+  "checks": [
+    {
+      "path": "widget-download",
+      "status": 200,
+      "bytes": 11129
+    },
+    {
+      "path": "android-widget/releases/manifest.json",
+      "status": 200,
+      "bytes": 1883
+    },
+    {
+      "path": "android-widget/releases/fool-quest-widget-0.1.13.apk?revision=gauge-20261012-83ebbf64",
+      "status": 200,
+      "bytes": 59182
+    },
+    {
+      "path": "android-widget/releases/fool-quest-widget-0.1.13-original.apk",
+      "status": 200,
+      "bytes": 59182
+    },
+    {
+      "path": "android-widget/releases/fool-quest-widget-0.1.12.apk",
+      "status": 200,
+      "bytes": 59182
+    }
+  ],
+  "mainCommit": "ca69cf2152828bd5b391231e24245883212bfd95",
+  "workersBuild": {
+    "status": "success",
+    "id": "c653d12e-8e25-47d2-a684-b734dc5f1aab"
+  },
+  "apkChecks": [
+    {
+      "file": "fool-quest-widget-0.1.13.apk",
+      "applicationId": "com.aruno.foolquest.widget.next",
+      "version": "0.1.13",
+      "versionCode": 14,
+      "size": 59182,
+      "sha256": "83ebbf6405e5b2056e2e25af57e13c4c3b5ad9367b763cbf1c47fc3129f7cea2",
+      "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+      "signature": "v2/v3 verified",
+      "metadata": "aapt version/package match"
+    },
+    {
+      "file": "fool-quest-widget-0.1.13-original.apk",
+      "applicationId": "com.aruno.foolquest.widget.next",
+      "version": "0.1.13",
+      "versionCode": 14,
+      "size": 59182,
+      "sha256": "c896ee019bedaa983ef9362c06be83452d9111aaefe80247466e932f2eeb9f31",
+      "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+      "signature": "v2/v3 verified",
+      "metadata": "aapt version/package match"
+    },
+    {
+      "file": "fool-quest-widget-0.1.12.apk",
+      "applicationId": "com.aruno.foolquest.widget",
+      "version": "0.1.12",
+      "versionCode": 13,
+      "size": 59182,
+      "sha256": "8218ea59dc2cd4c1aac82f12bffd350f8c5736e54e506a931c1400c581c97ffc",
+      "certificateSha256": "18946d320bb61c58aa627abbf2b53ea521b273b218eaec57f7fbc662f375bdb1",
+      "signature": "v2/v3 verified",
+      "metadata": "aapt version/package match"
+    }
+  ]
+}
