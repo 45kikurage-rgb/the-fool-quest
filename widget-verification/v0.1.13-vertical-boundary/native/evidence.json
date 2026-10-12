@@ -1,0 +1,18 @@
+{
+  "head_sha": "b46fe858425e5b8a5e010094931afb4c3613f9a8",
+  "run_id": 38253105553,
+  "job_id": 114824142921,
+  "artifact_id": 11748618490,
+  "artifact_sha256": "acf6b0d9a54eba940349a4183f84f7b295d915bc00b4f8c01268af0bb5e13bd9",
+  "native_checks": 3388,
+  "offline_checks": 123,
+  "reboot_checks": 113,
+  "visual_checks": [
+    "Current-progress marker is vertical white line, no horizontal caps",
+    "34dp reserved lap suffix with full-height glyph preserved",
+    "20/40/60/80 percent annotation text absent",
+    "native 115% image shows vertical marker and lap2",
+    "native 250% image shows vertical marker and lap3; suitable for download-page preview",
+    "real AppWidgetHost live screen shows Coupon720350/72.04%"
+  ]
+}
