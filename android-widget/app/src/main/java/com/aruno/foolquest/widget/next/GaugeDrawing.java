@@ -62,20 +62,15 @@ final class GaugeDrawing {
         c.restoreToCount(save);
     }
 
-    /** Current-progress boundary: a right bracket, with caps facing into the fill. */
+    /** Current-progress boundary: the original white vertical marker. */
     static void boundary(Canvas c,float left,float top,float width,float height,
                          float progress,float amountFontDp) {
-        Paint digit=textPaint();digit.setTextSize(amountFontDp);
-        float digitWidth=digit.measureText("0");
         float x=left+width*progress,half=GaugePalette.MARKER_WIDTH_DP/2f;
         float markerTop=top-GaugePalette.MARKER_OVERHANG_DP;
         float markerBottom=top+height+GaugePalette.MARKER_OVERHANG_DP;
-        float capLeft=Math.max(left,x-digitWidth);
         Paint p=new Paint();p.setColor(GaugePalette.MARKER_WHITE);p.setAntiAlias(false);
         int save=c.save();c.clipRect(left,markerTop,left+width,markerBottom);
         c.drawRect(x-half,markerTop,x+half,markerBottom,p);
-        c.drawRect(capLeft,top,x+half,top+GaugePalette.MARKER_WIDTH_DP,p);
-        c.drawRect(capLeft,top+height-GaugePalette.MARKER_WIDTH_DP,x+half,top+height,p);
         c.restoreToCount(save);
     }
 }

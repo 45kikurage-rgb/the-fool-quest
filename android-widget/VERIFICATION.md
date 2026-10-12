@@ -1,4 +1,16 @@
-## v0.1.13 / code14 gauge revision — 2026-10-12
+## v0.1.13 / code14 vertical boundary restoration — 2026-10-12
+
+- Restore only the bracket-shaped progress boundary to the original white vertical line. Preserve 2dp stroke width and 2dp vertical overhang, restored gauge width, 34dp lap-label reservation and lap-label height, tick strokes without intermediate percentage text. Revenue/settings/cache/API/DB remain unchanged.
+- Keep successor package `com.aruno.foolquest.widget.next`, versionName `0.1.13`, versionCode `14` and formal certificate `8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730`.
+- Actual prior published bracket APK preserved at `releases/fool-quest-widget-0.1.13-bracket.apk`, 59182 bytes, SHA-256 `83ebbf6405e5b2056e2e25af57e13c4c3b5ad9367b763cbf1c47fc3129f7cea2`. Initial successor original and all legacy APKs are retained. `previousRelease` identifies the bracket APK; `archives` retains the initial successor.
+- Official upgrade test now installs that actual bracket APK, seeds 29 settings/cache/history fields and applies the new vertical-boundary APK via `adb install -r` without uninstalling. Same UID/signature and preservation must be verified for this pair; earlier release tests below are historical.
+- Revised official APK: 59182 bytes, SHA-256 `5ab426a1dcf8f3673651b99bd69a39bb74053287fa3d7cf2829c296cdda0650f`; version/package/formal certificate and v2/v3 verification PASS. No test instrumentation classes or private key files in product APK.
+- Signing-key recovery steps remain in README. Source/Android 35 CI, actual official update results and independent public retrieval are pending this revision's measurements.
+- Physical Nova acceptance remains unverified.
+
+---
+
+## Prior v0.1.13 / code14 bracket gauge revision — 2026-10-12
 
 - Same successor package `com.aruno.foolquest.widget.next`, same versionName `0.1.13`, same versionCode `14`, and same official certificate `8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730`.
 - Preserve the 34dp right-side lap-label reservation and lap-label height. Remove only the intermediate 20/40/60/80% text; retain tick strokes. Progress boundary becomes a white left-facing bracket with top/bottom strokes, one monetary-digit wide. Vertical line keeps the existing 2dp overhang; horizontal caps lie inside the gauge at its top and bottom. Revenue/settings/storage/API/DB unchanged; no new setting keys.
