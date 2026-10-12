@@ -1,0 +1,11 @@
+{
+  "dateJst": "2026-10-13",
+  "sourceMain": "98460dad4e345bea86702553280504275bdc730a",
+  "run": 38318331832,
+  "CLOUDFLARE_API_TOKEN_available": false,
+  "CF_API_TOKEN_available": false,
+  "account_secret_available": false,
+  "account_variable_available": false,
+  "workerBuildsFailureCause": "unknown",
+  "notes": "Credential values were not output; no source/APK/authentication/WAF changes. These workflow-secret checks do not explain the separate Workers Builds failures."
+}
