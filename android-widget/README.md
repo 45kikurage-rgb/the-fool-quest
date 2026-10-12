@@ -12,6 +12,8 @@
 - 新署名鍵は非公開バックアップを保存し、保存したコピーから復元・パスワードで開けること・証明書一致を確認済み。鍵やパスワードはGitHub・APK・公開ページへ含めません。次回も同じ新版鍵を使用します。
 - 正式APKの共存／再インストール試験は`tests/release-upgrade.py`。旧版の29項目保持、新版の独立UIDと同じAPKの`adb install -r`設定保持を検証します。Android 35の正式APK試験でPASS。これは旧版から新版への上書き試験ではありません。
 
+公開後にGitHub PagesとCloudflareからページ・manifest・新版APK・旧版APKを再取得し、HTTP200、版・ハッシュ・正式署名の一致を確認済み。Cloudflareの取得検証は標準ブラウザUser-Agentを使用。ユーザーのNova実機受入は未確認です。
+
 ## 現在のデータ責任
 
 - Coupon：既存Ledger `GET /api/v1/revenue/monthly?month=YYYY-MM`、`coupon_revenue`。認証情報を含まない既存公開Readerを再利用。
