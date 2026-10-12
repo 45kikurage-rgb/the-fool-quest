@@ -1,7 +1,7 @@
-"""Verify official old/new coexistence and successor reinstall on a clean emulator.
+"""Verify the previous official successor APK updates to the revised official APK.
 
-The old signing key is unavailable: v0.1.12 cannot be upgraded to the successor.
-Never uninstall either app. This is not an old-package upgrade/migration test.
+Both successor binaries are v0.1.13/code14 with the same signing identity.
+Never uninstall either app. The legacy v0.1.12 app remains untouched.
 """
 import datetime
 import hashlib
@@ -17,6 +17,10 @@ OLD_PACKAGE = 'com.aruno.foolquest.widget'
 PACKAGE = OLD_PACKAGE + '.next'
 OLD_CERTIFICATE = '18946d320bb61c58aa627abbf2b53ea521b273b218eaec57f7fbc662f375bdb1'
 OLD_APK = pathlib.Path('android-widget/releases/fool-quest-widget-0.1.12.apk')
+BASE_APK = pathlib.Path('android-widget/releases/fool-quest-widget-0.1.13-original.apk')
+BASE_SHA256 = 'c896ee019bedaa983ef9362c06be83452d9111aaefe80247466e932f2eeb9f31'
+BASE_SIZE = 59182
+SUCCESSOR_CERTIFICATE = '8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730'
 NEW_APK = pathlib.Path('android-widget/releases/fool-quest-widget-0.1.13.apk')
 OUT = pathlib.Path('android-widget/build/release-upgrade')
 OUT.mkdir(parents=True, exist_ok=True)
@@ -81,18 +85,25 @@ def verify_apk(apk, package, version, code, certificate):
     badging = subprocess.run([str(pathlib.Path(sdk) / 'aapt'), 'dump', 'badging', str(apk)],
                              check=True, text=True, capture_output=True).stdout
     assert f"package: name='{package}' versionCode='{code}' versionName='{version}'" in badging
-    (OUT / (version + '-signature.txt')).write_text(signer)
+    (OUT / (apk.stem + '-signature.txt')).write_text(signer)
 
 
-assert OLD_APK.is_file() and NEW_APK.is_file(), 'Both official APKs are required'
+assert all(apk.is_file() for apk in [OLD_APK, BASE_APK, NEW_APK]), 'Legacy, previous and revised official APKs are required'
+assert hashlib.sha256(BASE_APK.read_bytes()).hexdigest() == BASE_SHA256
+assert BASE_APK.stat().st_size == BASE_SIZE
+assert BASE_APK.read_bytes() != NEW_APK.read_bytes(), 'Upgrade must test two distinct official binaries'
 manifest = json.loads(pathlib.Path('android-widget/releases/manifest.json').read_text())
 assert (manifest['applicationId'], manifest['version'], manifest['versionCode']) == (PACKAGE, '0.1.13', 14)
+assert manifest['previousRelease']['file'] == BASE_APK.name
+assert manifest['previousRelease']['sha256'] == BASE_SHA256
+assert manifest['previousRelease']['size'] == BASE_SIZE
 new_certificate = manifest['certificateSha256']
 assert re.fullmatch(r'[a-f0-9]{64}', new_certificate)
-assert new_certificate != OLD_CERTIFICATE, 'Successor must use its documented new identity'
+assert new_certificate == SUCCESSOR_CERTIFICATE, 'Successor signing identity must remain unchanged'
 assert hashlib.sha256(NEW_APK.read_bytes()).hexdigest() == manifest['sha256']
 assert NEW_APK.stat().st_size == manifest['size']
 verify_apk(OLD_APK, OLD_PACKAGE, '0.1.12', 13, OLD_CERTIFICATE)
+verify_apk(BASE_APK, PACKAGE, '0.1.13', 14, new_certificate)
 verify_apk(NEW_APK, PACKAGE, '0.1.13', 14, new_certificate)
 assert adb('shell', 'getprop', 'ro.kernel.qemu').strip() == '1', 'Isolated emulator only'
 assert not adb('shell', 'pm', 'list', 'packages', OLD_PACKAGE).strip(), 'Clean emulator required; do not uninstall'
@@ -135,8 +146,8 @@ fixture_path = OUT / 'fixture.xml'
 ET.ElementTree(fixture).write(fixture_path, encoding='utf-8', xml_declaration=True)
 write_fixture(OLD_PACKAGE)
 old_snapshot = prefs(OLD_PACKAGE)
-# New package installation preserves the old app without pretending to migrate it.
-assert 'Success' in adb('install', str(NEW_APK))
+# Install the actual prior published successor before testing its update.
+assert 'Success' in adb('install', str(BASE_APK))
 new_uid = uid(PACKAGE)
 assert new_uid != old_uid, 'Separate applications must have independent UIDs'
 assert uid(OLD_PACKAGE) == old_uid
@@ -145,12 +156,12 @@ old_info = adb('shell', 'dumpsys', 'package', OLD_PACKAGE)
 assert re.search(r'versionCode=13\b', old_info) and 'versionName=0.1.12' in old_info
 info = adb('shell', 'dumpsys', 'package', PACKAGE)
 assert re.search(r'versionCode=14\b', info) and 'versionName=0.1.13' in info
-# Seed the successor independently. This does not claim automatic old-app migration.
+# Seed the previous official successor, then update without uninstalling it.
 write_fixture(PACKAGE)
-before_reinstall = prefs(PACKAGE)
+before_upgrade = prefs(PACKAGE)
 assert 'Success' in adb('install', '-r', str(NEW_APK))
 assert uid(PACKAGE) == new_uid
-assert prefs(PACKAGE) == before_reinstall, 'Successor preferences must survive reinstall exactly'
+assert prefs(PACKAGE) == before_upgrade, 'Successor preferences must survive the revised APK upgrade exactly'
 check_preserved(PACKAGE, expected)
 adb('shell', 'am', 'start', '-W', '-n', PACKAGE + '/.SettingsActivity')
 time.sleep(3)
@@ -175,12 +186,13 @@ adb('shell', 'am', 'force-stop', PACKAGE)
 check_preserved(PACKAGE, expected, after_fetch=True)
 assert uid(OLD_PACKAGE) == old_uid and prefs(OLD_PACKAGE) == old_snapshot
 (OUT / 'result.txt').write_text(
-    'PASS official v0.1.12/code13 old app retained alongside v0.1.13/code14 successor; '
-    'independent UIDs; all 29 old settings/cache/history fixture fields unchanged; '
-    'successor same-APK adb install -r preserves successor UID and all 29 fixture fields; '
-    '28 successor fixture values retained after launch with offline lastFailureAt refreshed; '
+    'PASS previous official v0.1.13/code14 successor updated to revised v0.1.13/code14 '
+    'using adb install -r with unchanged official certificate; two distinct APKs verified; '
+    'successor UID and all 29 fixture fields retained exactly after update; '
+    '28 fixture values retained after launch with offline lastFailureAt refreshed; '
+    'legacy v0.1.12/code13 UID and all 29 fixture fields remain untouched; '
     'native preview cumulative revenue 115.00% verified and screenshot recorded; '
-    'exact lap rendering is separately checked by native instrumentation CI. '
-    'NOT an old-to-successor upgrade or automatic data migration test. '
-    'Future higher-version update and physical-device checks remain unverified.\n')
+    'exact revised gauge rendering is separately checked by native instrumentation CI. '
+    'No uninstall and no automatic legacy-to-successor migration. '
+    'Physical-device checks remain unverified.\n')
 print((OUT / 'result.txt').read_text())

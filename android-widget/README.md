@@ -2,6 +2,12 @@
 
 新版APK `com.aruno.foolquest.widget.next`。Android 8.0以上。正式配布版は v0.1.13 / versionCode 14。既存のTHE FOOL QUEST、ARUNOMATIC、Vault、Ledgerへの書き込みを行いません。
 
+## v0.1.13 / code14 ゲージ修正版（2026-10-12）
+
+新版パッケージと正式署名を維持した同版修正版です。右端の34dp周回数欄と文字高さを維持し、20・40・60・80%の目盛り文字だけを削除します。進捗境界の白線は上下面が左へ伸びる「］」形とし、横幅を金額1桁分に合わせます。目盛り線・前周満タン・現在周の重ね描画・累計金額は維持。新しい設定キー、収益API、DBの変更はありません。 白い境界の縦線は従来どおり上下2dp外へ伸び、上下面の横線はゲージ内の上端・下端に描きます。
+
+すでに「FOOL QUEST ウィジェット 新版」を利用している場合はアンインストールせず今回APKを上書きします。版表示は前公開版と同じため、修正版の判別はAPKのSHA-256で行います。 今回の正式APKは59,182 bytes、SHA-256 `83ebbf6405e5b2056e2e25af57e13c4c3b5ad9367b763cbf1c47fc3129f7cea2`。前公開正式APKは`releases/fool-quest-widget-0.1.13-original.apk`に保持し、`tests/release-upgrade.py`で前公開APKから今回APKへの実際の`adb install -r`を検証します。旧パッケージv0.1.12からの自動移行はありません。
+
 ## v0.1.13 新版への移行（2026-10-12）
 
 ユーザーが同じ構造と追加改修を含む再配布方法を承認。旧署名鍵の取得ができないため、旧版を削除せず併存できる別パッケージを使用します。Java14ファイルはnamespace変更のみ。SettingsActivityは初回の通信断でもプレビューを表示するため、幅変更時の再描画を画面配置後へ延期する最小修正を加えました。ゲージ・Reader・保存設定・キャッシュ処理は維持。PR #9の文字高さ・84dp余白・20%目盛りと縁取りを含みます。
@@ -10,7 +16,7 @@
 - 旧版からの上書き更新と設定自動移行はありません。旧アプリと旧APKは保持します。
 - 新版でTHE FOOL QUESTからTikTok・目標を再連携し、表示設定とホームのウィジェットを設定してください。`tfqwidget`連携は維持。連携ページの通常ボタンは新版を明示して開きます。旧版を使う場合だけ折りたたみ内の旧版用ボタンを選びます。
 - 新署名鍵は非公開バックアップを保存し、保存したコピーから復元・パスワードで開けること・証明書一致を確認済み。鍵やパスワードはGitHub・APK・公開ページへ含めません。次回も同じ新版鍵を使用します。
-- 正式APKの共存／再インストール試験は`tests/release-upgrade.py`。旧版の29項目保持、新版の独立UIDと同じAPKの`adb install -r`設定保持を検証します。Android 35の正式APK試験でPASS。これは旧版から新版への上書き試験ではありません。
+- 初回公開時の正式APK共存／同じAPK再インストール試験はAndroid 35でPASS。今回の試験は前公開新版APKから修正版APKへの上書き更新に変更しました。旧パッケージから新版への移行試験ではありません。
 
 公開後にGitHub PagesとCloudflareからページ・manifest・新版APK・旧版APKを再取得し、HTTP200、版・ハッシュ・正式署名の一致を確認済み。Cloudflareの取得検証は標準ブラウザUser-Agentを使用。ユーザーのNova実機受入は未確認です。
 
@@ -36,13 +42,22 @@
 ```bash
 export ANDROID_JAR=/path/to/sdk/platforms/android-35/android.jar
 export ANDROID_BUILD_TOOLS=/path/to/sdk/build-tools/35.0.0
-export SIGNING_STORE=/private/foolquest-widget.jks
+export SIGNING_STORE=/private/fool-quest-widget-next-signing.jks
 # SIGNING_STORE_PASSWORDは秘密管理から環境変数へ設定。ログ・Gitへ入れない。
 bash scripts/test.sh
 bash scripts/build.sh
 ```
 
-固定署名鍵はGitHubに保存しません。初回公開APKの証明書SHA-256：`18946d320bb61c58aa627abbf2b53ea521b273b218eaec57f7fbc662f375bdb1`。今後の更新は同じ鍵で署名しversionCodeを増やしてください。
+固定署名鍵はGitHubに保存しません。現在の新版パッケージの証明書SHA-256は`8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730`です。新版の更新にはこの鍵を再利用します。旧パッケージv0.1.12までの証明書`18946d320bb61c58aa627abbf2b53ea521b273b218eaec57f7fbc662f375bdb1`は別の鍵であり、その秘密鍵は現在取得できません。
+
+## 次のChat／Workへの管理引き継ぎ
+
+「管理キー」は署名鍵と各サービスの操作経路を区別します。
+
+- 署名：本人のChatGPTに接続した非公開フォルダ`/THE-FOOL-QUEST_非公開署名_2026-10-12`に、`fool-quest-widget-next-signing.jks`・`fool-quest-widget-next-signing-access.json`・`fool-quest-widget-next-signing-recovery.json`を別ファイルとして保存済み。新しいWorkでは本人認証済みの接続から復旧索引を読み、索引に記録されたファイルIDでJKSとアクセス情報を安全な一時領域へ復元します。秘密内容をチャット・Git・公開ログへ出さず、パスワードで開けることと上記新版証明書との一致を確認してから`SIGNING_STORE`／`SIGNING_STORE_PASSWORD`に渡します。一時領域の既存ファイルだけを唯一の保管先として扱いません。
+- GitHub：本人の接続済みGitHubツールで対象リポジトリへアクセスし、最新mainを確認してブランチ／PR経由で更新します。mainへの直接pushは使用しません。
+- Cloudflare：GitHub main連動のWorkers Buildsで既存Workerへ配信します。GitHubのWorkers Buildsチェックと公開ファイル再取得を確認します。管理画面の確認が必要な場合は本人が正規ログインを行います。常時利用可能なCloudflare管理トークンの保存先は未確認です。
+- 公開検証：GitHub PagesとCloudflareの各配布先からページ、manifest、最新APK、保存した前公開APKを標準ブラウザUser-Agentで再取得し、HTTP200・版・サイズ・SHA-256・署名をそれぞれ照合します。一方の成功だけで両方の公開完了と判断しません。
 
 ## 検証区分
 
