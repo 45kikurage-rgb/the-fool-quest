@@ -1,4 +1,4 @@
-package com.aruno.foolquest.widget;
+package com.aruno.foolquest.widget.next;
 
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
@@ -15,7 +15,7 @@ import java.util.Map;
 import android.widget.RemoteViews;
 
 public final class RevenueWidget extends AppWidgetProvider {
-    static final String REFRESH="com.aruno.foolquest.widget.REFRESH";
+    static final String REFRESH="com.aruno.foolquest.widget.next.REFRESH";
     static int[] ids(Context c){return AppWidgetManager.getInstance(c).getAppWidgetIds(new ComponentName(c,RevenueWidget.class));}
     static void renderAll(Context c){
         AppWidgetManager manager=AppWidgetManager.getInstance(c);

@@ -1,3 +1,19 @@
+## v0.1.13 / code14 successor release candidate — 2026-10-12
+
+- User authorized a new signing identity and separate app after the old key could not be obtained. Old app remains installed and all legacy APKs remain unchanged.
+- package `com.aruno.foolquest.widget.next`, versionName `0.1.13`, versionCode `14`.
+- APK bytes 59182, SHA-256 `c896ee019bedaa983ef9362c06be83452d9111aaefe80247466e932f2eeb9f31`.
+- New certificate SHA-256 `8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730`; distinct from legacy `18946d320bb61c58aa627abbf2b53ea521b273b218eaec57f7fbc662f375bdb1`. APK v2/v3 verify PASS.
+- `scripts/build.sh` built with a saved-and-restored private key. Keystore and private access information were saved separately in an unshared owner-created folder; both restored byte-for-byte and restored certificate validated before building. No secret material in repository or APK.
+- Product Java14 files match the prior candidate after namespace replacement only; SettingsActivity additionally defers width-change preview replacement until after layout. PR #9 gauge implementation and all data/settings logic are preserved.
+- Local math/layout248 + HTTP28 + browser export7 PASS. Source and test APK compile, Python/YAML/Bash syntax PASS. No test classes or private key files included in product APK.
+- Latest candidate includes the minimal initial-preview layout fix: width-change listener schedules child replacement with `preview.post`, preserving renderer/data/settings logic. The offline initial Settings screencap exposed a layout timing issue in the earlier candidate.
+- Latest rebuilt APK: [Android35 run38201613914](https://github.com/45kikurage-rgb/the-fool-quest/actions/runs/38201613914) **success**, [official coexistence/reinstall run38201613916](https://github.com/45kikurage-rgb/the-fool-quest/actions/runs/38201613916) **success**. Old app29 fixture fields retained with independent UID; successor same-APK reinstall keeps its UID and29 fields,28 retained after initial offline fetch (only lastFailureAt refresh permitted). Official offline initial Settings screenshot visually confirmed: dark panel,115.00% cumulative amounts, three-row gauges and×2 labels visible; widget_root284x126/panel268x110 measured in Activity hierarchy. Native counts:3366 render/Reader,101 offline,91 reboot. Evidence in `../widget-verification/v0.1.13/`; all current logs are from the post-layout fix candidate. This is not an old-to-successor upgrade or migration test; future higher-version updates and user Nova acceptance remain unverified.
+- GitHub Pages / Cloudflare v0.1.13 publication: **pending**. Cloudflare currently requires authenticated build inspection; unauthenticated fetch returned 403.
+- APK badging/certificate evidence: `../widget-verification/v0.1.13/`.
+
+---
+
 # v0.1.12：正式署名・上書き更新・公開検証 — 2026-10-10 JST
 
 - 統括CURRENTはVersion 2026-10-09.1、更新日時2026-10-08T20:50:11.617998Zから変更なし。製品ソースは指定main `c86b1468ebfefe3ca8fda7d0069a89117f9c1563`をそのまま使用。既存機能の再実装・製品ソース変更なし。

@@ -1,4 +1,4 @@
-package com.aruno.foolquest.widget;
+package com.aruno.foolquest.widget.next;
 
 /** Fixed columns shared by all rows, independent of the amount's digit count. */
 public final class WidgetLayout {

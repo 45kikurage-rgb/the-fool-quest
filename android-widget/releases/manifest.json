@@ -1,18 +1,28 @@
 {
-  "applicationId": "com.aruno.foolquest.widget",
-  "version": "0.1.12",
-  "versionCode": 13,
+  "applicationId": "com.aruno.foolquest.widget.next",
+  "version": "0.1.13",
+  "versionCode": 14,
   "minSdk": 26,
   "targetSdk": 35,
   "size": 59182,
-  "sha256": "8218ea59dc2cd4c1aac82f12bffd350f8c5736e54e506a931c1400c581c97ffc",
-  "certificateSha256": "18946d320bb61c58aa627abbf2b53ea521b273b218eaec57f7fbc662f375bdb1",
+  "sha256": "c896ee019bedaa983ef9362c06be83452d9111aaefe80247466e932f2eeb9f31",
+  "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
   "couponUpdate": "Direct Activity fetch on manual tap behind home without visible float; 30-minute JobScheduler",
   "tiktokUpdate": "read-only source browser snapshot; no automatic API exists",
   "changes": [
-    "Multi-lap gauge alternates configured first/second colors while retaining cumulative achievement percentages",
-    "Keep the previous lap full beneath the current lap; 188.59% shows lap 2 at 88.59%, 250% shows lap 3 at 50%, exact 300% shows lap 3 full",
-    "Add a white 2dp boundary marker and aligned current-lap labels such as ×2 and ×3; match native widget and preview",
-    "Preserve the existing fixed certificate, saved four-color palette, preferences, revenue cache, Reader contract, tap refresh and 30-minute JobScheduler"
-  ]
+    "Preserve existing three-row native widget, Reader, settings and revenue/cache behavior",
+    "Include PR #9 gauge-label sizing, common right spacing, intermediate tick marks and outlined lap labels",
+    "New package and signing identity after old signing key became unavailable; old app and all prior APKs retained"
+  ],
+  "file": "fool-quest-widget-0.1.13.apk",
+  "installation": "Separate successor app; legacy remains installed; manual settings and source re-link required",
+  "legacy": {
+    "applicationId": "com.aruno.foolquest.widget",
+    "version": "0.1.12",
+    "versionCode": 13,
+    "size": 59182,
+    "sha256": "8218ea59dc2cd4c1aac82f12bffd350f8c5736e54e506a931c1400c581c97ffc",
+    "certificateSha256": "18946d320bb61c58aa627abbf2b53ea521b273b218eaec57f7fbc662f375bdb1",
+    "file": "fool-quest-widget-0.1.12.apk"
+  }
 }

@@ -1,5 +1,5 @@
-import com.aruno.foolquest.widget.RevenueMath;
-import com.aruno.foolquest.widget.WidgetLayout;
+import com.aruno.foolquest.widget.next.RevenueMath;
+import com.aruno.foolquest.widget.next.WidgetLayout;
 import java.time.Instant;
 
 public class RevenueMathTest {

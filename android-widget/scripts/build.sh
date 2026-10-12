@@ -6,6 +6,8 @@ cd "$(dirname "$0")/.."
 : "${WIDGET_JAVAC:=javac}"
 : "${SIGNING_STORE:?Set SIGNING_STORE to private fixed keystore}"
 : "${SIGNING_STORE_PASSWORD:?Set SIGNING_STORE_PASSWORD}"
+# Prevent classes from a previous namespace/build entering the release APK.
+rm -rf build/classes build/generated build/dex
 mkdir -p build/classes build/generated build/dex build/out
 "$ANDROID_BUILD_TOOLS/aapt2" compile --dir app/src/main/res -o build/resources.zip
 "$ANDROID_BUILD_TOOLS/aapt2" link -o build/out/resources.apk --manifest app/src/main/AndroidManifest.xml -I "$ANDROID_JAR" --java build/generated build/resources.zip
@@ -16,7 +18,7 @@ java -cp "$ANDROID_BUILD_TOOLS/lib/d8.jar" com.android.tools.r8.D8 --release --m
 cp build/out/resources.apk build/out/uncompressed.apk
 (cd build/dex && zip -q -j ../out/uncompressed.apk classes*.dex)
 "$ANDROID_BUILD_TOOLS/zipalign" -f -p 4 build/out/uncompressed.apk build/out/aligned.apk
-java -jar "$ANDROID_BUILD_TOOLS/lib/apksigner.jar" sign --ks "$SIGNING_STORE" --ks-key-alias foolquestwidget --ks-pass env:SIGNING_STORE_PASSWORD --key-pass env:SIGNING_STORE_PASSWORD --out build/out/fool-quest-widget-0.1.12.apk build/out/aligned.apk
-java -jar "$ANDROID_BUILD_TOOLS/lib/apksigner.jar" verify --verbose --print-certs build/out/fool-quest-widget-0.1.12.apk > build/signature-verification.txt
-sha256sum build/out/fool-quest-widget-0.1.12.apk > build/SHA256SUMS
+java -jar "$ANDROID_BUILD_TOOLS/lib/apksigner.jar" sign --ks "$SIGNING_STORE" --ks-key-alias foolquestwidget --ks-pass env:SIGNING_STORE_PASSWORD --key-pass env:SIGNING_STORE_PASSWORD --out build/out/fool-quest-widget-0.1.13.apk build/out/aligned.apk
+java -jar "$ANDROID_BUILD_TOOLS/lib/apksigner.jar" verify --verbose --print-certs build/out/fool-quest-widget-0.1.13.apk > build/signature-verification.txt
+sha256sum build/out/fool-quest-widget-0.1.13.apk > build/SHA256SUMS
 printf 'Signed APK built and verified.\n'

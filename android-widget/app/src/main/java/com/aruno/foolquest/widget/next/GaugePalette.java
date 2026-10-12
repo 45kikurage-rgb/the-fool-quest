@@ -1,4 +1,4 @@
-package com.aruno.foolquest.widget;
+package com.aruno.foolquest.widget.next;
 
 /** Shared gauge defaults, alternate-lap colors, and native drawing dimensions. */
 final class GaugePalette {
