@@ -66,6 +66,8 @@ final class WidgetRenderer {
                 c.drawRoundRect(new RectF(l.left,gy,trackRight,gy+gauge),gauge/2,gauge/2,p);
                 p.setColor(active);
                 c.drawRect(l.left,gy,l.left+trackWidth*fill,gy+gauge,p);
+                android.util.DisplayMetrics metrics=context.getResources().getDisplayMetrics();
+                GaugeDrawing.divisions(c,l.left,gy,trackWidth,gauge,fill,metrics.scaledDensity/metrics.density);
                 if(GaugePalette.hasMarker(lap,fill)){
                     float x=l.left+trackWidth*fill,half=GaugePalette.MARKER_WIDTH_DP/2f;
                     p.setColor(GaugePalette.MARKER_WHITE);
@@ -77,17 +79,7 @@ final class WidgetRenderer {
                 c.drawRoundRect(new RectF(l.left,gy,l.left+trackWidth*fill,gy+gauge),gauge/2,gauge/2,p);
             }
             if(lap>=2){
-                p.setColor(layered?active:GaugePalette.PACE_UNKNOWN);
-                p.setTypeface(Typeface.create("monospace",Typeface.NORMAL));
-                p.setTextSize(GaugePalette.LAP_FONT_DP);
-                p.setTextAlign(Paint.Align.RIGHT);
-                String label="×"+lap;
-                while(p.measureText(label)>GaugePalette.LAP_LABEL_WIDTH_DP-1 && p.getTextSize()>5)
-                    p.setTextSize(p.getTextSize()-.5f);
-                Paint.FontMetrics lapMetrics=p.getFontMetrics();
-                float labelBaseline=gy+gauge/2f-(lapMetrics.ascent+lapMetrics.descent)/2f;
-                c.drawText(label,l.right,labelBaseline,p);
-                p.setTextSize(font);
+                GaugeDrawing.lapLabel(c,lap,layered?active:GaugePalette.PACE_UNKNOWN,l.right,gy,gauge);
             }
         }
         if(l.footerHeight>0){

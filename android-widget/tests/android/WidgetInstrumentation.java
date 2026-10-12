@@ -65,9 +65,9 @@ public class WidgetInstrumentation extends Instrumentation {
             for(int row=0;row<3;row++){
                 android.view.ViewGroup holder=tree[0].findViewById(NativeWidgetViews.HOLDER[row]);
                 android.view.View bar=holder.findViewById(R.id.gauge_image);
-                android.widget.TextView lapLabel=holder.findViewById(R.id.lap_label);
+                android.widget.ImageView lapLabel=holder.findViewById(R.id.lap_label);
                 long lap=RevenueMath.lapCount(data.values()[row],data.goals()[row]);
-                ok(lapLabel.getText().toString().equals(lap>=2?"×"+lap:""),"lap suffix correct for every row");
+                ok(lapLabel.getContentDescription().toString().equals(lap>=2?"×"+lap:""),"lap suffix correct for every row");
                 ok(Math.abs(lapLabel.getWidth()/density-GaugePalette.LAP_LABEL_WIDTH_DP)<1,"every row reserves the same suffix width");
                 ok(bar.getHeight()>0&&bar.getHeight()<tree[0].findViewById(NativeWidgetViews.ROW[row]).getHeight(),"gauge has visible height and fits its row");
                 ok(bar.getHeight()/density>=result[0].gauge-1,"native image retains at least the requested bar height");
@@ -77,7 +77,7 @@ public class WidgetInstrumentation extends Instrumentation {
                 if(row==0)measuredGaugeHeights.put(name,bar.getHeight()/density);
                 ok(bar instanceof android.widget.ImageView,"v0.1.4 gauge has no embedded target text");
                 android.graphics.Bitmap fill=((android.graphics.drawable.BitmapDrawable)((android.widget.ImageView)bar).getDrawable()).getBitmap();
-                ok(fill.getHeight()==result[0].gauge+2*GaugePalette.MARKER_OVERHANG_DP,
+                ok(fill.getHeight()==Math.round((result[0].gauge+2*GaugePalette.MARKER_OVERHANG_DP)*density),
                     "gauge bitmap includes precisely 2dp of top and bottom marker overhang");
                 int[] fixed={settings.total,settings.tiktok,settings.coupon};
                 int expected=settings.gaugeColor(data.values()[row],data.goals()[row],data.month,System.currentTimeMillis(),fixed[row]);
@@ -125,6 +125,50 @@ public class WidgetInstrumentation extends Instrumentation {
         }
         png(bitmap,name);
     }
+    void gaugeAnnotations()throws Exception {
+        android.content.res.Configuration config=new android.content.res.Configuration(c.getResources().getConfiguration());config.densityDpi=320;
+        Context host=c.createConfigurationContext(config);float density=host.getResources().getDisplayMetrics().density;
+        for(float progress:new float[]{0f,.1188f,.2f,.4f,.6f,.8f,.8859f,.5f,1f}){
+            android.graphics.Bitmap b=NativeWidgetViews.gauge(host,0xffffffff,GaugePalette.FIRST_GREEN,1f,
+                GaugePalette.SECOND_LIME,progress,progress>0&&progress<1,16,300);
+            int top=Math.round(GaugePalette.MARKER_OVERHANG_DP*density),bottom=top+Math.round(16*density);
+            for(int percent:new int[]{20,40,60,80}){
+                int x=Math.round(300*density*percent/100f);
+                if(progress>percent/100f && progress<1f){
+                    ok(b.getPixel(x,top)==GaugePalette.MARKER_WHITE,"reached divider is white: "+progress+" / "+percent);
+                    ok(android.graphics.Color.alpha(b.getPixel(x,0))==0,"divider never protrudes above gauge");
+                    boolean white=false,black=false;
+                    for(int y=top;y<bottom;y++)for(int xx=x-Math.round(60*density)+2;xx<x-Math.round(3*density);xx++){
+                        int color=b.getPixel(xx,y);white|=color==GaugePalette.LABEL_WHITE;black|=color==GaugePalette.LABEL_OUTLINE_BLACK;
+                    }
+                    ok(white&&black,"divider label has white fill and black outline");
+                }else if(progress!=percent/100f){
+                    ok(b.getPixel(x,top)!=GaugePalette.MARKER_WHITE,"unreached or completed lap has no divider");
+                }
+            }
+            png(b,"gauge-divisions-"+Math.round(progress*10000));
+        }
+        ok(!GaugeDrawing.hasDivider(.2f,20)&&!GaugeDrawing.hasDivider(.4f,40)&&
+            !GaugeDrawing.hasDivider(.6f,60)&&!GaugeDrawing.hasDivider(.8f,80),"exact thresholds do not double-draw marker");
+        ok(!GaugeDrawing.hasDivider(1f,20),"completed lap suppresses all divisions");
+        for(int height:new int[]{4,12,48})for(long lap:new long[]{1,2,3,9}){
+            android.graphics.Bitmap label=android.graphics.Bitmap.createBitmap(GaugePalette.LAP_LABEL_WIDTH_DP*2,(height+4)*2,android.graphics.Bitmap.Config.ARGB_8888);
+            android.graphics.Canvas canvas=new android.graphics.Canvas(label);canvas.scale(2,2);
+            GaugeDrawing.lapLabel(canvas,lap,GaugePalette.SECOND_LIME,GaugePalette.LAP_LABEL_WIDTH_DP,2,height);
+            int minY=label.getHeight(),maxY=-1,minX=label.getWidth();
+            for(int y=0;y<label.getHeight();y++)for(int x=0;x<label.getWidth();x++)if(android.graphics.Color.alpha(label.getPixel(x,y))>128){minY=Math.min(minY,y);maxY=Math.max(maxY,y);minX=Math.min(minX,x);}
+            if(lap==1)ok(maxY==-1,"first lap leaves reserved suffix empty");
+            else {
+                ok(Math.abs((maxY-minY+1)/2f-height)<=1,"lap glyph height follows track: "+height+" / "+lap);
+                ok(minY>=3&&maxY<=(height+2)*2,"lap glyph vertically aligns with track");
+                ok(minX>0,"×9 fits reserved column even at 48dp without clipping");
+            }
+            png(label,"lap-label-"+height+"-"+lap);
+        }
+        android.graphics.Bitmap narrow=NativeWidgetViews.gauge(host,0xffffffff,GaugePalette.FIRST_GREEN,1f,GaugePalette.SECOND_LIME,.8859f,true,16,30);
+        boolean black=false;for(int y=0;y<narrow.getHeight();y++)for(int x=0;x<narrow.getWidth();x++)black|=narrow.getPixel(x,y)==GaugePalette.LABEL_OUTLINE_BLACK;
+        ok(!black,"narrow segments omit labels that cannot fit");
+    }
     java.util.concurrent.ExecutorService executor()throws Exception {
         java.lang.reflect.Field field=RevenueUpdate.class.getDeclaredField("EXECUTOR");field.setAccessible(true);
         return (java.util.concurrent.ExecutorService)field.get(null);
@@ -134,6 +178,7 @@ public class WidgetInstrumentation extends Instrumentation {
         Bundle result=new Bundle();
         try{
             c=getTargetContext();output=new File(c.getExternalFilesDir(null),"verification");output.mkdirs();
+            gaugeAnnotations();
             if("offline".equals(args.getString("mode"))){
                 android.net.ConnectivityManager connectivity=c.getSystemService(android.net.ConnectivityManager.class);
                 for(int n=0;n<100&&connectivity.getActiveNetwork()!=null;n++)Thread.sleep(200);
@@ -236,7 +281,7 @@ public class WidgetInstrumentation extends Instrumentation {
             ok(RevenueMath.progress(secondLap.values()[0],secondLap.goals()[0])==.15f,"native gauge starts second lap at 15%");
             ok(palette.gaugeColor(secondLap.values()[0],secondLap.goals()[0],month,System.currentTimeMillis(),palette.total)==palette.secondLap,"over 100% uses configured second-lap color");
             nativeTextLayout(secondLap,palette,360,126,320,"native-second-lap-115-percent");
-            for(long[] spec:new long[][]{{631000L,1L},{1000000L,1L},{1885900L,2L},{2500000L,3L},{3000000L,3L}}){
+            for(long[] spec:new long[][]{{0L,1L},{631000L,1L},{1000000L,1L},{1118800L,2L},{1200000L,2L},{1820900L,2L},{1885900L,2L},{2500000L,3L},{3000000L,3L}}){
                 secondLap.tiktok=spec[0];secondLap.coupon=0;
                 ok(RevenueMath.lapCount(secondLap.values()[0],secondLap.goalTotal)==spec[1],"native lap calculation on boundary samples");
                 nativeTextLayout(secondLap,palette,360,126,320,"native-lap-"+spec[0]);
