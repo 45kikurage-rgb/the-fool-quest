@@ -2,12 +2,13 @@
 
 - User authorized a new signing identity and separate app after the old key could not be obtained. Old app remains installed and all legacy APKs remain unchanged.
 - package `com.aruno.foolquest.widget.next`, versionName `0.1.13`, versionCode `14`.
-- APK bytes 59182, SHA-256 `1589b6e4ad5538df9cfc82da74ff3d8353c27b04165dfe87e6ebb8eb7deb4030`.
+- APK bytes 59182, SHA-256 `c896ee019bedaa983ef9362c06be83452d9111aaefe80247466e932f2eeb9f31`.
 - New certificate SHA-256 `8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730`; distinct from legacy `18946d320bb61c58aa627abbf2b53ea521b273b218eaec57f7fbc662f375bdb1`. APK v2/v3 verify PASS.
 - `scripts/build.sh` built with a saved-and-restored private key. Keystore and private access information were saved separately in an unshared owner-created folder; both restored byte-for-byte and restored certificate validated before building. No secret material in repository or APK.
 - Product Java15 files match the prior candidate after namespace replacement only. PR #9 gauge implementation is preserved.
 - Local math/layout248 + HTTP28 + browser export7 PASS. Source and test APK compile, Python/YAML/Bash syntax PASS. No test classes or private key files included in product APK.
-- Android35 successor CI and official old/new coexistence + successor same-APK reinstall verification: **pending**. This does not claim old-to-successor upgrade or automatic migration. Future higher-version update and user Nova acceptance are not yet verified.
+- Latest candidate includes the minimal initial-preview layout fix: width-change listener schedules child replacement with `preview.post`, preserving renderer/data/settings logic. The offline initial Settings screencap exposed a layout timing issue in the earlier candidate.
+- **Latest rebuilt APK tests pending**. Earlier candidate native3366/offline101/reboot91 and coexistence29-field preservation passed, but those results are not substituted for the rebuilt APK. Future higher-version updates and user Nova acceptance remain unverified.
 - GitHub Pages / Cloudflare v0.1.13 publication: **pending**. Cloudflare currently requires authenticated build inspection; unauthenticated fetch returned 403.
 - APK badging/certificate evidence: `../widget-verification/v0.1.13/`.
 

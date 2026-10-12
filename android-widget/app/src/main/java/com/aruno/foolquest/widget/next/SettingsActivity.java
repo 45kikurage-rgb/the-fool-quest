@@ -52,7 +52,8 @@ public final class SettingsActivity extends Activity {
         description=text("",12);body.addView(description);
         preview=new android.widget.FrameLayout(this);
         body.addView(preview,new LinearLayout.LayoutParams(-1,dp(126)));
-        preview.addOnLayoutChangeListener((v,a,b,c,d,e,f,g,h)->{if(c-a!=g-e)updatePreview();});
+        // Replace preview children after layout; synchronous replacement can leave them unmeasured.
+        preview.addOnLayoutChangeListener((v,a,b,c,d,e,f,g,h)->{if(c-a!=g-e)preview.post(this::updatePreview);});
         body.addView(text("日別の進歩カラー：達成・未達・不足の3色。月間目標を超えると前の周を満タンで残し、2周目はライム色・3周目は緑色を交互に重ねます。周数と白い境界線を表示し、達成率の数字は累計表示です。",12));
         button("2周目 182.09% サンプル表示 ON/OFF",()->{secondLapPreview=!secondLapPreview;updatePreview();});
         warning=text("",12);warning.setTextColor(0xff9b4100);body.addView(warning);

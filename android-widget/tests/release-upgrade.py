@@ -164,6 +164,11 @@ assert '115.00%' in ui and '1,150,000' in ui
 nodes = list(ET.fromstring(ui).iter('node'))
 assert any('Total ¥1,150,000/¥1,000,000 115.00%' in node.attrib.get('content-desc', '')
            for node in nodes), 'Successor native preview must expose cumulative revenue'
+preview_nodes = [node for node in nodes
+                 if 'Total ¥1,150,000/¥1,000,000 115.00%' in node.attrib.get('content-desc', '')]
+(OUT / 'preview-bounds.json').write_text(json.dumps(
+    [node.attrib for node in preview_nodes], ensure_ascii=False, indent=2))
+(OUT / 'activity-top.txt').write_text(adb('shell', 'dumpsys', 'activity', 'top'))
 with (OUT / 'upgrade-preview.png').open('wb') as screenshot:
     subprocess.run(['adb', 'exec-out', 'screencap', '-p'], check=True, stdout=screenshot)
 adb('shell', 'am', 'force-stop', PACKAGE)

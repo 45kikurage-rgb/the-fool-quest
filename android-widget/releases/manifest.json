@@ -5,7 +5,7 @@
   "minSdk": 26,
   "targetSdk": 35,
   "size": 59182,
-  "sha256": "1589b6e4ad5538df9cfc82da74ff3d8353c27b04165dfe87e6ebb8eb7deb4030",
+  "sha256": "c896ee019bedaa983ef9362c06be83452d9111aaefe80247466e932f2eeb9f31",
   "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
   "couponUpdate": "Direct Activity fetch on manual tap behind home without visible float; 30-minute JobScheduler",
   "tiktokUpdate": "read-only source browser snapshot; no automatic API exists",
