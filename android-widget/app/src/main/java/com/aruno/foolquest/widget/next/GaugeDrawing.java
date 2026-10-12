@@ -34,9 +34,9 @@ final class GaugeDrawing {
         Paint p=textPaint();String text="×"+lap;
         RectF bounds=fitTextHeight(p,text,height);
         float available=GaugePalette.LAP_LABEL_WIDTH_DP-GaugePalette.LAP_LABEL_GAP_DP;
-        // Keep very large lap counts inside the same reserved column.
+        // Preserve gauge-height glyphs while fitting the legacy 34dp column.
         if(bounds.width()>available){
-            p.setTextSize(p.getTextSize()*available/bounds.width());
+            p.setTextScaleX(available/bounds.width());
             bounds=textBounds(p,text);
         }
         p.setColor(color);
@@ -52,30 +52,30 @@ final class GaugeDrawing {
     static void divisions(Canvas c,float left,float top,float width,float height,
                           float progress,float spToDp) {
         if(progress>=1f)return;
-        Paint p=textPaint();RectF bounds;
-        float outline=GaugePalette.LABEL_OUTLINE_DP;
-        p.setTextSize(GaugePalette.DIVIDER_LABEL_SP*spToDp);
-        bounds=textBounds(p,"80%");
-        if(bounds.height()+outline>height)
-            fitTextHeight(p,"80%",Math.max(0,height-outline));
-        float segment=width*GaugePalette.DIVIDER_STEP_PERCENT/100f;
+        Paint p=new Paint();p.setAntiAlias(false);p.setColor(GaugePalette.MARKER_WHITE);
         int save=c.save();c.clipRect(left,top,left+width*progress,top+height);
         for(int percent=GaugePalette.DIVIDER_STEP_PERCENT;percent<100;percent+=GaugePalette.DIVIDER_STEP_PERCENT){
             if(!hasDivider(progress,percent))continue;
             float x=left+width*percent/100f,half=GaugePalette.DIVIDER_WIDTH_DP/2f;
-            p.setStyle(Paint.Style.FILL);p.setColor(GaugePalette.MARKER_WHITE);
-            // Rectangles retain an exact 1dp width without antialiasing the divider.
-            p.setAntiAlias(false);c.drawRect(x-half,top,x+half,top+height,p);p.setAntiAlias(true);
-            String label=percent+"%";bounds=textBounds(p,label);
-            float padding=GaugePalette.DIVIDER_LABEL_GAP_DP+half+outline/2f;
-            if(bounds.width()+outline+padding>segment || height<=outline)continue;
-            float textX=x-padding-bounds.right;
-            float baseline=top+height-outline/2f-bounds.bottom;
-            p.setStrokeWidth(outline);p.setStyle(Paint.Style.STROKE);p.setColor(GaugePalette.LABEL_OUTLINE_BLACK);
-            c.drawText(label,textX,baseline,p);
-            p.setStyle(Paint.Style.FILL);p.setColor(GaugePalette.LABEL_WHITE);
-            c.drawText(label,textX,baseline,p);
+            c.drawRect(x-half,top,x+half,top+height,p);
         }
+        c.restoreToCount(save);
+    }
+
+    /** Current-progress boundary: a right bracket, with caps facing into the fill. */
+    static void boundary(Canvas c,float left,float top,float width,float height,
+                         float progress,float amountFontDp) {
+        Paint digit=textPaint();digit.setTextSize(amountFontDp);
+        float digitWidth=digit.measureText("0");
+        float x=left+width*progress,half=GaugePalette.MARKER_WIDTH_DP/2f;
+        float markerTop=top-GaugePalette.MARKER_OVERHANG_DP;
+        float markerBottom=top+height+GaugePalette.MARKER_OVERHANG_DP;
+        float capLeft=Math.max(left,x-digitWidth);
+        Paint p=new Paint();p.setColor(GaugePalette.MARKER_WHITE);p.setAntiAlias(false);
+        int save=c.save();c.clipRect(left,markerTop,left+width,markerBottom);
+        c.drawRect(x-half,markerTop,x+half,markerBottom,p);
+        c.drawRect(capLeft,top,x+half,top+GaugePalette.MARKER_WIDTH_DP,p);
+        c.drawRect(capLeft,top+height-GaugePalette.MARKER_WIDTH_DP,x+half,top+height,p);
         c.restoreToCount(save);
     }
 }

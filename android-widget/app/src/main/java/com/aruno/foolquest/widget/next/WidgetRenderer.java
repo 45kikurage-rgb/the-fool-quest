@@ -68,12 +68,8 @@ final class WidgetRenderer {
                 c.drawRect(l.left,gy,l.left+trackWidth*fill,gy+gauge,p);
                 android.util.DisplayMetrics metrics=context.getResources().getDisplayMetrics();
                 GaugeDrawing.divisions(c,l.left,gy,trackWidth,gauge,fill,metrics.scaledDensity/metrics.density);
-                if(GaugePalette.hasMarker(lap,fill)){
-                    float x=l.left+trackWidth*fill,half=GaugePalette.MARKER_WIDTH_DP/2f;
-                    p.setColor(GaugePalette.MARKER_WHITE);
-                    c.drawRect(x-half,gy-GaugePalette.MARKER_OVERHANG_DP,
-                        x+half,gy+gauge+GaugePalette.MARKER_OVERHANG_DP,p);
-                }
+                if(GaugePalette.hasMarker(lap,fill))
+                    GaugeDrawing.boundary(c,l.left,gy,trackWidth,gauge,fill,font);
             }else if(fill>0){
                 p.setColor(s.gaugeColor(values[i],goals[i],data.month,now,colors[i]));
                 c.drawRoundRect(new RectF(l.left,gy,l.left+trackWidth*fill,gy+gauge),gauge/2,gauge/2,p);

@@ -75,7 +75,7 @@ final class NativeWidgetViews {
             bar.setImageViewBitmap(R.id.gauge_image,gauge(c,s.text,
                 base,layered?1f:progress,layered?current:0,layered?progress:0f,
                 layered&&GaugePalette.hasMarker(lap,progress),gauge,
-                Math.max(1,Math.round(content-GaugePalette.LAP_LABEL_WIDTH_DP))));
+                Math.max(1,Math.round(content-GaugePalette.LAP_LABEL_WIDTH_DP)),result.font));
             String suffix=lap>=2?"×"+lap:"";
             Bitmap label=bitmap(c,GaugePalette.LAP_LABEL_WIDTH_DP,gauge+2*GaugePalette.MARKER_OVERHANG_DP);
             Canvas labelCanvas=dpCanvas(c,label);
@@ -101,7 +101,7 @@ final class NativeWidgetViews {
         c.scale(density,density);return c;
     }
     static Bitmap gauge(Context context,int text,int color,float progress,int overlayColor,
-                                float overlay,boolean marker,int heightDp,int widthDp){
+                                float overlay,boolean marker,int heightDp,int widthDp,float amountFontDp){
         int over=GaugePalette.MARKER_OVERHANG_DP;
         Bitmap b=bitmap(context,widthDp,heightDp+2*over);
         Canvas c=dpCanvas(context,b);
@@ -112,12 +112,7 @@ final class NativeWidgetViews {
             p.setColor(overlayColor);c.drawRect(0,over,widthDp*overlay,over+heightDp,p);
             DisplayMetrics metrics=context.getResources().getDisplayMetrics();
             GaugeDrawing.divisions(c,0,over,widthDp,heightDp,overlay,metrics.scaledDensity/metrics.density);
-            if(marker){
-                float x=widthDp*overlay;
-                p.setColor(GaugePalette.MARKER_WHITE);
-                float half=GaugePalette.MARKER_WIDTH_DP/2f;
-                c.drawRect(x-half,0,x+half,heightDp+2*over,p);
-            }
+            if(marker)GaugeDrawing.boundary(c,0,over,widthDp,heightDp,overlay,amountFontDp);
         }
         return b;
     }
