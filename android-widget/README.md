@@ -1,16 +1,16 @@
 # THE FOOL QUEST Android収益ウィジェット
 
-新版APK `com.aruno.foolquest.widget.next`。Android 8.0以上。正式公開候補は v0.1.13 / versionCode 14。既存のTHE FOOL QUEST、ARUNOMATIC、Vault、Ledgerへの書き込みを行いません。
+新版APK `com.aruno.foolquest.widget.next`。Android 8.0以上。正式配布版は v0.1.13 / versionCode 14。既存のTHE FOOL QUEST、ARUNOMATIC、Vault、Ledgerへの書き込みを行いません。
 
 ## v0.1.13 新版への移行（2026-10-12）
 
-ユーザーが同じ構造と追加改修を含む再配布方法を承認。旧署名鍵の取得ができないため、旧版を削除せず併存できる別パッケージを使用します。既存Java15ファイルはnamespace変更のみで、ゲージ・Reader・保存設定・キャッシュ処理は維持。PR #9の文字高さ・84dp余白・20%目盛りと縁取りを含みます。
+ユーザーが同じ構造と追加改修を含む再配布方法を承認。旧署名鍵の取得ができないため、旧版を削除せず併存できる別パッケージを使用します。Java14ファイルはnamespace変更のみ。SettingsActivityは初回の通信断でもプレビューを表示するため、幅変更時の再描画を画面配置後へ延期する最小修正を加えました。ゲージ・Reader・保存設定・キャッシュ処理は維持。PR #9の文字高さ・84dp余白・20%目盛りと縁取りを含みます。
 
 - アプリ名：FOOL QUEST ウィジェット 新版。package `com.aruno.foolquest.widget.next`。
 - 旧版からの上書き更新と設定自動移行はありません。旧アプリと旧APKは保持します。
 - 新版でTHE FOOL QUESTからTikTok・目標を再連携し、表示設定とホームのウィジェットを設定してください。`tfqwidget`連携は維持。旧版が既定で開く場合はその既定設定を解除し、新版を選びます。
 - 新署名鍵は非公開バックアップを保存し、保存したコピーから復元・パスワードで開けること・証明書一致を確認済み。鍵やパスワードはGitHub・APK・公開ページへ含めません。次回も同じ新版鍵を使用します。
-- 正式APKの共存／再インストール試験は`tests/release-upgrade.py`。旧版の29項目保持、新版の独立UIDと同じAPKの`adb install -r`設定保持を検証します。これは旧版から新版への上書き試験ではありません。
+- 正式APKの共存／再インストール試験は`tests/release-upgrade.py`。旧版の29項目保持、新版の独立UIDと同じAPKの`adb install -r`設定保持を検証します。Android 35の正式APK試験でPASS。これは旧版から新版への上書き試験ではありません。
 
 ## 現在のデータ責任
 
