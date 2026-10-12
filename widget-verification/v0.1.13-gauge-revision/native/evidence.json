@@ -1,0 +1,17 @@
+{
+  "head_sha": "1889f5506c8c0c3a9989c08489a5ef8ae35d90a2",
+  "run_id": 38226731348,
+  "job_id": 114736171674,
+  "artifact_id": 11735963611,
+  "artifact_sha256": "665c3fc2667a6d0dd71c9a63c4514be051f61ada51d786e95ce70ba9cd607185",
+  "native_checks": 3388,
+  "offline_checks": 123,
+  "reboot_checks": 113,
+  "visual_checks": [
+    "34dp reserved suffix and full-height lap glyphs",
+    "no 20/40/60/80 percent annotation text",
+    "current progress bracket caps point left inside fill",
+    "font9/13/24 caps fit one money digit",
+    "real AppWidgetHost screenshot displays live revenue"
+  ]
+}

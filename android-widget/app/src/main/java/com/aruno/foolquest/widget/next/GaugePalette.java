@@ -11,7 +11,7 @@ final class GaugePalette {
     static final int PACE_UNKNOWN = 0xff888888;
     static final int MARKER_WHITE = 0xffffffff;
 
-    static final int LAP_LABEL_WIDTH_DP = 84; // Fits ×9 at the maximum 48dp track height.
+    static final int LAP_LABEL_WIDTH_DP = 34; // Preserve the legacy gauge track width.
     static final int LAP_LABEL_GAP_DP = 2;
     static final int LAP_LABEL_PROBE_SIZE = 100;
     static final int MARKER_WIDTH_DP = 2;

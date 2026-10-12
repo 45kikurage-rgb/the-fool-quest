@@ -1,3 +1,18 @@
+## v0.1.13 / code14 gauge revision — 2026-10-12
+
+- Same successor package `com.aruno.foolquest.widget.next`, same versionName `0.1.13`, same versionCode `14`, and same official certificate `8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730`.
+- Preserve the 34dp right-side lap-label reservation and lap-label height. Remove only the intermediate 20/40/60/80% text; retain tick strokes. Progress boundary becomes a white left-facing bracket with top/bottom strokes, one monetary-digit wide. Vertical line keeps the existing 2dp overhang; horizontal caps lie inside the gauge at its top and bottom. Revenue/settings/storage/API/DB unchanged; no new setting keys.
+- Revised official APK: 59182 bytes, SHA-256 `83ebbf6405e5b2056e2e25af57e13c4c3b5ad9367b763cbf1c47fc3129f7cea2`; APK v2/v3 verification and version/package/certificate inspection PASS. No test instrumentation classes or private key files included. Source candidate `95e93d2e988fc1e1a21435fb28d2893026dc8a30`.
+- Previous official successor APK retained as `releases/fool-quest-widget-0.1.13-original.apk`, 59182 bytes, SHA-256 `c896ee019bedaa983ef9362c06be83452d9111aaefe80247466e932f2eeb9f31`. All legacy APKs retained.
+- `tests/release-upgrade.py` now requires distinct previous/revised official binaries, verifies both signatures, installs the actual prior APK, seeds 29 settings/cache/history fixture fields, and updates via `adb install -r` without uninstalling. It checks unchanged UID and all 29 fields immediately; only existing offline `lastFailureAt` refresh is permitted after launching. Legacy v0.1.12 app remains untouched.
+- The signing key is restored from the owner-authenticated nonpublic backup folder and checked against the official successor certificate; private values and file identifiers are not published here. See README for the next Chat/Work restoration procedure.
+- Android 35 current-revision CI PASS: 3388 native rendering/Reader checks, 123 offline checks, 113 reboot checks. Run https://github.com/45kikurage-rgb/the-fool-quest/actions/runs/38226731348 ; tested release source `1889f5506c8c0c3a9989c08489a5ef8ae35d90a2`. Artifact 11735963611, SHA-256 `665c3fc2667a6d0dd71c9a63c4514be051f61ada51d786e95ce70ba9cd607185`. Current images independently checked: restored width, gauge-height lap count, no intermediate percentage text, bracket caps inside the gauge with one monetary-digit width. Native widget/preview geometry images are emulator evidence, not physical Nova acceptance.
+- Actual official previous-APK to revised-APK update PASS: run https://github.com/45kikurage-rgb/the-fool-quest/actions/runs/38226731356 ; same formal certificate and UID, all 29 fixture fields retained after `adb install -r`; after offline launch 28 fields retained and existing `lastFailureAt` refreshed. Legacy UID/29 fields untouched. Formal preview image independently checked. No uninstall performed. Results and selected images are under `widget-verification/v0.1.13-gauge-revision/`.
+- Local checks PASS: 248 display/math/layout, 28 HTTP timing/failure, 9 export tests. Independent public retrieval is performed after merging this tested candidate. Prior release results below are historical and are not reused as this revision result.
+- User Nova physical-device acceptance of this revision remains unverified.
+
+---
+
 ## Browser handoff routing fix — 2026-10-12
 
 - Root cause: `widget-export.html` still explicitly targeted the legacy package in its Android intent URI. This bypassed normal default-app selection and opened the old app even when the successor was installed.
@@ -8,7 +23,7 @@
 
 ---
 
-## v0.1.13 / code14 successor release candidate — 2026-10-12
+## Prior v0.1.13 / code14 successor first release — 2026-10-12
 
 - User authorized a new signing identity and separate app after the old key could not be obtained. Old app remains installed and all legacy APKs remain unchanged.
 - package `com.aruno.foolquest.widget.next`, versionName `0.1.13`, versionCode `14`.

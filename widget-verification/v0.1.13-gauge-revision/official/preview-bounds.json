@@ -1,0 +1,40 @@
+[
+  {
+    "index": "3",
+    "text": "",
+    "resource-id": "",
+    "class": "android.widget.FrameLayout",
+    "package": "com.aruno.foolquest.widget.next",
+    "content-desc": "2026-10 Total ¥1,150,000/¥1,000,000 115.00%。 TikTok ¥1,150,000/¥1,000,000 115.00%。 Coupon ¥0/¥600,000 0.00%。 通信未接続・前回値を表示",
+    "checkable": "false",
+    "checked": "false",
+    "clickable": "false",
+    "enabled": "true",
+    "focusable": "false",
+    "focused": "false",
+    "scrollable": "false",
+    "long-clickable": "false",
+    "password": "false",
+    "selected": "false",
+    "bounds": "[18,163][302,289]"
+  },
+  {
+    "index": "0",
+    "text": "",
+    "resource-id": "com.aruno.foolquest.widget.next:id/widget_root",
+    "class": "android.widget.FrameLayout",
+    "package": "com.aruno.foolquest.widget.next",
+    "content-desc": "2026-10 Total ¥1,150,000/¥1,000,000 115.00%。 TikTok ¥1,150,000/¥1,000,000 115.00%。 Coupon ¥0/¥600,000 0.00%。 通信未接続・前回値を表示",
+    "checkable": "false",
+    "checked": "false",
+    "clickable": "true",
+    "enabled": "true",
+    "focusable": "true",
+    "focused": "false",
+    "scrollable": "false",
+    "long-clickable": "false",
+    "password": "false",
+    "selected": "false",
+    "bounds": "[18,163][302,289]"
+  }
+]

@@ -138,18 +138,17 @@ public class WidgetInstrumentation extends Instrumentation {
         Context host=c.createConfigurationContext(config);float density=host.getResources().getDisplayMetrics().density;
         for(float progress:new float[]{0f,.1188f,.2f,.4f,.6f,.8f,.8859f,.5f,1f}){
             android.graphics.Bitmap b=NativeWidgetViews.gauge(host,0xffffffff,GaugePalette.FIRST_GREEN,1f,
-                GaugePalette.SECOND_LIME,progress,progress>0&&progress<1,16,300);
+                GaugePalette.SECOND_LIME,progress,progress>0&&progress<1,16,300,13);
             int top=Math.round(GaugePalette.MARKER_OVERHANG_DP*density),bottom=top+Math.round(16*density);
             for(int percent:new int[]{20,40,60,80}){
                 int x=Math.round(300*density*percent/100f);
                 if(progress>percent/100f && progress<1f){
                     ok(b.getPixel(x,top)==GaugePalette.MARKER_WHITE,"reached divider is white: "+progress+" / "+percent);
                     ok(android.graphics.Color.alpha(b.getPixel(x,0))==0,"divider never protrudes above gauge");
-                    boolean white=false,black=false;
-                    for(int y=top;y<bottom;y++)for(int xx=x-Math.round(60*density)+2;xx<x-Math.round(3*density);xx++){
-                        int color=b.getPixel(xx,y);white|=color==GaugePalette.LABEL_WHITE;black|=color==GaugePalette.LABEL_OUTLINE_BLACK;
-                    }
-                    ok(white&&black,"divider label has white fill and black outline");
+                    boolean black=false;
+                    for(int y=top;y<bottom;y++)for(int xx=Math.max(0,x-Math.round(60*density));xx<x-Math.round(3*density);xx++)
+                        black|=b.getPixel(xx,y)==GaugePalette.LABEL_OUTLINE_BLACK;
+                    ok(!black,"percent annotation text is removed from gauge");
                 }else if(progress!=percent/100f){
                     ok(b.getPixel(x,top)!=GaugePalette.MARKER_WHITE,"unreached or completed lap has no divider");
                 }
@@ -169,13 +168,28 @@ public class WidgetInstrumentation extends Instrumentation {
             else {
                 ok(Math.abs((maxY-minY+1)/2f-height)<=1,"lap glyph height follows track: "+height+" / "+lap);
                 ok(minY>=3&&maxY<=(height+2)*2,"lap glyph vertically aligns with track");
-                ok(minX>0,"×9 fits reserved column even at 48dp without clipping");
+                ok(minX>0,"lap label fits legacy 34dp column while retaining full track height");
             }
             png(label,"lap-label-"+height+"-"+lap);
         }
-        android.graphics.Bitmap narrow=NativeWidgetViews.gauge(host,0xffffffff,GaugePalette.FIRST_GREEN,1f,GaugePalette.SECOND_LIME,.8859f,true,16,30);
+        android.graphics.Bitmap narrow=NativeWidgetViews.gauge(host,0xffffffff,GaugePalette.FIRST_GREEN,1f,GaugePalette.SECOND_LIME,.8859f,true,16,30,13);
         boolean black=false;for(int y=0;y<narrow.getHeight();y++)for(int x=0;x<narrow.getWidth();x++)black|=narrow.getPixel(x,y)==GaugePalette.LABEL_OUTLINE_BLACK;
-        ok(!black,"narrow segments omit labels that cannot fit");
+        ok(!black,"narrow gauge also has no percent annotations");
+        ok(GaugePalette.LAP_LABEL_WIDTH_DP==34,"legacy track width is restored by reserving only 34dp");
+        for(int font:new int[]{9,13,24}){
+            android.graphics.Bitmap b=NativeWidgetViews.gauge(host,0xffffffff,GaugePalette.FIRST_GREEN,1f,GaugePalette.SECOND_LIME,.5f,true,16,300,font);
+            Paint digit=GaugeDrawing.textPaint();digit.setTextSize(font);
+            int edge=Math.round(150*density),cap=Math.round(digit.measureText("0")*density);
+            int top=Math.round(GaugePalette.MARKER_OVERHANG_DP*density),bottom=top+Math.round(16*density);
+            ok(b.getPixel(edge-cap+2,top)==GaugePalette.MARKER_WHITE,"upper bracket cap is inside track and spans one money digit at font "+font);
+            ok(b.getPixel(edge-cap+2,bottom-1)==GaugePalette.MARKER_WHITE,"lower bracket cap is inside track and spans one money digit at font "+font);
+            ok(b.getPixel(edge-cap-3,top)!=GaugePalette.MARKER_WHITE,"bracket cap does not extend beyond one digit");
+            ok(android.graphics.Color.alpha(b.getPixel(edge-cap+2,0))==0,"upper cap never protrudes outside track");
+            ok(android.graphics.Color.alpha(b.getPixel(edge-cap+2,b.getHeight()-1))==0,"lower cap never protrudes outside track");
+            ok(android.graphics.Color.alpha(b.getPixel(edge+Math.round(3*density),0))==0,"bracket faces left into active fill");
+            ok(b.getPixel(edge-cap+2,b.getHeight()/2)==GaugePalette.SECOND_LIME,"bracket leaves inner track color intact");
+            png(b,"gauge-bracket-font-"+font);
+        }
     }
     java.util.concurrent.ExecutorService executor()throws Exception {
         java.lang.reflect.Field field=RevenueUpdate.class.getDeclaredField("EXECUTOR");field.setAccessible(true);
