@@ -8,6 +8,8 @@
 
 すでに「FOOL QUEST ウィジェット 新版」を利用している場合はアンインストールせず今回APKを上書きします。版表示は前公開版と同じため、修正版の判別はAPKのSHA-256で行います。 今回の正式APKは59,182 bytes、SHA-256 `83ebbf6405e5b2056e2e25af57e13c4c3b5ad9367b763cbf1c47fc3129f7cea2`。前公開正式APKは`releases/fool-quest-widget-0.1.13-original.apk`に保持し、`tests/release-upgrade.py`で前公開APKから今回APKへの実際の`adb install -r`を検証します。旧パッケージv0.1.12からの自動移行はありません。
 
+今回のAndroid 35検証は描画・Reader 3388件、通信断123件、再起動113件に合格。前公開正式APKから修正版への上書きで同一UIDと設定・キャッシュ・通信履歴29項目の保持を確認しました。初回通信断起動後も28項目を保持し、既存の失敗日時だけ更新。実機受入と公開後の再取得は別途確認します。
+
 ## v0.1.13 新版への移行（2026-10-12）
 
 ユーザーが同じ構造と追加改修を含む再配布方法を承認。旧署名鍵の取得ができないため、旧版を削除せず併存できる別パッケージを使用します。Java14ファイルはnamespace変更のみ。SettingsActivityは初回の通信断でもプレビューを表示するため、幅変更時の再描画を画面配置後へ延期する最小修正を加えました。ゲージ・Reader・保存設定・キャッシュ処理は維持。PR #9の文字高さ・84dp余白・20%目盛りと縁取りを含みます。
@@ -54,7 +56,7 @@ bash scripts/build.sh
 
 「管理キー」は署名鍵と各サービスの操作経路を区別します。
 
-- 署名：本人のChatGPTに接続した非公開フォルダ`/THE-FOOL-QUEST_非公開署名_2026-10-12`に、`fool-quest-widget-next-signing.jks`・`fool-quest-widget-next-signing-access.json`・`fool-quest-widget-next-signing-recovery.json`を別ファイルとして保存済み。新しいWorkでは本人認証済みの接続から復旧索引を読み、索引に記録されたファイルIDでJKSとアクセス情報を安全な一時領域へ復元します。秘密内容をチャット・Git・公開ログへ出さず、パスワードで開けることと上記新版証明書との一致を確認してから`SIGNING_STORE`／`SIGNING_STORE_PASSWORD`に渡します。一時領域の既存ファイルだけを唯一の保管先として扱いません。
+- 署名：本人のChatGPTに接続した非公開フォルダ`/THE-FOOL-QUEST_非公開署名_2026-10-12`に、`fool-quest-widget-next-signing.jks`・`fool-quest-widget-next-signing-access.json`・`fool-quest-widget-next-signing-recovery.json`を別ファイルとして保存済み。新しいWorkでは本人認証済みの接続から復旧索引を読み、索引に記録されたファイルIDでJKSとアクセス情報を安全な一時領域へ復元します。アクセス情報JSONの内容や検索スニペットを表示せずローカルの署名処理へ渡し、秘密内容をチャット・Git・公開ログへ出さず、パスワードで開けることと上記新版証明書との一致を確認してから`SIGNING_STORE`／`SIGNING_STORE_PASSWORD`に渡します。一時領域の既存ファイルだけを唯一の保管先として扱いません。
 - GitHub：本人の接続済みGitHubツールで対象リポジトリへアクセスし、最新mainを確認してブランチ／PR経由で更新します。mainへの直接pushは使用しません。
 - Cloudflare：GitHub main連動のWorkers Buildsで既存Workerへ配信します。GitHubのWorkers Buildsチェックと公開ファイル再取得を確認します。管理画面の確認が必要な場合は本人が正規ログインを行います。常時利用可能なCloudflare管理トークンの保存先は未確認です。
 - 公開検証：GitHub PagesとCloudflareの各配布先からページ、manifest、最新APK、保存した前公開APKを標準ブラウザUser-Agentで再取得し、HTTP200・版・サイズ・SHA-256・署名をそれぞれ照合します。一方の成功だけで両方の公開完了と判断しません。
