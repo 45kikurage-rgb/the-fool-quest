@@ -886,17 +886,17 @@
   }
   function setupCsv() {
     const dialog=$('csv-dialog'),input=$('csv-file'),result=$('csv-result');
-    const opener=$('open-csv');
-    if(opener.tagName==='A'){
-      const returnUrl=`${location.origin}${location.pathname}`;
-      opener.href='intent://sync/start?return_url='+encodeURIComponent(returnUrl)+
-        '#Intent;scheme=arunoassist;package=com.aruno.assist;'+
-        'S.browser_fallback_url='+encodeURIComponent('https://wallet.vaton.jp/point/point_logs')+';end';
-    }else opener.addEventListener('click',()=>{
-        result.className='csv-result';const meta=load(KEY.csv);
-        result.textContent=meta.fileName?`前回：${meta.fileName}\n${new Date(meta.importedAt).toLocaleString('ja-JP')}`:'CSVを選択してください';
-        dialog.showModal();
-      });
+    const historyUrl='https://wallet.vaton.jp/point/point_logs';
+    const historyHref=/Android/i.test(navigator.userAgent)
+      ? 'intent://wallet.vaton.jp/point/point_logs#Intent;scheme=https;package=com.android.chrome;'+
+        'S.browser_fallback_url='+encodeURIComponent(historyUrl)+';end'
+      : historyUrl;
+    ['open-level-history','open-vaton-history'].forEach(id=>{ $(id).href=historyHref; });
+    $('open-csv').addEventListener('click',()=>{
+      result.className='csv-result';const meta=load(KEY.csv);
+      result.textContent=meta.fileName?`前回：${meta.fileName}\n${new Date(meta.importedAt).toLocaleString('ja-JP')}`:'CSVを選択してください';
+      dialog.showModal();
+    });
     $('choose-csv').addEventListener('click',()=>input.click());
     input.addEventListener('change',async()=>{
       const file=input.files?.[0];if(!file)return;
@@ -1327,3 +1327,4 @@
   syncCoupon();
   setInterval(()=>{checkMonth();renderAll();},60000);
 })();
+

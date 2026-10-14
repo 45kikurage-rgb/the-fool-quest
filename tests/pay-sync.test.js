@@ -20,15 +20,15 @@ test('PAY SYNC replaces the month total instead of adding it', () => {
 test('PAY SYNC JavaScript uses a fresh PWA cache version', () => {
   const html = fs.readFileSync(require('node:path').join(__dirname, '..', 'index.html'), 'utf8');
   const worker = fs.readFileSync(require('node:path').join(__dirname, '..', 'sw.js'), 'utf8');
-  assert.match(html, /app\.js\?v=20261002-pay-dashboard-v2/);
-  assert.match(worker, /the-fool-quest-20261002-pay-dashboard-v2/);
+  assert.match(html, /app\.js\?v=20261015-manual-csv-v1/);
+  assert.match(worker, /the-fool-quest-20261015-manual-csv-v1/);
 });
 
-test('PAY SYNC receives the exact launching THE FOOL QUEST origin', () => {
+test('CSV入口はポップアップを開き、アプリ自動取得を呼び出さない', () => {
   const body = source.match(/function setupCsv\(\) \{[\s\S]*?\n  \}\n\n  function setupTiktokManual/)?.[0] || '';
-  assert.match(body, /const returnUrl=`\$\{location\.origin\}\$\{location\.pathname\}`/);
-  assert.match(body, /return_url='\+encodeURIComponent\(returnUrl\)/);
-  assert.match(body, /intent:\/\/sync\/start/);
+  assert.match(body, /dialog\.showModal\(\)/);
+  assert.doesNotMatch(body, /arunoassist|com\.aruno\.assist|return_url/);
+  assert.match(body, /package=com\.android\.chrome/);
   assert.match(body, /wallet\.vaton\.jp\/point\/point_logs/);
 });
 
@@ -45,3 +45,4 @@ test('ARUNO ASSIST can return GPT usage alongside PAY SYNC', () => {
   assert.match(source, /save\(KEY\.workUsage/);
   assert.match(source, /GPT残量を自動更新しました/);
 });
+
