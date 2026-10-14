@@ -25,7 +25,7 @@ test('Povo手動更新用のPWAキャッシュへ更新されている', () => {
   const html = read('index.html');
   const worker = read('sw.js');
   assert.match(html, /20261002-pay-dashboard-v2/);
-  assert.match(worker, /the-fool-quest-20261002-pay-dashboard-v2/);
+  assert.match(worker, /the-fool-quest-20261015-manual-csv-v1/);
 });
 
 test('数字8桁を表示形式へ整形し、不正な日時は保存しない', () => {
@@ -40,3 +40,4 @@ test('数字8桁を表示形式へ整形し、不正な日時は保存しない'
   assert.throws(() => context.povoTestApi.parsePovoEditorExpiry('02/30 12:00'));
   assert.equal(context.povoTestApi.parsePovoEditorExpiry(''), null);
 });
+
