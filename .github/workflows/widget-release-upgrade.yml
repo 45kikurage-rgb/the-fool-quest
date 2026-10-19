@@ -1,6 +1,7 @@
 name: Widget official successor revised-APK upgrade verification
 on:
   push:
+    branches: [main]
     paths: ['android-widget/releases/fool-quest-widget-0.1.12.apk', 'android-widget/releases/fool-quest-widget-0.1.13-original.apk', 'android-widget/releases/fool-quest-widget-0.1.13-bracket.apk', 'android-widget/releases/fool-quest-widget-0.1.13.apk', 'android-widget/releases/manifest.json', 'android-widget/tests/release-upgrade.py', '.github/workflows/widget-release-upgrade.yml']
   workflow_dispatch:
 permissions:
