@@ -41,7 +41,14 @@ final class RevenueStore {
         return (long)v;
     }
     static void saveCoupon(Context c,String month,long value) {
-        prefs(c).edit().putString("couponMonth",month).putLong("coupon",value).putLong("couponAt",System.currentTimeMillis()).remove("error").remove("errorCode").apply();
+        SharedPreferences p=prefs(c);
+        String previous=p.getString("couponMonth","");
+        long old=p.getLong("coupon",-1);
+        // Archive prior month's last-good projection before replacing it.
+        if(!month.equals(previous)&&RevenueMath.validMonth(previous)&&old>=0)
+            RevenueManager.archiveCoupon(c,previous,old);
+        RevenueManager.archiveCoupon(c,month,value);
+        p.edit().putString("couponMonth",month).putLong("coupon",value).putLong("couponAt",System.currentTimeMillis()).remove("error").remove("errorCode").apply();
     }
     static void saveFailure(Context c,String code) {
         long now=System.currentTimeMillis();

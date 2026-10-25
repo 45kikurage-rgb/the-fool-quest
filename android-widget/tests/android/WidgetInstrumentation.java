@@ -195,6 +195,39 @@ public class WidgetInstrumentation extends Instrumentation {
         java.lang.reflect.Field field=RevenueUpdate.class.getDeclaredField("EXECUTOR");field.setAccessible(true);
         return (java.util.concurrent.ExecutorService)field.get(null);
     }
+
+    void nativeRevenueChecks() throws Exception {
+        String month=RevenueMath.month(System.currentTimeMillis());
+        RevenueManager.CsvResult parsed=RevenueManager.parseCsv("ID,チャージポイント\nA,\"1,000\"\nB,-200\n");
+        ok(parsed.total==1200 && parsed.count==2,"CSV parser handles quoted values and returns total");
+        RevenueManager manager=new RevenueManager(c);
+        manager.setCsv(month,1000,"fixture.csv",1);
+        manager.addManual(month+"-10",250);
+        ok(manager.tiktok(month)==1250,"native manual amount adds to CSV exactly once");
+        String id=manager.manual().getJSONObject(manager.manual().length()-1).getString("id");
+        manager.updateManual(id,month+"-10",275);
+        ok(manager.tiktok(month)==1275,"editing manual entry replaces amount exactly once");
+        ok(RevenueStore.read(c).tiktok==1275,"widget receives native value instantly");
+        String saved=manager.backup();
+        boolean refused=false;
+        try{manager.replaceFromJson("{\"format\":\"invalid\",\"version\":1}");}
+        catch(Exception expected){refused=true;}
+        ok(refused && manager.tiktok(month)==1275,"invalid history migration preserves current records");
+        manager.deleteManual(id);
+        ok(manager.tiktok(month)==1000,"deleting manual entry restores CSV baseline");
+        manager.replaceFromJson(saved);
+        ok(manager.tiktok(month)==1275,"valid backup restores manual and CSV history");
+        String lastMonth=RevenueMath.date("yyyy-MM",System.currentTimeMillis()-35L*24*60*60*1000);
+        RevenueStore.saveCoupon(c,lastMonth,321);
+        RevenueStore.saveCoupon(c,month,1000000);
+        ok(manager.coupon(lastMonth)==321,"prior month Coupon persists after month refresh");
+        ok(new org.json.JSONObject(manager.backup()).getJSONObject("months").getJSONObject(lastMonth).getLong("coupon")==321,
+            "Coupon monthly archive is included in user backup");
+        Activity home=startActivitySync(new Intent(c,ManagementActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        ok(home!=null,"native revenue management screen launches");
+        runOnMainSync(home::finish);
+    }
+
     @Override public void onCreate(Bundle args){super.onCreate(args);this.args=args;start();}
     @Override public void onStart(){
         Bundle result=new Bundle();
@@ -285,7 +318,7 @@ public class WidgetInstrumentation extends Instrumentation {
             java.util.Calendar date=java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("Asia/Tokyo"));
             int days=date.getActualMaximum(java.util.Calendar.DAY_OF_MONTH),today=date.get(java.util.Calendar.DAY_OF_MONTH);
             RevenueStore.Data paceData=RevenueStore.read(c);paceData.tiktok=today*75000L;paceData.coupon=today*25000L;
-            paceData.goalTotal=days*50000L;paceData.goalTiktok=days*100000L;paceData.goalCoupon=days*100000L;
+            paceData.goalTotal=days*90000L;paceData.goalTiktok=days*100000L;paceData.goalCoupon=days*100000L;
             paceData.month=month;paceData.importAt=System.currentTimeMillis();paceData.couponAt=paceData.importAt;paceData.error="";paceData.loading=false;
             DisplaySettings palette=new DisplaySettings();
             ok(palette.paceColors,"new and saved v0.1.4 settings use progress colors by default");
@@ -518,6 +551,7 @@ public class WidgetInstrumentation extends Instrumentation {
             dimensions.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,280);dimensions.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,100);exactSizes.clear();exactSizes.add(new android.util.SizeF(280,100));dimensions.putParcelableArrayList(AppWidgetManager.OPTION_APPWIDGET_SIZES,exactSizes);manager.updateAppWidgetOptions(id,dimensions);
             runOnMainSync(()->{android.view.ViewGroup.LayoutParams lp=view[0].getLayoutParams();lp.width=Math.round(280*activity.getResources().getDisplayMetrics().density);lp.height=Math.round(100*activity.getResources().getDisplayMetrics().density);view[0].setLayoutParams(lp);});
             Thread.sleep(700);png(getUiAutomation().takeScreenshot(),"native-widget-host-resized");host.stopListening();runOnMainSync(activity::finish);
+            nativeRevenueChecks();
             result.putString("stream","PASS "+checks+" native Android checks; Coupon "+live.coupon+"; screenshots "+output);
             finish(ActivityResult.OK,result);
         }catch(Throwable e){result.putString("stream","FAIL "+checks+" "+android.util.Log.getStackTraceString(e));finish(ActivityResult.FAIL,result);}
