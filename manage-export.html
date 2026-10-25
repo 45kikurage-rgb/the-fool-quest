@@ -3,7 +3,7 @@
 <title>THE FOOL QUEST 収益データ移行</title>
 <style>body{margin:0;background:#111;color:#fafafa;font-family:system-ui,sans-serif;line-height:1.65}main{padding:24px 18px;max-width:580px;margin:auto}h1{font-size:24px}h2{font-size:18px}section{background:#202020;border:1px solid #666;border-radius:12px;padding:16px;margin:18px 0}button{display:block;width:100%;font:inherit;font-weight:bold;padding:17px;border:0;border-radius:8px;background:#baff00;color:#111}button:disabled{background:#666}a{color:#baff00}#status{white-space:pre-wrap}small{color:#ccc}</style>
 </head><body><main><h1>THE FOOL QUEST<br>Androidアプリへの収益データ移行</h1>
-<p>このページは今まで使用していたTHE FOOL QUESTと<strong>同じサイトURL・同じブラウザ</strong>で開いてください。月別収益・CSV元金額・手動追加・目標額・検証設定を読み取り、JSONファイルとしてダウンロードします。</p>
+<p>このページは今まで使用していたTHE FOOL QUESTと<strong>同じサイトURL・同じブラウザ</strong>で開いてください。月別収益・CSV元金額・手動追加・目標額を読み取り、JSONファイルとしてダウンロードします。</p>
 <section><h2>移行元の確認</h2><p id="status">確認中…</p><button id="export" disabled>移行データをJSONで保存</button></section>
 <p>保存したJSONは新Androidアプリの「旧サイトのJSONを取り込む」から選択してください。アプリ内データを上書きする場合は確認画面が出ます。</p>
 <small>この操作ではサイトの収益・設定・履歴を削除・変更しません。Couponの当月の最新金額は、アプリ側が中央管理台帳から取得します。JSON内の過去月のCouponは旧サイトで保存した値です。</small>
@@ -19,7 +19,6 @@ function prepare(){
  const raw=read('foolQuestMonthlyRevenueV1',{});
  const manual=read('foolQuestTiktokManualChargesV1',[]);
  const g=read('foolQuestGoalAmounts',{});
- const sim=read('foolQuestOperationSimulationV1',{});
  if(!raw||typeof raw!=='object'||Array.isArray(raw)||!Array.isArray(manual))throw Error('月別履歴か手動追加の保存形式が不正です');
  const normalizedManual=manual.map((v,i)=>{
    const date=String(v.date||'');
@@ -54,10 +53,8 @@ function prepare(){
  if(!Object.keys(months).length)throw Error('このブラウザには収益履歴が見つかりません。同じサイトURLのChromeから開き直してください。');
  for(const v of normalizedManual)if(!months[v.date.slice(0,7)])throw Error(v.date+' の月別収益が見つかりません');
  function pos(key,fallback){const n=Number(g[key]);return yen(n)&&n>0?n:fallback;}
- function small(key,fallback){const n=Number(sim[key]);return yen(n)&&n<=9999?n:fallback;}
  return {format:'the-fool-quest-migration',version:1,months,manual:normalizedManual,
-   goals:{tiktok:pos('tiktok',500000),coupon:pos('coupon',500000)},
-   simulation:{amount:small('amount',3200),restDays:small('restDays',10),owned:small('owned',240)}};
+   goals:{tiktok:pos('tiktok',500000),coupon:pos('coupon',500000)}};
 }
 let data;
 try{
