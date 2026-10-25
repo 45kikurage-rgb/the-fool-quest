@@ -48,7 +48,7 @@ public final class SettingsActivity extends Activity {
     private void build(){
         colors.clear();ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.setFitsSystemWindows(true);
         body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);body.setPadding(dp(18),dp(24),dp(18),dp(28));body.setBackgroundColor(0xfff6f5f2);scroll.addView(body);setContentView(scroll);
-        body.addView(text("THE FOOL QUEST",24));body.addView(text("収益ウィジェット 0.1.13",14));
+        body.addView(text("THE FOOL QUEST",24));body.addView(text("収益ウィジェット 0.1.14",14));
         description=text("",12);body.addView(description);
         preview=new android.widget.FrameLayout(this);
         body.addView(preview,new LinearLayout.LayoutParams(-1,dp(126)));
@@ -65,8 +65,10 @@ public final class SettingsActivity extends Activity {
             if(m.isRequestPinAppWidgetSupported())m.requestPinAppWidget(new ComponentName(this,RevenueWidget.class),null,null);
             else message("ホーム画面を長押しして「ウィジェット」から追加してください。");
         });
-        body.addView(text("データ連携",18));
-        body.addView(text("Couponは30分ごとの自動更新とタップ更新に対応。TikTok・目標は、普段使うサイトから受け取った表示用データです。サイトの値を変更したら再度連携してください。",13));
+        body.addView(text("収益管理",18));
+        body.addView(text("CSV・手動追加・目標設定・収益履歴はアプリ内で管理します。Couponは中央台帳から取得します。",13));
+        button("アプリの収益管理を開く",()->startActivity(new Intent(this,ManagementActivity.class)));
+        body.addView(text("旧サイトからの連携（移行前の互換操作）",14));
         button("THE FOOL QUESTから連携（通常サイト）",()->openExporter("https://the-fool-quest.45kikurage.workers.dev/widget-export.html"));
         button("GitHub Pages版から連携",()->openExporter("https://45kikurage-rgb.github.io/the-fool-quest/widget-export.html"));
         button("連携データを貼り付け",()->{
