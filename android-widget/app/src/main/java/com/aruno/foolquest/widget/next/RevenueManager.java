@@ -162,26 +162,25 @@ final class RevenueManager {
         state.put("manual",fresh);persistAndRender();
     }
     void updateManual(String id,String date,long amount) throws Exception {
-        JSONArray values=manual();JSONObject target=null;
-        for(int i=0;i<values.length();i++){JSONObject v=values.getJSONObject(i);if(id.equals(v.optString("id"))){target=v;break;}}
-        if(target==null)throw new IllegalArgumentException("履歴が見つかりません");
-        // Reuse date validation and sums without saving an intermediate entry.
-        JSONObject original = new JSONObject(target.toString());
-        JSONArray all = manual();
-        JSONArray reduced = new JSONArray();
-        for(int i=0;i<all.length();i++)if(!id.equals(all.getJSONObject(i).optString("id")))reduced.put(all.getJSONObject(i));
-        state.put("manual",reduced);
-        try {
-            addManual(date,amount);
-            JSONArray current=manual();
-            current.getJSONObject(current.length()-1).put("id",id);
-            persistAndRender();
-        }catch(Exception e){
-            state.put("manual",all);
-            // If addManual succeeded but later failed, restore the last committed state.
-            state=new JSONObject(preferences.getString(KEY, "{}"));
-            throw e;
+        checkDate(date);safe(amount,true);
+        if(csvBase(date.substring(0,7))<0)
+            throw new IllegalArgumentException("移動先の月のCSVを先に取り込んでください");
+        JSONArray changed=new JSONArray();boolean found=false;
+        for(int i=0;i<manual().length();i++) {
+            JSONObject entry=manual().getJSONObject(i);
+            if(id.equals(entry.optString("id"))) {
+                found=true;
+                JSONObject edited=new JSONObject(entry.toString());
+                edited.put("date",date);edited.put("amount",amount);
+                changed.put(edited);
+            }else changed.put(entry);
         }
+        if(!found)throw new IllegalArgumentException("履歴が見つかりません");
+        JSONObject candidate=new JSONObject(state.toString());
+        candidate.put("manual",changed);
+        validate(candidate);
+        JSONObject old=state;state=candidate;
+        try{persistAndRender();}catch(Exception e){state=old;throw e;}
     }
     void persist() throws Exception {
         if(!preferences.edit().putString(KEY,state.toString()).commit())
