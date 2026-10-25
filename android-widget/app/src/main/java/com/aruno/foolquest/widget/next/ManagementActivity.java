@@ -92,7 +92,6 @@ public final class ManagementActivity extends Activity {
         status=text("",13);content.addView(status);
         action("月間目標を設定",this::showGoals);
         action("収益履歴・手動追加の編集",this::showHistory);
-        action("稼働数・収益を検証",this::showSimulation);
         action("表示設定・進捗ゲージ",()->startActivity(new Intent(this,SettingsActivity.class)));
         action("えらべるPayのポイント履歴をChromeで開く",
             ()->openUrl("https://wallet.vaton.jp/point/point_logs"));
@@ -208,10 +207,6 @@ public final class ManagementActivity extends Activity {
         return group;
     }
     private void showManualAdd() throws Exception {
-        if(model.csvBase(model.month())<0) {
-            alert("先にCSVを取り込んでください","移行元のCSV金額がないと、手動追加との二重計上を防げません。");
-            return;
-        }
         EditText date=field(today(),false),value=field("",true);
         new AlertDialog.Builder(this).setTitle("TikTok収益の手動追加")
             .setView(form(new String[]{"日付（yyyy-MM-dd）","追加金額（円）"},new EditText[]{date,value}))
@@ -301,29 +296,5 @@ public final class ManagementActivity extends Activity {
                 model.updateManual(id,date.getText().toString(),RevenueManager.parseAmount(value.getText().toString(),true));
                 showMonthDetails(month);
             })).show();
-    }
-    private void showSimulation() throws Exception {
-        screen("稼働数・収益検証");
-        info("既存サイトと同じ14日稼働・休憩日数・保有台数・1台粗利の試算です。実際の収益データは変更しません。");
-        JSONObject s=model.simulation();
-        EditText rest=field(String.valueOf(s.getLong("restDays")),true);
-        EditText owned=field(String.valueOf(s.getLong("owned")),true);
-        EditText amount=field(String.valueOf(s.getLong("amount")),true);
-        content.addView(form(new String[]{"休憩日数","保有台数","1台あたり粗利（円）"},new EditText[]{rest,owned,amount}));
-        action("試算する",()->{
-            long r=RevenueManager.parseAmount(rest.getText().toString(),false);
-            long o=RevenueManager.parseAmount(owned.getText().toString(),false);
-            long a=RevenueManager.parseAmount(amount.getText().toString(),false);
-            model.setSimulation(o,r,a);
-            // Preserve the site's original integer-floor formula and its two run cadences.
-            long starts30=(long)Math.floor((double)o/(14+r));
-            long starts20=(long)Math.floor((double)o/(14+r)*30/20);
-            long day=RevenueManager.plus(0,starts30*a);
-            long monthly=day*30,active=starts30*14;
-            alert("検証結果","月30日作業：1日 "+starts30+"台\n月20日作業：1日 "+starts20+"台"
-                +"\n1日収益："+money(day)+"\n月間収益："+money(monthly)
-                +"\n最大稼働台数："+active+"台");
-        });
-        action("← 管理トップへ",this::showHome);
     }
 }
