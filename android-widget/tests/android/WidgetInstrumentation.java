@@ -198,7 +198,7 @@ public class WidgetInstrumentation extends Instrumentation {
 
     void nativeRevenueChecks() throws Exception {
         String month=RevenueMath.month(System.currentTimeMillis());
-        RevenueManager.CsvResult parsed=RevenueManager.parseCsv("ID,チャージポイント\\nA,\\"1,000\\"\\nB,-200\\n");
+        RevenueManager.CsvResult parsed=RevenueManager.parseCsv("ID,チャージポイント\nA,\"1,000\"\nB,-200\n");
         ok(parsed.total==1200 && parsed.count==2,"CSV parser handles quoted values and returns total");
         RevenueManager manager=new RevenueManager(c);
         manager.setCsv(month,1000,"fixture.csv",1);
@@ -210,7 +210,7 @@ public class WidgetInstrumentation extends Instrumentation {
         ok(RevenueStore.read(c).tiktok==1275,"widget receives native value instantly");
         String saved=manager.backup();
         boolean refused=false;
-        try{manager.replaceFromJson("{\\"format\\":\\"invalid\\",\\"version\\":1}");}
+        try{manager.replaceFromJson("{\"format\":\"invalid\",\"version\":1}");}
         catch(Exception expected){refused=true;}
         ok(refused && manager.tiktok(month)==1275,"invalid history migration preserves current records");
         manager.deleteManual(id);
