@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "operation": "stage-validated-unsigned",
+  "approval": "User 2026-10-25 requested compact revenue table and removal of obsolete links; preserving existing signed app",
+  "version_code": 16,
+  "version_name": "0.1.15",
+  "source_sha": "b80d5c891c2fccf35ba80c778e3affbf07c27c1b",
+  "test_run": 40193262803,
+  "package": "com.aruno.foolquest.widget.next",
+  "unsigned_sha256": "a40aff209244ae6677b309a143bc456492f66041365e7042933f6c4a415a6855",
+  "publish": false
+}
