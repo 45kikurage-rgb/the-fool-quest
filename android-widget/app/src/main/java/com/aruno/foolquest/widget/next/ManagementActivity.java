@@ -112,8 +112,14 @@ public final class ManagementActivity extends Activity {
         info("サイト内の元データは削除しません。バックアップも端末外に保存してください。");
     }
     private void openUrl(String url) {
-        Intent i=new Intent(Intent.ACTION_VIEW,Uri.parse(url));
-        try{startActivity(i);}catch(Exception e){alert("ブラウザを開けません",url);}
+        Intent browser=new Intent(Intent.ACTION_VIEW,Uri.parse(url));
+        browser.setPackage("com.android.chrome");
+        try { startActivity(browser); }
+        catch(Exception e) {
+            browser.setPackage(null);
+            try { startActivity(browser); }
+            catch(Exception unavailable) { alert("ブラウザを開けません",url); }
+        }
     }
     private void pick(String mime,int code) {
         Intent i=new Intent(Intent.ACTION_OPEN_DOCUMENT);
