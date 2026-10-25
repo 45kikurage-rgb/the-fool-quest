@@ -1,0 +1,51 @@
+name: Verify FOOL QUEST code16 public APK bytes
+on:
+  push:
+    branches: [main]
+    paths: ['requests/foolquest-code16-public-check.json']
+permissions:
+  contents: read
+jobs:
+  public-verification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch independent distribution endpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          SHA=fd22842b2b05f885774f3ee7d602d81375dac707187175aa225dfa86736ec0d7
+          CHROME='Mozilla/5.0 (Linux; Android 16) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36'
+          for pair in 'github|https://45kikurage-rgb.github.io/the-fool-quest' 'cloudflare|https://the-fool-quest.45kikurage.workers.dev'; do
+            site="${pair%%|*}"
+            base="${pair#*|}"
+            echo "Checking ${site}..."
+            curl -fLsS --retry 4 --retry-all-errors --retry-delay 7 --connect-timeout 10 --max-time 40 -A "$CHROME" "$base/widget-download.html" -o "evidence/${site}-download.html"
+            curl -fLsS --retry 4 --retry-all-errors --retry-delay 7 --connect-timeout 10 --max-time 40 -A "$CHROME" "$base/android-widget/releases/manifest.json" -o "evidence/${site}-manifest.json"
+            curl -fLsS --retry 4 --retry-all-errors --retry-delay 7 --connect-timeout 10 --max-time 40 -A "$CHROME" "$base/android-widget/releases/fool-quest-widget-0.1.15.apk" -o "evidence/${site}-code16.apk"
+            echo "$SHA  evidence/${site}-code16.apk" | sha256sum -c -
+            [ "$(wc -c < "evidence/${site}-code16.apk")" -eq 71470 ]
+            grep -q 'fool-quest-widget-0.1.15.apk' "evidence/${site}-download.html"
+            SITE="$site" python3 - <<'PY'
+          import json,os
+          s=os.environ['SITE']
+          manifest=json.load(open(f'evidence/{s}-manifest.json'))
+          assert manifest['version']=='0.1.15'
+          assert manifest['versionCode']==16
+          assert manifest['applicationId']=='com.aruno.foolquest.widget.next'
+          assert manifest['sha256']=='fd22842b2b05f885774f3ee7d602d81375dac707187175aa225dfa86736ec0d7'
+          assert manifest['certificateSha256']=='8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730'
+          print(f'{s}: PASSED published candidate hash, code16, existing certificate')
+          PY
+          done
+          printf 'Both independent public endpoints PASS\n' > evidence/result.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: foolquest-code16-public-verification
+          path: |
+            evidence/*-manifest.json
+            evidence/result.txt
+          retention-days: 14
