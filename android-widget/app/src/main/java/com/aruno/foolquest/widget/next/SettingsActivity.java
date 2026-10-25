@@ -32,7 +32,6 @@ public final class SettingsActivity extends Activity {
     private int widgetId=AppWidgetManager.INVALID_APPWIDGET_ID;
     private boolean colorValid=true;
     private boolean resumed=false;
-    private boolean secondLapPreview=false;
     private int dp(float n){return Math.round(n*getResources().getDisplayMetrics().density);}
     @Override public void onCreate(Bundle b){
         super.onCreate(b); setResult(RESULT_CANCELED);
@@ -48,16 +47,15 @@ public final class SettingsActivity extends Activity {
     private void build(){
         colors.clear();ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.setFitsSystemWindows(true);
         body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);body.setPadding(dp(18),dp(24),dp(18),dp(28));body.setBackgroundColor(0xfff6f5f2);scroll.addView(body);setContentView(scroll);
-        body.addView(text("THE FOOL QUEST",24));body.addView(text("収益ウィジェット 0.1.14",14));
+        body.addView(text("表示設定",24));
+        button("← 収益管理へ戻る",this::finish);
+        body.addView(text("ウィジェットのプレビュー",16));
         description=text("",12);body.addView(description);
         preview=new android.widget.FrameLayout(this);
         body.addView(preview,new LinearLayout.LayoutParams(-1,dp(126)));
         // Replace preview children after layout; synchronous replacement can leave them unmeasured.
         preview.addOnLayoutChangeListener((v,a,b,c,d,e,f,g,h)->{if(c-a!=g-e)preview.post(this::updatePreview);});
-        body.addView(text("日別の進歩カラー：達成・未達・不足の3色。月間目標を超えると前の周を満タンで残し、2周目はライム色・3周目は緑色を交互に重ねます。周数と白い境界線を表示し、達成率の数字は累計表示です。",12));
-        button("2周目 182.09% サンプル表示 ON/OFF",()->{secondLapPreview=!secondLapPreview;updatePreview();});
         warning=text("",12);warning.setTextColor(0xff9b4100);body.addView(warning);
-        body.addView(text("プレビューは即時反映。ホーム画面には「設定を保存」で反映します。設定はすべての同種ウィジェットに共通です。",12));
         button("設定を保存",this::save);
         if(widgetId==AppWidgetManager.INVALID_APPWIDGET_ID)button("ホーム画面に追加",()->{
             if(!validateColors())return;settings.save(RevenueStore.prefs(this));RevenueWidget.renderAll(this);
@@ -65,19 +63,7 @@ public final class SettingsActivity extends Activity {
             if(m.isRequestPinAppWidgetSupported())m.requestPinAppWidget(new ComponentName(this,RevenueWidget.class),null,null);
             else message("ホーム画面を長押しして「ウィジェット」から追加してください。");
         });
-        body.addView(text("収益管理",18));
-        body.addView(text("CSV・手動追加・目標設定・収益履歴はアプリ内で管理します。Couponは中央台帳から取得します。",13));
-        button("アプリの収益管理を開く",()->startActivity(new Intent(this,ManagementActivity.class)));
-        body.addView(text("旧サイトからの連携（移行前の互換操作）",14));
-        button("THE FOOL QUESTから連携（通常サイト）",()->openExporter("https://the-fool-quest.45kikurage.workers.dev/widget-export.html"));
-        button("GitHub Pages版から連携",()->openExporter("https://45kikurage-rgb.github.io/the-fool-quest/widget-export.html"));
-        button("連携データを貼り付け",()->{
-            EditText input=new EditText(this);input.setHint("サイトでコピーした連携データ");input.setMaxLines(5);
-            new AlertDialog.Builder(this).setTitle("連携データ").setView(input).setNegativeButton("キャンセル",null)
-                .setPositiveButton("確認",(d,w)->receive(input.getText().toString().trim())).show();
-        });
-        communication=text("",12);body.addView(communication);
-        body.addView(text("表示設定",18));
+        body.addView(text("色とレイアウト",18));
         button("黒背景／白背景を反転",()->{
             boolean dark=Color.red(settings.background)+Color.green(settings.background)+Color.blue(settings.background)<384;
             settings.background=dark?Color.WHITE:Color.BLACK;settings.text=dark?Color.BLACK:Color.WHITE;
@@ -100,8 +86,6 @@ public final class SettingsActivity extends Activity {
         colorPalette("secondLap","2周目：月間目標100%超",settings.secondLap);
         button("表示設定を初期化",()->new AlertDialog.Builder(this).setMessage("表示設定を初期値に戻します。収益データは保持します。保存でホーム画面へ反映します。")
             .setNegativeButton("キャンセル",null).setPositiveButton("初期化",(d,w)->{settings=new DisplaySettings();build();}).show());
-        body.addView(text("操作：ウィジェット全体をタップして更新。長押しでサイズ変更。表示設定のメニューはホームアプリによって異なります。このアプリからも設定できます。",12));
-        body.addView(text("省電力中は自動更新が遅れる場合があります。通信失敗時は前回正常値を表示します。月をまたぐデータは合算しません。TikTok未連携時の「—」は0円ではありません。",12));
         updatePreview();
     }
     private interface Change{void set(int value);}
@@ -173,15 +157,10 @@ public final class SettingsActivity extends Activity {
         if(preview==null||isFinishing()||isDestroyed())return;
         int w=preview.getWidth()>0?Math.round(preview.getWidth()/getResources().getDisplayMetrics().density):340;
         RevenueStore.Data d=RevenueStore.read(this);
-        if(secondLapPreview){
-            d.month=RevenueMath.month(System.currentTimeMillis());
-            d.tiktok=0;d.coupon=546270;d.goalTotal=300000;d.goalTiktok=300000;d.goalCoupon=300000;
-            d.importAt=System.currentTimeMillis();d.couponAt=d.importAt;d.loading=false;d.error="";
-        }
         NativeWidgetViews.Result r=NativeWidgetViews.create(this,d,settings,w,126);
         preview.removeAllViews();preview.addView(r.views.apply(this,preview));
         preview.setContentDescription(WidgetRenderer.description(d));
-        description.setText(secondLapPreview?"サンプルデータ：Coupon 182.09%（保存収益には影響しません）":WidgetRenderer.footer(d));
+        description.setText(WidgetRenderer.footer(d));
         String status=!colorValid?"色コードを確認してください。":r.adjusted?"この枠では文字・ゲージ・余白を安全に調整します（文字 "+String.format(java.util.Locale.JAPAN,"%.1f",r.font)+"dp）。":"数値列の位置を固定して表示します。ホーム画面の角で欠けないよう外周8dpを確保します。";
         if(settings.text==settings.background&&settings.opacity==100)status+=" 文字と背景が同じ色です。";
         warning.setText(status);

@@ -196,6 +196,23 @@ public class WidgetInstrumentation extends Instrumentation {
         return (java.util.concurrent.ExecutorService)field.get(null);
     }
 
+    android.widget.LinearLayout historyRow(android.view.View view,String period) {
+        if(view instanceof android.widget.LinearLayout) {
+            android.widget.LinearLayout line=(android.widget.LinearLayout)view;
+            if(line.getChildCount()==4 && line.getChildAt(0) instanceof android.widget.TextView) {
+                if(period.equals(((android.widget.TextView)line.getChildAt(0)).getText().toString()))
+                    return line;
+            }
+        }
+        if(view instanceof android.view.ViewGroup) {
+            android.view.ViewGroup group=(android.view.ViewGroup)view;
+            for(int i=0;i<group.getChildCount();i++){
+                android.widget.LinearLayout found=historyRow(group.getChildAt(i),period);
+                if(found!=null)return found;
+            }
+        }
+        return null;
+    }
     void nativeRevenueChecks() throws Exception {
         String month=RevenueMath.month(System.currentTimeMillis());
         RevenueManager.CsvResult parsed=RevenueManager.parseCsv("ID,チャージポイント\nA,\"1,000\"\nB,-200\n");
@@ -225,6 +242,30 @@ public class WidgetInstrumentation extends Instrumentation {
             "Coupon monthly archive is included in user backup");
         Activity home=startActivitySync(new Intent(c,ManagementActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
         ok(home!=null,"native revenue management screen launches");
+        runOnMainSync(()->{
+            ok(button(home.getWindow().getDecorView(),"旧サイトの移行ファイル作成ページ")==null,
+                "migration controls are not shown on normal management screen");
+            ok(button(home.getWindow().getDecorView(),"バックアップ・復元")!=null,
+                "backup recovery remains accessible");
+            button(home.getWindow().getDecorView(),"収益履歴・手動追加の編集").performClick();
+        });
+        waitForIdleSync();
+        runOnMainSync(()->{
+            android.view.View root=home.getWindow().getDecorView();
+            android.widget.LinearLayout headings=historyRow(root,"");
+            android.widget.LinearLayout all=historyRow(root,"全期間");
+            android.widget.LinearLayout year=historyRow(root,month.substring(0,4)+"年");
+            ok(headings!=null&&all!=null&&year!=null,"history uses four aligned columns for labels, all-time and year");
+            ok("合計".equals(((android.widget.TextView)headings.getChildAt(1)).getText().toString()),
+                "four-column revenue headers preserved");
+            ok("TikTok".equals(((android.widget.TextView)headings.getChildAt(2)).getText().toString()),
+                "TikTok column preserved");
+            ok("Coupon".equals(((android.widget.TextView)headings.getChildAt(3)).getText().toString()),
+                "Coupon column preserved");
+            ok(historyRow(root,String.valueOf(Integer.parseInt(month.substring(5)))+"月")!=null,
+                "current month appears as compact row");
+        });
+        png(getUiAutomation().takeScreenshot(),"native-revenue-history-4column");
         runOnMainSync(home::finish);
     }
 
@@ -383,29 +424,17 @@ public class WidgetInstrumentation extends Instrumentation {
             // Actual Android AppWidgetHostView: applies the production RemoteViews and PendingIntent.
             Activity activity=startActivitySync(new Intent(c,SettingsActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             waitForIdleSync();Thread.sleep(500);png(getUiAutomation().takeScreenshot(),"native-settings-screen");
-            long storedCoupon=RevenueStore.read(c).coupon;
             runOnMainSync(()->{
-                android.widget.Button sample=button(activity.getWindow().getDecorView(),"2周目 182.09% サンプル表示 ON/OFF");
-                ok(sample!=null,"settings retains 182.09% sample toggle");sample.performClick();
+                android.view.View root=activity.getWindow().getDecorView();
+                ok(button(root,"THE FOOL QUESTから連携（通常サイト）")==null,
+                    "obsolete website linking is hidden from widget display settings");
+                ok(button(root,"連携データを貼り付け")==null,
+                    "obsolete pasted link is hidden");
+                ok(button(root,"2周目 182.09% サンプル表示 ON/OFF")==null,
+                    "sample-only action is removed from production settings");
+                ok(button(root,"設定を保存")!=null,"widget save settings remains available");
+                ok(button(root,"ホーム画面に追加")!=null,"widget placement remains available");
             });
-            waitForIdleSync();
-            runOnMainSync(()->{
-                android.widget.TextView percent=activity.findViewById(R.id.coupon_percent);
-                ok(percent.getText().toString().equals("182.09%"),"settings sample shows cumulative 182.09%");
-                android.view.ViewGroup holder=activity.findViewById(R.id.coupon_gauge_holder);
-                ok(holder.findViewById(R.id.lap_label).getContentDescription().toString().equals("×2"),"settings sample uses new second-lap suffix");
-                android.widget.ImageView image=holder.findViewById(R.id.gauge_image);
-                android.graphics.Bitmap sample=((android.graphics.drawable.BitmapDrawable)image.getDrawable()).getBitmap();
-                int y=sample.getHeight()/2;
-                for(int percentValue:new int[]{20,40,60,80}){
-                    int x=Math.round(sample.getWidth()*percentValue/100f);boolean white=false;
-                    for(int dx=-1;dx<=1;dx++)white|=sample.getPixel(x+dx,y)==GaugePalette.MARKER_WHITE;
-                    ok(white,"settings sample displays reached divider "+percentValue);
-                }
-            });
-            png(getUiAutomation().takeScreenshot(),"native-settings-18209-sample");
-            ok(RevenueStore.read(c).coupon==storedCoupon,"sample toggle does not change stored revenue");
-            runOnMainSync(()->button(activity.getWindow().getDecorView(),"2周目 182.09% サンプル表示 ON/OFF").performClick());
             AppWidgetHost host=new AppWidgetHost(c,1234);AppWidgetManager manager=AppWidgetManager.getInstance(c);
             int id=host.allocateAppWidgetId();
             ok(manager.bindAppWidgetIdIfAllowed(id,new ComponentName(c,RevenueWidget.class)),"bind Android widget host");
