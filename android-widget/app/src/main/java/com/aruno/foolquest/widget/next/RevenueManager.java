@@ -131,13 +131,16 @@ final class RevenueManager {
         record.put("source","csv");
         persistAndRender();
     }
+    static void checkDate(String date) throws Exception {
+        if(!date.matches("20[0-9]{2}-(0[1-9]|1[0-2])-([0-2][0-9]|3[01])"))
+            throw new IllegalArgumentException("日付はyyyy-MM-dd形式で入力してください");
+        SimpleDateFormat format=new SimpleDateFormat("yyyy-MM-dd",Locale.US);
+        format.setLenient(false);
+        if(!date.equals(format.format(format.parse(date))))
+            throw new IllegalArgumentException("存在しない日付です");
+    }
     void addManual(String date,long amount) throws Exception {
-        if(!date.matches("20[0-9]{2}-(0[1-9]|1[0-2])-([0-2][0-9]|3[01])")
-                || !date.equals(new java.text.SimpleDateFormat("yyyy-MM-dd",Locale.US)
-                    {{setLenient(false);}}.format(
-                    new java.text.SimpleDateFormat("yyyy-MM-dd",Locale.US)
-                    {{setLenient(false);}}.parse(date))))
-            throw new IllegalArgumentException("日付が不正です");
+        checkDate(date);
         safe(amount,true);
         if(manual().length()>=10000)throw new IllegalArgumentException("履歴件数の上限です");
         // Manual entry may be added only where an imported CSV baseline is known.
