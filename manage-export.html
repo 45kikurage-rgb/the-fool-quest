@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>THE FOOL QUEST 収益データ移行</title>
+<style>body{margin:0;background:#111;color:#fafafa;font-family:system-ui,sans-serif;line-height:1.65}main{padding:24px 18px;max-width:580px;margin:auto}h1{font-size:24px}h2{font-size:18px}section{background:#202020;border:1px solid #666;border-radius:12px;padding:16px;margin:18px 0}button{display:block;width:100%;font:inherit;font-weight:bold;padding:17px;border:0;border-radius:8px;background:#baff00;color:#111}button:disabled{background:#666}a{color:#baff00}#status{white-space:pre-wrap}small{color:#ccc}</style>
+</head><body><main><h1>THE FOOL QUEST<br>Androidアプリへの収益データ移行</h1>
+<p>このページは今まで使用していたTHE FOOL QUESTと<strong>同じサイトURL・同じブラウザ</strong>で開いてください。月別収益・CSV元金額・手動追加・目標額・検証設定を読み取り、JSONファイルとしてダウンロードします。</p>
+<section><h2>移行元の確認</h2><p id="status">確認中…</p><button id="export" disabled>移行データをJSONで保存</button></section>
+<p>保存したJSONは新Androidアプリの「旧サイトのJSONを取り込む」から選択してください。アプリ内データを上書きする場合は確認画面が出ます。</p>
+<small>この操作ではサイトの収益・設定・履歴を削除・変更しません。Couponの当月の最新金額は、アプリ側が中央管理台帳から取得します。JSON内の過去月のCouponは旧サイトで保存した値です。</small>
+<p><a href="./">THE FOOL QUESTに戻る</a></p>
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const read=(key,defaultValue)=>{const value=localStorage.getItem(key);if(value===null)return defaultValue;return JSON.parse(value);};
+const yen=n=>Number.isSafeInteger(n)&&n>=0&&n<=Number.MAX_SAFE_INTEGER;
+const current=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit'}).format(new Date()).replace('/','-');
+function prepare(){
+ const raw=read('foolQuestMonthlyRevenueV1',{});
+ const manual=read('foolQuestTiktokManualChargesV1',[]);
+ const g=read('foolQuestGoalAmounts',{});
+ const sim=read('foolQuestOperationSimulationV1',{});
+ if(!raw||typeof raw!=='object'||Array.isArray(raw)||!Array.isArray(manual))throw Error('月別履歴か手動追加の保存形式が不正です');
+ const normalizedManual=manual.map((v,i)=>{
+   const date=String(v.date||'');
+   const amount=Number(v.amount);
+   const id=String(v.id||'legacy-'+i);
+   if(!/^\d{4}-\d\d-\d\d$/.test(date)||!yen(amount)||amount===0||!id||id.length>100)throw Error('手動追加履歴が不正です');
+   return {id,date,amount};
+ });
+ const months={};
+ for(const [key,record] of Object.entries(raw)){
+   if(!/^20\d\d-(0[1-9]|1[0-2])$/.test(key))continue;
+   if(!record||typeof record!=='object')throw Error('月別履歴が不正です');
+   const manualSum=normalizedManual.filter(v=>v.date.startsWith(key)).reduce((sum,v)=>sum+v.amount,0);
+   const aggregate=Number(record.tiktok);
+   const base=record.tiktokCsv==null?(yen(aggregate)&&aggregate>=manualSum?aggregate-manualSum:NaN):Number(record.tiktokCsv);
+   if(!yen(base))throw Error(key+' のCSV元金額が不正です');
+   const item={csv:base,source:'site-migration'};
+   if(record.coupon!=null){const coupon=Number(record.coupon);if(!yen(coupon))throw Error(key+'のCoupon金額が不正です');item.coupon=coupon;}
+   if(record.finalized===true)item.finalized=true;
+   months[key]=item;
+ }
+ const month=current();
+ if(!months[month]) {
+   const meta=read('tfq_tiktok_csv_meta',{});
+   const savedMonth=String(meta.month||'');
+   const value=localStorage.getItem('tfq_tiktok');
+   if(value!=null && (Object.keys(raw).length===0||savedMonth===month)) {
+     const n=Number(value);if(!yen(n))throw Error('当月のCSV金額が不正です');
+     months[month]={csv:n,source:'site-migration'};
+   }
+ }
+ if(!Object.keys(months).length)throw Error('このブラウザには収益履歴が見つかりません。同じサイトURLのChromeから開き直してください。');
+ for(const v of normalizedManual)if(!months[v.date.slice(0,7)])throw Error(v.date+' の月別収益が見つかりません');
+ function pos(key,fallback){const n=Number(g[key]);return yen(n)&&n>0?n:fallback;}
+ function small(key,fallback){const n=Number(sim[key]);return yen(n)&&n<=9999?n:fallback;}
+ return {format:'the-fool-quest-migration',version:1,months,manual:normalizedManual,
+   goals:{tiktok:pos('tiktok',500000),coupon:pos('coupon',500000)},
+   simulation:{amount:small('amount',3200),restDays:small('restDays',10),owned:small('owned',240)}};
+}
+let data;
+try{
+ data=prepare();
+ $('status').textContent='保存済み月別収益：'+Object.keys(data.months).length+'か月\n手動追加：'+data.manual.length+'件\nTikTok・Coupon目標：設定値を含む\n保存元：'+location.origin;
+ $('export').disabled=false;
+}catch(e){$('status').textContent='読み取れませんでした：'+(e.message||'保存内容を確認してください');}
+$('export').addEventListener('click',()=>{
+ if(!data)return;
+ const json=JSON.stringify(data);
+ const blob=new Blob([json],{type:'application/json;charset=utf-8'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download='the-fool-quest-migration-'+current()+'.json';document.body.appendChild(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),60000);
+});
+})();
+</script></main></body></html>
