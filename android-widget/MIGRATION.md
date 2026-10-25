@@ -1,3 +1,15 @@
+## code16 本番配布確認（2026-10-25）
+
+- ソース main PR #27 / `fbbb00c7ee22d1b9b0240ff7170fc23a3c96ed74`、APK配布 PR #29 / `c3d0c1f56f10ac5bf946453ca1a6b049efcae24f`。
+- Android 35 ソース試験 `40193262803`：通常3,402、通信断123、再起動113件 PASS。正式署名 `40193866354`：主GitHub・独立バックアップ復元 PASS、既存証明書一致。
+- versionCode 16 / v0.1.15、正式APK 71,470 bytes、SHA-256 `fd22842b2b05f885774f3ee7d602d81375dac707187175aa225dfa86736ec0d7`。
+- 旧正式v0.1.14からの同一UID更新、全29項目保持、旧別パッケージ不変：`40194345967` PASS。
+- 本番2経路独立取得 `40194736656`：GitHub PagesとCloudflareのHTML・manifest・APKの版・サイズ・SHA-256照合すべてPASS。
+- GitHub Pages：`https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html`。Cloudflare：`https://the-fool-quest.45kikurage.workers.dev/widget-download.html`。
+- 端末実機での上書き・データ保持・画面見た目は未確認。アンインストールしないこと。
+
+---
+
 ## v0.1.15 配布証跡・検証済み範囲（2026-10-25）
 
 - GitHubソース main 統合 PR #27：`fbbb00c7ee22d1b9b0240ff7170fc23a3c96ed74`、正式署名 APK の配布統合 PR #29：`c3d0c1f56f10ac5bf946453ca1a6b049efcae24f`。
