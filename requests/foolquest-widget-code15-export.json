@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "operation": "export-unsigned-release-candidate",
+  "approval_reference": "User 2026-10-25: proceed with FOOL QUEST Android production APK signing, upgrade validation, and release",
+  "source_repository": "45kikurage-rgb/the-fool-quest",
+  "source_commit": "635290ee7c89371a55d2644a0aeb659f814bb7df",
+  "build_run_id": 40189070355,
+  "app_id": "foolquest-widget-next",
+  "package": "com.aruno.foolquest.widget.next",
+  "version_code": 15,
+  "version_name": "0.1.14",
+  "unsigned_sha256": "44e605ccca73f2003ad396d6e506425a35463eb41e7f0bacc54d4e9b7592b51d",
+  "signed": false
+}
