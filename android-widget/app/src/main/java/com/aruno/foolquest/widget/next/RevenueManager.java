@@ -217,6 +217,13 @@ final class RevenueManager {
         JSONObject old=state;state=incoming;
         try{persistAndRender();}catch(Exception e){state=old;throw e;}
     }
+    static long strictNumber(Object raw,boolean positive) {
+        if(!(raw instanceof Number))throw new IllegalArgumentException("金額は数値で指定してください");
+        double n=((Number)raw).doubleValue();
+        if(!Double.isFinite(n)||n!=Math.floor(n)||n<0||n>MAX||(positive&&n==0))
+            throw new IllegalArgumentException("金額に不正な値が含まれています");
+        return (long)n;
+    }
     static void validate(JSONObject root) throws Exception {
         if(!FORMAT.equals(root.optString("format"))||root.optInt("version")!=1)
             throw new IllegalArgumentException("THE FOOL QUESTの移行ファイルではありません");
@@ -225,8 +232,8 @@ final class RevenueManager {
         Iterator<String> keys=months.keys();
         while(keys.hasNext()) {
             String k=requireMonth(keys.next());JSONObject v=months.getJSONObject(k);
-            if(v.has("csv"))safe(v.getLong("csv"),false);
-            if(v.has("coupon"))safe(v.getLong("coupon"),false);
+            if(v.has("csv"))strictNumber(v.get("csv"),false);
+            if(v.has("coupon"))strictNumber(v.get("coupon"),false);
         }
         JSONArray manual=root.getJSONArray("manual");
         if(manual.length()>10000)throw new IllegalArgumentException("手動追加履歴が多すぎます");
@@ -234,19 +241,18 @@ final class RevenueManager {
         for(int i=0;i<manual.length();i++) {
             JSONObject row=manual.getJSONObject(i);
             String date=row.getString("date");
-            if(!date.matches("20[0-9]{2}-(0[1-9]|1[0-2])-([0-2][0-9]|3[01])"))
-                throw new IllegalArgumentException("手動追加の日付が不正です");
+            checkDate(date);
             String id=row.getString("id");
             if(!ids.add(id)||id.length()>100||id.isEmpty())throw new IllegalArgumentException("履歴IDが重複しています");
-            safe(row.getLong("amount"),true);
+            strictNumber(row.get("amount"),true);
             JSONObject base=months.optJSONObject(date.substring(0,7));
             if(base==null||!base.has("csv"))throw new IllegalArgumentException("手動追加の月にCSV元データがありません");
         }
         JSONObject goals=root.getJSONObject("goals");
-        plus(safe(goals.getLong("tiktok"),true),safe(goals.getLong("coupon"),true));
+        plus(strictNumber(goals.get("tiktok"),true),strictNumber(goals.get("coupon"),true));
         JSONObject simulation=root.getJSONObject("simulation");
         for(String key:new String[]{"owned","restDays","amount"}) {
-            long n=safe(simulation.getLong(key),false);
+            long n=strictNumber(simulation.get(key),false);
             if(n>9999)throw new IllegalArgumentException("検証条件が範囲外です");
         }
         // Ensure totals can be projected without overflow.
