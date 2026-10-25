@@ -1,0 +1,44 @@
+name: Export verified FOOL QUEST unsigned candidate (no signing keys)
+on:
+  push:
+    branches: [main]
+    paths:
+      - requests/foolquest-widget-code15-export.json
+permissions:
+  contents: write
+  actions: read
+jobs:
+  copy-unsigned:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: foolquest-widget-code15-unsigned-635290ee7c89371a55d2644a0aeb659f814bb7df
+          run-id: 40189070355
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: candidate
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+      - name: Verify pinned unsigned input
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdkmanager 'build-tools;35.0.0'
+          echo '44e605ccca73f2003ad396d6e506425a35463eb41e7f0bacc54d4e9b7592b51d  candidate/aligned.apk' | sha256sum -c -
+          grep -F '44e605ccca73f2003ad396d6e506425a35463eb41e7f0bacc54d4e9b7592b51d' candidate/unsigned-code15.sha256
+          "$ANDROID_HOME/build-tools/35.0.0/aapt2" dump badging candidate/aligned.apk > candidate/badging.txt
+          grep -F "package: name='com.aruno.foolquest.widget.next' versionCode='15' versionName='0.1.14'" candidate/badging.txt
+      - name: Store unsigned bytes on isolated candidate branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git checkout -b candidate/foolquest-code15-44e605cc
+          mkdir -p candidates/foolquest-widget-next
+          base64 -w0 candidate/aligned.apk > candidates/foolquest-widget-next/44e605ccca73f2003ad396d6e506425a35463eb41e7f0bacc54d4e9b7592b51d.apk.b64
+          git add candidates/foolquest-widget-next/*.apk.b64
+          git -c user.name='ARUNO GitHub CI' -c user.email='github-actions[bot]@users.noreply.github.com' commit -m 'Store unsigned code15 candidate from validated run 40189070355'
+          git push origin HEAD:refs/heads/candidate/foolquest-code15-44e605cc
