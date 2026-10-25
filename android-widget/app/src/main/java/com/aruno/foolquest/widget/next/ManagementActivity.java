@@ -13,6 +13,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.util.TypedValue;
 import android.widget.TextView;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -234,36 +235,85 @@ public final class ManagementActivity extends Activity {
                 showHome();
             })).show();
     }
+    private String tableAmount(long yen) {
+        return yen<0?"—":String.format(Locale.JAPAN,"%,d",yen);
+    }
+    private TextView historyCell(String label,int position,boolean header,boolean strong) {
+        TextView cell=new TextView(this);
+        cell.setText(label);
+        cell.setTextColor(0xfff6f6f6);
+        cell.setSingleLine(true);
+        cell.setGravity((position==0?Gravity.START:Gravity.END)|Gravity.CENTER_VERTICAL);
+        cell.setPadding(dp(position==0?4:2),dp(3),dp(position==0?1:3),dp(3));
+        if(header||strong)cell.setTypeface(null,android.graphics.Typeface.BOLD);
+        cell.setAutoSizeTextTypeUniformWithConfiguration(9,header?12:13,1,TypedValue.COMPLEX_UNIT_SP);
+        android.graphics.drawable.GradientDrawable border=new android.graphics.drawable.GradientDrawable();
+        border.setColor(0xff090909);
+        border.setStroke(dp(1),0xffeeeeee);
+        cell.setBackground(border);
+        cell.setContentDescription(label);
+        return cell;
+    }
+    private LinearLayout historyRow(LinearLayout table,String[] data,boolean header,boolean strong,String description,Task tap) {
+        LinearLayout row=new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        float[] weights={0.19f,0.27f,0.27f,0.27f};
+        for(int i=0;i<4;i++){
+            TextView cell=historyCell(data[i],i,header,strong);
+            row.addView(cell,new LinearLayout.LayoutParams(0,dp(header?44:50),weights[i]));
+        }
+        if(tap!=null){
+            row.setClickable(true);
+            row.setFocusable(true);
+            row.setContentDescription(description+"　詳細を開く");
+            row.setOnClickListener(v->execute(tap));
+        }else row.setContentDescription(description);
+        table.addView(row,new LinearLayout.LayoutParams(-1,-2));
+        return row;
+    }
     private void showHistory() throws Exception {
         screen("収益履歴");
         action("← 管理トップへ",this::showHome);
-        info("単位：円。過去月のCouponは移行済みの履歴値、当月Couponは中央台帳の取得値です。");
+        info("単位：円　月を押すと手動追加の編集・削除ができます。");
+        // Present all known source months, including Coupon-only archived months.
         List<String> months=new ArrayList<>();
-        for(Iterator<String> i=model.months().keys();i.hasNext();)months.add(i.next());
-        for(String archivedMonth:model.archivedCouponMonths())if(!months.contains(archivedMonth))months.add(archivedMonth);
+        for(Iterator<String> it=model.months().keys();it.hasNext();)months.add(it.next());
+        for(String m:model.archivedCouponMonths())if(!months.contains(m))months.add(m);
         if(!months.contains(model.month()))months.add(model.month());
         Collections.sort(months,Collections.reverseOrder());
         long allTikTok=0,allCoupon=0;
-        java.util.Map<String,long[]> yearTotals=new java.util.TreeMap<>(Collections.reverseOrder());
-        for(String month:months) {
+        java.util.Map<String,long[]> years=new java.util.LinkedHashMap<>();
+        java.util.Map<String,long[]> monthValues=new java.util.LinkedHashMap<>();
+        for(String month:months){
             long t=model.tiktok(month),c=model.coupon(month);
-            long[] y=yearTotals.get(month.substring(0,4));
-            if(y==null){y=new long[2];yearTotals.put(month.substring(0,4),y);}
-            if(t>=0){allTikTok=RevenueManager.plus(allTikTok,t);y[0]=RevenueManager.plus(y[0],t);}
-            if(c>=0){allCoupon=RevenueManager.plus(allCoupon,c);y[1]=RevenueManager.plus(y[1],c);}
+            monthValues.put(month,new long[]{t,c});
+            String year=month.substring(0,4);
+            long[] totals=years.get(year);
+            if(totals==null){totals=new long[2];years.put(year,totals);}
+            if(t>=0){totals[0]=RevenueManager.plus(totals[0],t);allTikTok=RevenueManager.plus(allTikTok,t);}
+            if(c>=0){totals[1]=RevenueManager.plus(totals[1],c);allCoupon=RevenueManager.plus(allCoupon,c);}
         }
-        heading("全期間 Total "+money(RevenueManager.plus(allTikTok,allCoupon)));
-        info("TikTok "+money(allTikTok)+" / Coupon "+money(allCoupon));
-        for(java.util.Map.Entry<String,long[]> y:yearTotals.entrySet()){
-            long[] x=y.getValue();heading(y.getKey()+"年 "+money(RevenueManager.plus(x[0],x[1])));
-        }
-        heading("月別");
-        for(String m:months) {
-            long t=model.tiktok(m),c=model.coupon(m);
-            long total=RevenueMath.total(t,c);
-            if(total<0)total=t>=0?t:c;
-            Button b=action(m+"　"+money(total)+"\nTikTok "+money(t)+"　Coupon "+money(c),()->showMonthDetails(m));
-            b.setGravity(Gravity.CENTER_VERTICAL|Gravity.START);
+        // The entire table uses the same four columns and narrow borders as the former site.
+        LinearLayout table=new LinearLayout(this);
+        table.setOrientation(LinearLayout.VERTICAL);
+        table.setBackgroundColor(0xff090909);
+        content.addView(table,new LinearLayout.LayoutParams(-1,-2));
+        historyRow(table,new String[]{"","合計","TikTok","Coupon"},true,true,"収益履歴の項目",null);
+        historyRow(table,new String[]{"全期間",tableAmount(RevenueManager.plus(allTikTok,allCoupon)),tableAmount(allTikTok),tableAmount(allCoupon)},
+            false,true,"全期間収益",null);
+        for(java.util.Map.Entry<String,long[]> year:years.entrySet()) {
+            String y=year.getKey();long[] values=year.getValue();
+            historyRow(table,new String[]{y+"年",tableAmount(RevenueManager.plus(values[0],values[1])),
+                tableAmount(values[0]),tableAmount(values[1])},false,true,y+"年収益",null);
+            for(String m:months){
+                if(!m.startsWith(y+"-"))continue;
+                long[] numbers=monthValues.get(m);
+                long total=RevenueMath.total(numbers[0],numbers[1]);
+                if(total<0)total=numbers[0]>=0?numbers[0]:numbers[1];
+                String label=String.valueOf(Integer.parseInt(m.substring(5)))+"月";
+                historyRow(table,new String[]{label,tableAmount(total),tableAmount(numbers[0]),tableAmount(numbers[1])},
+                    false,false,m+"収益",()->showMonthDetails(m));
+            }
         }
     }
     private void showMonthDetails(String month) throws Exception {
