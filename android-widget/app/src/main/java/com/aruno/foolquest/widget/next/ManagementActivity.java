@@ -96,6 +96,11 @@ public final class ManagementActivity extends Activity {
         action("表示設定・進捗ゲージ",()->startActivity(new Intent(this,SettingsActivity.class)));
         action("えらべるPayのポイント履歴をChromeで開く",
             ()->openUrl("https://wallet.vaton.jp/point/point_logs"));
+        action("バックアップ・復元",this::showBackupMenu);
+    }
+    private void showBackupMenu() throws Exception {
+        screen("バックアップ・復元");
+        action("← 収益管理へ戻る",this::showHome);
         heading("サイトからの一度限りの移行");
         info("旧サイトと同じChromeで「移行ファイル作成」を開き、保存したJSONをここで取り込んでください。現在のアプリデータを上書きする前に確認します。");
         action("旧サイトの移行ファイル作成ページ",()->
