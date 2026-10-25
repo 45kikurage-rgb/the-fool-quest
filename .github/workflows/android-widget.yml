@@ -79,6 +79,17 @@ jobs:
             adb shell am instrument -w -e mode reboot com.aruno.foolquest.widget.next.test/com.aruno.foolquest.widget.next.WidgetInstrumentation | tee android-widget/build/native-results/reboot.txt
             grep -q 'PASS .* native reboot checks' android-widget/build/native-results/reboot.txt
             adb pull /sdcard/Android/data/com.aruno.foolquest.widget.next/files/verification android-widget/build/native-results/
+      - name: Record unsigned release candidate after native tests
+        run: |
+          sha256sum build/out/aligned.apk > build/out/unsigned-code15.sha256
+          "$ANDROID_HOME/build-tools/35.0.0/aapt2" dump badging build/out/aligned.apk | head -8
+      - uses: actions/upload-artifact@v4
+        with:
+          name: foolquest-widget-code15-unsigned-${{ github.sha }}
+          path: |
+            android-widget/build/out/aligned.apk
+            android-widget/build/out/unsigned-code15.sha256
+          retention-days: 14
       - uses: actions/upload-artifact@v4
         if: always()
         with:
