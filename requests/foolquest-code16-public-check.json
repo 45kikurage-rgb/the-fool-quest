@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "request": "verify-existing-key-code16-publication",
+  "user_approval": "2026-10-25 change Android revenue history to four-column table and remove obsolete website linking",
+  "release_commit": "c3d0c1f56f10ac5bf946453ca1a6b049efcae24f",
+  "version": "0.1.15",
+  "version_code": 16,
+  "package": "com.aruno.foolquest.widget.next",
+  "expected_sha256": "fd22842b2b05f885774f3ee7d602d81375dac707187175aa225dfa86736ec0d7",
+  "expected_size": 71470
+}
