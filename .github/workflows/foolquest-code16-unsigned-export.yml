@@ -1,0 +1,36 @@
+name: Stage verified unsigned FOOL QUEST code16 APK
+on:
+  push:
+    branches: [main]
+    paths: ['requests/foolquest-widget-code16-export.json']
+permissions: {contents: write, actions: read}
+jobs:
+  stage-unsigned:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: foolquest-widget-code16-unsigned-b80d5c891c2fccf35ba80c778e3affbf07c27c1b
+          run-id: 40193262803
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: candidate
+      - uses: android-actions/setup-android@v3
+        with: {packages: platform-tools, log-accepted-android-sdk-licenses: false}
+      - name: Check unsigned APK and version
+        run: |
+          set -euo pipefail
+          sdkmanager 'build-tools;35.0.0'
+          echo 'a40aff209244ae6677b309a143bc456492f66041365e7042933f6c4a415a6855  candidate/aligned.apk' | sha256sum -c -
+          grep -F a40aff209244ae6677b309a143bc456492f66041365e7042933f6c4a415a6855 candidate/unsigned-code16.sha256
+          "$ANDROID_HOME/build-tools/35.0.0/aapt2" dump badging candidate/aligned.apk | grep -F "package: name='com.aruno.foolquest.widget.next' versionCode='16' versionName='0.1.15'"
+      - name: Preserve unsigned candidate in isolated branch
+        run: |
+          set -euo pipefail
+          git checkout -b candidate/foolquest-code16-a40aff20
+          mkdir -p candidates/foolquest-widget-next
+          base64 -w0 candidate/aligned.apk > candidates/foolquest-widget-next/a40aff209244ae6677b309a143bc456492f66041365e7042933f6c4a415a6855.apk.b64
+          git add candidates/foolquest-widget-next/
+          git -c user.name='ARUNO GitHub CI' -c user.email='github-actions[bot]@users.noreply.github.com' commit -m 'Stage unsigned code16 candidate from successful Android35 run 40193262803'
+          git push origin HEAD:refs/heads/candidate/foolquest-code16-a40aff20
