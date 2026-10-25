@@ -240,6 +240,7 @@ public final class ManagementActivity extends Activity {
         info("単位：円。過去月のCouponは移行済みの履歴値、当月Couponは中央台帳の取得値です。");
         List<String> months=new ArrayList<>();
         for(Iterator<String> i=model.months().keys();i.hasNext();)months.add(i.next());
+        for(String archivedMonth:model.archivedCouponMonths())if(!months.contains(archivedMonth))months.add(archivedMonth);
         if(!months.contains(model.month()))months.add(model.month());
         Collections.sort(months,Collections.reverseOrder());
         long allTikTok=0,allCoupon=0;
