@@ -37,7 +37,9 @@ ChromeのURLごとにlocalStorageは別です。ブラウザが違う場合、�
 - Android35 ソフトウェア受入：描画/収益等3,398件、通信断123件、再起動113件に合格（code15）。
 - 旧正式v0.1.13/code14からの`adb install -r`・署名一致・UID維持・既存29項目の保持・旧パッケージ不変・新管理画面への収益/目標引継ぎを検証：run `40190235293` 合格。実機受入ではない。
 - 旧 v0.1.13、より旧版の正式APKと配布URLはそのまま保管。本番公開はGitHub main統合および公開先HTTP200/SHA/版の再取得で別に確認する。
-- GitHub Pages: `https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html`。Cloudflare: `https://the-fool-quest.45kikurage.workers.dev/widget-download.html`。公開先に正式APKが反映されたかの確認は別工程。
+- 正式ソース公開コミット：`beca8bc9ab6ce38f4be0d77e9b3e10373ac792b9`（PR #24）。GitHub Pages配信 run `40190629813` 成功。main上書き受入 run `40190630578` 成功。
+- 2公開先独立照合 run `40190813547`：GitHub Pages・Cloudflareの両URLでHTML、manifest、署名APKをHTTP取得し、APK SHA-256 `4d0441de77bfb27577ddefe598f98a57af73be8f4851d5929525901115e5f8f2`、71,470 bytes、code15、既存証明書と完全一致。**両配布先PASS**。
+- GitHub Pages: `https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html`。Cloudflare: `https://the-fool-quest.45kikurage.workers.dev/widget-download.html`。Android実機上書き・サイトからの本番履歴の一致は未確認。
 
 ## 試験/公開の区別
 
