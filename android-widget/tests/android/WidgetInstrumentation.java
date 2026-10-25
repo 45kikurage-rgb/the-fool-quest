@@ -196,6 +196,23 @@ public class WidgetInstrumentation extends Instrumentation {
         return (java.util.concurrent.ExecutorService)field.get(null);
     }
 
+    android.widget.LinearLayout historyRow(android.view.View view,String period) {
+        if(view instanceof android.widget.LinearLayout) {
+            android.widget.LinearLayout line=(android.widget.LinearLayout)view;
+            if(line.getChildCount()==4 && line.getChildAt(0) instanceof android.widget.TextView) {
+                if(period.equals(((android.widget.TextView)line.getChildAt(0)).getText().toString()))
+                    return line;
+            }
+        }
+        if(view instanceof android.view.ViewGroup) {
+            android.view.ViewGroup group=(android.view.ViewGroup)view;
+            for(int i=0;i<group.getChildCount();i++){
+                android.widget.LinearLayout found=historyRow(group.getChildAt(i),period);
+                if(found!=null)return found;
+            }
+        }
+        return null;
+    }
     void nativeRevenueChecks() throws Exception {
         String month=RevenueMath.month(System.currentTimeMillis());
         RevenueManager.CsvResult parsed=RevenueManager.parseCsv("ID,チャージポイント\nA,\"1,000\"\nB,-200\n");
@@ -225,6 +242,30 @@ public class WidgetInstrumentation extends Instrumentation {
             "Coupon monthly archive is included in user backup");
         Activity home=startActivitySync(new Intent(c,ManagementActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
         ok(home!=null,"native revenue management screen launches");
+        runOnMainSync(()->{
+            ok(button(home.getWindow().getDecorView(),"旧サイトの移行ファイル作成ページ")==null,
+                "migration controls are not shown on normal management screen");
+            ok(button(home.getWindow().getDecorView(),"バックアップ・復元")!=null,
+                "backup recovery remains accessible");
+            button(home.getWindow().getDecorView(),"収益履歴・手動追加の編集").performClick();
+        });
+        waitForIdleSync();
+        runOnMainSync(()->{
+            android.view.View root=home.getWindow().getDecorView();
+            android.widget.LinearLayout headings=historyRow(root,"");
+            android.widget.LinearLayout all=historyRow(root,"全期間");
+            android.widget.LinearLayout year=historyRow(root,month.substring(0,4)+"年");
+            ok(headings!=null&&all!=null&&year!=null,"history uses four aligned columns for labels, all-time and year");
+            ok("合計".equals(((android.widget.TextView)headings.getChildAt(1)).getText().toString()),
+                "four-column revenue headers preserved");
+            ok("TikTok".equals(((android.widget.TextView)headings.getChildAt(2)).getText().toString()),
+                "TikTok column preserved");
+            ok("Coupon".equals(((android.widget.TextView)headings.getChildAt(3)).getText().toString()),
+                "Coupon column preserved");
+            ok(historyRow(root,String.valueOf(Integer.parseInt(month.substring(5)))+"月")!=null,
+                "current month appears as compact row");
+        });
+        png(getUiAutomation().takeScreenshot(),"native-revenue-history-4column");
         runOnMainSync(home::finish);
     }
 
