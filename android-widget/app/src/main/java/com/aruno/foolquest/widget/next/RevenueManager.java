@@ -38,9 +38,6 @@ final class RevenueManager {
             goals.put("tiktok", t > 0 ? t : 500000L);
             goals.put("coupon", c > 0 ? c : 500000L);
             state.put("goals", goals);
-            JSONObject sim = new JSONObject();
-            sim.put("amount",3200);sim.put("restDays",10);sim.put("owned",240);
-            state.put("simulation",sim);
             String month=RevenueMath.month(System.currentTimeMillis());
             if(month.equals(preferences.getString("importMonth",""))) {
                 long old=preferences.getLong("tiktok",-1);
@@ -62,7 +59,6 @@ final class RevenueManager {
     JSONObject months() throws Exception { return state.getJSONObject("months"); }
     JSONArray manual() throws Exception { return state.getJSONArray("manual"); }
     JSONObject goals() throws Exception { return state.getJSONObject("goals"); }
-    JSONObject simulation() throws Exception { return state.getJSONObject("simulation"); }
     String month() { return RevenueMath.month(System.currentTimeMillis()); }
     static long safe(long n, boolean positive) {
         if(n<0 || n>MAX || (positive && n==0)) throw new IllegalArgumentException("金額の範囲を確認してください");
@@ -86,14 +82,6 @@ final class RevenueManager {
         safe(t,true);safe(c,true);plus(t,c);
         goals().put("tiktok",t);goals().put("coupon",c);
         persistAndRender();
-    }
-    void setSimulation(long owned,long restDays,long amount) throws Exception {
-        if(owned>9999 || restDays>9999 || amount>9999)throw new IllegalArgumentException("0〜9999で入力してください");
-        safe(owned,false);safe(restDays,false);safe(amount,false);
-        simulation().put("owned",owned);
-        simulation().put("restDays",restDays);
-        simulation().put("amount",amount);
-        persist();
     }
     long csvBase(String key) throws Exception {
         JSONObject v=months().optJSONObject(key);
@@ -145,7 +133,7 @@ final class RevenueManager {
         if(manual().length()>=10000)throw new IllegalArgumentException("履歴件数の上限です");
         // Manual entry may be added only where an imported CSV baseline is known.
         String key=date.substring(0,7);
-        if(csvBase(key)<0)throw new IllegalArgumentException("先にこの月のCSVを取り込んでください");
+        if(csvBase(key)<0) { JSONObject record=new JSONObject();record.put("csv",0);record.put("source","manual-only");months().put(key,record); }
         plus(plus(csvBase(key),manualTotal(key)),amount);
         JSONObject row=new JSONObject();
         row.put("id",java.util.UUID.randomUUID().toString());
@@ -166,8 +154,7 @@ final class RevenueManager {
     }
     void updateManual(String id,String date,long amount) throws Exception {
         checkDate(date);safe(amount,true);
-        if(csvBase(date.substring(0,7))<0)
-            throw new IllegalArgumentException("移動先の月のCSVを先に取り込んでください");
+        if(csvBase(date.substring(0,7))<0) { JSONObject record=new JSONObject();record.put("csv",0);record.put("source","manual-only");months().put(date.substring(0,7),record); }
         JSONArray changed=new JSONArray();boolean found=false;
         for(int i=0;i<manual().length();i++) {
             JSONObject entry=manual().getJSONObject(i);
@@ -250,11 +237,6 @@ final class RevenueManager {
         }
         JSONObject goals=root.getJSONObject("goals");
         plus(strictNumber(goals.get("tiktok"),true),strictNumber(goals.get("coupon"),true));
-        JSONObject simulation=root.getJSONObject("simulation");
-        for(String key:new String[]{"owned","restDays","amount"}) {
-            long n=strictNumber(simulation.get(key),false);
-            if(n>9999)throw new IllegalArgumentException("検証条件が範囲外です");
-        }
         // Ensure totals can be projected without overflow.
         for(Iterator<String> it=months.keys();it.hasNext();) {
             String m=it.next();long base=months.getJSONObject(m).optLong("csv",-1);
