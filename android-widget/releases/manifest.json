@@ -1,21 +1,22 @@
 {
   "applicationId": "com.aruno.foolquest.widget.next",
-  "version": "0.1.13",
-  "versionCode": 14,
+  "version": "0.1.14",
+  "versionCode": 15,
   "minSdk": 26,
   "targetSdk": 35,
-  "size": 59182,
-  "sha256": "5ab426a1dcf8f3673651b99bd69a39bb74053287fa3d7cf2829c296cdda0650f",
+  "size": 71470,
+  "sha256": "4d0441de77bfb27577ddefe598f98a57af73be8f4851d5929525901115e5f8f2",
   "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
   "couponUpdate": "Direct Activity fetch on manual tap behind home without visible float; 30-minute JobScheduler",
-  "tiktokUpdate": "read-only source browser snapshot; no automatic API exists",
+  "tiktokUpdate": "CSV import and manual revenue entry/edit inside Android with immediate widget refresh",
   "changes": [
-    "Restore only the progress boundary from bracket to the original white vertical line",
-    "Retain restored gauge width, lap-label height, 34dp reservation, intermediate tick strokes without percentage text, and all revenue/settings/cache behavior",
-    "Same version, package and official certificate; bracket APK, original successor APK and all legacy APKs retained"
+    "Android-native revenue management and read-only import of browser history",
+    "TikTok CSV import, manual adjustments and historic monthly/annual revenue",
+    "Coupon Ledger Reader integration unchanged; preserve monthly snapshots",
+    "No operation simulation, TikTok start management, Lv, ChatGPT, Povo or Grok"
   ],
-  "file": "fool-quest-widget-0.1.13.apk",
-  "installation": "Update the installed successor in place; version remains 0.1.13/code14 and SHA-256 identifies revision. Legacy v0.1.12 requires separate successor installation and manual re-link.",
+  "file": "fool-quest-widget-0.1.14.apk",
+  "installation": "Install over existing successor without uninstalling. Existing widgets, cache and settings retained. Import historical browser data from manage-export.html after creating backups.",
   "legacy": {
     "applicationId": "com.aruno.foolquest.widget",
     "version": "0.1.12",
@@ -30,11 +31,20 @@
     "version": "0.1.13",
     "versionCode": 14,
     "size": 59182,
-    "sha256": "83ebbf6405e5b2056e2e25af57e13c4c3b5ad9367b763cbf1c47fc3129f7cea2",
+    "sha256": "5ab426a1dcf8f3673651b99bd69a39bb74053287fa3d7cf2829c296cdda0650f",
     "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
-    "file": "fool-quest-widget-0.1.13-bracket.apk"
+    "file": "fool-quest-widget-0.1.13.apk"
   },
   "archives": [
+    {
+      "applicationId": "com.aruno.foolquest.widget.next",
+      "version": "0.1.13",
+      "versionCode": 14,
+      "size": 59182,
+      "sha256": "83ebbf6405e5b2056e2e25af57e13c4c3b5ad9367b763cbf1c47fc3129f7cea2",
+      "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+      "file": "fool-quest-widget-0.1.13-bracket.apk"
+    },
     {
       "applicationId": "com.aruno.foolquest.widget.next",
       "version": "0.1.13",
@@ -44,5 +54,9 @@
       "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
       "file": "fool-quest-widget-0.1.13-original.apk"
     }
-  ]
+  ],
+  "sourceCommit": "635290ee7c89371a55d2644a0aeb659f814bb7df",
+  "signingRunId": 40189680605,
+  "unsignedSha256": "44e605ccca73f2003ad396d6e506425a35463eb41e7f0bacc54d4e9b7592b51d",
+  "deviceVerified": false
 }
