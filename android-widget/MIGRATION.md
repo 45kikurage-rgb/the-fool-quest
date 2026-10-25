@@ -1,3 +1,29 @@
+## code16 本番配布確認（2026-10-25）
+
+- ソース main PR #27 / `fbbb00c7ee22d1b9b0240ff7170fc23a3c96ed74`、APK配布 PR #29 / `c3d0c1f56f10ac5bf946453ca1a6b049efcae24f`。
+- Android 35 ソース試験 `40193262803`：通常3,402、通信断123、再起動113件 PASS。正式署名 `40193866354`：主GitHub・独立バックアップ復元 PASS、既存証明書一致。
+- versionCode 16 / v0.1.15、正式APK 71,470 bytes、SHA-256 `fd22842b2b05f885774f3ee7d602d81375dac707187175aa225dfa86736ec0d7`。
+- 旧正式v0.1.14からの同一UID更新、全29項目保持、旧別パッケージ不変：`40194345967` PASS。
+- 本番2経路独立取得 `40194736656`：GitHub PagesとCloudflareのHTML・manifest・APKの版・サイズ・SHA-256照合すべてPASS。
+- GitHub Pages：`https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html`。Cloudflare：`https://the-fool-quest.45kikurage.workers.dev/widget-download.html`。
+- 端末実機での上書き・データ保持・画面見た目は未確認。アンインストールしないこと。
+
+---
+
+## v0.1.15 配布証跡・検証済み範囲（2026-10-25）
+
+- GitHubソース main 統合 PR #27：`fbbb00c7ee22d1b9b0240ff7170fc23a3c96ed74`、正式署名 APK の配布統合 PR #29：`c3d0c1f56f10ac5bf946453ca1a6b049efcae24f`。
+- 署名前ソース commit `b80d5c891c2fccf35ba80c778e3affbf07c27c1b`、Android35確認 run `40193262803`（通常3,402・通信断123・再起動113 PASS）。
+- 署名 run `40193866354` はGitHubの主/独立バックアップから既存鍵の復元と既存証明書 SHA-256 `8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730` の一致を確認。新鍵なし。
+- 正式APK `android-widget/releases/fool-quest-widget-0.1.15.apk`、versionCode16、71,470 bytes、SHA-256 `fd22842b2b05f885774f3ee7d602d81375dac707187175aa225dfa86736ec0d7`。
+- 旧正式 v0.1.14/code15→v0.1.15/code16、`adb install -r`、UIDと29項目の保持、別パッケージの旧版不変：Android35 `40194345967` PASS。
+- 本番両配布先独立HTTP検証 `40194736656` PASS：下記ページのHTMLとmanifestのcode16、署名APKのサイズ/ハッシュが両方完全一致。
+- 公式 Cloudflare：`https://the-fool-quest.45kikurage.workers.dev/widget-download.html`。
+- GitHub Pages：`https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html`。
+- 実スマホでの上書き・文字表示・月別タップ動作・データ維持の利用者受入は未確認。検証前のアンインストールや端末初期化は不可。
+
+---
+
 # v0.1.15 / code16 表示整理（2026-10-25）
 
 - 運用画面：収益履歴は4列（年月、合計、TikTok、Coupon）の1表に統一。年別・月別・全期間の数値、月タップで手動追加編集を維持。
