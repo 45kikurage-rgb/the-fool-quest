@@ -217,6 +217,12 @@ public class WidgetInstrumentation extends Instrumentation {
         ok(manager.tiktok(month)==1000,"deleting manual entry restores CSV baseline");
         manager.replaceFromJson(saved);
         ok(manager.tiktok(month)==1275,"valid backup restores manual and CSV history");
+        String lastMonth=RevenueMath.date("yyyy-MM",System.currentTimeMillis()-35L*24*60*60*1000);
+        RevenueStore.saveCoupon(c,lastMonth,321);
+        RevenueStore.saveCoupon(c,month,1000000);
+        ok(manager.coupon(lastMonth)==321,"prior month Coupon persists after month refresh");
+        ok(new org.json.JSONObject(manager.backup()).getJSONObject("months").getJSONObject(lastMonth).getLong("coupon")==321,
+            "Coupon monthly archive is included in user backup");
         Activity home=startActivitySync(new Intent(c,ManagementActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
         ok(home!=null,"native revenue management screen launches");
         runOnMainSync(home::finish);
