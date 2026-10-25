@@ -383,29 +383,17 @@ public class WidgetInstrumentation extends Instrumentation {
             // Actual Android AppWidgetHostView: applies the production RemoteViews and PendingIntent.
             Activity activity=startActivitySync(new Intent(c,SettingsActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             waitForIdleSync();Thread.sleep(500);png(getUiAutomation().takeScreenshot(),"native-settings-screen");
-            long storedCoupon=RevenueStore.read(c).coupon;
             runOnMainSync(()->{
-                android.widget.Button sample=button(activity.getWindow().getDecorView(),"2周目 182.09% サンプル表示 ON/OFF");
-                ok(sample!=null,"settings retains 182.09% sample toggle");sample.performClick();
+                android.view.View root=activity.getWindow().getDecorView();
+                ok(button(root,"THE FOOL QUESTから連携（通常サイト）")==null,
+                    "obsolete website linking is hidden from widget display settings");
+                ok(button(root,"連携データを貼り付け")==null,
+                    "obsolete pasted link is hidden");
+                ok(button(root,"2周目 182.09% サンプル表示 ON/OFF")==null,
+                    "sample-only action is removed from production settings");
+                ok(button(root,"設定を保存")!=null,"widget save settings remains available");
+                ok(button(root,"ホーム画面に追加")!=null,"widget placement remains available");
             });
-            waitForIdleSync();
-            runOnMainSync(()->{
-                android.widget.TextView percent=activity.findViewById(R.id.coupon_percent);
-                ok(percent.getText().toString().equals("182.09%"),"settings sample shows cumulative 182.09%");
-                android.view.ViewGroup holder=activity.findViewById(R.id.coupon_gauge_holder);
-                ok(holder.findViewById(R.id.lap_label).getContentDescription().toString().equals("×2"),"settings sample uses new second-lap suffix");
-                android.widget.ImageView image=holder.findViewById(R.id.gauge_image);
-                android.graphics.Bitmap sample=((android.graphics.drawable.BitmapDrawable)image.getDrawable()).getBitmap();
-                int y=sample.getHeight()/2;
-                for(int percentValue:new int[]{20,40,60,80}){
-                    int x=Math.round(sample.getWidth()*percentValue/100f);boolean white=false;
-                    for(int dx=-1;dx<=1;dx++)white|=sample.getPixel(x+dx,y)==GaugePalette.MARKER_WHITE;
-                    ok(white,"settings sample displays reached divider "+percentValue);
-                }
-            });
-            png(getUiAutomation().takeScreenshot(),"native-settings-18209-sample");
-            ok(RevenueStore.read(c).coupon==storedCoupon,"sample toggle does not change stored revenue");
-            runOnMainSync(()->button(activity.getWindow().getDecorView(),"2周目 182.09% サンプル表示 ON/OFF").performClick());
             AppWidgetHost host=new AppWidgetHost(c,1234);AppWidgetManager manager=AppWidgetManager.getInstance(c);
             int id=host.allocateAppWidgetId();
             ok(manager.bindAppWidgetIdIfAllowed(id,new ComponentName(c,RevenueWidget.class)),"bind Android widget host");
