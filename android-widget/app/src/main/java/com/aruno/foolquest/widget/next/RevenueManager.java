@@ -17,6 +17,7 @@ import java.text.SimpleDateFormat;
 final class RevenueManager {
     static final String FORMAT = "the-fool-quest-migration";
     private static final String KEY = "nativeRevenueV1";
+    private static final String COUPON_HISTORY = "couponRevenueMonthlyV1";
     private static final long MAX = 9007199254740991L;
     private final Context context;
     private final SharedPreferences preferences;
@@ -55,7 +56,41 @@ final class RevenueManager {
         }
     }
 
-    JSONObject snapshot() throws Exception { return new JSONObject(state.toString()); }
+    static synchronized void archiveCoupon(Context c,String month,long amount) {
+        if(!RevenueMath.validMonth(month)||amount<0||amount>MAX)throw new IllegalArgumentException("Coupon月次履歴が不正です");
+        SharedPreferences p=RevenueStore.prefs(c);
+        try {
+            JSONObject months=new JSONObject(p.getString(COUPON_HISTORY,"{}"));
+            if(months.has(month)&&months.getLong(month)==amount)return;
+            if(months.length()>=240&&!months.has(month))
+                throw new IllegalStateException("Coupon月次履歴の保存上限です");
+            months.put(month,amount);
+            if(!p.edit().putString(COUPON_HISTORY,months.toString()).commit())
+                throw new IllegalStateException("Coupon月次履歴を保存できませんでした");
+        }catch(org.json.JSONException e){throw new IllegalStateException("Coupon月次履歴が不正です",e);}
+    }
+    JSONObject couponHistory() throws Exception {
+        return new JSONObject(preferences.getString(COUPON_HISTORY,"{}"));
+    }
+    List<String> archivedCouponMonths() throws Exception {
+        List<String> result=new ArrayList<>();
+        Iterator<String> keys=couponHistory().keys();
+        while(keys.hasNext())result.add(keys.next());
+        return result;
+    }
+    JSONObject snapshot() throws Exception {
+        JSONObject copy=new JSONObject(state.toString());
+        JSONObject records=copy.getJSONObject("months"), archived=couponHistory();
+        Iterator<String> months=archived.keys();
+        while(months.hasNext()) {
+            String m=months.next();
+            if(!RevenueMath.validMonth(m))continue;
+            JSONObject record=records.optJSONObject(m);
+            if(record==null){record=new JSONObject();records.put(m,record);}
+            record.put("coupon",archived.getLong(m));
+        }
+        return copy;
+    }
     JSONObject months() throws Exception { return state.getJSONObject("months"); }
     JSONArray manual() throws Exception { return state.getJSONArray("manual"); }
     JSONObject goals() throws Exception { return state.getJSONObject("goals"); }
@@ -106,6 +141,8 @@ final class RevenueManager {
             RevenueStore.Data d=RevenueStore.read(context);
             if(key.equals(d.couponMonth))return d.coupon;
         }
+        JSONObject archived=couponHistory();
+        if(archived.has(key))return archived.getLong(key);
         JSONObject old=months().optJSONObject(key);
         return old==null?-1:old.optLong("coupon",-1);
     }
@@ -131,7 +168,7 @@ final class RevenueManager {
         checkDate(date);
         safe(amount,true);
         if(manual().length()>=10000)throw new IllegalArgumentException("履歴件数の上限です");
-        // Manual entry may be added only where an imported CSV baseline is known.
+        // A manual-only month starts with a zero CSV baseline, without inventing CSV data.
         String key=date.substring(0,7);
         if(csvBase(key)<0) { JSONObject record=new JSONObject();record.put("csv",0);record.put("source","manual-only");months().put(key,record); }
         plus(plus(csvBase(key),manualTotal(key)),amount);
@@ -195,7 +232,7 @@ final class RevenueManager {
         if(!ed.commit())throw new IllegalStateException("ウィジェット保存に失敗しました");
         RevenueWidget.renderAll(context);
     }
-    String backup() { return state.toString(); }
+    String backup() throws Exception { return snapshot().toString(); }
 
     void replaceFromJson(String json) throws Exception {
         if(json.length()>2_000_000)throw new IllegalArgumentException("ファイルが大きすぎます");
