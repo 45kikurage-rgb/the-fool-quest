@@ -1,7 +1,7 @@
-name: Widget official code15 upgrade and data preservation
+name: Widget official code16 upgrade and data preservation
 on:
   push:
-    paths: ['android-widget/releases/fool-quest-widget-0.1.12.apk', 'android-widget/releases/fool-quest-widget-0.1.13-original.apk', 'android-widget/releases/fool-quest-widget-0.1.13-bracket.apk', 'android-widget/releases/fool-quest-widget-0.1.13.apk', 'android-widget/releases/manifest.json', 'android-widget/tests/release-upgrade.py', 'android-widget/releases/fool-quest-widget-0.1.14.apk', 'release-tests/foolquest-code15-upgrade.py', '.github/workflows/widget-release-upgrade.yml']
+    paths: ['android-widget/releases/fool-quest-widget-0.1.12.apk', 'android-widget/releases/fool-quest-widget-0.1.13-original.apk', 'android-widget/releases/fool-quest-widget-0.1.13-bracket.apk', 'android-widget/releases/fool-quest-widget-0.1.13.apk', 'android-widget/releases/manifest.json', 'android-widget/tests/release-upgrade.py', 'android-widget/releases/fool-quest-widget-0.1.14.apk', 'release-tests/foolquest-code15-upgrade.py', 'release-tests/foolquest-code16-upgrade.py', 'android-widget/releases/fool-quest-widget-0.1.15.apk', '.github/workflows/widget-release-upgrade.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -33,10 +33,10 @@ jobs:
           arch: x86_64
           target: google_apis
           disable-animations: true
-          script: python3 release-tests/foolquest-code15-upgrade.py
+          script: python3 release-tests/foolquest-code16-upgrade.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: widget-official-successor-code15-upgrade-results
+          name: widget-official-successor-code16-upgrade-results
           path: android-widget/build/release-upgrade/
           retention-days: 14
