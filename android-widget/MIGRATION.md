@@ -1,3 +1,16 @@
+# v0.1.15 / code16 表示整理（2026-10-25）
+
+- 運用画面：収益履歴は4列（年月、合計、TikTok、Coupon）の1表に統一。年別・月別・全期間の数値、月タップで手動追加編集を維持。
+- 表示設定：旧サイトのスナップショット連携ボタン、デモゲージボタン、重複した長文説明を非表示。プレビュー、設定保存、ホーム追加、色・ゲージ調整を維持。
+- 旧サイトからの移行手段・JSONバックアップ/復元は削除せず、管理画面の「バックアップ・復元」に移動。
+- src main PR #27 / source tested commit `b80d5c891c2fccf35ba80c778e3affbf07c27c1b`。Android35 run `40193262803` 通常3,402 / offline123 / reboot113 PASS。
+- unsigned SHA-256 `a40aff209244ae6677b309a143bc456492f66041365e7042933f6c4a415a6855`。GitHub主保管+独立バックアップの両復元に成功、既存証明書 `8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730` で署名 run `40193866354` 成功。
+- signed APK SHA-256 `fd22842b2b05f885774f3ee7d602d81375dac707187175aa225dfa86736ec0d7`、71,470 bytes。package `com.aruno.foolquest.widget.next`、versionCode16、versionName0.1.15。
+- 旧正式v0.1.14/code15→code16：本番署名APK同士のAndroid35 `adb install -r`、29項目の設定・収益保存値とUID保持、旧v0.1.12パッケージ不変、既存ゲージ表示を検証 run `40194345967` PASS。
+- source mainの既存機能と収益データ元は変えず、CouponはLedger Reader経由。公開URL・配布反映・実機確認は別ゲートとする。
+
+---
+
 # THE FOOL QUEST Android 管理統合（v0.1.14 / code15 署名・上書き検証済）
 
 ## 対象（利用者の2026-10-25変更を反映）
