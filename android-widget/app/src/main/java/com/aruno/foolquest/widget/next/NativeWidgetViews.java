@@ -88,8 +88,15 @@ final class NativeWidgetViews {
         rv.setTextViewText(R.id.widget_footer,status);rv.setTextColor(R.id.widget_footer,s.text);
         rv.setViewVisibility(R.id.widget_footer,showStatus?View.VISIBLE:View.GONE);
         rv.setContentDescription(R.id.widget_root,WidgetRenderer.description(d));
-        rv.setOnClickPendingIntent(R.id.widget_root,RefreshActivity.tapIntent(c));
+        rv.setOnClickPendingIntent(R.id.widget_root,openManagementIntent(c));
         return result;
+    }
+    // A widget tap opens the same revenue management screen as the launcher icon.
+    // Keep automatic refresh and the explicit in-app Coupon refresh independent.
+    static PendingIntent openManagementIntent(Context c){
+        Intent open=new Intent(c,ManagementActivity.class);
+        open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        return PendingIntent.getActivity(c,2,open,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
     }
     private static Bitmap bitmap(Context context,int widthDp,int heightDp){
         Bitmap b=Bitmap.createBitmap(Math.max(1,px(context,widthDp)),Math.max(1,px(context,heightDp)),Bitmap.Config.ARGB_8888);
