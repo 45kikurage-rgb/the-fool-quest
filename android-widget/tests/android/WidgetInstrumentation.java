@@ -489,7 +489,7 @@ public class WidgetInstrumentation extends Instrumentation {
             ok(touches.get()==1,"host pointer fixture receives input before refresh");touches.set(0);
             long beforeTap=RevenueStore.read(c).couponAt;
             long tapTestStarted=android.os.SystemClock.uptimeMillis();
-            runOnMainSync(()->{ok(view[0].findViewById(R.id.widget_root)!=null,"production RemoteViews applied");ok(view[0].findViewById(R.id.widget_root).performClick(),"initial production widget tap is handled");});
+            runOnMainSync(()->{ok(view[0].findViewById(R.id.widget_root)!=null,"production RemoteViews applied");try{RefreshActivity.tapIntent(c).send();}catch(android.app.PendingIntent.CanceledException e){throw new AssertionError(e);};});
             Activity refresh=waitForMonitorWithTimeout(tapMonitor,5000);
             ok(refresh!=null,"actual widget PendingIntent opens foreground refresh activity");
             waitForIdleSync();
@@ -539,7 +539,7 @@ public class WidgetInstrumentation extends Instrumentation {
             ActivityMonitor repeatMonitor=addMonitor(RefreshActivity.class.getName(),null,false);
             // Use the actual RemoteViews click path again; a raw PendingIntent
             // send does not carry the launcher's background-start options.
-            runOnMainSync(()->ok(view[0].findViewById(R.id.widget_root).performClick(),"repeated production widget tap is handled"));
+            runOnMainSync(()->try{RefreshActivity.tapIntent(c).send();}catch(android.app.PendingIntent.CanceledException e){throw new AssertionError(e);});
             Activity repeated=waitForMonitorWithTimeout(repeatMonitor,500);
             // Android may suppress an additional behind launch while the first
             // request is active. Ignoring that tap is valid duplicate prevention.
@@ -568,7 +568,7 @@ public class WidgetInstrumentation extends Instrumentation {
             // A tap after completion must start a fresh request, not be stuck on
             // the retired behind task. Exercise the production click path again.
             long beforeNextTap=RevenueStore.read(c).couponAt;
-            runOnMainSync(()->ok(view[0].findViewById(R.id.widget_root).performClick(),"next production widget tap is handled"));
+            runOnMainSync(()->try{RefreshActivity.tapIntent(c).send();}catch(android.app.PendingIntent.CanceledException e){throw new AssertionError(e);});
             Activity next=waitForMonitorWithTimeout(nextMonitor,5000);
             ok(next!=null&&next!=refresh,"next normal widget tap opens a fresh behind task");
             CountDownLatch nextDone=new CountDownLatch(1);RevenueUpdate.start(c,nextDone::countDown);
@@ -577,6 +577,29 @@ public class WidgetInstrumentation extends Instrumentation {
             ok(next.isDestroyed()&&RevenueStore.read(c).couponAt>beforeNextTap&&RevenueStore.read(c).error.isEmpty(),"fresh widget tap advances API timestamp and closes");
             ok(activity.hasWindowFocus(),"home host retains focus after successive completed updates");
             removeMonitor(nextMonitor);
+            // The production RemoteViews click now opens revenue management, not
+            // an invisible refresh. The old private refresh remains separately tested.
+            ActivityMonitor managementMonitor=addMonitor(ManagementActivity.class.getName(),null,false);
+            ok(NativeWidgetViews.openManagementIntent(c).isActivity()
+                    && NativeWidgetViews.openManagementIntent(c).isImmutable(),
+                    "management widget tap has an immutable activity PendingIntent");
+            long beforeManagement=RevenueStore.read(c).couponAt;
+            runOnMainSync(()->ok(view[0].findViewById(R.id.widget_root).performClick(),
+                    "production widget tap opens the management screen"));
+            Activity management=waitForMonitorWithTimeout(managementMonitor,5000);
+            ok(management!=null,"widget tap launches ManagementActivity");
+            waitForIdleSync();
+            runOnMainSync(()->{
+                android.view.View home=management.getWindow().getDecorView();
+                ok(button(home,"CSVを取り込む")!=null,"widget opens revenue home with CSV import");
+                ok(button(home,"Couponを今すぐ更新")!=null,"manual refresh remains available in management");
+                ok(button(home,"月間目標を設定")!=null,"revenue goals are accessible from widget");
+            });
+            ok(RevenueStore.read(c).couponAt==beforeManagement,
+                    "opening management does not silently overwrite Coupon cache");
+            png(getUiAutomation().takeScreenshot(),"native-widget-opens-management");
+            runOnMainSync(management::finish);waitForIdleSync();
+            removeMonitor(managementMonitor);
             dimensions.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,280);dimensions.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,100);exactSizes.clear();exactSizes.add(new android.util.SizeF(280,100));dimensions.putParcelableArrayList(AppWidgetManager.OPTION_APPWIDGET_SIZES,exactSizes);manager.updateAppWidgetOptions(id,dimensions);
             runOnMainSync(()->{android.view.ViewGroup.LayoutParams lp=view[0].getLayoutParams();lp.width=Math.round(280*activity.getResources().getDisplayMetrics().density);lp.height=Math.round(100*activity.getResources().getDisplayMetrics().density);view[0].setLayoutParams(lp);});
             Thread.sleep(700);png(getUiAutomation().takeScreenshot(),"native-widget-host-resized");host.stopListening();runOnMainSync(activity::finish);
