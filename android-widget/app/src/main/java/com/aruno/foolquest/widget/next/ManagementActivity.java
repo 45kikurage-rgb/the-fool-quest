@@ -1,7 +1,9 @@
 package com.aruno.foolquest.widget.next;
 
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
@@ -34,7 +36,16 @@ import java.util.Locale;
 /** Offline-capable native revenue management; Coupon stays sourced from Ledger. */
 public final class ManagementActivity extends Activity {
     private static final int OPEN_CSV=1, OPEN_MIGRATION=2, SAVE_BACKUP=3;
+    static final String EXTRA_WIDGET_TAP="com.aruno.foolquest.widget.next.OPEN_REVENUE";
+    static PendingIntent tapIntent(Context context) {
+        Intent intent=new Intent(context,ManagementActivity.class)
+            .putExtra(EXTRA_WIDGET_TAP,true)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        return PendingIntent.getActivity(context,2,intent,
+            PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
+    }
     private RevenueManager model;
+    private boolean showingHome;
     private LinearLayout content;
     private TextView status;
     private int background=0xff101010, foreground=0xffeeeeee;
@@ -44,13 +55,30 @@ public final class ManagementActivity extends Activity {
     @Override public void onCreate(Bundle b) {
         super.onCreate(b);
         execute(()->{model=new RevenueManager(this);model.projectWidget();showHome();});
+        if(getIntent().getBooleanExtra(EXTRA_WIDGET_TAP,false))refreshFromWidget();
     }
     @Override protected void onResume(){super.onResume();if(model!=null)execute(this::showHome);}
+    @Override protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);setIntent(intent);
+        if(intent!=null && intent.getBooleanExtra(EXTRA_WIDGET_TAP,false)) {
+            if(model!=null)execute(this::showHome);
+            refreshFromWidget();
+        }
+    }
+    private void refreshFromWidget() {
+        if(model==null)return;
+        RevenueJob.cancelQueuedManual(this);
+        RevenueUpdate.start(this,()->runOnUiThread(()->{
+            if(!isFinishing()&&!isDestroyed()&&showingHome)execute(this::showHome);
+        }));
+        if(showingHome&&status!=null)status.setText("更新中（正常値は維持）");
+    }
     private void alert(String title,String message){
         if(isFinishing())return;
         new AlertDialog.Builder(this).setTitle(title).setMessage(message).setPositiveButton("OK",null).show();
     }
     private void screen(String title) {
+        showingHome=false;
         ScrollView scroll=new ScrollView(this);
         scroll.setFillViewport(true);scroll.setBackgroundColor(background);
         content=new LinearLayout(this);content.setOrientation(LinearLayout.VERTICAL);
@@ -72,7 +100,7 @@ public final class ManagementActivity extends Activity {
     private String money(long yen){return RevenueMath.money(yen);}
     private String today(){return RevenueMath.date("yyyy-MM-dd",System.currentTimeMillis());}
     private void showHome() throws Exception {
-        screen("THE FOOL QUEST");
+        screen("THE FOOL QUEST");showingHome=true;
         String month=model.month();
         long tiktok=model.tiktok(month),coupon=model.coupon(month);
         long total=RevenueMath.total(tiktok,coupon);
@@ -90,7 +118,7 @@ public final class ManagementActivity extends Activity {
             RevenueUpdate.start(this,()->runOnUiThread(()->execute(this::showHome)));
             status.setText("更新中（正常値は維持）");
         });
-        status=text("",13);content.addView(status);
+        status=text(RevenueUpdate.busy()?"更新中（正常値は維持）":"",13);content.addView(status);
         action("月間目標を設定",this::showGoals);
         action("収益履歴・手動追加の編集",this::showHistory);
         action("表示設定・進捗ゲージ",()->startActivity(new Intent(this,SettingsActivity.class)));

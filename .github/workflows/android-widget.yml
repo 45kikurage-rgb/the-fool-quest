@@ -55,7 +55,7 @@ jobs:
           script: |
             adb shell wm size 1080x1920
             adb shell wm density 480
-            adb install android-widget/build/out/fool-quest-widget-0.1.15.apk
+            adb install android-widget/build/out/fool-quest-widget-0.1.16.apk
             adb install android-widget/build/android-test/widget-tests.apk
             adb shell appwidget grantbind --package com.aruno.foolquest.widget.next --user 0
             mkdir -p android-widget/build/native-results
@@ -81,14 +81,14 @@ jobs:
             adb pull /sdcard/Android/data/com.aruno.foolquest.widget.next/files/verification android-widget/build/native-results/
       - name: Record unsigned release candidate after native tests
         run: |
-          sha256sum build/out/aligned.apk > build/out/unsigned-code16.sha256
+          sha256sum build/out/aligned.apk > build/out/unsigned-code17.sha256
           "$ANDROID_HOME/build-tools/35.0.0/aapt2" dump badging build/out/aligned.apk | head -8
       - uses: actions/upload-artifact@v4
         with:
-          name: foolquest-widget-code16-unsigned-${{ github.sha }}
+          name: foolquest-widget-code17-unsigned-${{ github.sha }}
           path: |
             android-widget/build/out/aligned.apk
-            android-widget/build/out/unsigned-code16.sha256
+            android-widget/build/out/unsigned-code17.sha256
           retention-days: 14
       - uses: actions/upload-artifact@v4
         if: always()

@@ -477,106 +477,44 @@ public class WidgetInstrumentation extends Instrumentation {
             android.app.job.JobScheduler scheduler=c.getSystemService(android.app.job.JobScheduler.class);
             scheduler.cancel(RevenueJob.MANUAL);
             scheduler.schedule(new android.app.job.JobInfo.Builder(RevenueJob.MANUAL,new ComponentName(c,RevenueJob.class)).setMinimumLatency(60000).setOverrideDeadline(120000).build());
-            ok(scheduler.getPendingJob(RevenueJob.MANUAL)!=null,"delayed background job fixture queued");
+            ok(scheduler.getPendingJob(RevenueJob.MANUAL)!=null,"delayed manual job queued");
             CountDownLatch tapBlockEntered=new CountDownLatch(1),releaseTap=new CountDownLatch(1);
             executor.execute(()->{tapBlockEntered.countDown();try{releaseTap.await(120,TimeUnit.SECONDS);}catch(InterruptedException e){Thread.currentThread().interrupt();}});
-            ok(tapBlockEntered.await(2,TimeUnit.SECONDS),"tap executor fixture active");
-            ActivityMonitor tapMonitor=addMonitor(RefreshActivity.class.getName(),null,false);
-            final android.view.View touchSurface=((android.view.ViewGroup)activity.findViewById(android.R.id.content)).getChildAt(0);
-            final java.util.concurrent.atomic.AtomicInteger touches=new java.util.concurrent.atomic.AtomicInteger();
-            runOnMainSync(()->{touchSurface.setClickable(true);touchSurface.setOnTouchListener((v,event)->{if(event.getAction()==android.view.MotionEvent.ACTION_UP)touches.incrementAndGet();return true;});});
-            pointerTap(40,400);
-            ok(touches.get()==1,"host pointer fixture receives input before refresh");touches.set(0);
+            ok(tapBlockEntered.await(2,TimeUnit.SECONDS),"tap executor blocker active");
+            ActivityMonitor tapMonitor=addMonitor(ManagementActivity.class.getName(),null,false);
             long beforeTap=RevenueStore.read(c).couponAt;
-            long tapTestStarted=android.os.SystemClock.uptimeMillis();
-            runOnMainSync(()->{ok(view[0].findViewById(R.id.widget_root)!=null,"production RemoteViews applied");ok(view[0].findViewById(R.id.widget_root).performClick(),"initial production widget tap is handled");});
-            Activity refresh=waitForMonitorWithTimeout(tapMonitor,5000);
-            ok(refresh!=null,"actual widget PendingIntent opens foreground refresh activity");
-            waitForIdleSync();
-            Thread.sleep(600);
-            android.view.WindowManager.LayoutParams quiet=refresh.getWindow().getAttributes();
-            ok(quiet.alpha==0f,"refresh window fully transparent rather than just its content");
-            ok(quiet.width==1&&quiet.height==1,"refresh window does not cover the widget or home icons");
-            ok((quiet.flags&android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)!=0,"refresh window cannot intercept home touches");
-            ok((quiet.flags&android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE)!=0,"refresh window does not steal key input");
-            ok(!refresh.hasWindowFocus(),"quiet refresh does not take focus from widget host");
-            ok(activity.hasWindowFocus(),"behind launch preserves the user's host focus");
-            // Starting a separate task may pause the host Activity even though its
-            // window remains visible. Verify compositor pixels and routed input
-            // instead of mistaking Activity focus for launcher touch delivery.
-            final android.graphics.Bitmap[] expectedWidget={null};final int[] origin=new int[2];
+            ok(ManagementActivity.tapIntent(c).isActivity()&&ManagementActivity.tapIntent(c).isImmutable(),"immutable revenue management PendingIntent");
             runOnMainSync(()->{
-                view[0].getLocationOnScreen(origin);
-                expectedWidget[0]=android.graphics.Bitmap.createBitmap(view[0].getWidth(),view[0].getHeight(),android.graphics.Bitmap.Config.ARGB_8888);
-                view[0].draw(new android.graphics.Canvas(expectedWidget[0]));
+                ok(view[0].findViewById(R.id.widget_root)!=null,"production widget RemoteViews");
+                ok(view[0].findViewById(R.id.widget_root).performClick(),"production widget tapped");
             });
-            android.graphics.Bitmap display=getUiAutomation().takeScreenshot();
-            int compared=0,matching=0;
-            for(int y=0;y<expectedWidget[0].getHeight();y+=3)for(int x=0;x<expectedWidget[0].getWidth();x+=3){
-                int expected=expectedWidget[0].getPixel(x,y);
-                if(android.graphics.Color.alpha(expected)<255)continue;
-                int actual=display.getPixel(origin[0]+x,origin[1]+y);compared++;
-                if(Math.abs(android.graphics.Color.red(expected)-android.graphics.Color.red(actual))<30
-                    &&Math.abs(android.graphics.Color.green(expected)-android.graphics.Color.green(actual))<30
-                    &&Math.abs(android.graphics.Color.blue(expected)-android.graphics.Color.blue(actual))<30)matching++;
-            }
-            ok(compared>1000&&matching>compared*.98,"real widget remains visible without an obscuring float");
-            final String[] footer={null};
-            runOnMainSync(()->footer[0]=((android.widget.TextView)view[0].findViewById(R.id.widget_footer)).getText().toString());
-            ok("更新中".equals(footer[0]),"widget itself displays updating status");
-            ok(RevenueUpdate.busy(),"widget tap immediately starts direct fetch without a scheduled job");
-            ok(scheduler.getPendingJob(RevenueJob.MANUAL)==null,"foreground tap cancels previously queued manual job");
-            ok(refresh.getTaskId()!=activity.getTaskId(),"refresh uses a separate task from settings");
-            android.content.pm.ActivityInfo info=c.getPackageManager().getActivityInfo(new ComponentName(c,RefreshActivity.class),0);
-            ok(!info.exported,"refresh activity is private");
-            ok((info.flags&android.content.pm.ActivityInfo.FLAG_EXCLUDE_FROM_RECENTS)!=0,"refresh excluded from recent apps");
-            ok(RefreshActivity.tapIntent(c).isActivity()&&RefreshActivity.tapIntent(c).isImmutable(),"widget tap uses immutable activity PendingIntent");
-            png(getUiAutomation().takeScreenshot(),"native-tap-updating");
-            pointerTap(40,400);
-            ok(touches.get()==1,"underlying home host receives actual touches during refresh; observed="+touches.get()+"; focus="+activity.hasWindowFocus());
-            runOnMainSync(()->touchSurface.setOnTouchListener(null));
-            removeMonitor(tapMonitor);
-            ActivityMonitor repeatMonitor=addMonitor(RefreshActivity.class.getName(),null,false);
-            // Use the actual RemoteViews click path again; a raw PendingIntent
-            // send does not carry the launcher's background-start options.
-            runOnMainSync(()->ok(view[0].findViewById(R.id.widget_root).performClick(),"repeated production widget tap is handled"));
-            Activity repeated=waitForMonitorWithTimeout(repeatMonitor,500);
-            // Android may suppress an additional behind launch while the first
-            // request is active. Ignoring that tap is valid duplicate prevention.
-            waitForIdleSync();Thread.sleep(150);
-            // Android may replace/destroy an already-background Activity when
-            // another task launch arrives. The application-scoped fetch must
-            // remain active, keep the cache unchanged until completion, and
-            // deliver the result regardless of that UI lifecycle.
-            ok(RevenueUpdate.busy()&&RevenueStore.read(c).couponAt==beforeTap,"repeated tap retains the single in-flight fetch and last-good cache; elapsed="+(android.os.SystemClock.uptimeMillis()-tapTestStarted));
-            ok(activity.hasWindowFocus()&&(repeated==null||!repeated.hasWindowFocus()),"repeated behind launch also preserves host focus");
+            Activity management=waitForMonitorWithTimeout(tapMonitor,5000);
+            ok(management!=null,"widget opens revenue management");
+            waitForIdleSync();
+            ok(!management.isFinishing()&&!management.isDestroyed(),"management stays open");
+            runOnMainSync(()->{
+                android.view.View root=management.getWindow().getDecorView();
+                ok(button(root,"収益履歴・手動追加の編集")!=null,"history accessible on tap");
+                ok(button(root,"TikTok収益を手動追加")!=null,"manual TikTok accessible on tap");
+                ok(button(root,"Couponを今すぐ更新")!=null,"Coupon refresh accessible on tap");
+            });
+            ok(RevenueUpdate.busy(),"tap starts direct Coupon refresh");
+            ok(RevenueStore.read(c).couponAt==beforeTap,"last-good cache survives while updating");
+            ok(scheduler.getPendingJob(RevenueJob.MANUAL)==null,"queued manual job cancelled");
+            runOnMainSync(()->ok(view[0].findViewById(R.id.widget_root).performClick(),"repeat widget tap handled"));
+            waitForIdleSync();
+            ok(!management.isFinishing()&&!management.isDestroyed(),"repeated tap keeps management open");
+            ok(RevenueUpdate.busy()&&RevenueStore.read(c).couponAt==beforeTap,"repeated tap coalesces active fetch");
             CountDownLatch tapDone=new CountDownLatch(1);RevenueUpdate.start(c,tapDone::countDown);
-            ok(!tapDone.await(100,TimeUnit.MILLISECONDS),"observer waits for same tap request");
+            ok(!tapDone.await(100,TimeUnit.MILLISECONDS),"coalesced observer waits");
             releaseTap.countDown();
-            ok(tapDone.await(35,TimeUnit.SECONDS),"quiet foreground tap fetch completes");
-            for(int n=0;n<100&&!refresh.isDestroyed();n++)Thread.sleep(100);
-            ok(refresh.isDestroyed(),"refresh task closes automatically after fetch");
-            if(repeated!=null)for(int n=0;n<100&&!repeated.isDestroyed();n++)Thread.sleep(100);
-            ok(repeated==null||repeated.isDestroyed(),"any coalesced behind task also closes after fetch");
-            ok(!activity.isFinishing()&&!activity.isDestroyed(),"settings host task survives refresh completion");
-            ok(RevenueStore.read(c).couponAt>beforeTap,"normal widget tap updates API timestamp through foreground path");
-            ok(RevenueStore.read(c).error.isEmpty(),"foreground refresh finishes without error");
-            ok(scheduler.getPendingJob(RevenueJob.MANUAL)==null,"tap completion leaves no duplicate manual job");
-            waitForIdleSync();Thread.sleep(200);png(getUiAutomation().takeScreenshot(),"native-tap-complete");
-            removeMonitor(repeatMonitor);
-            ActivityMonitor nextMonitor=addMonitor(RefreshActivity.class.getName(),null,false);
-            // A tap after completion must start a fresh request, not be stuck on
-            // the retired behind task. Exercise the production click path again.
-            long beforeNextTap=RevenueStore.read(c).couponAt;
-            runOnMainSync(()->ok(view[0].findViewById(R.id.widget_root).performClick(),"next production widget tap is handled"));
-            Activity next=waitForMonitorWithTimeout(nextMonitor,5000);
-            ok(next!=null&&next!=refresh,"next normal widget tap opens a fresh behind task");
-            CountDownLatch nextDone=new CountDownLatch(1);RevenueUpdate.start(c,nextDone::countDown);
-            ok(nextDone.await(35,TimeUnit.SECONDS),"next normal widget tap completes");
-            for(int n=0;n<100&&!next.isDestroyed();n++)Thread.sleep(100);
-            ok(next.isDestroyed()&&RevenueStore.read(c).couponAt>beforeNextTap&&RevenueStore.read(c).error.isEmpty(),"fresh widget tap advances API timestamp and closes");
-            ok(activity.hasWindowFocus(),"home host retains focus after successive completed updates");
-            removeMonitor(nextMonitor);
+            ok(tapDone.await(35,TimeUnit.SECONDS),"Coupon refresh completes");
+            waitForIdleSync();
+            ok(!management.isDestroyed(),"management remains open after refresh");
+            ok(RevenueStore.read(c).couponAt>beforeTap&&RevenueStore.read(c).error.isEmpty(),"widget tap updates Coupon");
+            ok(scheduler.getPendingJob(RevenueJob.MANUAL)==null,"no duplicate manual job");
+            png(getUiAutomation().takeScreenshot(),"native-widget-opens-revenue");
+            removeMonitor(tapMonitor);runOnMainSync(management::finish);
             dimensions.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,280);dimensions.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,100);exactSizes.clear();exactSizes.add(new android.util.SizeF(280,100));dimensions.putParcelableArrayList(AppWidgetManager.OPTION_APPWIDGET_SIZES,exactSizes);manager.updateAppWidgetOptions(id,dimensions);
             runOnMainSync(()->{android.view.ViewGroup.LayoutParams lp=view[0].getLayoutParams();lp.width=Math.round(280*activity.getResources().getDisplayMetrics().density);lp.height=Math.round(100*activity.getResources().getDisplayMetrics().density);view[0].setLayoutParams(lp);});
             Thread.sleep(700);png(getUiAutomation().takeScreenshot(),"native-widget-host-resized");host.stopListening();runOnMainSync(activity::finish);

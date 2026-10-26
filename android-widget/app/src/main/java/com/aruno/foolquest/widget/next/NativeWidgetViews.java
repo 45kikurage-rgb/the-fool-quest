@@ -88,7 +88,7 @@ final class NativeWidgetViews {
         rv.setTextViewText(R.id.widget_footer,status);rv.setTextColor(R.id.widget_footer,s.text);
         rv.setViewVisibility(R.id.widget_footer,showStatus?View.VISIBLE:View.GONE);
         rv.setContentDescription(R.id.widget_root,WidgetRenderer.description(d));
-        rv.setOnClickPendingIntent(R.id.widget_root,RefreshActivity.tapIntent(c));
+        rv.setOnClickPendingIntent(R.id.widget_root,ManagementActivity.tapIntent(c));
         return result;
     }
     private static Bitmap bitmap(Context context,int widthDp,int heightDp){
