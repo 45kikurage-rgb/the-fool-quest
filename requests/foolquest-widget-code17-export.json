@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "operation": "stage-validated-unsigned",
+  "approval": "User 2026-10-26 requests continuation of widget tap opening the revenue management screen with existing signing and data preserved",
+  "version_code": 17,
+  "version_name": "0.1.16",
+  "source_sha": "340d8cd4616534691855e599d1d410d4358e9e3d",
+  "main_merged_sha": "2f06326ab81453cab9e584bf033979866684ceaa",
+  "test_run": 40317442606,
+  "package": "com.aruno.foolquest.widget.next",
+  "unsigned_sha256": "26865938d252fe66c9cde1ec60039ec73f6104dd80184cdd1a154e615f932ce4",
+  "publish": false
+}
