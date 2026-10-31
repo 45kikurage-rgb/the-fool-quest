@@ -1,4 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.aruno.foolquest.widget.next" android:versionCode="17" android:versionName="0.1.16">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.aruno.foolquest.widget.next" android:versionCode="18" android:versionName="0.1.17">
     <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="35" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -20,3 +20,4 @@
         <service android:name=".RevenueJob" android:exported="true" android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
 </manifest>
+
