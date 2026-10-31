@@ -32,7 +32,16 @@
   "apkSize": 75566,
   "signedPayloadMatchesTestedUnsigned": true,
   "certificateComparedWithPublishedCode16": true,
-  "upgradeTest": "pending",
+  "upgradeTest": {
+    "runId": 41196715571,
+    "result": "PASS",
+    "fromCode": 16,
+    "toCode": 18,
+    "sameUid": true,
+    "fixtureFieldsRetained": 29,
+    "legacyUnchanged": true,
+    "previewRevenueRetained": true
+  },
   "publication": "pending",
   "physicalDevice": "unverified",
   "previousOfficialCode16Preserved": true
