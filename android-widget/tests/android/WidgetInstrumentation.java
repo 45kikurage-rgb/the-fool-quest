@@ -355,8 +355,8 @@ public class WidgetInstrumentation extends Instrumentation {
             DisplaySettings expanded=new DisplaySettings();expanded.font=64;expanded.gap=96;expanded.textGap=48;expanded.gauge=48;expanded.left=128;expanded.right=128;expanded.top=128;expanded.bottom=128;
             nativeTextLayout(nativeData,expanded,280,100,320,"native-expanded-small-host");
             nativeTextLayout(nativeData,expanded,900,600,160,"native-expanded-large-host");
-            expanded.save(RevenueStore.prefs(c));DisplaySettings restored=DisplaySettings.load(RevenueStore.prefs(c));
-            ok(restored.font==64&&restored.gap==96&&restored.textGap==48&&restored.gauge==48&&restored.left==128&&restored.top==128,"expanded settings survive save and reload without old clamp");
+            expanded.save(RevenueStore.prefs(c));DisplaySettings expandedRestored=DisplaySettings.load(RevenueStore.prefs(c));
+            ok(expandedRestored.font==64&&expandedRestored.gap==96&&expandedRestored.textGap==48&&expandedRestored.gauge==48&&expandedRestored.left==128&&expandedRestored.top==128,"expanded settings survive save and reload without old clamp");
             new DisplaySettings().save(RevenueStore.prefs(c));
             DisplaySettings moreGap=new DisplaySettings();moreGap.gap=60;
             ok(NativeWidgetViews.create(c,nativeData,moreGap,360,600).gap==60,"tall host honors 60dp row gap without the old fifteen-percent limit");
