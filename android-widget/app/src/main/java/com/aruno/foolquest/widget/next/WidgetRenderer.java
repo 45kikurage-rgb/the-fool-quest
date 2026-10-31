@@ -63,9 +63,11 @@ final class WidgetRenderer {
             int active=GaugePalette.currentColor(lap,s.paceAchieved,s.secondLap);
             if(layered){
                 p.setColor(GaugePalette.previousColor(lap,s.paceAchieved,s.secondLap));
-                c.drawRoundRect(new RectF(l.left,gy,trackRight,gy+gauge),gauge/2,gauge/2,p);
+                if(GaugeDrawing.rainbowLap(lap-1))GaugeDrawing.rainbow(c,p,l.left,gy,trackWidth,gauge);
+                else c.drawRoundRect(new RectF(l.left,gy,trackRight,gy+gauge),gauge/2,gauge/2,p);
                 p.setColor(active);
-                c.drawRect(l.left,gy,l.left+trackWidth*fill,gy+gauge,p);
+                if(GaugeDrawing.rainbowLap(lap))GaugeDrawing.rainbow(c,p,l.left,gy,trackWidth*fill,gauge);
+                else c.drawRect(l.left,gy,l.left+trackWidth*fill,gy+gauge,p);
                 android.util.DisplayMetrics metrics=context.getResources().getDisplayMetrics();
                 GaugeDrawing.divisions(c,l.left,gy,trackWidth,gauge,fill,metrics.scaledDensity/metrics.density);
                 if(GaugePalette.hasMarker(lap,fill))
@@ -98,3 +100,4 @@ final class WidgetRenderer {
         return b.append(footer(d)).toString();
     }
 }
+

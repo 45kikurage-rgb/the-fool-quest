@@ -45,6 +45,15 @@ final class GaugeDrawing {
         c.restoreToCount(save);
     }
 
+    static void rainbow(Canvas c,Paint p,float left,float top,float width,float height){
+        if(width<=0||height<=0)return;
+        p.setShader(new android.graphics.LinearGradient(left,top,left+Math.max(1,width),top,
+            new int[]{0xffff4545,0xffff9c24,0xffffe24d,0xff33ff66,0xff35ddff,0xff466bff,0xffc15bff},
+            null,android.graphics.Shader.TileMode.CLAMP));
+        c.drawRect(left,top,left+width,top+height,p);p.setShader(null);
+    }
+    static boolean rainbowLap(long lap){return lap==3;}
+
     static boolean hasDivider(float progress,int percent) {
         return progress<1f && progress>percent/100f;
     }
@@ -74,3 +83,4 @@ final class GaugeDrawing {
         c.restoreToCount(save);
     }
 }
+
