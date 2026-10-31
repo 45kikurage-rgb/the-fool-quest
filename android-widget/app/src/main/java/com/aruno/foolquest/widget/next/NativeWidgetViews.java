@@ -28,7 +28,7 @@ final class NativeWidgetViews {
         // The card fills the real host. Text scales within fixed columns, reserving
         // seven-digit money fields even while the displayed amounts are smaller.
         float innerW=width-16,innerH=height-16;
-        float paddingScale=Math.min(1f,innerW*.6f/Math.max(1f,s.left+s.right));
+        float paddingScale=Math.min(1f,Math.max(0f,innerW-Math.min(innerW,160f))/Math.max(1f,s.left+s.right));
         float left=s.left*paddingScale,right=s.right*paddingScale;
         String status=WidgetRenderer.footer(d);
         boolean showStatus=!status.isEmpty()&&height>=100;
