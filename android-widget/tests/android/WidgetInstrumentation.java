@@ -65,11 +65,13 @@ public class WidgetInstrumentation extends Instrumentation {
             android.view.View panel=tree[0].findViewById(R.id.widget_panel);
             ok(Math.abs(panel.getHeight()-(height-16)*density)<2,"card background follows resized host height");
             android.view.View firstRow=tree[0].findViewById(R.id.row_total),lastRow=tree[0].findViewById(R.id.row_coupon);
-            ok(Math.abs(firstRow.getHeight()-lastRow.getHeight())<=2,"three rows share resized height equally");
+            ok(Math.abs(firstRow.getHeight()-lastRow.getHeight()-Math.round(result[0].gap*density))<=2,"requested row spacing is present after the first two rows");
+            ok(lastRow.getBottom()<=tree[0].findViewById(R.id.widget_content).getHeight()+1,"last row stays inside content bounds");
             android.widget.TextView footer=tree[0].findViewById(R.id.widget_footer);
             ok(!footer.getText().toString().matches(".*[0-9]{2}:[0-9]{2}.*"),"widget never displays update times");
             if(data.importAt>0&&data.couponAt>0&&!data.loading&&data.error.isEmpty())ok(footer.getVisibility()==android.view.View.GONE,"normal display has no footer");
-            if(height>=196)ok(lastRow.getTop()-firstRow.getTop()>height*density*.4f,"taller card distributes rows across its height");
+            android.view.View secondRow=tree[0].findViewById(R.id.row_tiktok);
+            ok(secondRow.getTop()>=firstRow.getBottom(),"rows never overlap");
             for(int row=0;row<3;row++){
                 android.view.ViewGroup holder=tree[0].findViewById(NativeWidgetViews.HOLDER[row]);
                 android.view.View bar=holder.findViewById(R.id.gauge_image);
@@ -350,6 +352,15 @@ public class WidgetInstrumentation extends Instrumentation {
             DisplaySettings extremeNative=new DisplaySettings();extremeNative.font=24;extremeNative.left=32;extremeNative.right=32;extremeNative.top=24;extremeNative.bottom=24;extremeNative.gap=18;extremeNative.gauge=12;
             nativeTextLayout(nativeData,extremeNative,280,100,320,"native-text-extreme-settings");
             nativeTextLayout(nativeData,new DisplaySettings(),360,300,320,"native-text-tall-card");
+            DisplaySettings expanded=new DisplaySettings();expanded.font=64;expanded.gap=96;expanded.textGap=48;expanded.gauge=48;expanded.left=128;expanded.right=128;expanded.top=128;expanded.bottom=128;
+            nativeTextLayout(nativeData,expanded,280,100,320,"native-expanded-small-host");
+            nativeTextLayout(nativeData,expanded,900,600,160,"native-expanded-large-host");
+            expanded.save(RevenueStore.prefs(c));DisplaySettings restored=DisplaySettings.load(RevenueStore.prefs(c));
+            ok(restored.font==64&&restored.gap==96&&restored.textGap==48&&restored.gauge==48&&restored.left==128&&restored.top==128,"expanded settings survive save and reload without old clamp");
+            new DisplaySettings().save(RevenueStore.prefs(c));
+            DisplaySettings moreGap=new DisplaySettings();moreGap.gap=60;
+            ok(NativeWidgetViews.create(c,nativeData,moreGap,360,600).gap==60,"tall host honors 60dp row gap without the old fifteen-percent limit");
+            nativeTextLayout(nativeData,moreGap,360,600,160,"native-row-gap-60");
             ok(measuredGaugeHeights.get("native-text-360x100-dpi320")<measuredGaugeHeights.get("native-text-360x196-dpi320"),"gauge thickens when card height increases");
             ok(measuredGaugeHeights.get("native-text-360x196-dpi320")<measuredGaugeHeights.get("native-text-tall-card"),"gauge continues to scale above two-row height");
             ok(NativeWidgetViews.create(c,nativeData,nativeWhite,360,126).gauge==4,
@@ -525,3 +536,4 @@ public class WidgetInstrumentation extends Instrumentation {
     }
     static final class ActivityResult{static final int OK=-1,FAIL=0;}
 }
+

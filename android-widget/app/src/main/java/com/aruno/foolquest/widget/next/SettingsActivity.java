@@ -32,6 +32,8 @@ public final class SettingsActivity extends Activity {
     private int widgetId=AppWidgetManager.INVALID_APPWIDGET_ID;
     private boolean colorValid=true;
     private boolean resumed=false;
+    private int previewWidgetId=AppWidgetManager.INVALID_APPWIDGET_ID;
+    private TextView saveState;
     private int dp(float n){return Math.round(n*getResources().getDisplayMetrics().density);}
     @Override public void onCreate(Bundle b){
         super.onCreate(b); setResult(RESULT_CANCELED);
@@ -48,9 +50,24 @@ public final class SettingsActivity extends Activity {
         colors.clear();ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.setFitsSystemWindows(true);
         body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);body.setPadding(dp(18),dp(24),dp(18),dp(28));body.setBackgroundColor(0xfff6f5f2);scroll.addView(body);setContentView(scroll);
         body.addView(text("表示設定",24));
+        try {body.addView(text("アプリ "+getPackageManager().getPackageInfo(getPackageName(),0).versionName+" / code "+getPackageManager().getPackageInfo(getPackageName(),0).versionCode,12));} catch(Exception ignored) {}
+        saveState=text("変更後は「設定を保存」でホーム画面へ反映します。",12);body.addView(saveState);
         button("← 収益管理へ戻る",this::finish);
         body.addView(text("ウィジェットのプレビュー",16));
         description=text("",12);body.addView(description);
+        int[] ids=RevenueWidget.ids(this);
+        if(previewWidgetId==AppWidgetManager.INVALID_APPWIDGET_ID)previewWidgetId=widgetId!=AppWidgetManager.INVALID_APPWIDGET_ID?widgetId:ids.length>0?ids[0]:AppWidgetManager.INVALID_APPWIDGET_ID;
+        if(ids.length>1){
+            android.widget.Spinner target=new android.widget.Spinner(this);
+            String[] names=new String[ids.length];int selected=0;
+            for(int i=0;i<ids.length;i++){names[i]="ホームのウィジェット "+(i+1);if(ids[i]==previewWidgetId)selected=i;}
+            target.setAdapter(new android.widget.ArrayAdapter<String>(this,android.R.layout.simple_spinner_dropdown_item,names));
+            target.setSelection(selected);body.addView(target);
+            target.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener(){
+                public void onItemSelected(android.widget.AdapterView<?> parent,View v,int pos,long id){previewWidgetId=ids[pos];updatePreview();}
+                public void onNothingSelected(android.widget.AdapterView<?> parent){}
+            });
+        }
         preview=new android.widget.FrameLayout(this);
         body.addView(preview,new LinearLayout.LayoutParams(-1,dp(126)));
         // Replace preview children after layout; synchronous replacement can leave them unmeasured.
@@ -71,10 +88,12 @@ public final class SettingsActivity extends Activity {
         });
         color("text","文字色",settings.text);color("background","背景色",settings.background);
         slider("背景の濃さ（100%＝不透明）",0,100,settings.opacity,v->settings.opacity=v);
-        slider("文字サイズ（基準・枠に合わせて調整）",9,24,settings.font,v->settings.font=v);
-        slider("左余白",0,32,settings.left,v->settings.left=v);slider("右余白",0,32,settings.right,v->settings.right=v);
-        slider("上余白",0,24,settings.top,v->settings.top=v);slider("下余白",0,24,settings.bottom,v->settings.bottom=v);
-        slider("ステータス行間",0,18,settings.gap,v->settings.gap=v);slider("ゲージ太さ（基準・高さに合わせて調整）",1,12,settings.gauge,v->settings.gauge=v);
+        slider("文字サイズ（基準dp・収まらない時だけ縮小）",6,64,settings.font,v->settings.font=v);
+        slider("左余白",0,128,settings.left,v->settings.left=v);slider("右余白",0,128,settings.right,v->settings.right=v);
+        slider("上余白",0,128,settings.top,v->settings.top=v);slider("下余白",0,128,settings.bottom,v->settings.bottom=v);
+        slider("ステータス行間",0,96,settings.gap,v->settings.gap=v);slider("ゲージ太さ（基準dp・高さに合わせて調整）",1,48,settings.gauge,v->settings.gauge=v);
+        slider("文字とゲージの間隔",0,48,settings.textGap,v->settings.textGap=v);
+        button("設定を保存",this::save);
         android.widget.CheckBox pace=new android.widget.CheckBox(this);pace.setText("進歩カラー（THE FOOL QUESTと同じ）");pace.setChecked(settings.paceColors);body.addView(pace);
         pace.setOnCheckedChangeListener((v,checked)->{settings.paceColors=checked;for(String key:new String[]{"total","tiktok","coupon"})colors.get(key).setEnabled(!checked);updatePreview();});
         color("total","Total 固定色（進歩カラーOFF時）",settings.total);color("tiktok","TikTok 固定色（進歩カラーOFF時）",settings.tiktok);color("coupon","Coupon 固定色（進歩カラーOFF時）",settings.coupon);
@@ -93,7 +112,7 @@ public final class SettingsActivity extends Activity {
         TextView title=text(label+"："+current,13);body.addView(title);
         SeekBar bar=new SeekBar(this);bar.setMax(max-min);bar.setProgress(current-min);body.addView(bar);
         bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
-            public void onProgressChanged(SeekBar b,int v,boolean user){int n=v+min;title.setText(label+"："+n);change.set(n);updatePreview();}
+            public void onProgressChanged(SeekBar b,int v,boolean user){int n=v+min;title.setText(label+"："+n);change.set(n);if(user&&saveState!=null)saveState.setText("未保存の変更があります。「設定を保存」で反映します。");updatePreview();}
             public void onStartTrackingTouch(SeekBar b){}public void onStopTrackingTouch(SeekBar b){}
         });
     }
@@ -155,13 +174,30 @@ public final class SettingsActivity extends Activity {
     }
     private void updatePreview(){
         if(preview==null||isFinishing()||isDestroyed())return;
-        int w=preview.getWidth()>0?Math.round(preview.getWidth()/getResources().getDisplayMetrics().density):340;
+        float density=getResources().getDisplayMetrics().density;
+        int available=preview.getWidth()>0?Math.round(preview.getWidth()/density):340;
+        int w=available,h=126;
+        boolean actual=previewWidgetId!=AppWidgetManager.INVALID_APPWIDGET_ID;
+        if(actual){
+            Bundle options=AppWidgetManager.getInstance(this).getAppWidgetOptions(previewWidgetId);
+            int screen=Math.round(getResources().getDisplayMetrics().widthPixels/density);
+            w=Math.max(120,Math.min(options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,340),screen));
+            h=Math.max(65,options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,130));
+        }
+        float scale=Math.min(1f,(float)available/w);
+        android.view.ViewGroup.LayoutParams params=preview.getLayoutParams();
+        int previewHeight=Math.round(dp(h)*scale);
+        if(params.height!=previewHeight){params.height=previewHeight;preview.setLayoutParams(params);}
         RevenueStore.Data d=RevenueStore.read(this);
-        NativeWidgetViews.Result r=NativeWidgetViews.create(this,d,settings,w,126);
-        preview.removeAllViews();preview.addView(r.views.apply(this,preview));
+        NativeWidgetViews.Result r=NativeWidgetViews.create(this,d,settings,w,h);
+        View child=r.views.apply(this,preview);
+        child.setPivotX(0);child.setPivotY(0);child.setScaleX(scale);child.setScaleY(scale);
+        preview.removeAllViews();preview.addView(child,new android.widget.FrameLayout.LayoutParams(dp(w),dp(h)));
         preview.setContentDescription(WidgetRenderer.description(d));
-        description.setText(WidgetRenderer.footer(d));
-        String status=!colorValid?"色コードを確認してください。":r.adjusted?"この枠では文字・ゲージ・余白を安全に調整します（文字 "+String.format(java.util.Locale.JAPAN,"%.1f",r.font)+"dp）。":"数値列の位置を固定して表示します。ホーム画面の角で欠けないよう外周8dpを確保します。";
+        description.setText((actual?"ホームの枠 ":"見本の枠 ")+w+" × "+h+"dp（表示設定は全ウィジェット共通）\n"+WidgetRenderer.footer(d));
+        String status=!colorValid?"色コードを確認してください。":String.format(java.util.Locale.JAPAN,
+            "実際の表示：文字 %.1fdp／行間 %.1fdp／ゲージ %ddp／文字とゲージ %.1fdp。",r.font,r.gap,r.gauge,r.textGap);
+        if(r.adjusted)status+=" 枠に収まるよう縮小しています。さらに大きくする場合はホームでウィジェットの幅・高さを広げてください。";
         if(settings.text==settings.background&&settings.opacity==100)status+=" 文字と背景が同じ色です。";
         warning.setText(status);
         if(communication!=null){
@@ -175,7 +211,7 @@ public final class SettingsActivity extends Activity {
         if(!validateColors()){updatePreview();return;}
         settings.save(RevenueStore.prefs(this));RevenueWidget.renderAll(this);
         if(widgetId!=AppWidgetManager.INVALID_APPWIDGET_ID){setResult(RESULT_OK,new Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,widgetId));finish();}
-        else message("設定を保存しました。");
+        else {saveState.setText("保存済み・ホームの "+RevenueWidget.ids(this).length+" 個へ再描画を送信しました。");message("設定を保存し、ホーム画面へ再描画を送信しました。");}
     }
     private void message(String s){new AlertDialog.Builder(this).setMessage(s).setPositiveButton("OK",null).show();}
     private void openExporter(String url){try{startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse(url)));}catch(Exception e){message("ブラウザでTHE FOOL QUESTの連携ページを開いてください。");}}
@@ -196,3 +232,4 @@ public final class SettingsActivity extends Activity {
         }catch(Exception e){message(e.getMessage()==null?"連携データを確認してください。":e.getMessage());}
     }
 }
+

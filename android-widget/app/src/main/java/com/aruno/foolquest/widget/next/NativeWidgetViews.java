@@ -15,7 +15,7 @@ import android.widget.RemoteViews;
 
 /** Native text takes its width from the actual host, not from a bitmap or orientation map. */
 final class NativeWidgetViews {
-    static final class Result {RemoteViews views;float font;int gauge;boolean adjusted;}
+    static final class Result {RemoteViews views;float font;int gauge;float gap,textGap;boolean adjusted;}
     static final int[][] TEXT={
         {R.id.total_label,R.id.total_current,R.id.total_slash,R.id.total_goal,R.id.total_percent},
         {R.id.tiktok_label,R.id.tiktok_current,R.id.tiktok_slash,R.id.tiktok_goal,R.id.tiktok_percent},
@@ -28,16 +28,11 @@ final class NativeWidgetViews {
         // The card fills the real host. Text scales within fixed columns, reserving
         // seven-digit money fields even while the displayed amounts are smaller.
         float innerW=width-16,innerH=height-16;
-        float left=Math.min(s.left,innerW*.08f),right=Math.min(s.right,innerW*.08f);
-        float top=Math.min(s.top,innerH*.12f),bottom=Math.min(s.bottom,innerH*.12f);
+        float paddingScale=Math.min(1f,innerW*.6f/Math.max(1f,s.left+s.right));
+        float left=s.left*paddingScale,right=s.right*paddingScale;
         String status=WidgetRenderer.footer(d);
         boolean showStatus=!status.isEmpty()&&height>=100;
-        float rowHeight=(innerH-top-bottom-(showStatus?13:0))/3;
-        float gap=Math.min(s.gap,Math.max(0,rowHeight*.15f));
-        // Baseline is a 126dp-high card with default 6dp top/bottom padding.
-        // Gauge height follows vertical resizing independently of the font width cap.
-        float preferredGauge=s.gauge*(innerH-top-bottom)/98f;
-        int gauge=Math.max(1,Math.min(GaugePalette.MAX_GAUGE_HEIGHT_DP,Math.min(Math.round(preferredGauge),Math.round(rowHeight*.2f))));
+        float preferredGauge=Math.min(48,s.gauge*Math.max(.25f,(innerH-s.top-s.bottom)/98f));
         float preferred=s.font*(float)Math.sqrt(Math.max(.25f,innerW/324f*innerH/110f));
         float font=preferred,content=innerW-left-right;
         Paint measure=new Paint();measure.setTypeface(Typeface.create("monospace",Typeface.NORMAL));measure.setTextSize(100);
@@ -50,9 +45,12 @@ final class NativeWidgetViews {
             font=Math.min(font,available[3]*100/measure.measureText(RevenueMath.money(goals[i])));
             font=Math.min(font,available[4]*100/measure.measureText(RevenueMath.percent(values[i],goals[i])));
         }
-        font=Math.max(1,Math.min(font,(rowHeight-gap-gauge-2)/1.3f));
-        Result result=new Result();result.font=font;result.gauge=gauge;
-        result.adjusted=font<preferred-.25f||gauge<Math.round(preferredGauge)||gap<s.gap||left<s.left||right<s.right||top<s.top||bottom<s.bottom;
+        WidgetSpacing spacing=new WidgetSpacing(innerH,s.top,s.bottom,s.gap,s.textGap,font,preferredGauge,showStatus?13:0);
+        font=spacing.font;
+        float top=spacing.top,bottom=spacing.bottom,gap=spacing.gap;
+        int gauge=spacing.gauge;
+        Result result=new Result();result.font=font;result.gauge=gauge;result.gap=gap;result.textGap=spacing.textGap;
+        result.adjusted=font<preferred-.25f||spacing.adjusted||paddingScale<1f;
         RemoteViews rv=new RemoteViews(c.getPackageName(),R.layout.widget_pace);result.views=rv;
         rv.setViewPadding(R.id.widget_content,px(c,left),px(c,top),px(c,right),px(c,bottom));
         rv.setInt(R.id.widget_panel,"setBackgroundColor",(s.background&0xffffff)|(Math.round(s.opacity*2.55f)<<24));
@@ -65,6 +63,7 @@ final class NativeWidgetViews {
                 rv.setTextViewTextSize(TEXT[i][j],TypedValue.COMPLEX_UNIT_DIP,result.font);
             }
             rv.setViewPadding(ROW[i],0,0,0,i<2?px(c,gap):0);
+            rv.setViewPadding(HOLDER[i],0,px(c,spacing.textGap),0,0);
             RemoteViews bar=new RemoteViews(c.getPackageName(),R.layout.gauge_adaptive);
             long lap=RevenueMath.lapCount(values[i],goals[i]);
             float progress=RevenueMath.progress(values[i],goals[i]);
@@ -117,3 +116,4 @@ final class NativeWidgetViews {
         return b;
     }
 }
+

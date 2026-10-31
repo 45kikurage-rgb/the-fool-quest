@@ -8,7 +8,7 @@ public final class DisplaySettings {
     int total = 0xffffe24d, tiktok = 0xffff5252, coupon = 0xff4ade80;
     boolean paceColors = true;
     int paceAchieved = GaugePalette.FIRST_GREEN, paceBehind = GaugePalette.PACE_BEHIND, paceLow = GaugePalette.PACE_LOW, secondLap = GaugePalette.SECOND_LIME;
-    int opacity = 100, font = 13, left = 8, right = 8, top = 6, bottom = 6, gap = 5, gauge = 4;
+    int opacity = 100, font = 13, left = 8, right = 8, top = 6, bottom = 6, gap = 5, gauge = 4, textGap = 2;
     static DisplaySettings load(SharedPreferences p) {
         DisplaySettings s = new DisplaySettings();
         s.paceColors=p.getBoolean("paceColors",true);
@@ -20,7 +20,7 @@ public final class DisplaySettings {
         s.total=p.getInt("colorTotal",s.total); s.tiktok=p.getInt("colorTiktok",s.tiktok); s.coupon=p.getInt("colorCoupon",s.coupon);
         s.opacity=p.getInt("opacity",100); s.font=p.getInt("font",13);
         s.left=p.getInt("left",8); s.right=p.getInt("right",8); s.top=p.getInt("top",6); s.bottom=p.getInt("bottom",6);
-        s.gap=p.getInt("gap",5); s.gauge=p.getInt("gauge",4); s.clamp(); return s;
+        s.gap=p.getInt("gap",5); s.gauge=p.getInt("gauge",4); s.textGap=p.getInt("textGap",2); s.clamp(); return s;
     }
     boolean isSecondLap(long value,long goal,String month,long now) {
         return RevenueMath.beyondGoal(value,goal) && RevenueMath.month(now).equals(month);
@@ -36,15 +36,16 @@ public final class DisplaySettings {
         }
     }
     void clamp() {
-        opacity=bound(opacity,0,100); font=bound(font,9,24);
-        left=bound(left,0,32); right=bound(right,0,32); top=bound(top,0,24); bottom=bound(bottom,0,24);
-        gap=bound(gap,0,18); gauge=bound(gauge,1,12);
+        opacity=bound(opacity,0,100); font=bound(font,6,64);
+        left=bound(left,0,128); right=bound(right,0,128); top=bound(top,0,128); bottom=bound(bottom,0,128);
+        gap=bound(gap,0,96); gauge=bound(gauge,1,48); textGap=bound(textGap,0,48);
     }
     private static int bound(int v,int a,int b){ return Math.max(a,Math.min(b,v)); }
     void save(SharedPreferences p) {
         clamp(); p.edit().putBoolean("paceColors",paceColors).putInt("text",text).putInt("background",background).putInt("colorTotal",total)
             .putInt("colorTiktok",tiktok).putInt("colorCoupon",coupon).putInt("opacity",opacity).putInt("font",font)
             .putInt("colorPaceAchieved",paceAchieved).putInt("colorPaceBehind",paceBehind)
-            .putInt("colorPaceLow",paceLow).putInt("colorSecondLap",secondLap).putInt("left",left).putInt("right",right).putInt("top",top).putInt("bottom",bottom).putInt("gap",gap).putInt("gauge",gauge).apply();
+            .putInt("colorPaceLow",paceLow).putInt("colorSecondLap",secondLap).putInt("left",left).putInt("right",right).putInt("top",top).putInt("bottom",bottom).putInt("gap",gap).putInt("gauge",gauge).putInt("textGap",textGap).apply();
     }
 }
+
