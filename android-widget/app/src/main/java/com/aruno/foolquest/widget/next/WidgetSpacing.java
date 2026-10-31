@@ -11,7 +11,7 @@ public final class WidgetSpacing {
         float fixed=footer+3*6,extraGauge=Math.max(0f,wantedGauge-1f);
         float wanted=wantedTop+wantedBottom+2*wantedGap+3*(wantedTextGap+1.3f*wantedFont+extraGauge);
         float scale=Math.min(1f,Math.max(0f,height-fixed)/Math.max(1f,wanted));
-        float readable=Math.min(wantedFont,Math.min(6f,Math.max(1f,(height-fixed)/3f/1.3f)));
+        float readable=Math.min(wantedFont,Math.min(9f,Math.max(1f,(height-fixed)/3f/1.3f)));
         font=Math.max(readable,wantedFont*scale);
         float other=wantedTop+wantedBottom+2*wantedGap+3*(wantedTextGap+extraGauge);
         float spacingScale=Math.min(1f,Math.max(0f,height-fixed-3*1.3f*font)/Math.max(1f,other));
