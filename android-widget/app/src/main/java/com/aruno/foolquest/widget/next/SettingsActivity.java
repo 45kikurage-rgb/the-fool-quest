@@ -95,7 +95,7 @@ public final class SettingsActivity extends Activity {
         slider("文字とゲージの間隔",0,48,settings.textGap,v->settings.textGap=v);
         button("設定を保存",this::save);
         android.widget.CheckBox pace=new android.widget.CheckBox(this);pace.setText("進歩カラー（THE FOOL QUESTと同じ）");pace.setChecked(settings.paceColors);body.addView(pace);
-        pace.setOnCheckedChangeListener((v,checked)->{settings.paceColors=checked;for(String key:new String[]{"total","tiktok","coupon"})colors.get(key).setEnabled(!checked);updatePreview();});
+        pace.setOnCheckedChangeListener((v,checked)->{settings.paceColors=checked;markDirty();for(String key:new String[]{"total","tiktok","coupon"})colors.get(key).setEnabled(!checked);updatePreview();});
         color("total","Total 固定色（進歩カラーOFF時）",settings.total);color("tiktok","TikTok 固定色（進歩カラーOFF時）",settings.tiktok);color("coupon","Coupon 固定色（進歩カラーOFF時）",settings.coupon);
         for(String key:new String[]{"total","tiktok","coupon"})colors.get(key).setEnabled(!settings.paceColors);
         body.addView(text("日別進歩カラー・2周目カラー（色見本から変更できます）",18));
@@ -104,15 +104,16 @@ public final class SettingsActivity extends Activity {
         colorPalette("paceLow","今日までの目標不足：50%未満",settings.paceLow);
         colorPalette("secondLap","2周目：月間目標100%超",settings.secondLap);
         button("表示設定を初期化",()->new AlertDialog.Builder(this).setMessage("表示設定を初期値に戻します。収益データは保持します。保存でホーム画面へ反映します。")
-            .setNegativeButton("キャンセル",null).setPositiveButton("初期化",(d,w)->{settings=new DisplaySettings();build();}).show());
+            .setNegativeButton("キャンセル",null).setPositiveButton("初期化",(d,w)->{settings=new DisplaySettings();build();markDirty();}).show());
         updatePreview();
     }
+    private void markDirty(){if(saveState!=null)saveState.setText("未保存の変更があります。「設定を保存」で反映します。");}
     private interface Change{void set(int value);}
     private void slider(String label,int min,int max,int current,Change change){
         TextView title=text(label+"："+current,13);body.addView(title);
         SeekBar bar=new SeekBar(this);bar.setMax(max-min);bar.setProgress(current-min);body.addView(bar);
         bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
-            public void onProgressChanged(SeekBar b,int v,boolean user){int n=v+min;title.setText(label+"："+n);change.set(n);if(user&&saveState!=null)saveState.setText("未保存の変更があります。「設定を保存」で反映します。");updatePreview();}
+            public void onProgressChanged(SeekBar b,int v,boolean user){int n=v+min;title.setText(label+"："+n);change.set(n);if(user)markDirty();updatePreview();}
             public void onStartTrackingTouch(SeekBar b){}public void onStopTrackingTouch(SeekBar b){}
         });
     }
@@ -120,7 +121,7 @@ public final class SettingsActivity extends Activity {
     private void color(String key,String title,int value){
         body.addView(text(title+"（#RRGGBB）",13));EditText input=new EditText(this);input.setSingleLine(true);input.setText(hex(value));colors.put(key,input);body.addView(input);
         input.addTextChangedListener(new TextWatcher(){
-            public void beforeTextChanged(CharSequence s,int a,int c,int f){}public void onTextChanged(CharSequence s,int a,int b,int c){validateColors();updatePreview();}public void afterTextChanged(Editable e){}
+            public void beforeTextChanged(CharSequence s,int a,int c,int f){}public void onTextChanged(CharSequence s,int a,int b,int c){markDirty();validateColors();updatePreview();}public void afterTextChanged(Editable e){}
         });
     }
     private void colorPalette(String key,String title,int value) {
