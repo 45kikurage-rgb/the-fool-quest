@@ -131,7 +131,12 @@ public class WidgetInstrumentation extends Instrumentation {
             int[] origin=new int[2],position=new int[2];tree[0].getLocationInWindow(origin);text.getLocationInWindow(position);
             int ink=0;for(int y=Math.max(0,position[1]-origin[1]);y<Math.min(bitmap.getHeight(),position[1]-origin[1]+text.getHeight());y++)
                 for(int x=Math.max(0,position[0]-origin[0]+2);x<Math.min(bitmap.getWidth(),position[0]-origin[0]+text.getWidth()-2);x++){
-                    int color=bitmap.getPixel(x,y);if(android.graphics.Color.alpha(color)>0&&Math.abs(android.graphics.Color.red(color)-android.graphics.Color.red(settings.text))<50&&Math.abs(android.graphics.Color.green(color)-android.graphics.Color.green(settings.text))<50&&Math.abs(android.graphics.Color.blue(color)-android.graphics.Color.blue(settings.text))<50)ink++;
+                    int color=bitmap.getPixel(x,y);
+                    // At 160dpi, small antialiased glyphs may have no near-solid
+                    // white pixels. Count visible foreground contrast instead.
+                    int fg=Math.abs(android.graphics.Color.red(color)-android.graphics.Color.red(settings.text))+Math.abs(android.graphics.Color.green(color)-android.graphics.Color.green(settings.text))+Math.abs(android.graphics.Color.blue(color)-android.graphics.Color.blue(settings.text));
+                    int bg=Math.abs(android.graphics.Color.red(color)-android.graphics.Color.red(settings.background))+Math.abs(android.graphics.Color.green(color)-android.graphics.Color.green(settings.background))+Math.abs(android.graphics.Color.blue(color)-android.graphics.Color.blue(settings.background));
+                    if(android.graphics.Color.alpha(color)>0&&bg>80&&fg<bg)ink++;
                 }
             ok(ink>4,"current goal percent glyphs are actually drawn: "+name+" col="+col+" ink="+ink+" bounds="+java.util.Arrays.toString(position)+" size="+text.getWidth()+"x"+text.getHeight()+" baseline="+text.getBaseline()+" scroll="+text.getScrollX()+","+text.getScrollY());
         }
@@ -409,6 +414,12 @@ public class WidgetInstrumentation extends Instrumentation {
             constrainedHost(nativeData,new DisplaySettings(),300,126);
             for(int width:new int[]{280,320,360,400})for(int height:new int[]{65,100,126,196})for(int dpi:new int[]{160,320})
                 nativeTextLayout(nativeData,new DisplaySettings(),width,height,dpi,"native-text-"+width+"x"+height+"-dpi"+dpi);
+            DisplaySettings relativeFont=new DisplaySettings();
+            float centerFont=NativeWidgetViews.create(c,nativeData,relativeFont,360,196).font;
+            relativeFont.font=24;ok(NativeWidgetViews.create(c,nativeData,relativeFont,360,196).font<centerFont,"font below midpoint visibly gets smaller");
+            nativeTextLayout(nativeData,relativeFont,360,196,320,"native-reference-smaller");
+            relativeFont.font=40;ok(NativeWidgetViews.create(c,nativeData,relativeFont,360,196).font>centerFont,"font above midpoint visibly gets larger");
+            nativeTextLayout(nativeData,relativeFont,360,196,320,"native-reference-larger");
             DisplaySettings nativeWhite=new DisplaySettings();nativeWhite.background=android.graphics.Color.WHITE;nativeWhite.text=android.graphics.Color.BLACK;
             nativeTextLayout(nativeData,nativeWhite,360,126,320,"native-text-white");
             DisplaySettings extremeNative=new DisplaySettings();extremeNative.font=24;extremeNative.left=32;extremeNative.right=32;extremeNative.top=24;extremeNative.bottom=24;extremeNative.gap=18;extremeNative.gauge=12;

@@ -33,8 +33,8 @@ final class NativeWidgetViews {
         String status=WidgetRenderer.footer(d);
         boolean showStatus=!status.isEmpty()&&height>=100;
         float preferredGauge=Math.min(48,s.gauge*Math.max(.25f,(innerH-s.top-s.bottom)/98f));
-        float preferred=s.font*(float)Math.sqrt(Math.max(.25f,innerW/324f*innerH/110f));
-        float font=preferred,content=innerW-left-right;
+        float content=innerW-left-right;
+        float font=Float.MAX_VALUE;
         Paint measure=new Paint();measure.setTypeface(Typeface.create("monospace",Typeface.NORMAL));measure.setTextSize(100);
         float[] available={content*.16f-2,content*.29f-3,content*.03f,content*.29f-3,content*.23f-2};
         String[] reserved={"Coupon","¥9,999,999","/","¥9,999,999","9999.99%"};
@@ -45,12 +45,19 @@ final class NativeWidgetViews {
             font=Math.min(font,available[3]*100/measure.measureText(RevenueMath.money(goals[i])));
             font=Math.min(font,available[4]*100/measure.measureText(RevenueMath.percent(values[i],goals[i])));
         }
+        float widthFont=font;
+        // Photo two is the 32-unit midpoint. Let both sides of that midpoint
+        // change the actual glyph height; condense only when a larger font
+        // would otherwise cross the fixed financial columns.
+        float preferred=Math.max(9f,widthFont*(s.font/32f)*(float)Math.min(1,Math.sqrt(innerH/180f)));
+        font=preferred;
         WidgetSpacing spacing=new WidgetSpacing(innerH,s.top,s.bottom,s.gap,s.textGap,font,preferredGauge,showStatus?13:0);
         font=spacing.font;
         float top=spacing.top,bottom=spacing.bottom,gap=spacing.gap;
         int gauge=spacing.gauge;
+        float textScale=Math.min(1f,widthFont/font);
         Result result=new Result();result.font=font;result.gauge=gauge;result.gap=gap;result.textGap=spacing.textGap;
-        result.adjusted=font<preferred-.25f||spacing.adjusted||paddingScale<1f;
+        result.adjusted=font<preferred-.25f||spacing.adjusted||paddingScale<1f||textScale<.99f;
         RemoteViews rv=new RemoteViews(c.getPackageName(),R.layout.widget_pace);result.views=rv;
         rv.setViewPadding(R.id.widget_content,px(c,left),px(c,top),px(c,right),px(c,bottom));
         rv.setInt(R.id.widget_panel,"setBackgroundColor",(s.background&0xffffff)|(Math.round(s.opacity*2.55f)<<24));
@@ -63,6 +70,7 @@ final class NativeWidgetViews {
             for(int j=0;j<5;j++){
                 rv.setTextViewText(TEXT[i][j],texts[j]);rv.setTextColor(TEXT[i][j],s.text);
                 rv.setTextViewTextSize(TEXT[i][j],TypedValue.COMPLEX_UNIT_DIP,result.font);
+                rv.setFloat(TEXT[i][j],"setTextScaleX",textScale);
             }
             rv.setViewPadding(ROW[i],0,0,0,0);
             rv.setViewPadding(HOLDER[i],0,px(c,spacing.textGap),0,0);
