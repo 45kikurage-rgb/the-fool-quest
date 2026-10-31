@@ -370,7 +370,7 @@ public class WidgetInstrumentation extends Instrumentation {
             java.util.Calendar date=java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("Asia/Tokyo"));
             int days=date.getActualMaximum(java.util.Calendar.DAY_OF_MONTH),today=date.get(java.util.Calendar.DAY_OF_MONTH);
             RevenueStore.Data paceData=RevenueStore.read(c);paceData.tiktok=today*75000L;paceData.coupon=today*25000L;
-            paceData.goalTotal=days*90000L;paceData.goalTiktok=days*100000L;paceData.goalCoupon=days*100000L;
+            paceData.goalTotal=days*100000L;paceData.goalTiktok=days*100000L;paceData.goalCoupon=days*100000L;
             paceData.month=month;paceData.importAt=System.currentTimeMillis();paceData.couponAt=paceData.importAt;paceData.error="";paceData.loading=false;
             DisplaySettings palette=new DisplaySettings();
             ok(palette.paceColors,"new and saved v0.1.4 settings use progress colors by default");
