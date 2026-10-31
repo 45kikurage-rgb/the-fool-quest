@@ -1,23 +1,23 @@
 {
   "applicationId": "com.aruno.foolquest.widget.next",
-  "version": "0.1.17",
-  "versionCode": 18,
+  "version": "0.1.18",
+  "versionCode": 19,
   "minSdk": 26,
   "targetSdk": 35,
-  "size": 75566,
-  "sha256": "d3e54314c955c7b21f98d35c1b1dc5a196b3cb340a958cf7168e8a586094d7ef",
+  "size": 79662,
+  "sha256": "2f76af5fe93e2a4b16bea07732cca6f81cad13c2136576998554839a4e054f1f",
   "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
   "couponUpdate": "30-minute refresh and management-screen refresh; widget tap opens revenue management",
   "tiktokUpdate": "CSV import and manual revenue entry/edit inside Android with immediate widget refresh",
   "changes": [
-    "Expand font to 6-64, margins to 0-128, row gap to 0-96 and gauge to 1-48",
-    "Add independently adjustable text-to-gauge gap 0-48",
-    "Honor row spacing without the old fifteen-percent limit; retain readable text in small hosts",
-    "Use the placed host dimensions for settings preview, with actual dimensions and unsaved/save state",
-    "Preserve existing revenue, goals, API, signing certificate and widget tap navigation"
+    "Keep all three metric rows and gauges inside short widget hosts, using actual parent constraints and reported size variants",
+    "Pin preview and save controls while only the settings area scrolls",
+    "Center adjustments around photo two: font32, gap5, gauge14, text-gap4 and margins17/16/0/0",
+    "Make actual font size respond on either side of the midpoint, condensing only the horizontal glyph width when needed",
+    "Render the third lap as a rainbow across the filled region, including short progress; preserve completed previous laps and white boundaries"
   ],
-  "file": "fool-quest-widget-0.1.17.apk",
-  "installation": "Update code16 or code17 successor with the same certificate. Do not uninstall. Display settings remain shared by all placed widgets.",
+  "file": "fool-quest-widget-0.1.18.apk",
+  "installation": "Update the existing successor without uninstalling; preserve revenue, goals, colors and saved settings. Photo-two reference button resets layout only.",
   "legacy": {
     "applicationId": "com.aruno.foolquest.widget",
     "version": "0.1.12",
@@ -29,14 +29,23 @@
   },
   "previousRelease": {
     "applicationId": "com.aruno.foolquest.widget.next",
-    "version": "0.1.15",
-    "versionCode": 16,
-    "size": 71470,
-    "sha256": "fd22842b2b05f885774f3ee7d602d81375dac707187175aa225dfa86736ec0d7",
+    "version": "0.1.17",
+    "versionCode": 18,
+    "size": 75566,
+    "sha256": "d3e54314c955c7b21f98d35c1b1dc5a196b3cb340a958cf7168e8a586094d7ef",
     "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
-    "file": "fool-quest-widget-0.1.15.apk"
+    "file": "fool-quest-widget-0.1.17.apk"
   },
   "archives": [
+    {
+      "applicationId": "com.aruno.foolquest.widget.next",
+      "version": "0.1.15",
+      "versionCode": 16,
+      "size": 71470,
+      "sha256": "fd22842b2b05f885774f3ee7d602d81375dac707187175aa225dfa86736ec0d7",
+      "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+      "file": "fool-quest-widget-0.1.15.apk"
+    },
     {
       "applicationId": "com.aruno.foolquest.widget.next",
       "version": "0.1.14",
@@ -74,10 +83,10 @@
       "file": "fool-quest-widget-0.1.13-original.apk"
     }
   ],
-  "sourceCommit": "7c0982f6e56eb1fb54e34e8a2a2d4c4d19257c8e",
-  "signingRunId": 41196581139,
-  "unsignedSha256": "50375d4b66686cfca92c652b2ffc53d38cae376fd9c2f1984815bc859491ae23",
+  "sourceCommit": "7b478e7e8a4169f773d0759b663700b343f4efd5",
+  "signingRunId": 41201061875,
+  "unsignedSha256": "ce6b40efc87010078e953dc743a8cfc139e4aaa7b6607b4720748c5f4152d1b4",
   "deviceVerified": false,
-  "softwareTestRunId": 41196277244,
+  "softwareTestRunId": 41200721191,
   "deliveryStatus": "test-update"
 }
