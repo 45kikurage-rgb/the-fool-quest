@@ -8,7 +8,7 @@ public final class DisplaySettings {
     int total = 0xffffe24d, tiktok = 0xffff5252, coupon = 0xff4ade80;
     boolean paceColors = true;
     int paceAchieved = GaugePalette.FIRST_GREEN, paceBehind = GaugePalette.PACE_BEHIND, paceLow = GaugePalette.PACE_LOW, secondLap = GaugePalette.SECOND_LIME;
-    int opacity = 100, font = 13, left = 8, right = 8, top = 6, bottom = 6, gap = 5, gauge = 4, textGap = 2;
+    int opacity = 100, font = 32, left = 17, right = 16, top = 0, bottom = 0, gap = 5, gauge = 14, textGap = 4;
     static DisplaySettings load(SharedPreferences p) {
         DisplaySettings s = new DisplaySettings();
         s.paceColors=p.getBoolean("paceColors",true);
@@ -18,10 +18,11 @@ public final class DisplaySettings {
         s.secondLap=p.getInt("colorSecondLap",s.secondLap);
         s.text=p.getInt("text",s.text); s.background=p.getInt("background",s.background);
         s.total=p.getInt("colorTotal",s.total); s.tiktok=p.getInt("colorTiktok",s.tiktok); s.coupon=p.getInt("colorCoupon",s.coupon);
-        s.opacity=p.getInt("opacity",100); s.font=p.getInt("font",13);
-        s.left=p.getInt("left",8); s.right=p.getInt("right",8); s.top=p.getInt("top",6); s.bottom=p.getInt("bottom",6);
-        s.gap=p.getInt("gap",5); s.gauge=p.getInt("gauge",4); s.textGap=p.getInt("textGap",2); s.clamp(); return s;
+        s.opacity=p.getInt("opacity",100); s.font=p.getInt("font",s.font);
+        s.left=p.getInt("left",s.left); s.right=p.getInt("right",s.right); s.top=p.getInt("top",s.top); s.bottom=p.getInt("bottom",s.bottom);
+        s.gap=p.getInt("gap",s.gap); s.gauge=p.getInt("gauge",s.gauge); s.textGap=p.getInt("textGap",s.textGap); s.clamp(); return s;
     }
+    void referenceLayout(){font=32;left=17;right=16;top=0;bottom=0;gap=5;gauge=14;textGap=4;}
     boolean isSecondLap(long value,long goal,String month,long now) {
         return RevenueMath.beyondGoal(value,goal) && RevenueMath.month(now).equals(month);
     }

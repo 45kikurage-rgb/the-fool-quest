@@ -65,13 +65,14 @@ public class WidgetInstrumentation extends Instrumentation {
             android.view.View panel=tree[0].findViewById(R.id.widget_panel);
             ok(Math.abs(panel.getHeight()-(height-16)*density)<2,"card background follows resized host height");
             android.view.View firstRow=tree[0].findViewById(R.id.row_total),lastRow=tree[0].findViewById(R.id.row_coupon);
-            ok(Math.abs(firstRow.getHeight()-lastRow.getHeight()-Math.round(result[0].gap*density))<=2,"requested row spacing is present after the first two rows");
+            ok(Math.abs(firstRow.getHeight()-lastRow.getHeight())<=2,"all three rows receive the actual host height equally");
             ok(lastRow.getBottom()<=tree[0].findViewById(R.id.widget_content).getHeight()+1,"last row stays inside content bounds");
             android.widget.TextView footer=tree[0].findViewById(R.id.widget_footer);
             ok(!footer.getText().toString().matches(".*[0-9]{2}:[0-9]{2}.*"),"widget never displays update times");
             if(data.importAt>0&&data.couponAt>0&&!data.loading&&data.error.isEmpty())ok(footer.getVisibility()==android.view.View.GONE,"normal display has no footer");
             android.view.View secondRow=tree[0].findViewById(R.id.row_tiktok);
-            ok(secondRow.getTop()>=firstRow.getBottom(),"rows never overlap");
+            ok(secondRow.getTop()-firstRow.getBottom()==Math.round(result[0].gap*density),"first exact spacer keeps the configured gap");
+            ok(lastRow.getTop()-secondRow.getBottom()==Math.round(result[0].gap*density),"second exact spacer keeps the configured gap");
             for(int row=0;row<3;row++){
                 android.view.ViewGroup holder=tree[0].findViewById(NativeWidgetViews.HOLDER[row]);
                 android.view.View bar=holder.findViewById(R.id.gauge_image);
@@ -96,13 +97,14 @@ public class WidgetInstrumentation extends Instrumentation {
                 boolean layered=lap>=2&&settings.isSecondLap(data.values()[row],data.goals()[row],data.month,System.currentTimeMillis());
                 if(progress>0){
                     int first=layered?GaugePalette.currentColor(lap,settings.paceAchieved,settings.secondLap):expected;
-                    ok(fill.getPixel(0,cy)==first,"native gauge uses the active lap color");
+                    if(layered&&GaugeDrawing.rainbowLap(lap))ok(android.graphics.Color.red(fill.getPixel(0,cy))>240&&android.graphics.Color.green(fill.getPixel(0,cy))<130,"third-lap rainbow starts with red");
+                    else ok(fill.getPixel(0,cy)==first,"native gauge uses the active lap color");
                 }
                 if(layered){
                     int near=Math.min(fill.getWidth()-1,Math.max(0,(int)(fill.getWidth()*Math.max(0,progress-.1f))));
                     int right=fill.getWidth()-2;
                     int base=GaugePalette.previousColor(lap,settings.paceAchieved,settings.secondLap);
-                    if(progress<.9f)ok(fill.getPixel(right,cy)==base,"full previous lap remains visible");
+                    if(progress<.9f&&!GaugeDrawing.rainbowLap(lap-1))ok(fill.getPixel(right,cy)==base,"full previous lap remains visible");
                     if(GaugePalette.hasMarker(lap,progress)){
                         int edge=Math.round(fill.getWidth()*progress);
                         boolean white=false;
@@ -129,11 +131,72 @@ public class WidgetInstrumentation extends Instrumentation {
             int[] origin=new int[2],position=new int[2];tree[0].getLocationInWindow(origin);text.getLocationInWindow(position);
             int ink=0;for(int y=Math.max(0,position[1]-origin[1]);y<Math.min(bitmap.getHeight(),position[1]-origin[1]+text.getHeight());y++)
                 for(int x=Math.max(0,position[0]-origin[0]+2);x<Math.min(bitmap.getWidth(),position[0]-origin[0]+text.getWidth()-2);x++){
-                    int color=bitmap.getPixel(x,y);if(android.graphics.Color.alpha(color)>0&&Math.abs(android.graphics.Color.red(color)-android.graphics.Color.red(settings.text))<50&&Math.abs(android.graphics.Color.green(color)-android.graphics.Color.green(settings.text))<50&&Math.abs(android.graphics.Color.blue(color)-android.graphics.Color.blue(settings.text))<50)ink++;
+                    int color=bitmap.getPixel(x,y);
+                    // At 160dpi, small antialiased glyphs may have no near-solid
+                    // white pixels. Count visible foreground contrast instead.
+                    int fg=Math.abs(android.graphics.Color.red(color)-android.graphics.Color.red(settings.text))+Math.abs(android.graphics.Color.green(color)-android.graphics.Color.green(settings.text))+Math.abs(android.graphics.Color.blue(color)-android.graphics.Color.blue(settings.text));
+                    int bg=Math.abs(android.graphics.Color.red(color)-android.graphics.Color.red(settings.background))+Math.abs(android.graphics.Color.green(color)-android.graphics.Color.green(settings.background))+Math.abs(android.graphics.Color.blue(color)-android.graphics.Color.blue(settings.background));
+                    if(android.graphics.Color.alpha(color)>0&&bg>80&&fg<bg)ink++;
                 }
             ok(ink>4,"current goal percent glyphs are actually drawn: "+name+" col="+col+" ink="+ink+" bounds="+java.util.Arrays.toString(position)+" size="+text.getWidth()+"x"+text.getHeight()+" baseline="+text.getBaseline()+" scroll="+text.getScrollX()+","+text.getScrollY());
         }
         png(bitmap,name);
+    }
+    void pinnedSettingsPreview()throws Exception {
+        waitForIdleSync();Thread.sleep(150);
+        final int[] before=new int[2],after=new int[2];
+        runOnMainSync(()->{
+            android.view.View root=nativeFixture.getWindow().getDecorView();
+            android.view.View preview=root.findViewWithTag("settings-preview");
+            android.widget.ScrollView controls=root.findViewWithTag("settings-controls");
+            ok(preview!=null&&controls!=null,"preview is separate from scrolling controls");
+            preview.getLocationOnScreen(before);controls.fullScroll(android.view.View.FOCUS_DOWN);
+        });
+        waitForIdleSync();Thread.sleep(150);
+        runOnMainSync(()->{
+            android.view.View root=nativeFixture.getWindow().getDecorView();
+            android.view.View preview=root.findViewWithTag("settings-preview");
+            android.widget.ScrollView controls=root.findViewWithTag("settings-controls");
+            preview.getLocationOnScreen(after);
+            ok(controls.getScrollY()>0,"controls really scrolled");
+            ok(java.util.Arrays.equals(before,after),"preview remains fixed after scrolling to the bottom");
+            ok(button(root,"保存")!=null,"save stays accessible above the scroll area");
+        });
+        png(getUiAutomation().takeScreenshot(),"settings-pinned-preview-scrolled");
+    }
+    void constrainedHost(RevenueStore.Data data,DisplaySettings settings,int hint,int actual)throws Exception {
+        final android.view.View[] tree={null};float density=c.getResources().getDisplayMetrics().density;
+        runOnMainSync(()->{
+            tree[0]=NativeWidgetViews.create(c,data,settings,360,hint).views.apply(c,null);
+            nativeFixture.setContentView(tree[0],new android.view.ViewGroup.LayoutParams(Math.round(360*density),Math.round(actual*density)));
+        });
+        waitForIdleSync();Thread.sleep(120);
+        runOnMainSync(()->{
+            android.view.View content=tree[0].findViewById(R.id.widget_content);
+            for(int i=0;i<3;i++){
+                android.view.View row=tree[0].findViewById(NativeWidgetViews.ROW[i]);
+                android.view.View holder=tree[0].findViewById(NativeWidgetViews.HOLDER[i]);
+                android.view.View bar=holder.findViewById(R.id.gauge_image);
+                ok(row.getTop()>=0&&row.getBottom()<=content.getHeight(),"short host retains all row bounds");
+                ok(bar.getHeight()>0,"short host retains every gauge including Coupon");
+                int[] a=new int[2],b=new int[2];bar.getLocationInWindow(a);row.getLocationInWindow(b);
+                ok(a[1]+bar.getHeight()<=b[1]+row.getHeight()+1,"gauge remains inside its real row");
+            }
+        });
+        png(getUiAutomation().takeScreenshot(),"host-hint-"+hint+"-actual-"+actual);
+    }
+    void rainbowThirdLap()throws Exception {
+        ok(!GaugeDrawing.rainbowLap(1)&&!GaugeDrawing.rainbowLap(2)&&GaugeDrawing.rainbowLap(3)&&!GaugeDrawing.rainbowLap(4),"rainbow is the third lap, not the third metric");
+        for(float progress:new float[]{.1162f,.5f,1f}){
+            android.graphics.Bitmap b=NativeWidgetViews.gauge(c,0xffffffff,GaugePalette.SECOND_LIME,1f,
+                GaugePalette.FIRST_GREEN,progress,progress<1f,14,300,14,false,true);
+            int width=Math.round(b.getWidth()*progress),y=b.getHeight()/2;
+            java.util.Set<Integer> colors=new java.util.HashSet<>();
+            for(float x:new float[]{.08f,.25f,.42f,.58f,.75f,.92f})colors.add(b.getPixel(Math.max(0,Math.min(b.getWidth()-1,Math.round(width*x))),y));
+            ok(colors.size()>=5,"the entire rainbow fits even the short 11.62-percent overlay");
+            if(progress<1f)ok(b.getPixel(b.getWidth()-2,y)==GaugePalette.SECOND_LIME,"completed second lap remains lime behind rainbow");
+            png(b,"third-lap-rainbow-"+Math.round(progress*10000));
+        }
     }
     void gaugeAnnotations()throws Exception {
         android.content.res.Configuration config=new android.content.res.Configuration(c.getResources().getConfiguration());config.densityDpi=320;
@@ -331,8 +394,8 @@ public class WidgetInstrumentation extends Instrumentation {
             d.tiktok=21649;d.coupon=322990;d.goalTotal=1200000;d.goalTiktok=600000;d.goalCoupon=600000;
             WidgetRenderer.Render compact=WidgetRenderer.render(c,d,s,340,196);
             png(compact.bitmap,"native-compact-user-values");
-            ok(compact.panelHeight<110,"tall widget stays compact");
-            ok(compact.rowHeight<30,"gauge stays immediately below text");
+            ok(compact.panelHeight<=196,"reference bitmap stays within its host");
+            ok(compact.rowHeight<=compact.layout.rowHeight,"reference row fits its allocation");
             for(long v:new long[]{1,999,21649,344639,1000000,9999999}){
                 d.tiktok=v;d.coupon=0;d.goalTiktok=v;d.goalCoupon=v;
                 WidgetRenderer.Render r=WidgetRenderer.render(c,d,s,340,196);
@@ -345,8 +408,18 @@ public class WidgetInstrumentation extends Instrumentation {
             RevenueStore.Data nativeData=RevenueStore.read(c);nativeData.tiktok=1000000;nativeData.coupon=500000;nativeData.goalTotal=1000000;nativeData.goalTiktok=9999999;nativeData.goalCoupon=9999999;
             nativeData.importAt=System.currentTimeMillis();nativeData.couponAt=nativeData.importAt;nativeData.loading=false;nativeData.error="";
             nativeFixture=startActivitySync(new Intent(c,SettingsActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-            for(int width:new int[]{280,320,360,400})for(int height:new int[]{100,196})for(int dpi:new int[]{160,320})
+            pinnedSettingsPreview();
+            rainbowThirdLap();
+            constrainedHost(nativeData,new DisplaySettings(),196,100);
+            constrainedHost(nativeData,new DisplaySettings(),300,126);
+            for(int width:new int[]{280,320,360,400})for(int height:new int[]{65,100,126,196})for(int dpi:new int[]{160,320})
                 nativeTextLayout(nativeData,new DisplaySettings(),width,height,dpi,"native-text-"+width+"x"+height+"-dpi"+dpi);
+            DisplaySettings relativeFont=new DisplaySettings();
+            float centerFont=NativeWidgetViews.create(c,nativeData,relativeFont,360,196).font;
+            relativeFont.font=24;ok(NativeWidgetViews.create(c,nativeData,relativeFont,360,196).font<centerFont,"font below midpoint visibly gets smaller");
+            nativeTextLayout(nativeData,relativeFont,360,196,320,"native-reference-smaller");
+            relativeFont.font=40;ok(NativeWidgetViews.create(c,nativeData,relativeFont,360,196).font>centerFont,"font above midpoint visibly gets larger");
+            nativeTextLayout(nativeData,relativeFont,360,196,320,"native-reference-larger");
             DisplaySettings nativeWhite=new DisplaySettings();nativeWhite.background=android.graphics.Color.WHITE;nativeWhite.text=android.graphics.Color.BLACK;
             nativeTextLayout(nativeData,nativeWhite,360,126,320,"native-text-white");
             DisplaySettings extremeNative=new DisplaySettings();extremeNative.font=24;extremeNative.left=32;extremeNative.right=32;extremeNative.top=24;extremeNative.bottom=24;extremeNative.gap=18;extremeNative.gauge=12;
@@ -363,8 +436,8 @@ public class WidgetInstrumentation extends Instrumentation {
             nativeTextLayout(nativeData,moreGap,360,600,160,"native-row-gap-60");
             ok(measuredGaugeHeights.get("native-text-360x100-dpi320")<measuredGaugeHeights.get("native-text-360x196-dpi320"),"gauge thickens when card height increases");
             ok(measuredGaugeHeights.get("native-text-360x196-dpi320")<measuredGaugeHeights.get("native-text-tall-card"),"gauge continues to scale above two-row height");
-            ok(NativeWidgetViews.create(c,nativeData,nativeWhite,360,126).gauge==4,
-                "default-size gauge track keeps v0.1.4 four-dp thickness (marker overhang is separate)");
+            ok(new DisplaySettings().font==32&&new DisplaySettings().gauge==14&&new DisplaySettings().textGap==4,
+                "photo-two reference is the default adjustment midpoint");
             ok(NativeWidgetViews.create(c,nativeData,new DisplaySettings(),360,196).font>NativeWidgetViews.create(c,nativeData,new DisplaySettings(),360,100).font,"larger card increases font within safe column limits");
             // Screenshot and explicit palette assertions for green / yellow / red in the same card.
             java.util.Calendar date=java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("Asia/Tokyo"));
@@ -528,7 +601,13 @@ public class WidgetInstrumentation extends Instrumentation {
             removeMonitor(tapMonitor);runOnMainSync(management::finish);
             dimensions.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,280);dimensions.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,100);exactSizes.clear();exactSizes.add(new android.util.SizeF(280,100));dimensions.putParcelableArrayList(AppWidgetManager.OPTION_APPWIDGET_SIZES,exactSizes);manager.updateAppWidgetOptions(id,dimensions);
             runOnMainSync(()->{android.view.ViewGroup.LayoutParams lp=view[0].getLayoutParams();lp.width=Math.round(280*activity.getResources().getDisplayMetrics().density);lp.height=Math.round(100*activity.getResources().getDisplayMetrics().density);view[0].setLayoutParams(lp);});
-            Thread.sleep(700);png(getUiAutomation().takeScreenshot(),"native-widget-host-resized");host.stopListening();runOnMainSync(activity::finish);
+            Thread.sleep(700);png(getUiAutomation().takeScreenshot(),"native-widget-host-resized");
+            runOnMainSync(()->{
+                android.view.View last=view[0].findViewById(R.id.row_coupon),content=view[0].findViewById(R.id.widget_content);
+                ok(last.getBottom()<=content.getHeight(),"real host resize retains the entire Coupon row");
+                ok(view[0].findViewById(R.id.coupon_gauge_holder).getHeight()>0,"real host resize retains the third gauge");
+            });
+            host.stopListening();runOnMainSync(activity::finish);
             nativeRevenueChecks();
             result.putString("stream","PASS "+checks+" native Android checks; Coupon "+live.coupon+"; screenshots "+output);
             finish(ActivityResult.OK,result);

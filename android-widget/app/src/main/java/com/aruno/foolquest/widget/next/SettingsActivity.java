@@ -47,14 +47,18 @@ public final class SettingsActivity extends Activity {
     private TextView text(String s,int size){TextView v=new TextView(this);v.setText(s);v.setTextColor(0xff171717);v.setTextSize(size);v.setPadding(0,dp(7),0,dp(7));return v;}
     private Button button(String label,Runnable action){Button b=new Button(this);b.setText(label);b.setAllCaps(false);b.setOnClickListener(v->action.run());body.addView(b,new LinearLayout.LayoutParams(-1,-2));return b;}
     private void build(){
-        colors.clear();ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.setFitsSystemWindows(true);
-        body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);body.setPadding(dp(18),dp(24),dp(18),dp(28));body.setBackgroundColor(0xfff6f5f2);scroll.addView(body);setContentView(scroll);
-        body.addView(text("表示設定",24));
-        try {body.addView(text("アプリ "+getPackageManager().getPackageInfo(getPackageName(),0).versionName+" / code "+getPackageManager().getPackageInfo(getPackageName(),0).versionCode,12));} catch(Exception ignored) {}
-        saveState=text("変更後は「設定を保存」でホーム画面へ反映します。",12);body.addView(saveState);
-        button("← 収益管理へ戻る",this::finish);
-        body.addView(text("ウィジェットのプレビュー",16));
-        description=text("",12);body.addView(description);
+        colors.clear();
+        LinearLayout root=new LinearLayout(this);root.setOrientation(LinearLayout.VERTICAL);root.setFitsSystemWindows(true);
+        root.setPadding(dp(18),dp(8),dp(18),dp(8));root.setBackgroundColor(0xfff6f5f2);setContentView(root);
+        LinearLayout pinned=new LinearLayout(this);pinned.setOrientation(LinearLayout.VERTICAL);root.addView(pinned,new LinearLayout.LayoutParams(-1,-2));
+        LinearLayout header=new LinearLayout(this);header.setOrientation(LinearLayout.HORIZONTAL);pinned.addView(header);
+        Button back=new Button(this);back.setText("←");back.setContentDescription("収益管理へ戻る");back.setOnClickListener(v->finish());header.addView(back,new LinearLayout.LayoutParams(dp(48),dp(44)));
+        String version="";try{version=" / code "+getPackageManager().getPackageInfo(getPackageName(),0).versionCode;}catch(Exception ignored){}
+        header.addView(text("表示設定"+version,16),new LinearLayout.LayoutParams(0,dp(44),1));
+        Button saveButton=new Button(this);saveButton.setText("保存");saveButton.setOnClickListener(v->save());header.addView(saveButton,new LinearLayout.LayoutParams(dp(76),dp(44)));
+        body=pinned;
+        saveState=text("「保存」でホーム画面へ反映",10);saveState.setPadding(0,0,0,0);saveState.setSingleLine(true);body.addView(saveState);
+        description=text("",10);description.setPadding(0,0,0,0);description.setSingleLine(true);body.addView(description);
         int[] ids=RevenueWidget.ids(this);
         if(previewWidgetId==AppWidgetManager.INVALID_APPWIDGET_ID)previewWidgetId=widgetId!=AppWidgetManager.INVALID_APPWIDGET_ID?widgetId:ids.length>0?ids[0]:AppWidgetManager.INVALID_APPWIDGET_ID;
         if(ids.length>1){
@@ -68,12 +72,15 @@ public final class SettingsActivity extends Activity {
                 public void onNothingSelected(android.widget.AdapterView<?> parent){}
             });
         }
-        preview=new android.widget.FrameLayout(this);
+        preview=new android.widget.FrameLayout(this);preview.setTag("settings-preview");
         body.addView(preview,new LinearLayout.LayoutParams(-1,dp(126)));
         // Replace preview children after layout; synchronous replacement can leave them unmeasured.
         preview.addOnLayoutChangeListener((v,a,b,c,d,e,f,g,h)->{if(c-a!=g-e)preview.post(this::updatePreview);});
-        warning=text("",12);warning.setTextColor(0xff9b4100);body.addView(warning);
-        button("設定を保存",this::save);
+        warning=text("",10);warning.setPadding(0,dp(2),0,dp(2));warning.setMaxLines(2);warning.setTextColor(0xff9b4100);body.addView(warning);
+        ScrollView scroll=new ScrollView(this);scroll.setTag("settings-controls");scroll.setFillViewport(true);root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
+        body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);body.setPadding(0,dp(8),0,dp(24));scroll.addView(body);
+        button("写真2の基準へ戻す",()->{settings.referenceLayout();build();markDirty();});
+        body.addView(text("中央が基準。小さく／大きく調整できます。",12));
         if(widgetId==AppWidgetManager.INVALID_APPWIDGET_ID)button("ホーム画面に追加",()->{
             if(!validateColors())return;settings.save(RevenueStore.prefs(this));RevenueWidget.renderAll(this);
             AppWidgetManager m=AppWidgetManager.getInstance(this);
@@ -88,17 +95,18 @@ public final class SettingsActivity extends Activity {
         });
         color("text","文字色",settings.text);color("background","背景色",settings.background);
         slider("背景の濃さ（100%＝不透明）",0,100,settings.opacity,v->settings.opacity=v);
-        slider("文字サイズ（基準dp・収まらない時だけ縮小）",6,64,settings.font,v->settings.font=v);
-        slider("左余白",0,128,settings.left,v->settings.left=v);slider("右余白",0,128,settings.right,v->settings.right=v);
-        slider("上余白",0,128,settings.top,v->settings.top=v);slider("下余白",0,128,settings.bottom,v->settings.bottom=v);
-        slider("ステータス行間",0,96,settings.gap,v->settings.gap=v);slider("ゲージ太さ（基準dp・高さに合わせて調整）",1,48,settings.gauge,v->settings.gauge=v);
-        slider("文字とゲージの間隔",0,48,settings.textGap,v->settings.textGap=v);
+        slider("文字サイズ（基準32）",24,40,settings.font,v->settings.font=v);
+        slider("左余白（基準17）",1,33,settings.left,v->settings.left=v);slider("右余白（基準16）",0,32,settings.right,v->settings.right=v);
+        slider("上余白",0,24,settings.top,v->settings.top=v);slider("下余白",0,24,settings.bottom,v->settings.bottom=v);
+        slider("ステータス行間（基準5）",0,10,settings.gap,v->settings.gap=v);slider("ゲージ太さ（基準14）",8,20,settings.gauge,v->settings.gauge=v);
+        slider("文字とゲージの間隔（基準4）",0,8,settings.textGap,v->settings.textGap=v);
         button("設定を保存",this::save);
         android.widget.CheckBox pace=new android.widget.CheckBox(this);pace.setText("進歩カラー（THE FOOL QUESTと同じ）");pace.setChecked(settings.paceColors);body.addView(pace);
         pace.setOnCheckedChangeListener((v,checked)->{settings.paceColors=checked;markDirty();for(String key:new String[]{"total","tiktok","coupon"})colors.get(key).setEnabled(!checked);updatePreview();});
         color("total","Total 固定色（進歩カラーOFF時）",settings.total);color("tiktok","TikTok 固定色（進歩カラーOFF時）",settings.tiktok);color("coupon","Coupon 固定色（進歩カラーOFF時）",settings.coupon);
         for(String key:new String[]{"total","tiktok","coupon"})colors.get(key).setEnabled(!settings.paceColors);
-        body.addView(text("日別進歩カラー・2周目カラー（色見本から変更できます）",18));
+        body.addView(text("日別進歩カラー・2周目カラー",18));
+        body.addView(text("3周目（×3）はレインボーで表示します。",13));
         colorPalette("paceAchieved","今日までの目標達成：100%以上",settings.paceAchieved);
         colorPalette("paceBehind","今日までの目標未達：50%以上100%未満",settings.paceBehind);
         colorPalette("paceLow","今日までの目標不足：50%未満",settings.paceLow);
@@ -107,13 +115,15 @@ public final class SettingsActivity extends Activity {
             .setNegativeButton("キャンセル",null).setPositiveButton("初期化",(d,w)->{settings=new DisplaySettings();build();markDirty();}).show());
         updatePreview();
     }
-    private void markDirty(){if(saveState!=null)saveState.setText("未保存の変更があります。「設定を保存」で反映します。");}
+    private void markDirty(){if(saveState!=null)saveState.setText("未保存の変更があります。上の「保存」で反映");}
     private interface Change{void set(int value);}
     private void slider(String label,int min,int max,int current,Change change){
         TextView title=text(label+"："+current,13);body.addView(title);
-        SeekBar bar=new SeekBar(this);bar.setMax(max-min);bar.setProgress(current-min);body.addView(bar);
+        // Keep an existing out-of-range preference until the user explicitly adjusts it.
+        int actualMin=Math.min(min,current),actualMax=Math.max(max,current);
+        SeekBar bar=new SeekBar(this);bar.setMax(actualMax-actualMin);bar.setProgress(current-actualMin);body.addView(bar);
         bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
-            public void onProgressChanged(SeekBar b,int v,boolean user){int n=v+min;title.setText(label+"："+n);change.set(n);if(user)markDirty();updatePreview();}
+            public void onProgressChanged(SeekBar b,int v,boolean user){int n=v+actualMin;title.setText(label+"："+n);change.set(n);if(user)markDirty();updatePreview();}
             public void onStartTrackingTouch(SeekBar b){}public void onStopTrackingTouch(SeekBar b){}
         });
     }
@@ -177,25 +187,24 @@ public final class SettingsActivity extends Activity {
         if(preview==null||isFinishing()||isDestroyed())return;
         float density=getResources().getDisplayMetrics().density;
         int available=preview.getWidth()>0?Math.round(preview.getWidth()/density):340;
-        int w=available,h=126;
+        int w=available,h=196;
         boolean actual=previewWidgetId!=AppWidgetManager.INVALID_APPWIDGET_ID;
         if(actual){
             Bundle options=AppWidgetManager.getInstance(this).getAppWidgetOptions(previewWidgetId);
-            int screen=Math.round(getResources().getDisplayMetrics().widthPixels/density);
-            w=Math.max(120,Math.min(options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,340),screen));
-            h=Math.max(65,options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,130));
+            int[] size=RevenueWidget.previewSize(this,options);w=size[0];h=size[1];
         }
-        float scale=Math.min(1f,(float)available/w);
+        int maxPreview=Math.max(72,Math.min(180,Math.round(getResources().getDisplayMetrics().heightPixels/density*.25f)));
+        float scale=Math.min(1f,Math.min((float)available/w,(float)maxPreview/h));
         android.view.ViewGroup.LayoutParams params=preview.getLayoutParams();
         int previewHeight=Math.round(dp(h)*scale);
         if(params.height!=previewHeight){params.height=previewHeight;preview.setLayoutParams(params);}
         RevenueStore.Data d=RevenueStore.read(this);
         NativeWidgetViews.Result r=NativeWidgetViews.create(this,d,settings,w,h);
         View child=r.views.apply(this,preview);
-        child.setPivotX(0);child.setPivotY(0);child.setScaleX(scale);child.setScaleY(scale);
+        child.setPivotX(0);child.setPivotY(0);child.setScaleX(scale);child.setScaleY(scale);child.setTranslationX(dp((available-w*scale)/2f));
         preview.removeAllViews();preview.addView(child,new android.widget.FrameLayout.LayoutParams(dp(w),dp(h)));
         preview.setContentDescription(WidgetRenderer.description(d));
-        description.setText((actual?"ホームの枠 ":"見本の枠 ")+w+" × "+h+"dp（表示設定は全ウィジェット共通）\n"+WidgetRenderer.footer(d));
+        description.setText((actual?"ホームの枠 ":"見本の枠 ")+w+" × "+h+"dp・全ウィジェット共通");
         String status=!colorValid?"色コードを確認してください。":String.format(java.util.Locale.JAPAN,
             "実際の表示：文字 %.1fdp／行間 %.1fdp／ゲージ %ddp／文字とゲージ %.1fdp。",r.font,r.gap,r.gauge,r.textGap);
         if(r.adjusted)status+=" 枠に収まるよう縮小しています。さらに大きくする場合はホームでウィジェットの幅・高さを広げてください。";

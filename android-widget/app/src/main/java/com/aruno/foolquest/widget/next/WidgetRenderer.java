@@ -34,6 +34,15 @@ final class WidgetRenderer {
         }
         float gauge=Math.min(s.gauge,Math.max(1,l.rowHeight*.2f));
         font=Math.max(1,Math.min(font,(l.rowHeight-gauge-3)/1.3f));
+        // Small-font hinting is not perfectly proportional to measurements at the
+        // larger reference size. Validate the final raster font before drawing.
+        p.setTextSize(font);
+        for(int attempt=0;attempt<100&&font>1;attempt++){
+            boolean fits=p.measureText("Coupon")<=l.labelWidth()&&p.measureText("¥9,999,999")<=l.moneyWidth()&&p.measureText("9999.99%")<=l.percentWidth();
+            for(int i=0;i<3;i++)fits&=p.measureText(current[i])<=l.moneyWidth()&&p.measureText(targets[i])<=l.moneyWidth()&&p.measureText(percents[i])<=l.percentWidth();
+            if(fits)break;
+            font=Math.max(1,font-.1f);p.setTextSize(font);
+        }
         result.font=font; result.adjusted=font<s.font-.25f||gauge<s.gauge||l.adjustedPadding||s.gap>h*.1f;
         p.setTextSize(font); Paint.FontMetrics fm=p.getFontMetrics();
         int[] colors={s.total,s.tiktok,s.coupon}; long now=System.currentTimeMillis(); float gap=Math.min(s.gap,h*.1f);
@@ -63,9 +72,11 @@ final class WidgetRenderer {
             int active=GaugePalette.currentColor(lap,s.paceAchieved,s.secondLap);
             if(layered){
                 p.setColor(GaugePalette.previousColor(lap,s.paceAchieved,s.secondLap));
-                c.drawRoundRect(new RectF(l.left,gy,trackRight,gy+gauge),gauge/2,gauge/2,p);
+                if(GaugeDrawing.rainbowLap(lap-1))GaugeDrawing.rainbow(c,p,l.left,gy,trackWidth,gauge);
+                else c.drawRoundRect(new RectF(l.left,gy,trackRight,gy+gauge),gauge/2,gauge/2,p);
                 p.setColor(active);
-                c.drawRect(l.left,gy,l.left+trackWidth*fill,gy+gauge,p);
+                if(GaugeDrawing.rainbowLap(lap))GaugeDrawing.rainbow(c,p,l.left,gy,trackWidth*fill,gauge);
+                else c.drawRect(l.left,gy,l.left+trackWidth*fill,gy+gauge,p);
                 android.util.DisplayMetrics metrics=context.getResources().getDisplayMetrics();
                 GaugeDrawing.divisions(c,l.left,gy,trackWidth,gauge,fill,metrics.scaledDensity/metrics.density);
                 if(GaugePalette.hasMarker(lap,fill))
@@ -98,3 +109,4 @@ final class WidgetRenderer {
         return b.append(footer(d)).toString();
     }
 }
+

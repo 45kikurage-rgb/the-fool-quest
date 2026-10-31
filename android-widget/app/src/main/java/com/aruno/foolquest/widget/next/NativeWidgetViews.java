@@ -33,8 +33,8 @@ final class NativeWidgetViews {
         String status=WidgetRenderer.footer(d);
         boolean showStatus=!status.isEmpty()&&height>=100;
         float preferredGauge=Math.min(48,s.gauge*Math.max(.25f,(innerH-s.top-s.bottom)/98f));
-        float preferred=s.font*(float)Math.sqrt(Math.max(.25f,innerW/324f*innerH/110f));
-        float font=preferred,content=innerW-left-right;
+        float content=innerW-left-right;
+        float font=Float.MAX_VALUE;
         Paint measure=new Paint();measure.setTypeface(Typeface.create("monospace",Typeface.NORMAL));measure.setTextSize(100);
         float[] available={content*.16f-2,content*.29f-3,content*.03f,content*.29f-3,content*.23f-2};
         String[] reserved={"Coupon","¥9,999,999","/","¥9,999,999","9999.99%"};
@@ -45,15 +45,24 @@ final class NativeWidgetViews {
             font=Math.min(font,available[3]*100/measure.measureText(RevenueMath.money(goals[i])));
             font=Math.min(font,available[4]*100/measure.measureText(RevenueMath.percent(values[i],goals[i])));
         }
+        float widthFont=font;
+        // Photo two is the 32-unit midpoint. Let both sides of that midpoint
+        // change the actual glyph height; condense only when a larger font
+        // would otherwise cross the fixed financial columns.
+        float preferred=Math.max(9f,widthFont*(s.font/32f)*(float)Math.min(1,Math.sqrt(innerH/180f)));
+        font=preferred;
         WidgetSpacing spacing=new WidgetSpacing(innerH,s.top,s.bottom,s.gap,s.textGap,font,preferredGauge,showStatus?13:0);
         font=spacing.font;
         float top=spacing.top,bottom=spacing.bottom,gap=spacing.gap;
         int gauge=spacing.gauge;
+        float textScale=Math.min(1f,widthFont/font);
         Result result=new Result();result.font=font;result.gauge=gauge;result.gap=gap;result.textGap=spacing.textGap;
-        result.adjusted=font<preferred-.25f||spacing.adjusted||paddingScale<1f;
+        result.adjusted=font<preferred-.25f||spacing.adjusted||paddingScale<1f||textScale<.99f;
         RemoteViews rv=new RemoteViews(c.getPackageName(),R.layout.widget_pace);result.views=rv;
         rv.setViewPadding(R.id.widget_content,px(c,left),px(c,top),px(c,right),px(c,bottom));
         rv.setInt(R.id.widget_panel,"setBackgroundColor",(s.background&0xffffff)|(Math.round(s.opacity*2.55f)<<24));
+        rv.setInt(R.id.row_gap_one,"setMinimumHeight",px(c,gap));
+        rv.setInt(R.id.row_gap_two,"setMinimumHeight",px(c,gap));
         int[] colors={s.total,s.tiktok,s.coupon};
         long now=System.currentTimeMillis();
         for(int i=0;i<3;i++){
@@ -61,8 +70,9 @@ final class NativeWidgetViews {
             for(int j=0;j<5;j++){
                 rv.setTextViewText(TEXT[i][j],texts[j]);rv.setTextColor(TEXT[i][j],s.text);
                 rv.setTextViewTextSize(TEXT[i][j],TypedValue.COMPLEX_UNIT_DIP,result.font);
+                rv.setFloat(TEXT[i][j],"setTextScaleX",textScale);
             }
-            rv.setViewPadding(ROW[i],0,0,0,i<2?px(c,gap):0);
+            rv.setViewPadding(ROW[i],0,0,0,0);
             rv.setViewPadding(HOLDER[i],0,px(c,spacing.textGap),0,0);
             RemoteViews bar=new RemoteViews(c.getPackageName(),R.layout.gauge_adaptive);
             long lap=RevenueMath.lapCount(values[i],goals[i]);
@@ -74,7 +84,8 @@ final class NativeWidgetViews {
             bar.setImageViewBitmap(R.id.gauge_image,gauge(c,s.text,
                 base,layered?1f:progress,layered?current:0,layered?progress:0f,
                 layered&&GaugePalette.hasMarker(lap,progress),gauge,
-                Math.max(1,Math.round(content-GaugePalette.LAP_LABEL_WIDTH_DP)),result.font));
+                Math.max(1,Math.round(content-GaugePalette.LAP_LABEL_WIDTH_DP)),result.font,
+                layered&&GaugeDrawing.rainbowLap(lap-1),layered&&GaugeDrawing.rainbowLap(lap)));
             String suffix=lap>=2?"×"+lap:"";
             Bitmap label=bitmap(c,GaugePalette.LAP_LABEL_WIDTH_DP,gauge+2*GaugePalette.MARKER_OVERHANG_DP);
             Canvas labelCanvas=dpCanvas(c,label);
@@ -101,14 +112,19 @@ final class NativeWidgetViews {
     }
     static Bitmap gauge(Context context,int text,int color,float progress,int overlayColor,
                                 float overlay,boolean marker,int heightDp,int widthDp,float amountFontDp){
+        return gauge(context,text,color,progress,overlayColor,overlay,marker,heightDp,widthDp,amountFontDp,false,false);
+    }
+    static Bitmap gauge(Context context,int text,int color,float progress,int overlayColor,
+                        float overlay,boolean marker,int heightDp,int widthDp,float amountFontDp,
+                        boolean baseRainbow,boolean overlayRainbow){
         int over=GaugePalette.MARKER_OVERHANG_DP;
         Bitmap b=bitmap(context,widthDp,heightDp+2*over);
         Canvas c=dpCanvas(context,b);
         Paint p=new Paint();p.setColor(Color.argb(72,Color.red(text),Color.green(text),Color.blue(text)));
         c.drawRect(0,over,widthDp,over+heightDp,p);
-        p.setColor(color);c.drawRect(0,over,widthDp*progress,over+heightDp,p);
+        p.setColor(color);if(baseRainbow)GaugeDrawing.rainbow(c,p,0,over,widthDp*progress,heightDp);else c.drawRect(0,over,widthDp*progress,over+heightDp,p);
         if(overlay>0f){
-            p.setColor(overlayColor);c.drawRect(0,over,widthDp*overlay,over+heightDp,p);
+            p.setColor(overlayColor);if(overlayRainbow)GaugeDrawing.rainbow(c,p,0,over,widthDp*overlay,heightDp);else c.drawRect(0,over,widthDp*overlay,over+heightDp,p);
             DisplayMetrics metrics=context.getResources().getDisplayMetrics();
             GaugeDrawing.divisions(c,0,over,widthDp,heightDp,overlay,metrics.scaledDensity/metrics.density);
             if(marker)GaugeDrawing.boundary(c,0,over,widthDp,heightDp,overlay,amountFontDp);
