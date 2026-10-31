@@ -53,7 +53,26 @@
     "legacyUnchanged": true,
     "previewRevenueRetained": true
   },
-  "publication": "pending",
+  "publication": {
+    "status": "VERIFIED",
+    "verifiedAtJst": "2026-10-31T21:36:52.052047+09:00",
+    "releaseMerge": "30e6bcfd127b668f0c7e64ed23186c90501fc963",
+    "origins": [
+      "https://the-fool-quest.45kikurage.workers.dev/",
+      "https://45kikurage-rgb.github.io/the-fool-quest/"
+    ],
+    "bothPublicApksSha256": "2f76af5fe93e2a4b16bea07732cca6f81cad13c2136576998554839a4e054f1f",
+    "bothPublicApksSize": 79662,
+    "bothPublicCertificatesSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+    "pagesManifestVersionCode": 19,
+    "workerDownloadPage": "VERIFIED_CODE19_AND_LINK",
+    "workerBuild": "94a01191-36ee-48f5-87a2-1cb9f19a06b8",
+    "pagesRun": 41201474875,
+    "workerPage": "https://the-fool-quest.45kikurage.workers.dev/widget-download?v=code19",
+    "workerApk": "https://the-fool-quest.45kikurage.workers.dev/android-widget/releases/fool-quest-widget-0.1.18.apk?revision=2f76af5f",
+    "physicalDevice": "UNVERIFIED",
+    "formalOperationStarted": false
+  },
   "physicalDevice": "unverified",
   "previousCode18Preserved": true
 }
