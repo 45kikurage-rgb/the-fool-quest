@@ -43,7 +43,16 @@
     "textGap": 4
   },
   "rainbowMeaning": "third lap (x3), as explained to the user before implementation",
-  "upgradeTest": "pending",
+  "upgradeTest": {
+    "runId": 41201219790,
+    "result": "PASS",
+    "fromCode": 18,
+    "toCode": 19,
+    "sameUid": true,
+    "fixtureFieldsRetained": 29,
+    "legacyUnchanged": true,
+    "previewRevenueRetained": true
+  },
   "publication": "pending",
   "physicalDevice": "unverified",
   "previousCode18Preserved": true
