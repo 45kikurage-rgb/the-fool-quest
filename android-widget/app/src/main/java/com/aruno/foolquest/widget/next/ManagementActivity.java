@@ -49,6 +49,9 @@ public final class ManagementActivity extends Activity {
     private LinearLayout content;
     private TextView status;
     private int background=0xff101010, foreground=0xffeeeeee;
+    private final DayChangeObserver dayChanges=new DayChangeObserver(this,()->{
+        if(model!=null&&showingHome)execute(this::showHome);
+    });
     private interface Task {void run() throws Exception;}
     private void execute(Task t){try{t.run();}catch(Exception e){alert("操作できません",e.getMessage()==null?"保存・入力を確認してください":e.getMessage());}}
     private int dp(int value){return Math.round(value*getResources().getDisplayMetrics().density);}
@@ -57,7 +60,8 @@ public final class ManagementActivity extends Activity {
         execute(()->{model=new RevenueManager(this);model.projectWidget();showHome();});
         if(getIntent().getBooleanExtra(EXTRA_WIDGET_TAP,false))refreshFromWidget();
     }
-    @Override protected void onResume(){super.onResume();if(model!=null)execute(this::showHome);}
+    @Override protected void onResume(){super.onResume();if(model!=null)execute(this::showHome);dayChanges.start();}
+    @Override protected void onPause(){dayChanges.stop();super.onPause();}
     @Override protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);setIntent(intent);
         if(intent!=null && intent.getBooleanExtra(EXTRA_WIDGET_TAP,false)) {
@@ -99,16 +103,25 @@ public final class ManagementActivity extends Activity {
     }
     private String money(long yen){return RevenueMath.money(yen);}
     private String today(){return RevenueMath.date("yyyy-MM-dd",System.currentTimeMillis());}
+    private void dailyGoal(String tag,String month,long goal,long now){
+        TextView target=text(RevenueMath.dailyTargetLabel(month,goal,now),13);
+        target.setTag(tag);target.setTextColor(0xffffd43b);target.setPadding(dp(4),0,dp(4),dp(8));
+        content.addView(target);
+    }
     private void showHome() throws Exception {
         screen("THE FOOL QUEST");showingHome=true;
         String month=model.month();
         long tiktok=model.tiktok(month),coupon=model.coupon(month);
         long total=RevenueMath.total(tiktok,coupon);
         long tg=model.goal("tiktok"),cg=model.goal("coupon");
+        long now=System.currentTimeMillis();
         heading(month+" 収益");
         content.addView(text("Total   "+money(total)+" / "+money(tg+cg),19));
+        dailyGoal("target-total",month,RevenueMath.total(tg,cg),now);
         content.addView(text("TikTok   "+money(tiktok)+" / "+money(tg),16));
+        dailyGoal("target-tiktok",month,tg,now);
         content.addView(text("Coupon   "+money(coupon)+" / "+money(cg),16));
+        dailyGoal("target-coupon",month,cg,now);
         if(coupon<0)info("Couponは未取得です。ネットワーク接続後に更新してください。");
         if(tiktok<0)info("TikTokは未登録です。CSVまたはサイトの旧データを取り込んでください。");
         info("ウィジェットは同じ端末内の収益・目標を表示します。Couponは中央管理台帳の読取専用です。");

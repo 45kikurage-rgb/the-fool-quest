@@ -81,11 +81,15 @@ final class NativeWidgetViews {
             int current=GaugePalette.currentColor(lap,s.paceAchieved,s.secondLap);
             int previous=GaugePalette.previousColor(lap,s.paceAchieved,s.secondLap);
             int base=layered?previous:s.gaugeColor(values[i],goals[i],d.month,now,colors[i]);
-            bar.setImageViewBitmap(R.id.gauge_image,gauge(c,s.text,
+            int trackWidth=Math.max(1,Math.round(content-GaugePalette.LAP_LABEL_WIDTH_DP));
+            Bitmap track=gauge(c,s.text,
                 base,layered?1f:progress,layered?current:0,layered?progress:0f,
                 layered&&GaugePalette.hasMarker(lap,progress),gauge,
-                Math.max(1,Math.round(content-GaugePalette.LAP_LABEL_WIDTH_DP)),result.font,
-                layered&&GaugeDrawing.rainbowLap(lap-1),layered&&GaugeDrawing.rainbowLap(lap)));
+                trackWidth,result.font,
+                layered&&GaugeDrawing.rainbowLap(lap-1),layered&&GaugeDrawing.rainbowLap(lap));
+            if(i==0)GaugeDrawing.dailyTarget(dpCanvas(c,track),0,GaugePalette.MARKER_OVERHANG_DP,
+                trackWidth,gauge,RevenueMath.targetProgress(d.month,goals[i],now),s.targetLineColor,s.targetLineWidth);
+            bar.setImageViewBitmap(R.id.gauge_image,track);
             String suffix=lap>=2?"×"+lap:"";
             Bitmap label=bitmap(c,GaugePalette.LAP_LABEL_WIDTH_DP,gauge+2*GaugePalette.MARKER_OVERHANG_DP);
             Canvas labelCanvas=dpCanvas(c,label);

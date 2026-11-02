@@ -34,6 +34,8 @@ public final class SettingsActivity extends Activity {
     private boolean resumed=false;
     private int previewWidgetId=AppWidgetManager.INVALID_APPWIDGET_ID;
     private TextView saveState;
+    private TextView midnightStatus;
+    private final DayChangeObserver dayChanges=new DayChangeObserver(this,this::updatePreview);
     private int dp(float n){return Math.round(n*getResources().getDisplayMetrics().density);}
     @Override public void onCreate(Bundle b){
         super.onCreate(b); setResult(RESULT_CANCELED);
@@ -42,8 +44,8 @@ public final class SettingsActivity extends Activity {
         RevenueUpdate.start(this,()->runOnUiThread(this::updatePreview));
     }
     @Override protected void onNewIntent(Intent i){super.onNewIntent(i);setIntent(i);handleImport(i);}
-    @Override protected void onResume(){super.onResume();resumed=true;updatePreview();}
-    @Override protected void onPause(){super.onPause();resumed=false;}
+    @Override protected void onResume(){super.onResume();resumed=true;dayChanges.start();DailyTargetReceiver.schedule(this);updatePreview();}
+    @Override protected void onPause(){dayChanges.stop();super.onPause();resumed=false;}
     private TextView text(String s,int size){TextView v=new TextView(this);v.setText(s);v.setTextColor(0xff171717);v.setTextSize(size);v.setPadding(0,dp(7),0,dp(7));return v;}
     private Button button(String label,Runnable action){Button b=new Button(this);b.setText(label);b.setAllCaps(false);b.setOnClickListener(v->action.run());body.addView(b,new LinearLayout.LayoutParams(-1,-2));return b;}
     private void build(){
@@ -100,6 +102,15 @@ public final class SettingsActivity extends Activity {
         slider("上余白",0,24,settings.top,v->settings.top=v);slider("下余白",0,24,settings.bottom,v->settings.bottom=v);
         slider("ステータス行間（基準5）",0,10,settings.gap,v->settings.gap=v);slider("ゲージ太さ（基準14）",8,20,settings.gauge,v->settings.gauge=v);
         slider("文字とゲージの間隔（基準4）",0,8,settings.textGap,v->settings.textGap=v);
+        body.addView(text("Total：今日までの目標線",18));
+        body.addView(text("月間目標を日割りした、今日までの累計目標の位置です。日本時間の0時に切り替わります。",13));
+        colorPalette("targetLine","目標線の色",settings.targetLineColor);
+        slider("目標線の太さ（dp・基準2）",1,8,settings.targetLineWidth,v->settings.targetLineWidth=v);
+        midnightStatus=text("",12);body.addView(midnightStatus);
+        if(android.os.Build.VERSION.SDK_INT>=31)button("0時の更新を許可する",()->{
+            try{startActivity(new Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,Uri.parse("package:"+getPackageName())));}
+            catch(android.content.ActivityNotFoundException unavailable){message("端末の設定から、このアプリの「アラームとリマインダー」を許可してください。");}
+        });
         button("設定を保存",this::save);
         android.widget.CheckBox pace=new android.widget.CheckBox(this);pace.setText("進歩カラー（THE FOOL QUESTと同じ）");pace.setChecked(settings.paceColors);body.addView(pace);
         pace.setOnCheckedChangeListener((v,checked)->{settings.paceColors=checked;markDirty();for(String key:new String[]{"total","tiktok","coupon"})colors.get(key).setEnabled(!checked);updatePreview();});
@@ -179,12 +190,16 @@ public final class SettingsActivity extends Activity {
                 case "paceBehind":settings.paceBehind=v;break;
                 case "paceLow":settings.paceLow=v;break;
                 case "secondLap":settings.secondLap=v;break;
+                case "targetLine":settings.targetLineColor=v;break;
             }
         }
         return colorValid;
     }
     private void updatePreview(){
         if(preview==null||isFinishing()||isDestroyed())return;
+        if(midnightStatus!=null)midnightStatus.setText(DailyTargetReceiver.exactAllowed(this)?
+            "0時の更新：許可済み（端末の省電力制御で遅れる場合があります）":
+            "0時の更新：許可すると日付の切り替えに合わせて更新します。未許可では更新が遅れる場合があります。");
         float density=getResources().getDisplayMetrics().density;
         int available=preview.getWidth()>0?Math.round(preview.getWidth()/density):340;
         int w=available,h=196;

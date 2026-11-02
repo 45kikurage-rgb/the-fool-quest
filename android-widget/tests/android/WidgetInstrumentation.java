@@ -198,6 +198,53 @@ public class WidgetInstrumentation extends Instrumentation {
             png(b,"third-lap-rainbow-"+Math.round(progress*10000));
         }
     }
+    void dailyTargetChecks()throws Exception {
+        android.content.SharedPreferences prefs=c.getSharedPreferences("target-test",0);prefs.edit().clear().commit();
+        DisplaySettings settings=DisplaySettings.load(prefs);
+        ok(settings.targetLineColor==0xffffd43b&&settings.targetLineWidth==2,"old installs receive yellow 2dp target defaults");
+        settings.targetLineColor=0xff3dbdff;settings.targetLineWidth=6;settings.font=30;settings.save(prefs);
+        settings=DisplaySettings.load(prefs);
+        ok(settings.targetLineColor==0xff3dbdff&&settings.targetLineWidth==6&&settings.font==30,"target settings persist alongside existing layout");
+        settings.referenceLayout();
+        ok(settings.targetLineColor==0xff3dbdff&&settings.targetLineWidth==6,"reference layout preserves target preference");
+        settings.targetLineWidth=100;settings.save(prefs);ok(DisplaySettings.load(prefs).targetLineWidth==8,"target width is bounded");
+        prefs.edit().clear().commit();
+        for(int dpi:new int[]{160,320})for(int thickness:new int[]{1,2,8})for(float progress:new float[]{-1f,0f,.1f,.5f,1f}){
+            android.content.res.Configuration config=new android.content.res.Configuration(c.getResources().getConfiguration());config.densityDpi=dpi;
+            Context host=c.createConfigurationContext(config);float density=host.getResources().getDisplayMetrics().density;
+            android.graphics.Bitmap b=NativeWidgetViews.gauge(host,0xffffffff,0xff00ee00,.1777f,0,0,false,14,300,13);
+            android.graphics.Bitmap before=b.copy(android.graphics.Bitmap.Config.ARGB_8888,false);
+            android.graphics.Canvas canvas=new android.graphics.Canvas(b);canvas.scale(density,density);
+            GaugeDrawing.dailyTarget(canvas,0,GaugePalette.MARKER_OVERHANG_DP,300,14,progress,0xff3dbdff,thickness);
+            int changed=0,minX=b.getWidth(),maxX=-1,minY=b.getHeight(),maxY=-1;
+            for(int y=0;y<b.getHeight();y++)for(int x=0;x<b.getWidth();x++)if(b.getPixel(x,y)!=before.getPixel(x,y)){
+                changed++;minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y);
+                if(b.getPixel(x,y)!=0xff3dbdff)throw new AssertionError("target color mismatch");
+            }
+            if(progress<0)ok(changed==0,"unknown or stale target leaves pixels unchanged");
+            else {
+                ok(maxX-minX+1==Math.round(thickness*density),"target keeps chosen width, including month end");
+                ok(minY==Math.round(GaugePalette.MARKER_OVERHANG_DP*density)&&maxY-minY+1==Math.round(14*density),"target stays inside gauge height");
+                ok(changed==Math.round(thickness*density)*Math.round(14*density),"only target stripe changes");
+                if(progress==1)ok(maxX==b.getWidth()-1,"month-end line stays visible at right edge");
+            }
+        }
+        RevenueStore.Data data=new RevenueStore.Data();data.month=RevenueMath.month(System.currentTimeMillis());
+        data.tiktok=11700;data.coupon=201500;data.goalTiktok=600000;data.goalCoupon=600000;data.goalTotal=1200000;
+        data.importAt=1;data.couponAt=1;
+        DisplaySettings yellow=new DisplaySettings(),blue=new DisplaySettings();blue.targetLineColor=0xff3dbdff;
+        runOnMainSync(()->{
+            android.view.View first=NativeWidgetViews.create(c,data,yellow,340,126).views.apply(c,null);
+            android.view.View second=NativeWidgetViews.create(c,data,blue,340,126).views.apply(c,null);
+            for(int row=0;row<3;row++){
+                android.widget.ImageView a=first.findViewById(NativeWidgetViews.HOLDER[row]).findViewById(R.id.gauge_image);
+                android.widget.ImageView b=second.findViewById(NativeWidgetViews.HOLDER[row]).findViewById(R.id.gauge_image);
+                android.graphics.Bitmap aa=((android.graphics.drawable.BitmapDrawable)a.getDrawable()).getBitmap();
+                android.graphics.Bitmap bb=((android.graphics.drawable.BitmapDrawable)b.getDrawable()).getBitmap();
+                ok(aa.sameAs(bb)==(row!=0),"only Total receives target line color changes");
+            }
+        });
+    }
     void gaugeAnnotations()throws Exception {
         android.content.res.Configuration config=new android.content.res.Configuration(c.getResources().getConfiguration());config.densityDpi=320;
         Context host=c.createConfigurationContext(config);float density=host.getResources().getDisplayMetrics().density;
@@ -307,13 +354,23 @@ public class WidgetInstrumentation extends Instrumentation {
             "Coupon monthly archive is included in user backup");
         Activity home=startActivitySync(new Intent(c,ManagementActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
         ok(home!=null,"native revenue management screen launches");
+        long targetTime=System.currentTimeMillis();
+        String[] expectedTargets={RevenueMath.dailyTargetLabel(month,RevenueMath.total(manager.goal("tiktok"),manager.goal("coupon")),targetTime),
+            RevenueMath.dailyTargetLabel(month,manager.goal("tiktok"),targetTime),RevenueMath.dailyTargetLabel(month,manager.goal("coupon"),targetTime)};
         runOnMainSync(()->{
+            String[] tags={"target-total","target-tiktok","target-coupon"};
+            for(int i=0;i<3;i++){
+                android.widget.TextView target=home.getWindow().getDecorView().findViewWithTag(tags[i]);
+                ok(target!=null&&target.getText().toString().equals(expectedTargets[i]),"management displays cumulative daily target amount: "+tags[i]);
+            }
             ok(button(home.getWindow().getDecorView(),"旧サイトの移行ファイル作成ページ")==null,
                 "migration controls are not shown on normal management screen");
             ok(button(home.getWindow().getDecorView(),"バックアップ・復元")!=null,
                 "backup recovery remains accessible");
-            button(home.getWindow().getDecorView(),"収益履歴・手動追加の編集").performClick();
         });
+        waitForIdleSync();
+        png(getUiAutomation().takeScreenshot(),"native-revenue-daily-targets");
+        runOnMainSync(()->button(home.getWindow().getDecorView(),"収益履歴・手動追加の編集").performClick());
         waitForIdleSync();
         runOnMainSync(()->{
             android.view.View root=home.getWindow().getDecorView();
@@ -340,6 +397,7 @@ public class WidgetInstrumentation extends Instrumentation {
         try{
             c=getTargetContext();output=new File(c.getExternalFilesDir(null),"verification");output.mkdirs();
             gaugeAnnotations();
+            dailyTargetChecks();
             if("offline".equals(args.getString("mode"))){
                 android.net.ConnectivityManager connectivity=c.getSystemService(android.net.ConnectivityManager.class);
                 for(int n=0;n<100&&connectivity.getActiveNetwork()!=null;n++)Thread.sleep(200);

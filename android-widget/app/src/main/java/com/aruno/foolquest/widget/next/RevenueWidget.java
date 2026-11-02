@@ -21,6 +21,7 @@ public final class RevenueWidget extends AppWidgetProvider {
         AppWidgetManager manager=AppWidgetManager.getInstance(c);
         RevenueStore.Data d=RevenueStore.read(c);DisplaySettings s=DisplaySettings.load(RevenueStore.prefs(c));
         for(int id:ids(c))render(c,manager,id,d,s);
+        DailyTargetReceiver.schedule(c);
     }
     static int[] previewSize(Context c,Bundle o){
         int screen=Math.round(c.getResources().getDisplayMetrics().widthPixels/c.getResources().getDisplayMetrics().density);
@@ -71,7 +72,7 @@ public final class RevenueWidget extends AppWidgetProvider {
         renderAll(c);RevenueJob.schedule(c);RevenueJob.requestRefresh(c);
     }
     @Override public void onAppWidgetOptionsChanged(Context c,AppWidgetManager m,int id,Bundle o){m.updateAppWidget(id,sizedViews(c,o,RevenueStore.read(c),DisplaySettings.load(RevenueStore.prefs(c))));}
-    @Override public void onEnabled(Context c){RevenueJob.schedule(c);}
-    @Override public void onDisabled(Context c){RevenueJob.cancel(c);}
+    @Override public void onEnabled(Context c){RevenueJob.schedule(c);DailyTargetReceiver.schedule(c);}
+    @Override public void onDisabled(Context c){RevenueJob.cancel(c);DailyTargetReceiver.cancel(c);}
 }
 
