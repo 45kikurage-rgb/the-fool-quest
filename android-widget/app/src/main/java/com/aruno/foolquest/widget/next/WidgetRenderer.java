@@ -85,6 +85,8 @@ final class WidgetRenderer {
                 p.setColor(s.gaugeColor(values[i],goals[i],data.month,now,colors[i]));
                 c.drawRoundRect(new RectF(l.left,gy,l.left+trackWidth*fill,gy+gauge),gauge/2,gauge/2,p);
             }
+            if(i==0)GaugeDrawing.dailyTarget(c,l.left,gy,trackWidth,gauge,
+                RevenueMath.targetProgress(data.month,goals[i],now),s.targetLineColor,s.targetLineWidth);
             if(lap>=2){
                 GaugeDrawing.lapLabel(c,lap,layered?active:GaugePalette.PACE_UNKNOWN,l.right,gy,gauge);
             }
@@ -106,6 +108,7 @@ final class WidgetRenderer {
     static String description(RevenueStore.Data d){
         StringBuilder b=new StringBuilder(d.month+" ");long[] v=d.values(),g=d.goals();
         for(int i=0;i<3;i++)b.append(LABELS[i]).append(' ').append(RevenueMath.money(v[i])).append('/').append(RevenueMath.money(g[i])).append(' ').append(RevenueMath.percent(v[i],g[i])).append("。 ");
+        b.append("Total ").append(RevenueMath.dailyTargetLabel(d.month,g[0],System.currentTimeMillis())).append("。 ");
         return b.append(footer(d)).toString();
     }
 }

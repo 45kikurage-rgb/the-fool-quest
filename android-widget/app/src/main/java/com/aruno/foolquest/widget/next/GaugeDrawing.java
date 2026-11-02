@@ -10,6 +10,16 @@ import android.graphics.Typeface;
 final class GaugeDrawing {
     private GaugeDrawing() {}
 
+    /** Cumulative daily target, confined to the track; keep the full line visible at month end. */
+    static void dailyTarget(Canvas c,float left,float top,float width,float height,
+                            float progress,int color,float thickness) {
+        if(progress<0||progress>1||width<=0||height<=0)return;
+        float line=Math.min(width,Math.max(1,Math.min(8,thickness)));
+        float x=Math.max(left,Math.min(left+width-line,left+width*progress-line/2));
+        Paint p=new Paint();p.setColor(color|0xff000000);p.setAntiAlias(false);
+        c.drawRect(x,top,x+line,top+height,p);
+    }
+
     static Paint textPaint() {
         Paint p=new Paint(Paint.ANTI_ALIAS_FLAG);
         p.setTypeface(Typeface.create("monospace",Typeface.NORMAL));

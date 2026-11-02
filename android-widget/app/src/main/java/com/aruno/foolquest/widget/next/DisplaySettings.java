@@ -6,11 +6,14 @@ import android.graphics.Color;
 public final class DisplaySettings {
     int text = Color.WHITE, background = Color.BLACK;
     int total = 0xffffe24d, tiktok = 0xffff5252, coupon = 0xff4ade80;
+    int targetLineColor = 0xffffd43b, targetLineWidth = 2;
     boolean paceColors = true;
     int paceAchieved = GaugePalette.FIRST_GREEN, paceBehind = GaugePalette.PACE_BEHIND, paceLow = GaugePalette.PACE_LOW, secondLap = GaugePalette.SECOND_LIME;
     int opacity = 100, font = 32, left = 17, right = 16, top = 0, bottom = 0, gap = 5, gauge = 14, textGap = 4;
     static DisplaySettings load(SharedPreferences p) {
         DisplaySettings s = new DisplaySettings();
+        s.targetLineColor=p.getInt("colorTargetLine",s.targetLineColor);
+        s.targetLineWidth=p.getInt("targetLineWidth",s.targetLineWidth);
         s.paceColors=p.getBoolean("paceColors",true);
         s.paceAchieved=p.getInt("colorPaceAchieved",s.paceAchieved);
         s.paceBehind=p.getInt("colorPaceBehind",s.paceBehind);
@@ -37,6 +40,7 @@ public final class DisplaySettings {
         }
     }
     void clamp() {
+        targetLineWidth=bound(targetLineWidth,1,8);
         opacity=bound(opacity,0,100); font=bound(font,6,64);
         left=bound(left,0,128); right=bound(right,0,128); top=bound(top,0,128); bottom=bound(bottom,0,128);
         gap=bound(gap,0,96); gauge=bound(gauge,1,48); textGap=bound(textGap,0,48);
@@ -44,6 +48,7 @@ public final class DisplaySettings {
     private static int bound(int v,int a,int b){ return Math.max(a,Math.min(b,v)); }
     void save(SharedPreferences p) {
         clamp(); p.edit().putBoolean("paceColors",paceColors).putInt("text",text).putInt("background",background).putInt("colorTotal",total)
+            .putInt("colorTargetLine",targetLineColor).putInt("targetLineWidth",targetLineWidth)
             .putInt("colorTiktok",tiktok).putInt("colorCoupon",coupon).putInt("opacity",opacity).putInt("font",font)
             .putInt("colorPaceAchieved",paceAchieved).putInt("colorPaceBehind",paceBehind)
             .putInt("colorPaceLow",paceLow).putInt("colorSecondLap",secondLap).putInt("left",left).putInt("right",right).putInt("top",top).putInt("bottom",bottom).putInt("gap",gap).putInt("gauge",gauge).putInt("textGap",textGap).apply();

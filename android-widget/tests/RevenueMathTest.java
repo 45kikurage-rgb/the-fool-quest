@@ -54,6 +54,27 @@ public class RevenueMathTest {
         eq(RevenueMath.targetThroughToday("2026-10",RevenueMath.MAX_YEN,Instant.parse("2026-10-31T14:59:59Z").toEpochMilli()),RevenueMath.MAX_YEN);
         eq(RevenueMath.targetThroughToday("2028-02",2900,Instant.parse("2028-02-29T00:00:00Z").toEpochMilli()),2900L);
         eq(RevenueMath.targetThroughToday("2026-02",2800,Instant.parse("2026-02-28T00:00:00Z").toEpochMilli()),2800L);
+        long november=Instant.parse("2026-11-02T15:00:00Z").toEpochMilli();
+        eq(RevenueMath.targetThroughToday("2026-11",1200000,november),120000L);
+        eq(RevenueMath.targetProgress("2026-11",1200000,november),.1f);
+        eq(RevenueMath.targetProgress("2026-10",1200000,november),-1f);
+        eq(RevenueMath.targetProgress("2026-11",0,november),-1f);
+        eq(RevenueMath.targetProgress("2026-11",RevenueMath.MAX_YEN+1,november),-1f);
+        eq(RevenueMath.dailyTargetLabel("2026-11",1200000,november),"今日までの目標（11/3） ¥120,000");
+        eq(RevenueMath.dailyTargetLabel("2026-11",600000,november),"今日までの目標（11/3） ¥60,000");
+        eq(RevenueMath.nextMidnightJst(november-1),november);
+        eq(RevenueMath.nextMidnightJst(november),november+86400000L);
+        java.util.TimeZone previousZone=java.util.TimeZone.getDefault();
+        try{
+            java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("America/Los_Angeles"));
+            for(String[] boundary:new String[][]{
+                {"2026-12-31T14:59:59Z","2026-12-31T15:00:00Z"},
+                {"2028-02-28T15:00:00Z","2028-02-29T15:00:00Z"},
+                {"2026-02-28T00:00:00Z","2026-02-28T15:00:00Z"}}){
+                long time=Instant.parse(boundary[0]).toEpochMilli();
+                eq(RevenueMath.nextMidnightJst(time),Instant.parse(boundary[1]).toEpochMilli());
+            }
+        }finally{java.util.TimeZone.setDefault(previousZone);}
         // Integer revenues surrounding the exact site 50% and 100% daily pace boundaries.
         eq(RevenueMath.pace(348388,1200000,"2026-10",ninth),RevenueMath.PACE_ON_TRACK);
         eq(RevenueMath.pace(348387,1200000,"2026-10",ninth),RevenueMath.PACE_BEHIND);
