@@ -231,7 +231,7 @@ public class WidgetInstrumentation extends Instrumentation {
         }
         RevenueStore.Data data=new RevenueStore.Data();data.month=RevenueMath.month(System.currentTimeMillis());
         data.tiktok=11700;data.coupon=201500;data.goalTiktok=600000;data.goalCoupon=600000;data.goalTotal=1200000;
-        data.importAt=1;data.couponAt=1;
+        data.importAt=1;data.couponAt=1;data.error="";data.errorCode="";
         DisplaySettings yellow=new DisplaySettings(),blue=new DisplaySettings();blue.targetLineColor=0xff3dbdff;
         runOnMainSync(()->{
             android.view.View first=NativeWidgetViews.create(c,data,yellow,340,126).views.apply(c,null);
