@@ -1,0 +1,65 @@
+{
+  "dateJst": "2026-11-03",
+  "policyVersion": "2026-10-24.3",
+  "sourceCommit": "80686e2dafe1d2fe276f872ae0e81d80aa3fcc7e",
+  "nativeTestRun": 41548415774,
+  "mathLayoutChecks": 260,
+  "httpChecks": 28,
+  "exportTests": 9,
+  "initialNativeAttempt": {
+    "runId": 41548019699,
+    "result": "FAILED_TEST_FIXTURE",
+    "reason": "Missing error/status strings in added synthetic RevenueStore.Data fixture; corrected test initialization. Application code unchanged."
+  },
+  "dailyTarget": {
+    "inclusiveJstDay": true,
+    "rounding": "ceil to yen",
+    "defaultColor": "#FFD43B",
+    "defaultWidthDp": 2,
+    "widthRangeDp": [
+      1,
+      8
+    ],
+    "widgetRows": 3,
+    "markerMetric": "Total",
+    "managementMetrics": [
+      "Total",
+      "TikTok",
+      "Coupon"
+    ],
+    "midnight": "JST; exact alarm when permitted; inexact fallback otherwise",
+    "staleMonth": "no current-day marker"
+  },
+  "physicalDevice": "unverified",
+  "formalOperationStarted": false,
+  "publication": {
+    "status": "PENDING"
+  },
+  "sourceMerge": "074618a841ecd47f9b3f0199c8f1ac98e6b69139",
+  "nativeChecks": 5639,
+  "offlineChecks": 214,
+  "rebootChecks": 204,
+  "nativeScreenshotNote": "First management screenshot was captured before first draw; management amount assertions passed. Signed upgrade capture is used for visual verification.",
+  "signing": {
+    "apk_sha256": "5c548d4f08753d94b94321491037dcab09a9e02c3196311daa67a63fff5c75d1",
+    "app_id": "foolquest-widget-next",
+    "certificate_sha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+    "device_verified": false,
+    "existing_key": true,
+    "package": "com.aruno.foolquest.widget.next",
+    "production_release": false,
+    "published": false,
+    "run_id": "41549048272",
+    "schema": 1,
+    "source_commit": "80686e2dafe1d2fe276f872ae0e81d80aa3fcc7e",
+    "source_repository": "45kikurage-rgb/the-fool-quest",
+    "trial_signed": true,
+    "unsigned_sha256": "f165fb9ad19ab512baf1ced44313dbaf35ccf212e30ed63b7fb9455fc70aeebb",
+    "version_code": 20,
+    "version_name": "0.1.19",
+    "workflow_commit": "81f76a911c7d39fbecca14671914b0fe4c1b04a5"
+  },
+  "apkSize": 79662,
+  "signedPayloadMatchesTestedUnsigned": true,
+  "certificateComparedWithPublishedCode19": true
+}
