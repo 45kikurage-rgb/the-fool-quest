@@ -61,5 +61,16 @@
   },
   "apkSize": 79662,
   "signedPayloadMatchesTestedUnsigned": true,
-  "certificateComparedWithPublishedCode19": true
+  "certificateComparedWithPublishedCode19": true,
+  "upgradeTest": {
+    "runId": 41549393773,
+    "result": "PASS",
+    "fromCode": 19,
+    "toCode": 20,
+    "sameUid": true,
+    "fixtureFieldsRetained": 29,
+    "legacyUnchanged": true,
+    "previewRevenueRetained": true,
+    "managementTargetLabels": 3
+  }
 }
