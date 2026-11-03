@@ -372,12 +372,11 @@ final class RevenueManager {
             if(amount==Long.MIN_VALUE)throw new IllegalArgumentException("CSV金額が不正です");
             long positive=Math.abs(amount);total=plus(total,positive);count++;
             String date=dateIndex>=0&&record.size()>dateIndex?record.get(dateIndex).trim():"";
-            java.util.regex.Matcher m=java.util.regex.Pattern.compile("^(20[0-9]{2})[/-]([0-9]{1,2})[/-]([0-9]{1,2})(?:[ T].*)?$").matcher(date);
-            if(!m.matches()){complete=false;continue;}
-            String normalized=String.format(Locale.US,"%s-%02d-%02d",m.group(1),Integer.parseInt(m.group(2)),Integer.parseInt(m.group(3)));
-            try{checkDate(normalized);}catch(Exception badDate){complete=false;continue;}
+            String normalized=CalendarDateMath.normalizeCsvDate(date);
+            if(normalized==null){complete=false;continue;}
             String rowMonth=normalized.substring(0,7);
-            if(!month.isEmpty()&&!month.equals(rowMonth)){complete=false;continue;}
+            if(!month.isEmpty()&&!month.equals(rowMonth))
+                throw new IllegalArgumentException("CSVに複数月の日付があります。月別CSVを選択してください");
             month=rowMonth;
             days.put(normalized,plus(days.containsKey(normalized)?days.get(normalized):0L,positive));
         }

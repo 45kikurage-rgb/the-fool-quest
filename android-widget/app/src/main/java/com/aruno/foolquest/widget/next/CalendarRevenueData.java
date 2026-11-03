@@ -5,9 +5,7 @@ import android.content.SharedPreferences;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Iterator;
-import java.util.TimeZone;
 
 /** Read-only presentation projection. Unknown day values are -1, never fabricated as zero. */
 final class CalendarRevenueData {
@@ -18,16 +16,8 @@ final class CalendarRevenueData {
         Month(){for(long[] row:days)Arrays.fill(row,-1L);}
     }
     private CalendarRevenueData(){}
-    static int daysInMonth(String month){
-        Calendar c=Calendar.getInstance(TimeZone.getTimeZone("Asia/Tokyo"));
-        c.clear(); c.set(Integer.parseInt(month.substring(0,4)),Integer.parseInt(month.substring(5,7))-1,1);
-        return c.getActualMaximum(Calendar.DAY_OF_MONTH);
-    }
-    static int firstWeekday(String month){
-        Calendar c=Calendar.getInstance(TimeZone.getTimeZone("Asia/Tokyo"));
-        c.clear();c.set(Integer.parseInt(month.substring(0,4)),Integer.parseInt(month.substring(5,7))-1,1);
-        return c.get(Calendar.DAY_OF_WEEK)-Calendar.SUNDAY;
-    }
+    static int daysInMonth(String month){return CalendarDateMath.daysInMonth(month);}
+    static int firstWeekday(String month){return CalendarDateMath.firstWeekday(month);}
     static long sum(long a,long b){
         return a<0||b<0||a>RevenueMath.MAX_YEN-b?-1:a+b;
     }
@@ -76,7 +66,12 @@ final class CalendarRevenueData {
                 manualTotal=sum(manualTotal,amount);
                 manualByDay[day]=sum(manualByDay[day],amount);
             }
-            result.totals[2]=sum(csv,manualTotal);
+            // The legacy site snapshot writes a monthly value to the existing widget cache.
+            // It is a monthly fallback only: no daily breakdown may be inferred from it.
+            long oldTotal=selected.equals(p.getString("importMonth",""))
+                ?p.getLong("tiktok",-1):-1;
+            result.totals[2]=csv>=0?sum(csv,manualTotal):
+                oldTotal>=0&&oldTotal<=RevenueMath.MAX_YEN?oldTotal:-1;
             if(csv==0){
                 for(int d=1;d<=daysInMonth(selected);d++)result.days[d][2]=manualByDay[d];
                 result.tiktokDaily=true;

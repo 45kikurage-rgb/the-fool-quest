@@ -330,7 +330,16 @@ public class WidgetInstrumentation extends Instrumentation {
         RevenueManager.CsvResult parsed=RevenueManager.parseCsv("ID,チャージポイント\nA,\"1,000\"\nB,-200\n");
         ok(parsed.total==1200 && parsed.count==2,"CSV parser handles quoted values and returns total");
         RevenueManager manager=new RevenueManager(c);
-        manager.setCsv(month,1000,"fixture.csv",1);
+        String csvMonth=month.replace('-','/');
+        RevenueManager.CsvResult daily=RevenueManager.parseCsv("日付,チャージポイント\n"
+            +csvMonth+"/01,750\n"+csvMonth+"/02,250\n");
+        ok(daily.datesComplete&&daily.total==1000&&month.equals(daily.datesMonth),
+            "dated CSV parsed into selected month");
+        manager.setCsv(month,daily,"dated-fixture.csv");
+        CalendarRevenueData.Month calendar=CalendarRevenueData.read(c,month);
+        ok(calendar.tiktokDaily&&calendar.days[1][2]==750&&calendar.days[2][2]==250,
+            "calendar daily TikTok equals dated CSV");
+        ok(calendar.totals[2]==1000,"daily CSV reconciles to monthly baseline");
         manager.addManual(month+"-10",250);
         ok(manager.tiktok(month)==1250,"native manual amount adds to CSV exactly once");
         String id=manager.manual().getJSONObject(manager.manual().length()-1).getString("id");
