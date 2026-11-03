@@ -200,15 +200,16 @@ public final class ManagementActivity extends Activity {
                     String name=uri.getLastPathSegment();
                     if(name==null)name="選択したCSV";
                     final String file=name;
-                    String month=model.month();
+                    String month=parsed.datesComplete ? parsed.datesMonth : model.month();
                     long old=model.csvBase(month);
                     new AlertDialog.Builder(this).setTitle("CSV反映の確認")
                         .setMessage("対象月："+month+"\n新CSV："+money(parsed.total)+"（"+parsed.count+"件）"
+                            +"\n日別："+(parsed.datesComplete?"保存可能":"日付を確認できないため月計のみ")
                             +"\n既存CSV："+money(old)
                             +"\n\n既存CSV合計を置き換えます。手動追加分は別に保持するため二重加算しません。")
                         .setNegativeButton("やめる",null)
                         .setPositiveButton("この金額に更新",(d,w)->execute(()->{
-                            model.setCsv(month,resultCsv.total,file,resultCsv.count);showHome();
+                            model.setCsv(month,resultCsv,file);showHome();
                         })).show();
                 } else if(request==OPEN_MIGRATION) {
                     String json=decodeUtf8(input);

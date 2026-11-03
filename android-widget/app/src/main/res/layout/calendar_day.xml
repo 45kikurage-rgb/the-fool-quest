@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/calendar_day_root" android:layout_width="0dp"
+    android:layout_weight="1" android:layout_height="match_parent"
+    android:orientation="vertical" android:padding="1dp" android:background="#202020"
+    android:gravity="center_horizontal">
+    <TextView android:id="@+id/calendar_day_number" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:gravity="center" android:text="1"
+        android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="11sp"
+        android:includeFontPadding="false" android:singleLine="true" />
+    <TextView android:id="@+id/calendar_day_total" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:gravity="center" android:text="—"
+        android:textColor="#FFFFFF" android:textSize="8sp"
+        android:includeFontPadding="false" android:singleLine="true" />
+    <TextView android:id="@+id/calendar_day_coupon" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:gravity="center" android:text="C —"
+        android:textColor="#63E09E" android:textSize="8sp"
+        android:includeFontPadding="false" android:singleLine="true" />
+    <TextView android:id="@+id/calendar_day_tiktok" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:gravity="center" android:text="T —"
+        android:textColor="#7FBAFF" android:textSize="8sp"
+        android:includeFontPadding="false" android:singleLine="true" />
+</LinearLayout>

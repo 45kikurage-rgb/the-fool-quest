@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/calendar_root"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="#151515"
+    android:padding="5dp" android:layoutDirection="ltr">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="42dp"
+        android:orientation="horizontal" android:gravity="center_vertical">
+        <TextView android:id="@+id/calendar_filter"
+            android:layout_width="78dp" android:layout_height="match_parent"
+            android:gravity="center" android:text="表示 ▾"
+            android:textSize="11sp" android:textColor="#FFFFFF" android:singleLine="true" />
+        <TextView android:id="@+id/calendar_month"
+            android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent"
+            android:gravity="center" android:text="2026年11月 ▾" android:textStyle="bold"
+            android:textSize="14sp" android:textColor="#FFFFFF" android:singleLine="true" />
+        <TextView android:id="@+id/calendar_summary"
+            android:layout_width="94dp" android:layout_height="match_parent" android:gravity="center"
+            android:text="合計 — ↻" android:textSize="10sp" android:textColor="#FFFFFF"
+            android:singleLine="true" />
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="23dp"
+        android:orientation="horizontal" android:weightSum="7">
+        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:gravity="center" android:text="日" android:textSize="11sp" android:textColor="#FF9292"/>
+        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:gravity="center" android:text="月" android:textSize="11sp" android:textColor="#FFFFFF"/>
+        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:gravity="center" android:text="火" android:textSize="11sp" android:textColor="#FFFFFF"/>
+        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:gravity="center" android:text="水" android:textSize="11sp" android:textColor="#FFFFFF"/>
+        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:gravity="center" android:text="木" android:textSize="11sp" android:textColor="#FFFFFF"/>
+        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:gravity="center" android:text="金" android:textSize="11sp" android:textColor="#FFFFFF"/>
+        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:gravity="center" android:text="土" android:textSize="11sp" android:textColor="#91BAFF"/>
+    </LinearLayout>
+    <LinearLayout android:id="@+id/calendar_week_0" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="horizontal" android:weightSum="7"/>
+    <LinearLayout android:id="@+id/calendar_week_1" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="horizontal" android:weightSum="7"/>
+    <LinearLayout android:id="@+id/calendar_week_2" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="horizontal" android:weightSum="7"/>
+    <LinearLayout android:id="@+id/calendar_week_3" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="horizontal" android:weightSum="7"/>
+    <LinearLayout android:id="@+id/calendar_week_4" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="horizontal" android:weightSum="7"/>
+    <LinearLayout android:id="@+id/calendar_week_5" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="horizontal" android:weightSum="7"/>
+    <TextView android:id="@+id/calendar_note" android:layout_width="match_parent" android:layout_height="20dp"
+        android:gravity="center" android:text="C＝クーポン T＝TikTok Lite"
+        android:textSize="9sp" android:textColor="#BEBEBE" android:singleLine="true" />
+</LinearLayout>

@@ -147,13 +147,39 @@ final class RevenueManager {
         return old==null?-1:old.optLong("coupon",-1);
     }
     void setCsv(String key,long amount,String filename,int count) throws Exception {
+        saveCsv(key,amount,filename,count,null,false);
+    }
+    void setCsv(String key,CsvResult parsed,String filename) throws Exception {
+        if(parsed.datesComplete && !key.equals(parsed.datesMonth))
+            throw new IllegalArgumentException("CSVの日付と対象月が一致しません");
+        saveCsv(key,parsed.total,filename,parsed.count,parsed.days,
+            parsed.datesComplete&&key.equals(parsed.datesMonth));
+    }
+    private void saveCsv(String key,long amount,String filename,int count,
+                         java.util.Map<String,Long> dayAmounts,boolean complete) throws Exception {
         requireMonth(key);safe(amount,false);
         JSONObject record=months().optJSONObject(key);
         if(record==null){record=new JSONObject();months().put(key,record);}
+        // CSV import always replaces the prior CSV snapshot; manual additions remain separate.
         record.put("csv",amount);
         record.put("file",filename);
         record.put("count",count);
         record.put("source","csv");
+        record.remove("csvDaily");
+        record.remove("csvDailyComplete");
+        if(complete && dayAmounts!=null) {
+            JSONObject days=new JSONObject();long checked=0;
+            for(java.util.Map.Entry<String,Long> entry:dayAmounts.entrySet()){
+                checkDate(entry.getKey());
+                if(!entry.getKey().startsWith(key+"-"))
+                    throw new IllegalArgumentException("CSVの日付が対象月と一致しません");
+                checked=plus(checked,safe(entry.getValue(),false));
+                days.put(entry.getKey(),entry.getValue());
+            }
+            if(checked!=amount)throw new IllegalArgumentException("CSVの日別合計が月計と一致しません");
+            record.put("csvDaily",days);
+            record.put("csvDailyComplete",true);
+        }
         persistAndRender();
     }
     static void checkDate(String date) throws Exception {
@@ -231,6 +257,7 @@ final class RevenueManager {
         }
         if(!ed.commit())throw new IllegalStateException("ウィジェット保存に失敗しました");
         RevenueWidget.renderAll(context);
+        CalendarWidget.renderAll(context);
     }
     String backup() throws Exception { return snapshot().toString(); }
 
@@ -258,6 +285,14 @@ final class RevenueManager {
             String k=requireMonth(keys.next());JSONObject v=months.getJSONObject(k);
             if(v.has("csv"))strictNumber(v.get("csv"),false);
             if(v.has("coupon"))strictNumber(v.get("coupon"),false);
+            if(v.has("csvDaily")||v.has("csvDailyComplete")){
+                if(!v.optBoolean("csvDailyComplete",false)||!v.has("csv"))
+                    throw new IllegalArgumentException("日別CSVの集計状態が不正です");
+                long base=strictNumber(v.get("csv"),false);
+                long[][] verify=new long[32][3];
+                if(!CalendarRevenueData.applyDays(v.optJSONObject("csvDaily"),k,base,verify,2))
+                    throw new IllegalArgumentException("日別CSVと月計が一致しません");
+            }
         }
         JSONArray manual=root.getJSONArray("manual");
         if(manual.length()>10000)throw new IllegalArgumentException("手動追加履歴が多すぎます");
@@ -289,7 +324,13 @@ final class RevenueManager {
     }
     static final class CsvResult {
         final long total;final int count;
-        CsvResult(long total,int count){this.total=total;this.count=count;}
+        final java.util.Map<String,Long> days;
+        final boolean datesComplete;
+        final String datesMonth;
+        CsvResult(long total,int count,java.util.Map<String,Long> days,boolean datesComplete,String datesMonth){
+            this.total=total;this.count=count;this.days=days;
+            this.datesComplete=datesComplete;this.datesMonth=datesMonth;
+        }
     }
     static CsvResult parseCsv(String text) {
         if(text.length()>4_000_000)throw new IllegalArgumentException("CSVが大きすぎます");
@@ -309,23 +350,37 @@ final class RevenueManager {
         }
         if(quoted)throw new IllegalArgumentException("CSVの引用符が閉じていません");
         if(cell.length()>0||!row.isEmpty()){row.add(cell.toString().replace("\r",""));rows.add(row);}
-        int head=-1,index=-1;
-        for(int i=0;i<rows.size();i++) {
-            int c=rows.get(i).indexOf("チャージポイント");
-            if(c>=0){head=i;index=c;break;}
+        int head=-1,index=-1,dateIndex=-1;
+        for(int i=0;i<rows.size();i++){
+            List<String> header=rows.get(i);
+            for(int j=0;j<header.size();j++)if("チャージポイント".equals(header.get(j).trim())){head=i;index=j;break;}
+            if(head>=0){
+                for(int j=0;j<header.size();j++)if("日付".equals(header.get(j).trim())){dateIndex=j;break;}
+                break;
+            }
         }
         if(head<0)throw new IllegalArgumentException("「チャージポイント」列が見つかりません");
-        long total=0;int count=0;
-        for(int i=head+1;i<rows.size();i++) {
+        long total=0;int count=0;boolean complete=dateIndex>=0;String month="";
+        java.util.Map<String,Long> days=new java.util.TreeMap<>();
+        for(int i=head+1;i<rows.size();i++){
             List<String> record=rows.get(i);
             if(record.size()<=index)continue;
             String raw=record.get(index).trim().replace(",","");
-            if(raw.isEmpty() || !raw.matches("-?[0-9]+"))continue;
+            if(raw.isEmpty()||!raw.matches("-?[0-9]+"))continue;
             long amount;
             try{amount=Long.parseLong(raw);}catch(NumberFormatException e){throw new IllegalArgumentException("チャージ金額が大きすぎます");}
             if(amount==Long.MIN_VALUE)throw new IllegalArgumentException("CSV金額が不正です");
-            total=plus(total,Math.abs(amount));count++;
+            long positive=Math.abs(amount);total=plus(total,positive);count++;
+            String date=dateIndex>=0&&record.size()>dateIndex?record.get(dateIndex).trim():"";
+            java.util.regex.Matcher m=java.util.regex.Pattern.compile("^(20[0-9]{2})[/-]([0-9]{1,2})[/-]([0-9]{1,2})(?:[ T].*)?$").matcher(date);
+            if(!m.matches()){complete=false;continue;}
+            String normalized=String.format(Locale.US,"%s-%02d-%02d",m.group(1),Integer.parseInt(m.group(2)),Integer.parseInt(m.group(3)));
+            try{checkDate(normalized);}catch(Exception badDate){complete=false;continue;}
+            String rowMonth=normalized.substring(0,7);
+            if(!month.isEmpty()&&!month.equals(rowMonth)){complete=false;continue;}
+            month=rowMonth;
+            days.put(normalized,plus(days.containsKey(normalized)?days.get(normalized):0L,positive));
         }
-        return new CsvResult(total,count);
+        return new CsvResult(total,count,days,complete&&count>0,month);
     }
 }

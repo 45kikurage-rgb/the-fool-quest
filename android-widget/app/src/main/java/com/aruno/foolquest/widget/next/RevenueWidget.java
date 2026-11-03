@@ -73,6 +73,8 @@ public final class RevenueWidget extends AppWidgetProvider {
     }
     @Override public void onAppWidgetOptionsChanged(Context c,AppWidgetManager m,int id,Bundle o){m.updateAppWidget(id,sizedViews(c,o,RevenueStore.read(c),DisplaySettings.load(RevenueStore.prefs(c))));}
     @Override public void onEnabled(Context c){RevenueJob.schedule(c);DailyTargetReceiver.schedule(c);}
-    @Override public void onDisabled(Context c){RevenueJob.cancel(c);DailyTargetReceiver.cancel(c);}
+    @Override public void onDisabled(Context c){
+        if(CalendarWidget.ids(c).length==0){RevenueJob.cancel(c);DailyTargetReceiver.cancel(c);}
+    }
 }
 

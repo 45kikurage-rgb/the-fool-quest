@@ -41,6 +41,7 @@ final class RevenueUpdate {
                 List<Runnable> completed;
                 synchronized(LOCK){BUSY.set(false);completed=new ArrayList<>(WAITERS);WAITERS.clear();}
                 RevenueWidget.renderAll(app);
+                CalendarWidget.renderAll(app);
                 for(Runnable callback:completed){try{callback.run();}catch(RuntimeException ignored){}}
             }
         });
