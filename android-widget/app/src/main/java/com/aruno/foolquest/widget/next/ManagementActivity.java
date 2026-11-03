@@ -189,13 +189,12 @@ public final class ManagementActivity extends Activity {
             }else {
                 byte[] input=readLimited(uri,request==OPEN_CSV?4_000_000:2_000_000);
                 if(request==OPEN_CSV) {
-                    String utf8=decodeUtf8(input);
-                    RevenueManager.CsvResult parsed;
-                    try{parsed=RevenueManager.parseCsv(utf8);}
-                    catch(IllegalArgumentException error){
-                        String legacy=new String(input,Charset.forName("MS932"));
-                        parsed=RevenueManager.parseCsv(legacy);
+                    String decoded;
+                    try{decoded=decodeUtf8(input);}
+                    catch(IllegalArgumentException utf8Error){
+                        decoded=new String(input,Charset.forName("MS932"));
                     }
+                    RevenueManager.CsvResult parsed=RevenueManager.parseCsv(decoded);
                     final RevenueManager.CsvResult resultCsv=parsed;
                     String name=uri.getLastPathSegment();
                     if(name==null)name="選択したCSV";

@@ -42,16 +42,6 @@ public final class CalendarWidget extends AppWidgetProvider {
         return PendingIntent.getBroadcast(c,6000+id,intent,
             PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
     }
-    private static String money(long value){
-        if(value<0)return "—";
-        if(value<10000)return "¥"+value;
-        if(value<100000)return String.format(Locale.JAPAN,"%.1f万",value/10000.0);
-        if(value<10000000)return (value/10000)+"万";
-        return (value/1000000)+"百万";
-    }
-    private static String label(String name,long value){
-        return name+" "+money(value);
-    }
     static void renderOne(Context c,int id){
         if(!CalendarWidgetState.exists(c,id))return;
         String month=CalendarWidgetState.month(c,id);
@@ -62,7 +52,7 @@ public final class CalendarWidget extends AppWidgetProvider {
         rv.setTextViewText(R.id.calendar_filter,filter==0?"表示 ▾":filter==1?"合計 ▾":filter==2?"Coupon ▾":"TikTok ▾");
         rv.setTextViewText(R.id.calendar_month,month.substring(0,4)+"年"+Integer.parseInt(month.substring(5))+"月 ▾");
         rv.setTextViewText(R.id.calendar_summary,
-            (summary==0?"合計":summary==1?"Coupon":"TikTok")+" "+money(data.totals[summary])+" ↻");
+            (summary==0?"合計":summary==1?"Coupon":"TikTok")+" ↻\n"+CalendarAmountFormatter.month(data.totals[summary]));
         rv.setOnClickPendingIntent(R.id.calendar_filter,control(c,id,CalendarControlActivity.FILTER));
         rv.setOnClickPendingIntent(R.id.calendar_month,control(c,id,CalendarControlActivity.MONTH));
         rv.setOnClickPendingIntent(R.id.calendar_summary,cycle(c,id));
@@ -84,15 +74,15 @@ public final class CalendarWidget extends AppWidgetProvider {
                 cell.setViewVisibility(R.id.calendar_day_coupon,valid&&(filter==0||filter==2)?View.VISIBLE:View.GONE);
                 cell.setViewVisibility(R.id.calendar_day_tiktok,valid&&(filter==0||filter==3)?View.VISIBLE:View.GONE);
                 if(valid){
-                    cell.setTextViewText(R.id.calendar_day_total,money(data.days[day][0]));
-                    cell.setTextViewText(R.id.calendar_day_coupon,label("C",data.days[day][1]));
-                    cell.setTextViewText(R.id.calendar_day_tiktok,label("T",data.days[day][2]));
+                    cell.setTextViewText(R.id.calendar_day_total,CalendarAmountFormatter.day(data.days[day][0]));
+                    cell.setTextViewText(R.id.calendar_day_coupon,CalendarAmountFormatter.dayWithPrefix("C",data.days[day][1]));
+                    cell.setTextViewText(R.id.calendar_day_tiktok,CalendarAmountFormatter.dayWithPrefix("T",data.days[day][2]));
                 }
                 rv.addView(WEEKS[week],cell);
             }
         }
         rv.setTextViewText(R.id.calendar_note,
-            (!data.couponDaily||!data.tiktokDaily)?"C＝クーポン  T＝TikTok Lite   —＝日別未取得":"C＝クーポン  T＝TikTok Lite");
+            (!data.couponDaily||!data.tiktokDaily)?"C＝クーポン T＝TikTok  —＝未取得  ≈＝概算":"C＝クーポン T＝TikTok  ≈＝概算");
         AppWidgetManager.getInstance(c).updateAppWidget(id,rv);
     }
     @Override public void onReceive(Context c,Intent intent){

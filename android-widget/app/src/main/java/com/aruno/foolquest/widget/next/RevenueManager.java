@@ -158,9 +158,12 @@ final class RevenueManager {
     private void saveCsv(String key,long amount,String filename,int count,
                          java.util.Map<String,Long> dayAmounts,boolean complete) throws Exception {
         requireMonth(key);safe(amount,false);
-        JSONObject record=months().optJSONObject(key);
-        if(record==null){record=new JSONObject();months().put(key,record);}
-        // CSV import always replaces the prior CSV snapshot; manual additions remain separate.
+        // Prepare and validate an independent copy: malformed CSV must never mutate
+        // the live in-memory history or erase the last-good daily breakdown.
+        JSONObject candidate=new JSONObject(state.toString());
+        JSONObject candidateMonths=candidate.getJSONObject("months");
+        JSONObject record=candidateMonths.optJSONObject(key);
+        if(record==null){record=new JSONObject();candidateMonths.put(key,record);}
         record.put("csv",amount);
         record.put("file",filename);
         record.put("count",count);
@@ -180,7 +183,9 @@ final class RevenueManager {
             record.put("csvDaily",days);
             record.put("csvDailyComplete",true);
         }
-        persistAndRender();
+        validate(candidate);
+        JSONObject old=state;state=candidate;
+        try{persistAndRender();}catch(Exception e){state=old;throw e;}
     }
     static void checkDate(String date) throws Exception {
         if(!date.matches("20[0-9]{2}-(0[1-9]|1[0-2])-([0-2][0-9]|3[01])"))

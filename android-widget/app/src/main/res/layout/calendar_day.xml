@@ -6,18 +6,18 @@
     android:gravity="center_horizontal">
     <TextView android:id="@+id/calendar_day_number" android:layout_width="match_parent"
         android:layout_height="wrap_content" android:gravity="center" android:text="1"
-        android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="11sp"
+        android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="10sp"
         android:includeFontPadding="false" android:singleLine="true" />
     <TextView android:id="@+id/calendar_day_total" android:layout_width="match_parent"
         android:layout_height="wrap_content" android:gravity="center" android:text="—"
-        android:textColor="#FFFFFF" android:textSize="8sp"
+        android:textColor="#FFFFFF" android:textSize="7.5sp" android:fontFamily="monospace"
         android:includeFontPadding="false" android:singleLine="true" />
     <TextView android:id="@+id/calendar_day_coupon" android:layout_width="match_parent"
         android:layout_height="wrap_content" android:gravity="center" android:text="C —"
-        android:textColor="#63E09E" android:textSize="8sp"
+        android:textColor="#63E09E" android:textSize="7.5sp" android:fontFamily="monospace"
         android:includeFontPadding="false" android:singleLine="true" />
     <TextView android:id="@+id/calendar_day_tiktok" android:layout_width="match_parent"
         android:layout_height="wrap_content" android:gravity="center" android:text="T —"
-        android:textColor="#7FBAFF" android:textSize="8sp"
+        android:textColor="#7FBAFF" android:textSize="7.5sp" android:fontFamily="monospace"
         android:includeFontPadding="false" android:singleLine="true" />
 </LinearLayout>

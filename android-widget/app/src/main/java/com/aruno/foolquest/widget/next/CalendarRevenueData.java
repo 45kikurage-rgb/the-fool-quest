@@ -70,8 +70,12 @@ final class CalendarRevenueData {
             // It is a monthly fallback only: no daily breakdown may be inferred from it.
             long oldTotal=selected.equals(p.getString("importMonth",""))
                 ?p.getLong("tiktok",-1):-1;
-            result.totals[2]=csv>=0?sum(csv,manualTotal):
-                oldTotal>=0&&oldTotal<=RevenueMath.MAX_YEN?oldTotal:-1;
+            long fromHistory=csv>=0?sum(csv,manualTotal):-1;
+            // Match the existing three-gauge widget on the current month.
+            // A newer site snapshot may differ from older imported native history.
+            long cached=oldTotal>=0&&oldTotal<=RevenueMath.MAX_YEN?oldTotal:-1;
+            result.totals[2]=selected.equals(RevenueMath.month(System.currentTimeMillis()))&&cached>=0
+                ?cached:fromHistory>=0?fromHistory:cached;
             if(csv==0){
                 for(int d=1;d<=daysInMonth(selected);d++)result.days[d][2]=manualByDay[d];
                 result.tiktokDaily=true;
@@ -79,6 +83,14 @@ final class CalendarRevenueData {
                 &&applyDays(record.optJSONObject("csvDaily"),selected,csv,result.days,2)){
                 for(int d=1;d<=daysInMonth(selected);d++)result.days[d][2]=sum(result.days[d][2],manualByDay[d]);
                 result.tiktokDaily=true;
+            }
+            if(result.tiktokDaily) {
+                long checked=0;
+                for(int d=1;d<=daysInMonth(selected);d++)checked=sum(checked,result.days[d][2]);
+                if(checked!=result.totals[2]){
+                    result.tiktokDaily=false;
+                    for(int d=1;d<=daysInMonth(selected);d++)result.days[d][2]=-1L;
+                }
             }
             if(selected.equals(p.getString("couponMonth","")))result.totals[1]=p.getLong("coupon",-1);
             else{
