@@ -1,0 +1,74 @@
+{
+  "status": "VERIFIED",
+  "verifiedAtJst": "2026-11-03T09:04:29.269189+09:00",
+  "origins": [
+    {
+      "origin": "https://the-fool-quest.45kikurage.workers.dev",
+      "files": [
+        {
+          "url": "https://the-fool-quest.45kikurage.workers.dev/widget-download?v=code20",
+          "status": 200,
+          "mime": "text/html",
+          "sha256": "586119d808d747ddce7e583911ab5714a79f7bde603fb09079976874ee413d55",
+          "size": 9992
+        },
+        {
+          "url": "https://the-fool-quest.45kikurage.workers.dev/android-widget/releases/manifest.json?v=code20",
+          "status": 200,
+          "mime": "application/json",
+          "sha256": "39d91db9a2c53010600e9c98543a46527a6e4b66e71d41f7f735a31808f1362c",
+          "size": 4549
+        },
+        {
+          "url": "https://the-fool-quest.45kikurage.workers.dev/android-widget/releases/fool-quest-widget-0.1.19.apk?revision=5c548d4f",
+          "status": 200,
+          "mime": "application/vnd.android.package-archive",
+          "sha256": "5c548d4f08753d94b94321491037dcab09a9e02c3196311daa67a63fff5c75d1",
+          "size": 79662
+        },
+        {
+          "url": "https://the-fool-quest.45kikurage.workers.dev/android-widget/releases/fool-quest-widget-0.1.18.apk",
+          "status": 200,
+          "mime": "application/vnd.android.package-archive",
+          "sha256": "2f76af5fe93e2a4b16bea07732cca6f81cad13c2136576998554839a4e054f1f",
+          "size": 79662
+        }
+      ]
+    },
+    {
+      "origin": "https://45kikurage-rgb.github.io/the-fool-quest",
+      "files": [
+        {
+          "url": "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html?v=code20",
+          "status": 200,
+          "mime": "text/html; charset=utf-8",
+          "sha256": "586119d808d747ddce7e583911ab5714a79f7bde603fb09079976874ee413d55",
+          "size": 9992
+        },
+        {
+          "url": "https://45kikurage-rgb.github.io/the-fool-quest/android-widget/releases/manifest.json?v=code20",
+          "status": 200,
+          "mime": "application/json; charset=utf-8",
+          "sha256": "39d91db9a2c53010600e9c98543a46527a6e4b66e71d41f7f735a31808f1362c",
+          "size": 4549
+        },
+        {
+          "url": "https://45kikurage-rgb.github.io/the-fool-quest/android-widget/releases/fool-quest-widget-0.1.19.apk?revision=5c548d4f",
+          "status": 200,
+          "mime": "application/vnd.android.package-archive",
+          "sha256": "5c548d4f08753d94b94321491037dcab09a9e02c3196311daa67a63fff5c75d1",
+          "size": 79662
+        },
+        {
+          "url": "https://45kikurage-rgb.github.io/the-fool-quest/android-widget/releases/fool-quest-widget-0.1.18.apk",
+          "status": 200,
+          "mime": "application/vnd.android.package-archive",
+          "sha256": "2f76af5fe93e2a4b16bea07732cca6f81cad13c2136576998554839a4e054f1f",
+          "size": 79662
+        }
+      ]
+    }
+  ],
+  "physicalDevice": "UNVERIFIED",
+  "formalOperationStarted": false
+}
