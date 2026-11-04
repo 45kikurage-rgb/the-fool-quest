@@ -27,6 +27,10 @@
     <style name="CalendarHeaderText" parent="CalendarDailyText">
         <item name="android:textSize">20dp</item>
     </style>
+    <item name="calendar_summary_width_scale" type="dimen" format="float">0.8</item>
+    <style name="CalendarSummaryText" parent="CalendarHeaderText">
+        <item name="android:textScaleX">@dimen/calendar_summary_width_scale</item>
+    </style>
     <style name="CalendarDailyText" parent="CalendarText">
         <item name="android:autoSizeTextType">none</item>
     </style>

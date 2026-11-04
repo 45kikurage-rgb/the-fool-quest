@@ -111,10 +111,12 @@ public class CalendarWidget extends AppWidgetProvider {
         }
         // Leave room for the layout padding, the label/amount gap, and pixel rounding.
         // Reserve the widest pair so switching categories does not resize the header.
+        TypedValue summaryScale=new TypedValue();
+        c.getResources().getValue(R.dimen.calendar_summary_width_scale,summaryScale,true);
         float headerWidth=width-8;
         float headerSize=Math.min(20f,Math.min(
             100*(headerWidth*4/7-5)/measure.measureText(title),
-            100*(headerWidth*3/7-8)/widestSummary));
+            100*(headerWidth*3/7-8)/(widestSummary*summaryScale.getFloat())));
         String summaryLabel=SUMMARY_LABELS[summary];
         String summaryAmount=amounts[summary];
         headerText(rv,R.id.calendar_title,title,headerSize);
