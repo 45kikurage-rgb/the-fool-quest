@@ -1,21 +1,20 @@
 {
   "applicationId": "com.aruno.foolquest.widget.next",
-  "version": "0.1.19",
-  "versionCode": 20,
+  "version": "0.1.20",
+  "versionCode": 21,
   "minSdk": 26,
   "targetSdk": 35,
-  "size": 79662,
-  "sha256": "5c548d4f08753d94b94321491037dcab09a9e02c3196311daa67a63fff5c75d1",
+  "size": 149682,
+  "sha256": "5853ce1ce72b17e384e746529bd28bb638c56543d44d3f8434ce467ef664ab7b",
   "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
-  "couponUpdate": "30-minute refresh and management-screen refresh; widget tap opens revenue management",
+  "couponUpdate": "Existing monthly endpoint and opt-in authenticated daily reader",
   "tiktokUpdate": "CSV import and manual revenue entry/edit inside Android with immediate widget refresh",
   "changes": [
-    "Preserve three rows; add cumulative daily target line to Total only, default yellow 2dp",
-    "Allow marker palette/hex color and 1–8dp thickness with live preview and saved preferences",
-    "Display cumulative daily target amounts for Total, TikTok and Coupon on revenue management home",
-    "Refresh cached widget at JST midnight; foreground day/clock changes; optional exact alarm with inexact fallback"
+    "Aru-MyBest name and launcher icon",
+    "Calendar with day-level coupon and TikTok Lite",
+    "Preserve existing gauge, settings and revenue on update"
   ],
-  "file": "fool-quest-widget-0.1.19.apk",
+  "file": "aru-mybest-0.1.20.apk",
   "installation": "Update the existing successor without uninstalling; preserve revenue, goals, colors and saved settings. Photo-two reference button resets layout only.",
   "legacy": {
     "applicationId": "com.aruno.foolquest.widget",
@@ -28,14 +27,23 @@
   },
   "previousRelease": {
     "applicationId": "com.aruno.foolquest.widget.next",
-    "version": "0.1.18",
-    "versionCode": 19,
+    "version": "0.1.19",
+    "versionCode": 20,
     "size": 79662,
-    "sha256": "2f76af5fe93e2a4b16bea07732cca6f81cad13c2136576998554839a4e054f1f",
+    "sha256": "5c548d4f08753d94b94321491037dcab09a9e02c3196311daa67a63fff5c75d1",
     "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
-    "file": "fool-quest-widget-0.1.18.apk"
+    "file": "fool-quest-widget-0.1.19.apk"
   },
   "archives": [
+    {
+      "applicationId": "com.aruno.foolquest.widget.next",
+      "version": "0.1.18",
+      "versionCode": 19,
+      "size": 79662,
+      "sha256": "2f76af5fe93e2a4b16bea07732cca6f81cad13c2136576998554839a4e054f1f",
+      "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+      "file": "fool-quest-widget-0.1.18.apk"
+    },
     {
       "applicationId": "com.aruno.foolquest.widget.next",
       "version": "0.1.17",
@@ -91,11 +99,11 @@
       "file": "fool-quest-widget-0.1.13-original.apk"
     }
   ],
-  "sourceCommit": "80686e2dafe1d2fe276f872ae0e81d80aa3fcc7e",
-  "signingRunId": 41549048272,
-  "unsignedSha256": "f165fb9ad19ab512baf1ced44313dbaf35ccf212e30ed63b7fb9455fc70aeebb",
+  "sourceCommit": "97d52475c8f45127f307f4eb7dc391caa804ecaa",
+  "signingRunId": 41823714366,
+  "unsignedSha256": "6f81dc89f495c0b104afd42a92a4cb2d1999709c586ff513cb87cfe647fe328b",
   "deviceVerified": false,
-  "softwareTestRunId": 41548415774,
-  "deliveryStatus": "test-update",
+  "softwareTestRunId": 41821830486,
+  "deliveryStatus": "candidate",
   "dailyTargetUpdate": "JST midnight; exact alarm when allowed, inexact fallback otherwise; no network required"
 }
