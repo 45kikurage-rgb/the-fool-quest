@@ -201,11 +201,17 @@ adb('shell', 'uiautomator', 'dump', '/sdcard/target-home.xml')
 adb('pull', '/sdcard/target-home.xml', str(OUT / 'target-home.xml'))
 home_ui = (OUT / 'target-home.xml').read_text()
 assert 'Aru-MyBest' in home_ui
-assert 'クーポン日別の接続設定' in home_ui
 assert '今日までの目標' in home_ui, 'Daily target amounts missing from upgraded management screen'
 assert home_ui.count('今日までの目標') >= 3, 'Expected Total, TikTok and Coupon target amounts'
 with (OUT / 'target-home.png').open('wb') as screenshot:
     subprocess.run(['adb', 'exec-out', 'screencap', '-p'], check=True, stdout=screenshot)
+size = re.findall(r'(\d+)x(\d+)', adb('shell', 'wm', 'size'))
+assert size, 'Screen size unavailable'
+width, height = map(int, size[-1])
+if 'クーポン日別の接続設定' not in home_ui:
+    adb('shell', 'input', 'swipe', str(width//2), str(height*4//5), str(width//2), str(height//4), '400')
+    adb('shell', 'uiautomator', 'dump', '/sdcard/target-setup.xml')
+    assert 'クーポン日別の接続設定' in adb('shell', 'cat', '/sdcard/target-setup.xml')
 assert uid(OLD_PACKAGE) == old_uid and prefs(OLD_PACKAGE) == old_snapshot, 'Legacy application modified'
 (OUT / 'result.txt').write_text(
     'PASS existing v0.1.19/code20 upgraded to Aru-MyBest v0.1.20/code21 '
