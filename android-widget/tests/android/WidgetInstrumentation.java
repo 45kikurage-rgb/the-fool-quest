@@ -349,6 +349,9 @@ public class WidgetInstrumentation extends Instrumentation {
 
         CalendarRevenueData.Month data=new CalendarRevenueData.Month();
         data.totals[0]=RevenueMath.MAX_YEN;
+        data.days[1][0]=5;
+        data.days[1][1]=3;
+        data.days[1][2]=2;
         data.days[31][0]=999999;
         data.days[31][1]=350000;
         data.days[31][2]=649999;
@@ -362,7 +365,7 @@ public class WidgetInstrumentation extends Instrumentation {
                     int width=Math.round(widthDp*density);
                     int height=Math.round(236*density);
                     android.widget.FrameLayout host=new android.widget.FrameLayout(sized);
-                    android.view.View calendar=CalendarWidget.buildViews(sized,first,"2026-05",0,0,data,java.time.Instant.parse("2026-06-01T00:00:00Z").toEpochMilli()).apply(sized,host);
+                    android.view.View calendar=CalendarWidget.buildViews(sized,first,"2026-05",0,0,data,java.time.Instant.parse("2026-06-01T00:00:00Z").toEpochMilli(),widthDp,236).apply(sized,host);
                     host.addView(calendar,new android.widget.FrameLayout.LayoutParams(-1,-1));
                     host.measure(android.view.View.MeasureSpec.makeMeasureSpec(width,android.view.View.MeasureSpec.EXACTLY),
                         android.view.View.MeasureSpec.makeMeasureSpec(height,android.view.View.MeasureSpec.EXACTLY));
@@ -380,12 +383,34 @@ public class WidgetInstrumentation extends Instrumentation {
                     completeCalendarText(lastDay,R.id.calendar_day_coupon,"350000");
                     completeCalendarText(lastDay,R.id.calendar_tiktok_label,"T");
                     completeCalendarText(lastDay,R.id.calendar_day_tiktok,"649999");
+                    android.view.View firstDay=firstRow.getChildAt(0);
+                    for(int id:new int[]{R.id.calendar_day_total,R.id.calendar_day_coupon,R.id.calendar_day_tiktok}){
+                        android.widget.TextView shortValue=firstDay.findViewById(id);
+                        android.widget.TextView longValue=lastDay.findViewById(id);
+                        ok(shortValue.getTextSize()==longValue.getTextSize()&&longValue.getTextScaleX()==1f,
+                            "daily amounts keep the same natural glyph size from one to six digits");
+                    }
+                    android.widget.TextView date=lastDay.findViewById(R.id.calendar_day_number);
+                    android.widget.TextView total=lastDay.findViewById(R.id.calendar_day_total);
+                    android.widget.TextView coupon=lastDay.findViewById(R.id.calendar_day_coupon);
+                    ok(total.getTop()-date.getBottom()>=Math.round(2*density),
+                        "there is a gap between the date and daily total");
+                    ok(total.getTextSize()>coupon.getTextSize(),"daily total uses the free category width");
                     completeCalendarText(lastRow.getChildAt(5),R.id.calendar_control,"カテゴリー\n表示変更");
                     completeCalendarText(lastRow.getChildAt(6),R.id.calendar_control,"年月\n表示変更");
                     completeCalendarText(calendar,R.id.calendar_summary_label,"合計");
                     completeCalendarText(calendar,R.id.calendar_summary_amount,"¥9,007,199,254,740,991");
                 }
             }
+            android.widget.FrameLayout combinedHost=new android.widget.FrameLayout(c);
+            android.view.View combined=CombinedWidget.buildViews(c,first,"2026-05",0,0,data,
+                java.time.Instant.parse("2026-06-01T00:00:00Z").toEpochMilli(),
+                RevenueStore.read(c),new DisplaySettings(),320,400).apply(c,combinedHost);
+            android.view.ViewGroup gauge=combined.findViewById(R.id.combined_gauge);
+            android.view.ViewGroup dates=combined.findViewById(R.id.combined_calendar);
+            ok(gauge.getChildCount()==1&&gauge.findViewById(R.id.row_coupon)!=null
+                &&dates.getChildCount()==1&&dates.findViewById(R.id.calendar_week_4)!=null,
+                "combined widget reuses the full gauge and calendar");
             long now=java.time.Instant.parse("2026-11-03T15:00:00Z").toEpochMilli();
             CalendarRevenueData.Month current=new CalendarRevenueData.Month();
             current.days[4][1]=12345;

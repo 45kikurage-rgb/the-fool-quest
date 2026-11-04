@@ -16,6 +16,7 @@
     </style>
     <style name="CalendarText">
         <item name="android:includeFontPadding">false</item>
+        <item name="android:fontFamily">@font/aru_widget_rounded</item>
         <item name="android:textColor">#FFFFFF</item>
         <item name="android:maxLines">1</item>
         <item name="android:autoSizeTextType">uniform</item>
@@ -25,12 +26,16 @@
     </style>
     <style name="CalendarAmount" parent="CalendarText">
         <item name="android:gravity">end|center_vertical</item>
-        <item name="android:autoSizeMaxTextSize">10sp</item>
     </style>
-    <style name="CalendarCategory" parent="CalendarText">
-        <item name="android:layout_width">8dp</item>
+    <style name="CalendarDailyText" parent="CalendarText">
+        <item name="android:autoSizeTextType">none</item>
+    </style>
+    <style name="CalendarDailyAmount" parent="CalendarDailyText">
+        <item name="android:gravity">end|center_vertical</item>
+    </style>
+    <style name="CalendarCategory" parent="CalendarDailyText">
+        <item name="android:layout_width">9dp</item>
         <item name="android:layout_height">match_parent</item>
         <item name="android:gravity">start|center_vertical</item>
-        <item name="android:autoSizeMaxTextSize">9sp</item>
     </style>
 </resources>

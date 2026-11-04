@@ -84,7 +84,7 @@ public final class SettingsActivity extends Activity {
         button("写真2の基準へ戻す",()->{settings.referenceLayout();build();markDirty();});
         body.addView(text("中央が基準。小さく／大きく調整できます。",12));
         if(widgetId==AppWidgetManager.INVALID_APPWIDGET_ID)button("ホーム画面に追加",()->{
-            if(!validateColors())return;settings.save(RevenueStore.prefs(this));RevenueWidget.renderAll(this);
+            if(!validateColors())return;settings.save(RevenueStore.prefs(this));RevenueWidget.renderAll(this);CalendarWidget.renderAll(this);
             AppWidgetManager m=AppWidgetManager.getInstance(this);
             if(m.isRequestPinAppWidgetSupported())m.requestPinAppWidget(new ComponentName(this,RevenueWidget.class),null,null);
             else message("ホーム画面を長押しして「ウィジェット」から追加してください。");
@@ -234,7 +234,7 @@ public final class SettingsActivity extends Activity {
     }
     private void save(){
         if(!validateColors()){updatePreview();return;}
-        settings.save(RevenueStore.prefs(this));RevenueWidget.renderAll(this);
+        settings.save(RevenueStore.prefs(this));RevenueWidget.renderAll(this);CalendarWidget.renderAll(this);
         if(widgetId!=AppWidgetManager.INVALID_APPWIDGET_ID){setResult(RESULT_OK,new Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,widgetId));finish();}
         else {saveState.setText("保存済み・ホームの "+RevenueWidget.ids(this).length+" 個へ再描画を送信しました。");message("設定を保存し、ホーム画面へ再描画を送信しました。");}
     }

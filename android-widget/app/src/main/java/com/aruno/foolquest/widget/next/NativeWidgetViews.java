@@ -8,7 +8,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.DisplayMetrics;
-import android.graphics.Typeface;
 import android.util.TypedValue;
 import android.view.View;
 import android.widget.RemoteViews;
@@ -35,7 +34,7 @@ final class NativeWidgetViews {
         float preferredGauge=Math.min(48,s.gauge*Math.max(.25f,(innerH-s.top-s.bottom)/98f));
         float content=innerW-left-right;
         float font=Float.MAX_VALUE;
-        Paint measure=new Paint();measure.setTypeface(Typeface.create("monospace",Typeface.NORMAL));measure.setTextSize(100);
+        Paint measure=new Paint();measure.setTypeface(c.getResources().getFont(R.font.aru_widget_rounded));measure.setTextSize(100);
         float[] available={content*.16f-2,content*.29f-3,content*.03f,content*.29f-3,content*.23f-2};
         String[] reserved={"Coupon","¥9,999,999","/","¥9,999,999","9999.99%"};
         long[] values=d.values(),goals=d.goals();
