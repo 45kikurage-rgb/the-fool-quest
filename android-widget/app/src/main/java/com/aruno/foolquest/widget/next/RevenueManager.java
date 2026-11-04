@@ -160,7 +160,8 @@ final class RevenueManager {
         requireMonth(key);safe(amount,false);
         // Prepare and validate an independent copy: malformed CSV must never mutate
         // the live in-memory history or erase the last-good daily breakdown.
-        JSONObject candidate=new JSONObject(state.toString());
+        String saved=preferences.getString(KEY,state.toString());
+        JSONObject candidate=new JSONObject(saved);
         JSONObject candidateMonths=candidate.getJSONObject("months");
         JSONObject record=candidateMonths.optJSONObject(key);
         if(record==null){record=new JSONObject();candidateMonths.put(key,record);}
@@ -186,7 +187,8 @@ final class RevenueManager {
             record.put("csvDailyComplete",true);
         }
         validate(candidate);
-        JSONObject old=state;state=candidate;
+        JSONObject old=new JSONObject(saved);
+        state=candidate;
         try{saveAndRender(true,key.equals(month()));}catch(Exception e){state=old;throw e;}
     }
     static void checkDate(String date) throws Exception {

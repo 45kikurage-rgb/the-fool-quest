@@ -74,8 +74,10 @@ final class CalendarRevenueData {
             long fromHistory=csv>=0?sum(csv,manualTotal):-1;
             // A dated native import owns the calendar for its month. The old site
             // snapshot remains a monthly fallback when no verified daily data exists.
-            if(record!=null&&record.optBoolean("csvDailyComplete",false)
-                &&applyDays(record.optJSONObject("csvDaily"),selected,csv,result.days,2)){
+            boolean manualOnly=csv==0&&"manual-only".equals(record.optString("source"));
+            boolean datedCsv=record!=null&&record.optBoolean("csvDailyComplete",false)
+                &&applyDays(record.optJSONObject("csvDaily"),selected,csv,result.days,2);
+            if(manualOnly||datedCsv){
                 long checked=0;
                 for(int d=1;d<=daysInMonth(selected);d++){
                     long imported=result.days[d][2];

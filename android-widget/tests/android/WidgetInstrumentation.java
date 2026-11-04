@@ -443,10 +443,19 @@ public class WidgetInstrumentation extends Instrumentation {
             "legacy site cache cannot replace the dated native calendar");
         String previous=RevenueMath.date("yyyy-MM",System.currentTimeMillis()-35L*24*60*60*1000);
         VatonRevenueCsv.CsvResult older=VatonRevenueCsv.parseCsv("日付,チャージポイント\n"+previous+"-01,500\n");
+        manager.addManual(previous+"-10",75);
+        CalendarRevenueData.Month manualOnly=CalendarRevenueData.read(c,previous);
+        ok(manualOnly.totals[2]==75&&manualOnly.days[10][2]==75&&manualOnly.days[11][2]==-1,
+            "manual-only month displays dated entries and leaves other days unknown");
+        prefs.edit().putLong("tiktok",333).commit();
+        RevenueManager stalePicker=new RevenueManager(c);
         manager.setCsv(previous,older,"older-fixture.csv");
         ok(RevenueStore.read(c).tiktok==333&&manager.tiktok(month)==1250&&
-            CalendarRevenueData.read(c,previous).totals[2]==500,
+            CalendarRevenueData.read(c,previous).totals[2]==575,
             "past CSV import preserves the current gauge cache and native month");
+        stalePicker.setCsv(month,daily,"dated-fixture.csv");
+        ok(CalendarRevenueData.read(c,previous).totals[2]==575,
+            "an already open picker cannot overwrite a month saved by another import");
         boolean undatedRefused=false;
         try{manager.setCsv(month,parsed,"legacy-fixture.csv");}
         catch(IllegalArgumentException expected){undatedRefused=true;}

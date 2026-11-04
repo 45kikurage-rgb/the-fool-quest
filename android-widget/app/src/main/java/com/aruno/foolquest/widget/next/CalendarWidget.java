@@ -105,10 +105,12 @@ public final class CalendarWidget extends AppWidgetProvider {
             return;
         }
         super.onReceive(c,intent);
-        if(Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())||
-            Intent.ACTION_MY_PACKAGE_REPLACED.equals(intent.getAction())){
+        boolean restart=Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())||
+            Intent.ACTION_MY_PACKAGE_REPLACED.equals(intent.getAction());
+        if(restart&&ids(c).length>0){
             renderAll(c);
             RevenueJob.schedule(c);
+            DailyTargetReceiver.schedule(c);
         }
     }
     @Override public void onUpdate(Context c,AppWidgetManager manager,int[] ids){
