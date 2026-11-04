@@ -440,30 +440,13 @@ public class WidgetInstrumentation extends Instrumentation {
     }
 
     void payFetchEntryChecks() throws Exception {
-        android.content.pm.PackageManager pm=c.getPackageManager();
-        ok(!pm.getActivityInfo(new android.content.ComponentName(c,PayFetchEntryActivity.class),0).exported,
-            "only the app may enter the automatic Chrome fetch");
-        ok(pm.getActivityInfo(new android.content.ComponentName(c,PayFetchActivity.class),0).exported,
-            "Chrome can open a completed CSV");
-        runOnMainSync(()->{
-            PayFetchSession session=new PayFetchSession(c);
-            session.clear();
-            ok(session.begin(),"pay fetch session starts");
-            long started=session.started();
-            String month=session.month();
-            ok(!session.consume(started,0,month),"CSV cannot be received before Chrome Open");
-            session.expectReceipt();
-            long opened=session.opened();
-            ok(!session.consume(started+1,opened,month),"stale receipt cannot consume the session");
-            ok(session.consume(started,opened,month),"one valid receipt consumes the session");
-            ok(!session.consume(started,opened,month),"duplicate receipt cannot overwrite revenue");
-            ok(session.begin(),"next pay fetch session starts");
-            started=session.started();
-            session.expectReceipt();
-            opened=session.opened();
-            session.clear();
-            ok(!session.consume(started,opened,month),"cancelled receipt cannot overwrite revenue");
-        });
+        android.content.pm.PackageManager pm = c.getPackageManager();
+        android.content.ComponentName entry = new android.content.ComponentName(c, PayFetchActivity.class);
+        ok(!pm.getActivityInfo(entry, 0).exported, "only the app may start the WebView CSV fetch");
+        android.content.Intent csv = new android.content.Intent(android.content.Intent.ACTION_VIEW)
+            .setDataAndType(android.net.Uri.parse("content://com.android.providers.downloads/test"), "text/csv")
+            .setPackage(c.getPackageName());
+        ok(pm.queryIntentActivities(csv, 0).isEmpty(), "an external CSV cannot trigger automatic import");
     }
 
     void nativeRevenueChecks() throws Exception {

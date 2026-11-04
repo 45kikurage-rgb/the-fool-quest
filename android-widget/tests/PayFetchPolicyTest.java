@@ -12,18 +12,16 @@ public class PayFetchPolicyTest {
     }
 
     public static void main(String[] args) {
-        long started = 1_000_000L;
-        check(PayFetchPolicy.active(started, started), "session starts active");
-        check(PayFetchPolicy.active(started, started + PayFetchPolicy.SESSION_MS), "session active at limit");
-        check(!PayFetchPolicy.active(started, started + PayFetchPolicy.SESSION_MS + 1), "session expires");
-        check(!PayFetchPolicy.active(0, started), "no session is inactive");
-
-        check(PayFetchPolicy.historyAddress("wallet.vaton.jp/point/point_logs", false), "history url");
-        check(PayFetchPolicy.historyAddress("https://wallet.vaton.jp/point/point_logs?x=1", false), "history url with query");
-        check(PayFetchPolicy.historyAddress("wallet.vaton.jp/point/point_logs/extra", false), "history url with suffix");
-        check(PayFetchPolicy.historyAddress("wallet.vaton.jp", true), "bare domain with history controls");
-        check(!PayFetchPolicy.historyAddress("wallet.vaton.jp", false), "bare domain without controls");
-        check(!PayFetchPolicy.historyAddress("wallet.vaton.jp/home", true), "home is not history");
+        check(PayFetchPolicy.historyAddress(PayFetchPolicy.VATON_HISTORY_URL), "exact history URL");
+        check(PayFetchPolicy.historyAddress(PayFetchPolicy.VATON_HISTORY_URL + "/?x=1"), "history URL with query");
+        check(PayFetchPolicy.walletAddress("https://wallet.vaton.jp/login"), "same-origin login allowed");
+        check(!PayFetchPolicy.historyAddress("https://wallet.vaton.jp/login"), "login is not a CSV source");
+        check(!PayFetchPolicy.historyAddress(PayFetchPolicy.VATON_HISTORY_URL + "/extra"), "history suffix rejected");
+        check(!PayFetchPolicy.walletAddress("https://wallet.vaton.jp.example/point/point_logs"), "lookalike host rejected");
+        check(!PayFetchPolicy.walletAddress("https://wallet.vaton.jp:8080/point/point_logs"), "alternate port rejected");
+        check(!PayFetchPolicy.walletAddress("https://example@wallet.vaton.jp/point/point_logs"), "userinfo rejected");
+        check(!PayFetchPolicy.walletAddress("http://wallet.vaton.jp/point/point_logs"), "unencrypted site rejected");
+        check(!PayFetchPolicy.walletAddress(null), "missing address rejected");
 
         check(PayFetchPolicy.isHistoryCsv("ポイント履歴_2026年11月.csv"), "history csv name");
         check(PayFetchPolicy.isHistoryCsv("ポイント履歴_2026年11月 (3).csv"), "history csv copy name");
@@ -36,29 +34,9 @@ public class PayFetchPolicyTest {
         check(PayFetchPolicy.monthIn("ポイント履歴_2026年13月.csv") == null, "month 13 rejected");
         check(PayFetchPolicy.monthIn("no month here") == null, "no month found");
 
-        long opened = started + 5_000L;
-        long now = opened + 10_000L;
-        check(PayFetchPolicy.canAutoImport(started, opened, now,
-            "com.android.chrome.FileProvider", "ポイント履歴_2026年11月.csv", "2026-11", "2026-11"),
-            "valid auto import");
-        check(PayFetchPolicy.canAutoImport(started, opened, now,
-            "com.android.providers.downloads.documents", "ポイント履歴_2026年11月.csv", "2026-11", "2026-11"),
-            "downloads provider accepted");
-        check(!PayFetchPolicy.canAutoImport(started, opened, now,
-            "com.example.other", "ポイント履歴_2026年11月.csv", "2026-11", "2026-11"),
-            "unknown authority rejected");
-        check(!PayFetchPolicy.canAutoImport(started, opened - 120_000L, now,
-            "com.android.chrome.FileProvider", "ポイント履歴_2026年11月.csv", "2026-11", "2026-11"),
-            "receipt opened before session rejected");
-        check(!PayFetchPolicy.canAutoImport(started, opened, opened + PayFetchPolicy.RECEIPT_MS + 1,
-            "com.android.chrome.FileProvider", "ポイント履歴_2026年11月.csv", "2026-11", "2026-11"),
-            "late receipt rejected");
-        check(!PayFetchPolicy.canAutoImport(started, opened, now,
-            "com.android.chrome.FileProvider", "ポイント履歴_2026年10月.csv", "2026-10", "2026-11"),
-            "previous month rejected");
-        check(!PayFetchPolicy.canAutoImport(started, opened, started + PayFetchPolicy.SESSION_MS + 1,
-            "com.android.chrome.FileProvider", "ポイント履歴_2026年11月.csv", "2026-11", "2026-11"),
-            "expired session rejected");
+        check(PayFetchPolicy.validFilename("ポイント履歴_2026年11月.csv", "2026-11"), "same-month file");
+        check(!PayFetchPolicy.validFilename("ポイント履歴_2026年10月.csv", "2026-11"), "previous month rejected");
+        check(!PayFetchPolicy.validFilename("ポイント履歴_今月.csv", "2026-11"), "unknown filename month rejected");
 
         String header = "日付,種別,ブランド名,商品名,交換ポイント,円換算額,チャージポイント\n";
         String dated = header

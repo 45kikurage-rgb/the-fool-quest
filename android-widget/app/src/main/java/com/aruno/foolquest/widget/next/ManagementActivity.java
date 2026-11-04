@@ -143,9 +143,8 @@ public final class ManagementActivity extends Activity {
         if(tiktok<0)info("TikTokは未登録です。CSVまたはサイトの旧データを取り込んでください。");
         info("ウィジェットは同じ端末内の収益・目標を表示します。Couponは中央管理台帳の読取専用です。");
         action("CSVを取り込む",()->pick("text/*",OPEN_CSV));
-        action("データ更新（ポイント履歴を自動取得）",()->{
-            startActivity(new Intent(this,PayFetchEntryActivity.class));
-        });
+        action("データ更新（ポイント履歴を自動取得）",
+            ()->startActivity(new Intent(this,PayFetchActivity.class)));
         action("TikTok収益を手動追加",this::showManualAdd);
         action("Couponを今すぐ更新",()->{
             RevenueUpdate.start(this,()->runOnUiThread(()->execute(this::showHome)));

@@ -15,5 +15,5 @@ java -cp build/test com.aruno.foolquest.widget.next.PayFetchPolicyTest
 java -cp build/test CalendarAmountFormatterTest
 java -cp build/test RevenueMathTest
 java -cp build/test com.aruno.foolquest.widget.next.RevenueHttpTest
-node --test tests/export.test.cjs
+node --test tests/export.test.cjs tests/pay-history-fetch.test.cjs
 

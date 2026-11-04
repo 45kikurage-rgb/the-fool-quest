@@ -1,36 +1,37 @@
 package com.aruno.foolquest.widget.next;
 
+import java.net.URI;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * Pure rules for the in-app point-history CSV fetch. Ported from ARUNO ASSIST
- * PAY SYNC (ChromePayPolicy) with the Aru-MyBest limits: the automatic import
- * is accepted only inside a short-lived fetch session, only from Chrome or
- * the system downloads provider, only for the current month's history CSV,
- * and (per the 2026-11-04 consolidation decision) only when the CSV verifies
- * down to the daily breakdown.
- */
+/** Source and CSV acceptance rules shared by the WebView fetch and its tests. */
 final class PayFetchPolicy {
     private PayFetchPolicy() {}
 
-    static final String CHROME = "com.android.chrome";
     static final String VATON_HISTORY_URL = "https://wallet.vaton.jp/point/point_logs";
     static final long SESSION_MS = 10 * 60 * 1000L;
+    static final long DOWNLOAD_MS = 120 * 1000L;
     static final long RECEIPT_MS = 60 * 1000L;
-    static final long MAX_BYTES = 4_000_000L;
+    static final int MAX_BYTES = 4_000_000;
 
-    static boolean active(long started, long now) {
-        return started > 0 && now - started >= 0 && now - started <= SESSION_MS;
+    static boolean walletAddress(String address) { return walletUri(address) != null; }
+
+    static boolean historyAddress(String address) {
+        URI uri = walletUri(address);
+        if (uri == null) return false;
+        String path = uri.getRawPath();
+        return "/point/point_logs".equals(path) || "/point/point_logs/".equals(path);
     }
 
-    static boolean historyAddress(String address, boolean historyControlsVisible) {
-        String normalized = address.trim();
-        if (normalized.startsWith("https://")) normalized = normalized.substring("https://".length());
-        return (normalized.equals("wallet.vaton.jp") && historyControlsVisible)
-            || normalized.equals("wallet.vaton.jp/point/point_logs")
-            || normalized.startsWith("wallet.vaton.jp/point/point_logs?")
-            || normalized.startsWith("wallet.vaton.jp/point/point_logs/");
+    private static URI walletUri(String address) {
+        if (address == null) return null;
+        try {
+            URI uri = URI.create(address);
+            return "https".equals(uri.getScheme()) && "wallet.vaton.jp".equals(uri.getHost())
+                && uri.getRawUserInfo() == null && (uri.getPort() == -1 || uri.getPort() == 443) ? uri : null;
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     static boolean isHistoryCsv(String name) {
@@ -52,23 +53,8 @@ final class PayFetchPolicy {
         return String.format(Locale.ROOT, "%s-%02d", match.group(1), month);
     }
 
-    static boolean receiptActive(long started, long opened, long now) {
-        return active(started, now) && opened >= started && now - opened >= 0 && now - opened <= RECEIPT_MS;
-    }
-
-    static boolean canReadReceipt(long started, long opened, long now, String authority) {
-        return receiptActive(started, opened, now)
-            && ("com.android.chrome.FileProvider".equals(authority)
-                || "com.android.providers.downloads".equals(authority)
-                || "com.android.providers.downloads.documents".equals(authority)
-                || "downloads".equals(authority));
-    }
-
-    static boolean canAutoImport(long started, long opened, long now, String authority,
-                                 String name, String month, String expectedMonth) {
-        return canReadReceipt(started, opened, now, authority)
-            && isHistoryCsv(name) && expectedMonth != null
-            && expectedMonth.equals(monthIn(name)) && expectedMonth.equals(month);
+    static boolean validFilename(String name, String expectedMonth) {
+        return isHistoryCsv(name) && expectedMonth != null && expectedMonth.equals(monthIn(name));
     }
 
     /**
