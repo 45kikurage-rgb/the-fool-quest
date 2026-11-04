@@ -331,6 +331,11 @@ public class WidgetInstrumentation extends Instrumentation {
         ok(parsed.total==1200 && parsed.count==2,"CSV parser handles quoted values and returns total");
         RevenueManager manager=new RevenueManager(c);
         String csvMonth=month.replace('-','/');
+        boolean invalidDateRejected=false;
+        try{
+            RevenueManager.parseCsv("日付,チャージポイント\n"+csvMonth+"/32,150\n");
+        }catch(IllegalArgumentException expected){invalidDateRejected=true;}
+        ok(invalidDateRejected,"malformed dated CSV is rejected, not reassigned to current month");
         RevenueManager.CsvResult bom=RevenueManager.parseCsv("\uFEFF日付,チャージポイント\n"
             +csvMonth+"/01,150\n");
         ok(bom.datesComplete&&bom.total==150&&bom.count==1&&

@@ -378,6 +378,8 @@ final class RevenueManager {
             long positive=Math.abs(amount);total=plus(total,positive);count++;
             String date=dateIndex>=0&&record.size()>dateIndex?record.get(dateIndex).trim():"";
             String normalized=CalendarDateMath.normalizeCsvDate(date);
+            if(dateIndex>=0&&normalized==null)
+                throw new IllegalArgumentException("CSVの日付を認識できません。日別データの保存は中止しました");
             if(normalized==null){complete=false;continue;}
             String rowMonth=normalized.substring(0,7);
             if(!month.isEmpty()&&!month.equals(rowMonth))
