@@ -109,7 +109,7 @@ public final class ManagementActivity extends Activity {
         content.addView(target);
     }
     private void showHome() throws Exception {
-        screen("Aru-Mybest");showingHome=true;
+        screen("Aru-MyBest");showingHome=true;
         String month=model.month();
         long tiktok=model.tiktok(month),coupon=model.coupon(month);
         long total=RevenueMath.total(tiktok,coupon);

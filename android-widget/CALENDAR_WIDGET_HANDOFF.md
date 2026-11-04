@@ -59,9 +59,13 @@
 
 ## 表示名の最新決定（2026-11-04）
 
-- 利用者の最新指示に従い、**Androidアプリの表示名を `Aru-Mybest` に変更**する。直前に候補となった `Aru-Revenue` は採用しない。
-- `AndroidManifest.xml` の `application android:label` を `Aru-Mybest` に変更。収益管理トップのタイトルも `Aru-Mybest` と表示する。
+- 利用者の最新指示に従い、**Androidアプリの表示名を `Aru-MyBest` に変更**する。直前に候補となった `Aru-Revenue` は採用しない。
+- `AndroidManifest.xml` の `application android:label` を `Aru-MyBest` に変更。収益管理トップのタイトルも `Aru-MyBest` と表示する。
 - **改名は表示上の変更のみ**。`com.aruno.foolquest.widget.next`、既存のWidget Provider、署名証明書、versionCode、DB/API、CSV保存キー、移行・バックアップの既存識別子・ファイル名を改名/置換しない。旧版からのデータ保持に優先して配慮する。
-- Android Widget/Launcherの表示名がすべて `Aru-Mybest` に更新され、上書き可能かはWorkで検証する。
+- Android Widget/Launcherの表示名がすべて `Aru-MyBest` に更新され、上書き可能かはWorkで検証する。
 - 実CSV（`ポイント履歴_2026年11月 (3).csv`）をチャット環境で**読み取りのみ**確認：UTF-8 BOM + 冒頭4注意書き行 + 7列（`日付,種別,ブランド名,商品名,交換ポイント,円換算額,チャージポイント`）。明細26件、うちチャージ20件・交換6件、チャージポイントの合計2,200。日計（11/01=200、11/02=300、11/03=1,700、11/04=0）。私的CSV原本をGitHubへアップロードしない。
 - 取込プログラムがCSV原本を対象に現物のAndroidアプリで正しく動作することは未検証。本PRには実CSVと同形式の**架空データ**によるAndroid計測回帰テストを追加。
+
+## 最終表示名修正（2026-11-04）
+- 利用者の最終指定は **`Aru-MyBest`**（大文字 B）。以前の `Aru-Mybest` 表記は旧案とし、アプリのランチャー表示名・収益管理画面のタイトルを正確に統一した。
+- パッケージ名、既存の署名鍵・公開証明書、versionCode、データ保存キー、API/DB、既存3段ゲージの機能は変更しない。正式署名・公開・Pixel 10実機確認はWorkの担当で未実施。
