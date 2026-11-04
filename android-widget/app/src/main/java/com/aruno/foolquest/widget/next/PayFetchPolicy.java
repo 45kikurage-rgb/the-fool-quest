@@ -52,15 +52,22 @@ final class PayFetchPolicy {
         return String.format(Locale.ROOT, "%s-%02d", match.group(1), month);
     }
 
+    static boolean receiptActive(long started, long opened, long now) {
+        return active(started, now) && opened >= started && now - opened >= 0 && now - opened <= RECEIPT_MS;
+    }
+
+    static boolean canReadReceipt(long started, long opened, long now, String authority) {
+        return receiptActive(started, opened, now)
+            && ("com.android.chrome.FileProvider".equals(authority)
+                || "com.android.providers.downloads".equals(authority)
+                || "com.android.providers.downloads.documents".equals(authority)
+                || "downloads".equals(authority));
+    }
+
     static boolean canAutoImport(long started, long opened, long now, String authority,
                                  String name, String month, String expectedMonth) {
-        if (!active(started, now)) return false;
-        if (opened < started || now - opened < 0 || now - opened > RECEIPT_MS) return false;
-        if (!("com.android.chrome.FileProvider".equals(authority)
-            || "com.android.providers.downloads".equals(authority)
-            || "com.android.providers.downloads.documents".equals(authority)
-            || "downloads".equals(authority))) return false;
-        return isHistoryCsv(name) && expectedMonth != null
+        return canReadReceipt(started, opened, now, authority)
+            && isHistoryCsv(name) && expectedMonth != null
             && expectedMonth.equals(monthIn(name)) && expectedMonth.equals(month);
     }
 

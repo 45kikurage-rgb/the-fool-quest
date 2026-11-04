@@ -3,7 +3,7 @@
     android:accessibilityEventTypes="typeWindowStateChanged|typeWindowContentChanged|typeViewScrolled|typeViewFocused|typeViewTextChanged"
     android:accessibilityFeedbackType="feedbackGeneric"
     android:accessibilityFlags="flagReportViewIds|flagRetrieveInteractiveWindows|flagIncludeNotImportantViews"
-    android:canPerformGestures="true"
+    android:packageNames="com.android.chrome"
     android:canRetrieveWindowContent="true"
     android:description="@string/pay_fetch_accessibility_description"
     android:notificationTimeout="150" />

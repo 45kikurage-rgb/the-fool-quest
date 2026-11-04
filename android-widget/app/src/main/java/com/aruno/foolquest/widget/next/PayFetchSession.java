@@ -16,9 +16,9 @@ final class PayFetchSession {
     String month() { return prefs.getString("month", ""); }
     boolean active() { return PayFetchPolicy.active(started(), System.currentTimeMillis()); }
 
-    void begin() {
+    boolean begin() {
         long now = System.currentTimeMillis();
-        prefs.edit().clear()
+        return prefs.edit().clear()
             .putLong("started", now)
             .putString("month", RevenueMath.month(now))
             .commit();
@@ -26,6 +26,14 @@ final class PayFetchSession {
 
     void expectReceipt() {
         prefs.edit().putLong("opened", System.currentTimeMillis()).commit();
+    }
+
+    /** Session transitions and writes run on the main thread. */
+    boolean consume(long started, long opened, String month) {
+        long now = System.currentTimeMillis();
+        return started == started() && opened == opened() && month.equals(month())
+            && month.equals(RevenueMath.month(now)) && PayFetchPolicy.receiptActive(started, opened, now)
+            && prefs.edit().clear().commit();
     }
 
     void clear() { prefs.edit().clear().commit(); }

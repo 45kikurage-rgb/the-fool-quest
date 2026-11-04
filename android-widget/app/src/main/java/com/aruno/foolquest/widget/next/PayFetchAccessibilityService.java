@@ -22,11 +22,14 @@ public final class PayFetchAccessibilityService extends AccessibilityService {
         if (assistant != null) assistant.onAccessibilityEvent(event);
     }
 
-    @Override public void onInterrupt() { stopPayFetch(); }
+    @Override public void onInterrupt() {
+        stopPayFetch();
+        new PayFetchSession(this).clear();
+    }
 
     @Override public void onDestroy() {
         if (instance == this) instance = null;
-        if (assistant != null) assistant.stop();
+        onInterrupt();
         super.onDestroy();
     }
 

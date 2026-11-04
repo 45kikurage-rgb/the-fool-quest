@@ -439,6 +439,33 @@ public class WidgetInstrumentation extends Instrumentation {
         ok(invalid,"daily coverage rejects gaps and future entries");
     }
 
+    void payFetchEntryChecks() throws Exception {
+        android.content.pm.PackageManager pm=c.getPackageManager();
+        ok(!pm.getActivityInfo(new android.content.ComponentName(c,PayFetchEntryActivity.class),0).exported,
+            "only the app may enter the automatic Chrome fetch");
+        ok(pm.getActivityInfo(new android.content.ComponentName(c,PayFetchActivity.class),0).exported,
+            "Chrome can open a completed CSV");
+        runOnMainSync(()->{
+            PayFetchSession session=new PayFetchSession(c);
+            session.clear();
+            ok(session.begin(),"pay fetch session starts");
+            long started=session.started();
+            String month=session.month();
+            ok(!session.consume(started,0,month),"CSV cannot be received before Chrome Open");
+            session.expectReceipt();
+            long opened=session.opened();
+            ok(!session.consume(started+1,opened,month),"stale receipt cannot consume the session");
+            ok(session.consume(started,opened,month),"one valid receipt consumes the session");
+            ok(!session.consume(started,opened,month),"duplicate receipt cannot overwrite revenue");
+            ok(session.begin(),"next pay fetch session starts");
+            started=session.started();
+            session.expectReceipt();
+            opened=session.opened();
+            session.clear();
+            ok(!session.consume(started,opened,month),"cancelled receipt cannot overwrite revenue");
+        });
+    }
+
     void nativeRevenueChecks() throws Exception {
         String month=RevenueMath.month(System.currentTimeMillis());
         VatonRevenueCsv.CsvResult parsed=VatonRevenueCsv.parseCsv("ID,チャージポイント\nA,\"1,000\"\nB,-200\n");
@@ -851,6 +878,7 @@ public class WidgetInstrumentation extends Instrumentation {
             host.stopListening();runOnMainSync(activity::finish);
             calendarLayoutChecks();
             couponDailyContractChecks();
+            payFetchEntryChecks();
             nativeRevenueChecks();
             result.putString("stream","PASS "+checks+" native Android checks; Coupon "+live.coupon+"; screenshots "+output);
             finish(ActivityResult.OK,result);

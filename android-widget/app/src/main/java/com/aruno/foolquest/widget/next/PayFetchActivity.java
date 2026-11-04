@@ -25,14 +25,12 @@ import java.io.InputStream;
  * in PayFetchPolicy passes, including the daily breakdown; otherwise the
  * stored values are kept and the user is guided to the manual CSV import.
  */
-public final class PayFetchActivity extends Activity {
-    static final String EXTRA_START = "com.aruno.foolquest.widget.next.PAY_FETCH_START";
+public class PayFetchActivity extends Activity {
     static final String EXTRA_ERROR = "com.aruno.foolquest.widget.next.PAY_FETCH_ERROR";
 
     private TextView status;
     private PayFetchSession session;
     private boolean importInProgress;
-    private boolean chromeStarted;
 
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,60 +48,47 @@ public final class PayFetchActivity extends Activity {
         content.addView(head);
         status = text("", 15);
         content.addView(status);
-        content.addView(action("ChromeでCSV取得を開始／再実行", () -> startFetch()));
-        content.addView(action("ユーザー補助の設定を開く",
-            () -> startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))));
-        content.addView(action("取得を中止", () -> {
-            PayFetchAccessibilityService service = PayFetchAccessibilityService.instance;
-            if (service != null) service.stopPayFetch();
-            session.clear();
-            status.setText("取得を中止しました。保存済みのデータは変更していません");
-        }));
+        if (isInternalEntry()) {
+            content.addView(action("ChromeでCSV取得を開始／再実行", () -> startFetch()));
+            content.addView(action("ユーザー補助の設定を開く",
+                () -> startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))));
+            content.addView(action("取得を中止", () -> {
+                PayFetchAccessibilityService service = PayFetchAccessibilityService.instance;
+                if (service != null) service.stopPayFetch();
+                session.clear();
+                status.setText("取得を中止しました。保存済みのデータは変更していません");
+            }));
+        }
         content.addView(action("収益管理へ戻る", () -> {
             startActivity(new Intent(this, ManagementActivity.class));
             finish();
         }));
-        chromeStarted = savedInstanceState != null && savedInstanceState.getBoolean("chrome_started");
-        handleIntent(getIntent(), savedInstanceState != null);
+        handleIntent(getIntent(), savedInstanceState == null);
     }
 
-    @Override protected void onSaveInstanceState(Bundle outState) {
-        outState.putBoolean("chrome_started", chromeStarted);
-        super.onSaveInstanceState(outState);
-    }
+    boolean isInternalEntry() { return false; }
 
     @Override protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
-        handleIntent(intent, false);
+        handleIntent(intent, true);
     }
 
-    private void handleIntent(Intent source, boolean restored) {
+    private void handleIntent(Intent source, boolean fresh) {
         if (source == null || importInProgress) return;
-        String error = source.getStringExtra(EXTRA_ERROR);
-        if (error != null) {
-            status.setText(error);
+        if (isInternalEntry()) {
+            String error = source.getStringExtra(EXTRA_ERROR);
+            if (error != null) status.setText(error);
+            else if (fresh) startFetch();
+            else status.setText("取得中です。Chromeの案内を確認してください");
             return;
         }
-        Uri uri = null;
-        if (Intent.ACTION_VIEW.equals(source.getAction())) {
-            Uri data = source.getData();
-            if (data != null && "content".equals(data.getScheme())) uri = data;
-        } else if (Intent.ACTION_SEND.equals(source.getAction())) {
-            @SuppressWarnings("deprecation")
-            Uri stream = source.getParcelableExtra(Intent.EXTRA_STREAM);
-            if (stream != null && "content".equals(stream.getScheme())) uri = stream;
-        }
-        if (uri != null) {
+        Uri uri = Intent.ACTION_VIEW.equals(source.getAction()) ? source.getData() : null;
+        if (uri != null && "content".equals(uri.getScheme())) {
             processReceipt(uri);
-            return;
+        } else {
+            status.setText("管理画面の「データ更新」から取得を開始してください");
         }
-        if (source.getBooleanExtra(EXTRA_START, false)) {
-            if (!restored) startFetch();
-            else status.setText("Chromeで取得中です。完了したCSVをAru-MyBestで開くと自動で取り込みます");
-            return;
-        }
-        status.setText("「ChromeでCSV取得を開始／再実行」を押すと、今月のポイント履歴CSVを自動取得します");
     }
 
     private void startFetch() {
@@ -113,14 +98,20 @@ public final class PayFetchActivity extends Activity {
             status.setText("初回は「ユーザー補助の設定を開く」から「Aru-MyBest データ更新」を有効にして、もう一度開始してください");
             return;
         }
-        session.begin();
+        if (session.active()) {
+            status.setText("取得中です。再実行する場合は、いったん中止してください");
+            return;
+        }
+        if (!session.begin()) {
+            status.setText("取得を開始できません。端末の保存状態を確認してください");
+            return;
+        }
         status.setText("データ更新中\nChromeでえらべるPayを開きます。ログインが必要な場合はログインしてください。\nCSVのアプリ選択が出たらAru-MyBestを選んでください");
         try {
             Intent browser = new Intent(Intent.ACTION_VIEW, Uri.parse(PayFetchPolicy.VATON_HISTORY_URL));
             browser.setPackage(PayFetchPolicy.CHROME);
             startActivity(browser);
             service.startPayFetch();
-            chromeStarted = true;
         } catch (RuntimeException e) {
             session.clear();
             service.stopPayFetch();
@@ -129,47 +120,61 @@ public final class PayFetchActivity extends Activity {
     }
 
     private void processReceipt(final Uri uri) {
-        importInProgress = true;
-        PayFetchAccessibilityService service = PayFetchAccessibilityService.instance;
-        if (service != null) service.stopPayFetch();
-        status.setText("データ更新中\nCSVを確認しています…");
         final long started = session.started();
         final long opened = session.opened();
         final String expectedMonth = session.month();
+        if (!PayFetchPolicy.canReadReceipt(started, opened, System.currentTimeMillis(), uri.getAuthority())) {
+            status.setText(receiptError("今回の自動取得に対応するCSVを確認できませんでした"));
+            return;
+        }
+        importInProgress = true;
+        status.setText("データ更新中\nCSVを確認しています…");
         new Thread(() -> {
-            String message;
             try {
                 final String name = displayName(uri);
-                if (name == null) throw new IllegalArgumentException("CSVのファイル名を取得できません");
-                if (!PayFetchPolicy.isHistoryCsv(name))
-                    throw new IllegalArgumentException("ポイント履歴のCSVではありません");
-                byte[] bytes = readLimited(uri);
-                final VatonRevenueCsv.CsvResult parsed = VatonRevenueCsv.parseCsv(bytes);
-                boolean gate = PayFetchPolicy.canAutoImport(started, opened,
-                        System.currentTimeMillis(), uri.getAuthority(), name,
-                        PayFetchPolicy.monthIn(name), expectedMonth)
-                    && PayFetchPolicy.dailyVerified(parsed, expectedMonth)
-                    && expectedMonth.equals(PayFetchPolicy.monthIn(name));
-                if (!gate) {
-                    message = "自動取込の条件を満たしませんでした（取得セッション・受取期限・ファイル名・対象月・日別合計を確認）。"
-                        + "\n保存済みのデータは変更していません。管理画面の「CSVを取り込む」から手動で取り込めます";
-                } else {
-                    String acquired = RevenueMath.date("yyyy-MM-dd", System.currentTimeMillis());
-                    new RevenueManager(this).setCsv(expectedMonth, parsed, name, acquired);
-                    message = expectedMonth + " のCSVを自動で取り込みました\n"
-                        + RevenueMath.money(parsed.total) + "（" + parsed.count + "件・日別あり）";
-                }
+                if (!PayFetchPolicy.isHistoryCsv(name) || !expectedMonth.equals(PayFetchPolicy.monthIn(name)))
+                    throw new IllegalArgumentException("対象月のポイント履歴CSVではありません");
+                final VatonRevenueCsv.CsvResult parsed = VatonRevenueCsv.parseCsv(readLimited(uri));
+                if (!PayFetchPolicy.canAutoImport(started, opened, System.currentTimeMillis(),
+                        uri.getAuthority(), name, parsed.datesMonth, expectedMonth))
+                    throw new IllegalArgumentException("受取期限と対象月を確認できませんでした");
+                runOnUiThread(() -> finishReceipt(started, opened, expectedMonth, name, parsed));
             } catch (Exception e) {
-                message = "読込エラー：" + (e.getMessage() == null ? "CSVを確認してください" : e.getMessage())
-                    + "\n保存済みのデータは変更していません。CSVを再取得するか、管理画面から手動で取り込めます";
+                final String message = e.getMessage() == null ? "CSVを確認してください" : e.getMessage();
+                runOnUiThread(() -> {
+                    importInProgress = false;
+                    status.setText(receiptError(message));
+                });
             }
-            session.clear();
-            final String result = message;
-            runOnUiThread(() -> {
-                importInProgress = false;
-                status.setText(result);
-            });
         }).start();
+    }
+
+    private void finishReceipt(long started, long opened, String month, String name,
+                               VatonRevenueCsv.CsvResult parsed) {
+        importInProgress = false;
+        if (isFinishing() || isDestroyed()) return;
+        if (!PayFetchPolicy.dailyVerified(parsed, month)) {
+            status.setText(receiptError("CSVの日付と日別合計を確認できませんでした"));
+            return;
+        }
+        if (!session.consume(started, opened, month)) {
+            status.setText(receiptError("取得が中止されたか、受取期限が切れました"));
+            return;
+        }
+        PayFetchAccessibilityService service = PayFetchAccessibilityService.instance;
+        if (service != null) service.stopPayFetch();
+        try {
+            String acquired = RevenueMath.date("yyyy-MM-dd", opened);
+            new RevenueManager(this).setCsv(month, parsed, name, acquired);
+            status.setText(month + " のCSVを自動で取り込みました\n"
+                + RevenueMath.money(parsed.total) + "（" + parsed.count + "件・日別あり）");
+        } catch (Exception e) {
+            status.setText(receiptError(e.getMessage() == null ? "CSVを確認してください" : e.getMessage()));
+        }
+    }
+
+    private static String receiptError(String message) {
+        return message + "\n保存済みのデータは変更していません。管理画面の「CSVを取り込む」から手動で取り込めます";
     }
 
     private String displayName(Uri uri) {

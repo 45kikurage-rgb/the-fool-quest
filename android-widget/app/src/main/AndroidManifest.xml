@@ -13,6 +13,7 @@
             <intent-filter><action android:name="android.intent.action.VIEW" /><category android:name="android.intent.category.DEFAULT" /><category android:name="android.intent.category.BROWSABLE" /><data android:scheme="tfqwidget" android:host="snapshot" /></intent-filter>
             <intent-filter><action android:name="android.intent.action.SEND" /><category android:name="android.intent.category.DEFAULT" /><data android:mimeType="text/plain" /></intent-filter>
         </activity>
+        <activity android:name=".PayFetchEntryActivity" android:exported="false" />
         <activity android:name=".PayFetchActivity" android:exported="true" android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -22,15 +23,6 @@
                 <data android:mimeType="text/comma-separated-values" />
                 <data android:mimeType="application/csv" />
                 <data android:mimeType="application/vnd.ms-excel" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.SEND" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="text/csv" />
-                <data android:mimeType="text/comma-separated-values" />
-                <data android:mimeType="application/csv" />
-                <data android:mimeType="application/vnd.ms-excel" />
-                <data android:mimeType="application/octet-stream" />
             </intent-filter>
         </activity>
         <service android:name=".PayFetchAccessibilityService" android:description="@string/pay_fetch_accessibility_description" android:exported="false" android:label="Aru-MyBest データ更新" android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">

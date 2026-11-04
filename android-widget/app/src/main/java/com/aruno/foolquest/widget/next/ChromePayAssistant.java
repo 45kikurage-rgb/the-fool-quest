@@ -84,7 +84,7 @@ final class ChromePayAssistant {
         stop();
         session.clear();
         try {
-            Intent intent = new Intent(service, PayFetchActivity.class);
+            Intent intent = new Intent(service, PayFetchEntryActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
             intent.putExtra(PayFetchActivity.EXTRA_ERROR, message);
             service.startActivity(intent);
@@ -184,9 +184,11 @@ final class ChromePayAssistant {
                                 boolean completed = nativeText.toString().contains("ダウンロード")
                                     || containsIgnoreCase(nativeText.toString(), "download");
                                 if (completed && open != null) {
-                                    session.expectReceipt();
                                     openClicked = click(open);
-                                    if (openClicked) lastAction = now;
+                                    if (openClicked) {
+                                        session.expectReceipt();
+                                        lastAction = now;
+                                    }
                                 }
                                 for (AccessibilityNodeInfo child : children) child.recycle();
                                 AccessibilityNodeInfo next = parent.getParent();
@@ -240,7 +242,6 @@ final class ChromePayAssistant {
                     if (click(download)) {
                         downloadClickedAt = now;
                         lastAction = now;
-                        session.expectReceipt();
                     }
                     return;
                 }
