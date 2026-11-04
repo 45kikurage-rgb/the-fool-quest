@@ -6,7 +6,7 @@
 
 - Vaultの `items.received_at`（JST換算）、`item_campaign_assignments`、`ledger_products.unit_price` から日別のCoupon金額を集計可能。既存の `GET /api/revenue/summary` は **当日** 集計に限定され、過去月/全日一括取得には非対応。
 - Ledgerの `product_monthly_revenue` は商品×月集約で、現在の公開Reader `GET /api/v1/revenue/monthly?month=YYYY-MM` が返す `coupon_revenue` は **月計** のみ。
-- TikTok Liteについて、Ledgerに日別保存の設計・実装証拠なし。ARUNO ASSISTは原本CSVをそのアプリの専用領域に保存している。
+- TikTok Liteについて、Ledgerに日別保存の設計・実装証拠なし。**利用者の実運用はTHE FOOL QUESTからChromeでCSV取得→同アプリ内でCSVを取り込む方式**。ARUNO ASSISTの原本保存・転送はこの運用に関係しない。
 
 ## 統括確認が必要な提案
 
@@ -37,13 +37,14 @@
 
 サンプル数値は架空のテストデータ。日付のない日は、当月全日が完全照合されたときだけ0とみなす。返答にURL/交換コード/カード情報は載せない。
 
-## TikTok Lite CSV日別連携のWork検討事項
+## TikTok Lite CSV日別連携のWork検討事項（Chrome→取込の現行運用を維持）
 
-- 現行ARUNO ASSISTは `PaySyncResult` で `month,total,count,fingerprint,fileName` だけを返し、CSV原本をアプリ専用領域 `files/pay-sync/YYYY-MM.csv` に保存している。
-- Pixel 10のTHE FOOL QUESTネイティブが直接CSVを選択したときは、このPRの `RevenueManager.parseCsv` で日別値を保存可能。
-- **ASSISTからの自動連携は未実装**。Workで、ユーザーが明示して起動する `ACTION_SEND` + `FileProvider` の一時的な読取許可など、既存境界を維持した安全な受け渡し方法を比較する。ASSISTの内部ファイルを外部から無制限公開しない。
-- 原本CSVが残らない古い月は月計だけ表示し、日別内訳は「—」。手動追加分は既存の日付付き記録を使う。
-- CSV再取込時の月計は **置換** であり、手動追加は別集計。再送や重複を累積加算しない。
+- 実際の手順は **THE FOOL QUEST「えらべるPayのポイント履歴をChromeで開く」→ChromeでCSV取得→THE FOOL QUEST「CSVを取り込む」→確認→保存**。ARUNO ASSISTは利用しない。
+- 既存 `ManagementActivity` は `ACTION_OPEN_DOCUMENT` を使ってCSVファイルを開く。日付・金額を `RevenueManager.parseCsv` で一度だけ解析し、同じ確認操作で月額と日別を更新する実装を優先する。
+- 再取込は月額・日別の**一括置換**。手動追加分は別枠で保持し、二重加算しない。日付付きCSVと月額は突合する。
+- 過去月のCSVが残っていれば、同じ「CSVを取り込む」操作で再解析できるか検証する。存在しない日付を作らない。
+- **ARUNO ASSIST／`#paySync` 拡張／`ACTION_SEND`／`FileProvider`／アプリ間自動同期は今回不要**。必要性が生じない限り、追加開発しない。
+- CSVの実物による日付形式・列名・文字コード（UTF-8 BOM / MS932）・対象月・操作の通し試験がWorkの主な確認項目。
 
 ## Workの優先検証
 
@@ -68,4 +69,4 @@
 
 **推薦：Bを第一候補として権限・既存Service Binding・負荷とレスポンス契約を検証**。Aは既存の統括決定や性能/可用性要件により選択し得る。Cを独自確定しない。すべて本番変更前に統括確認。
 
-TikTok Liteについては既存ARUNO ASSISTの `#paySync` 月計payloadへ **日別31件の検証済み金額** を同梱する案が最小改修。ただしWeb連携の運用を見直す場合は、ネイティブへの安全な明示共有との比較が必要。既存データ契約を無承認で変更しない。
+**TikTok Lite側の推奨を訂正：** 利用者はARUNO ASSISTを使用せず、THE FOOL QUESTアプリからChromeでCSV取得後、同アプリでCSVを取り込む。従って`#paySync` payload拡張もアプリ間連携も**提案から除外**。最小変更はTHE FOOL QUESTの既存CSV取込から日別集計を同時に保持すること。
