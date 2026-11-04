@@ -75,13 +75,14 @@ function fixture({origin = host, loggedOut = false} = {}) {
         }
     };
     const window = {};
+    const location = {origin, pathname: '/point/point_logs'};
     vm.runInNewContext(script, {
-        location: {origin, pathname: '/point/point_logs'},
+        location,
         window, document, URL: objectUrl, Blob, FileReader: Reader,
         HTMLAnchorElement: Anchor, HTMLSelectElement: Select, Event,
         getComputedStyle: () => ({visibility: 'visible'})
     });
-    return {api: window.__aruPayHistory, reads, select, clicks: () => clicks, downloads: () => downloads};
+    return {api: window.__aruPayHistory, reads, select, location, clicks: () => clicks, downloads: () => downloads};
 }
 
 test('selects the current month and captures the original Blob even when its URL is revoked', async () => {
@@ -119,4 +120,20 @@ test('does not export an unavailable month or read an oversized Blob', () => {
     small.api.tick(month, 1);
     assert.match(small.api.tick(month, 1).error, /4MB/);
     assert.equal(small.reads.length, 0);
+});
+
+test('leaving the history route stops CSV access, and returning resumes it', async () => {
+    const f = fixture();
+    f.location.pathname = '/sign_in';
+    assert.equal(f.api.tick(month, 4_000_000).step, 'waiting');
+    assert.equal(f.clicks(), 0);
+    f.location.pathname = '/point/point_logs';
+    f.api.tick(month, 4_000_000);
+    f.api.tick(month, 4_000_000);
+    f.api.tick(month, 4_000_000);
+    await Promise.all(f.reads);
+    assert.equal(f.api.tick(month, 4_000_000).name, filename);
+    f.location.pathname = '/oauth/resolve_session';
+    assert.equal(f.api.tick(month, 4_000_000).step, 'waiting');
+    assert.equal(f.api.chunk(0, 16), '');
 });

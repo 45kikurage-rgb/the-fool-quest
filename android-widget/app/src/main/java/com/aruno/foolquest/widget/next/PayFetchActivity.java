@@ -1,6 +1,7 @@
 package com.aruno.foolquest.widget.next;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -36,6 +37,7 @@ public final class PayFetchActivity extends Activity {
     private final Runnable pollTask = this::poll;
     private TextView status;
     private FrameLayout page;
+    private Button login;
     private Button retry;
     private WebView web;
     private String script;
@@ -45,7 +47,8 @@ public final class PayFetchActivity extends Activity {
     private long receiptStarted;
     private int navigation;
     private boolean foreground;
-    private boolean loaded;
+    private String address;
+    private boolean loginFlow;
     private boolean scriptInstalled;
     private boolean evaluating;
 
@@ -66,6 +69,11 @@ public final class PayFetchActivity extends Activity {
         status.setTextSize(16);
         status.setPadding(dp(4), dp(8), dp(4), dp(8));
         content.addView(status);
+        login = button("ログイン画面を開く", () -> {
+            if (web == null) startFetch();
+            if (web != null) web.loadUrl(PayFetchPolicy.VATON_LOGIN_URL);
+        });
+        content.addView(login);
         retry = button("ポイント履歴を開き直す", this::startFetch);
         content.addView(retry);
         page = new FrameLayout(this);
@@ -96,7 +104,8 @@ public final class PayFetchActivity extends Activity {
     private void startFetch() {
         closeWeb();
         retry.setVisibility(View.GONE);
-        status.setText("データ更新中…");
+        login.setVisibility(View.VISIBLE);
+        status.setText("ポイント履歴を開いています…");
         started = SystemClock.elapsedRealtime();
         historyStarted = started;
         month = RevenueMath.month(System.currentTimeMillis());
@@ -108,27 +117,27 @@ public final class PayFetchActivity extends Activity {
             view.getSettings().setDomStorageEnabled(true);
             view.getSettings().setAllowFileAccess(false);
             view.getSettings().setAllowContentAccess(false);
+            view.getSettings().setMixedContentMode(android.webkit.WebSettings.MIXED_CONTENT_NEVER_ALLOW);
             CookieManager.getInstance().setAcceptCookie(true);
+            CookieManager.getInstance().setAcceptThirdPartyCookies(view, true);
             view.setWebViewClient(new WebViewClient() {
                 @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                    if (!request.isForMainFrame() || PayFetchPolicy.walletAddress(request.getUrl().toString()))
-                        return false;
-                    if (view == web) fail("えらべるPayの外部ページへ移動しました");
-                    return true;
+                    if (!request.isForMainFrame()) return false;
+                    return !allowNavigation(view, request.getUrl().toString());
                 }
 
-                @Override public void onPageStarted(WebView view, String url, android.graphics.Bitmap icon) {
-                    if (view != web) return;
-                    navigation++;
-                    evaluating = false;
-                    loaded = false;
-                    scriptInstalled = false;
-                    if (!PayFetchPolicy.walletAddress(url)) fail("取得元を確認できませんでした");
+                @Override public void onPageStarted(WebView view, String url, Bitmap icon) {
+                    if (allowNavigation(view, url)) updateAddress(url);
+                }
+
+                @Override public void doUpdateVisitedHistory(WebView view, String url, boolean isReload) {
+                    if (view == web && !url.equals(address) && allowNavigation(view, url)) {
+                        updateAddress(url);
+                    }
                 }
 
                 @Override public void onPageFinished(WebView view, String url) {
                     if (view != web || !url.equals(view.getUrl())) return;
-                    loaded = true;
                     CookieManager.getInstance().flush();
                     schedulePoll();
                 }
@@ -150,12 +159,35 @@ public final class PayFetchActivity extends Activity {
             });
             page.addView(view, new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
-            view.setVisibility(View.INVISIBLE);
             view.loadUrl(PayFetchPolicy.VATON_HISTORY_URL);
             schedulePoll();
         } catch (RuntimeException | IOException e) {
             fail("アプリ内ブラウザを開けませんでした");
         }
+    }
+
+    private boolean allowNavigation(WebView view, String url) {
+        if (view != web) return false;
+        if (PayFetchPolicy.canNavigate(url, loginFlow || PayFetchPolicy.loginAddress(view.getUrl())))
+            return true;
+        fail("この認証ページはアプリ内で開けませんでした");
+        return false;
+    }
+
+    private void updateAddress(String url) {
+        address = url;
+        if (PayFetchPolicy.walletAddress(url)) loginFlow = PayFetchPolicy.loginAddress(url);
+        navigation++;
+        evaluating = false;
+        scriptInstalled = false;
+        if (!PayFetchPolicy.historyAddress(url)) {
+            if (receiptStarted > 0) {
+                fail("CSVの受取中にページが変わりました");
+                return;
+            }
+            showLogin();
+        }
+        schedulePoll();
     }
 
     private void schedulePoll() {
@@ -176,12 +208,11 @@ public final class PayFetchActivity extends Activity {
             fail("CSVの取得が時間内に完了しませんでした");
             return;
         }
-        if (!loaded || evaluating || receiptStarted > 0) {
+        if (address == null || evaluating || receiptStarted > 0) {
             schedulePoll();
             return;
         }
-        if (!PayFetchPolicy.historyAddress(view.getUrl())) {
-            showLogin(view);
+        if (!PayFetchPolicy.historyAddress(address)) {
             schedulePoll();
             return;
         }
@@ -193,7 +224,7 @@ public final class PayFetchActivity extends Activity {
         view.evaluateJavascript(code, value -> {
             if (view != web || navigation != document) return;
             evaluating = false;
-            if (!PayFetchPolicy.historyAddress(view.getUrl())) {
+            if (!PayFetchPolicy.historyAddress(address)) {
                 schedulePoll();
                 return;
             }
@@ -214,10 +245,10 @@ public final class PayFetchActivity extends Activity {
                 return;
             }
             if ("login".equals(step)) {
-                showLogin(view);
-            } else {
+                showLogin();
+            } else if (!"waiting".equals(step)) {
                 if (historyStarted == 0) historyStarted = SystemClock.elapsedRealtime();
-                view.setVisibility(View.INVISIBLE);
+                login.setVisibility(View.GONE);
                 retry.setVisibility(View.GONE);
                 status.setText("データ更新中… " + month + " のポイント履歴を確認しています");
             }
@@ -238,11 +269,14 @@ public final class PayFetchActivity extends Activity {
         schedulePoll();
     }
 
-    private void showLogin(WebView view) {
+    private void showLogin() {
         historyStarted = 0;
-        view.setVisibility(View.VISIBLE);
+        login.setVisibility(View.GONE);
         retry.setVisibility(View.VISIBLE);
-        status.setText("えらべるPayにログインしてください。履歴画面に戻ると自動取得を再開します");
+        String host = PayFetchPolicy.httpsHost(address);
+        status.setText(PayFetchPolicy.walletAddress(address)
+            ? "えらべるPayの画面でログインしてください。履歴へ戻らない場合は「ポイント履歴を開き直す」を押してください"
+            : "ログインの認証先 " + host + "。画面の案内に沿って続けてください");
     }
 
     private void readChunk(WebView view, int document, String name, StringBuilder data,
@@ -276,7 +310,7 @@ public final class PayFetchActivity extends Activity {
 
     private boolean validReceipt(WebView view, int document, long received) {
         long now = SystemClock.elapsedRealtime();
-        return view == web && document == navigation && PayFetchPolicy.historyAddress(view.getUrl())
+        return view == web && document == navigation && PayFetchPolicy.historyAddress(address)
             && now - started < PayFetchPolicy.SESSION_MS && now - received < PayFetchPolicy.RECEIPT_MS;
     }
 
@@ -309,6 +343,7 @@ public final class PayFetchActivity extends Activity {
             return;
         }
         closeWeb();
+        login.setVisibility(View.GONE);
         try {
             new RevenueManager(this).setCsv(expectedMonth, parsed, name, RevenueMath.date("yyyy-MM-dd", now));
             status.setText(expectedMonth + " のCSVを取り込みました\n"
@@ -320,7 +355,8 @@ public final class PayFetchActivity extends Activity {
 
     private void fail(String reason) {
         closeWeb();
-        status.setText(reason + "\n管理画面の「CSVを取り込む」から手動で取り込めます");
+        status.setText(reason + "\n収益管理からChromeでポイント履歴を開き、CSVを手動で取り込むこともできます");
+        login.setVisibility(View.VISIBLE);
         retry.setVisibility(View.VISIBLE);
     }
 
@@ -328,7 +364,8 @@ public final class PayFetchActivity extends Activity {
         handler.removeCallbacks(pollTask);
         WebView view = web;
         web = null;
-        loaded = false;
+        address = null;
+        loginFlow = false;
         historyStarted = 0;
         receiptStarted = 0;
         scriptInstalled = false;

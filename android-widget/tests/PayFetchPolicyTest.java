@@ -22,6 +22,18 @@ public class PayFetchPolicyTest {
         check(!PayFetchPolicy.walletAddress("https://example@wallet.vaton.jp/point/point_logs"), "userinfo rejected");
         check(!PayFetchPolicy.walletAddress("http://wallet.vaton.jp/point/point_logs"), "unencrypted site rejected");
         check(!PayFetchPolicy.walletAddress(null), "missing address rejected");
+        check(PayFetchPolicy.loginAddress(PayFetchPolicy.VATON_LOGIN_URL), "official sign-in return route");
+        check(PayFetchPolicy.loginAddress("https://wallet.vaton.jp/oauth/resolve_session"), "wallet OAuth callback");
+        check(!PayFetchPolicy.loginAddress(PayFetchPolicy.VATON_HISTORY_URL), "history does not allow external login navigation");
+        check(!PayFetchPolicy.loginAddress("https://wallet.vaton.jp.example/sign_in"), "lookalike login does not allow external navigation");
+        String provider = "https://account.example/authorize";
+        check(!PayFetchPolicy.canNavigate(provider, false), "external pages are blocked outside sign-in");
+        check(PayFetchPolicy.canNavigate(provider, true), "HTTPS provider can open during sign-in");
+        check(!PayFetchPolicy.historyAddress(provider), "external provider cannot supply CSV");
+        check(!PayFetchPolicy.canNavigate("http://account.example/authorize", true), "sign-in must stay encrypted");
+        check(!PayFetchPolicy.canNavigate("intent://account.example/#Intent;end", true), "unexpected external app blocked");
+        check(!PayFetchPolicy.canNavigate("https://user@account.example/authorize", true), "misleading credentials in address blocked");
+        check(PayFetchPolicy.canNavigate(PayFetchPolicy.VATON_HISTORY_URL, true), "return to official history");
 
         check(PayFetchPolicy.isHistoryCsv("ポイント履歴_2026年11月.csv"), "history csv name");
         check(PayFetchPolicy.isHistoryCsv("ポイント履歴_2026年11月 (3).csv"), "history csv copy name");

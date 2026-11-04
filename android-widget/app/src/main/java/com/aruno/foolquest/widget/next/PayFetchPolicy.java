@@ -9,6 +9,7 @@ final class PayFetchPolicy {
     private PayFetchPolicy() {}
 
     static final String VATON_HISTORY_URL = "https://wallet.vaton.jp/point/point_logs";
+    static final String VATON_LOGIN_URL = "https://wallet.vaton.jp/sign_in?destination=point_logs";
     static final long SESSION_MS = 10 * 60 * 1000L;
     static final long DOWNLOAD_MS = 120 * 1000L;
     static final long RECEIPT_MS = 60 * 1000L;
@@ -23,15 +24,31 @@ final class PayFetchPolicy {
         return "/point/point_logs".equals(path) || "/point/point_logs/".equals(path);
     }
 
-    private static URI walletUri(String address) {
+    static boolean loginAddress(String address) {
+        URI uri = walletUri(address);
+        if (uri == null) return false;
+        String path = uri.getRawPath();
+        return "/sign_in".equals(path) || "/login".equals(path) || path.startsWith("/oauth/")
+            || path.startsWith("/sign_up/");
+    }
+
+    static boolean canNavigate(String address, boolean loginFlow) {
+        return walletAddress(address) || (loginFlow && httpsHost(address) != null);
+    }
+
+    static String httpsHost(String address) {
         if (address == null) return null;
         try {
             URI uri = URI.create(address);
-            return "https".equals(uri.getScheme()) && "wallet.vaton.jp".equals(uri.getHost())
-                && uri.getRawUserInfo() == null && (uri.getPort() == -1 || uri.getPort() == 443) ? uri : null;
+            return "https".equals(uri.getScheme()) && uri.getRawUserInfo() == null
+                && (uri.getPort() == -1 || uri.getPort() == 443) ? uri.getHost() : null;
         } catch (IllegalArgumentException e) {
             return null;
         }
+    }
+
+    private static URI walletUri(String address) {
+        return "wallet.vaton.jp".equals(httpsHost(address)) ? URI.create(address) : null;
     }
 
     static boolean isHistoryCsv(String name) {

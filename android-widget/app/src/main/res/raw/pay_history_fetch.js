@@ -1,7 +1,7 @@
 (function () {
-    if (location.origin !== 'https://wallet.vaton.jp'
-        || !/^\/point\/point_logs\/?$/.test(location.pathname)
-        || window.__aruPayHistory) return;
+    const onHistory = () => location.origin === 'https://wallet.vaton.jp'
+        && /^\/point\/point_logs\/?$/.test(location.pathname);
+    if (!onHistory() || window.__aruPayHistory) return;
 
     const state = {historyTabOpened: false, opened: false, armed: false, reading: false};
     const blobUrls = new Map();
@@ -25,7 +25,7 @@
     };
 
     function capture(link) {
-        if (!state.armed || !link.hasAttribute('download')) return false;
+        if (!onHistory() || !state.armed || !link.hasAttribute('download')) return false;
         const url = link.href;
         const name = link.download;
         if (!/^ポイント履歴[^/\\]*\.csv$/i.test(name)
@@ -107,6 +107,7 @@
 
     window.__aruPayHistory = {
         tick(expected, limit) {
+            if (!onHistory()) return {step: 'waiting'};
             if (state.error) return {error: state.error};
             if (state.data) return {name: state.name, length: state.data.length};
             if (state.armed) return {step: 'download'};
@@ -133,10 +134,10 @@
                     historyTab.click();
                 }
             }
-            return {step: 'history'};
+            return {step: open || state.opened || state.historyTabOpened ? 'history' : 'waiting'};
         },
         chunk(offset, length) {
-            return state.data ? state.data.slice(offset, offset + length) : '';
+            return onHistory() && state.data ? state.data.slice(offset, offset + length) : '';
         }
     };
 })();
