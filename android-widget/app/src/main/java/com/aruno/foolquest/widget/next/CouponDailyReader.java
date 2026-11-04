@@ -75,6 +75,12 @@ final class CouponDailyReader {
         }
         if (shown > total || (last == maxDay && shown != total))
             throw new IllegalArgumentException("daily total differs");
+        if (month.equals(current)) {
+            // The verified Ledger reply includes today's priced coupons in its month
+            // total, and supplies every previous day in the same reconciled snapshot.
+            days.put(String.format(Locale.US,"%s-%02d",month,last+1),total-shown);
+            shown=total;
+        }
         return new JSONObject().put("total",total).put("sum",shown).put("days",days);
     }
 

@@ -26,6 +26,13 @@ final class VatonRevenueCsv {
             this.datesMonth=datesMonth;
         }
     }
+    static String suggestAcquiredDate(CsvResult csv,long modified,long now){
+        if(!csv.datesComplete||modified<=0||modified>now)return "";
+        String candidate=RevenueMath.date("yyyy-MM-dd",modified);
+        for(String day:csv.days.keySet())if(day.compareTo(candidate)>0)return "";
+        return candidate;
+    }
+
     static CsvResult parseCsv(byte[] bytes) {
         String decoded;
         try {

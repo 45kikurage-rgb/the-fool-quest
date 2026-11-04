@@ -4,6 +4,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Instant;
 
 public class VatonRevenueCsvTest {
     private static final String HEADER="日付,種別,ブランド名,商品名,交換ポイント,円換算額,チャージポイント\n";
@@ -34,6 +35,16 @@ public class VatonRevenueCsvTest {
         check(utf.datesComplete&&utf.datesMonth.equals("2026-11")&&utf.count==3,"dated BOM CSV");
         check(utf.total==300&&utf.days.get("2026-11-01")==300&&utf.days.get("2026-11-02")==0
             &&!utf.days.containsKey("2026-11-03"),"charge rows, exchange-only zero, missing day");
+        long now=Instant.parse("2026-11-04T12:30:00Z").toEpochMilli();
+        long downloaded=Instant.parse("2026-11-02T14:00:00Z").toEpochMilli();
+        check("2026-11-02".equals(VatonRevenueCsv.suggestAcquiredDate(utf,downloaded,now)),
+            "local download timestamp can supply the JST acquisition date");
+        long previous=Instant.parse("2026-11-01T14:59:59Z").toEpochMilli();
+        check(VatonRevenueCsv.suggestAcquiredDate(utf,previous,now).isEmpty(),
+            "timestamp before the last transaction is ignored");
+        check(VatonRevenueCsv.suggestAcquiredDate(utf,0,now).isEmpty()
+            &&VatonRevenueCsv.suggestAcquiredDate(utf,now+1,now).isEmpty(),
+            "missing and future timestamps are ignored");
         VatonRevenueCsv.CsvResult sjis=VatonRevenueCsv.parseCsv(fixture.getBytes(Charset.forName("MS932")));
         check(sjis.days.equals(utf.days)&&sjis.total==utf.total,"MS932 equivalence");
         VatonRevenueCsv.CsvResult legacy=VatonRevenueCsv.parseCsv("ID,チャージポイント\nA,\"1,000\"\nB,-200\n");

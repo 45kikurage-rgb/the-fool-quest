@@ -59,7 +59,7 @@ public final class ManagementActivity extends Activity {
         execute(()->{model=new RevenueManager(this);model.projectWidget();showHome();});
         if(getIntent().getBooleanExtra(EXTRA_WIDGET_TAP,false))refreshFromWidget();
     }
-    @Override protected void onResume(){super.onResume();if(model!=null)execute(this::showHome);dayChanges.start();}
+    @Override protected void onResume(){super.onResume();if(model!=null)execute(()->{model=new RevenueManager(this);showHome();});dayChanges.start();}
     @Override protected void onPause(){dayChanges.stop();super.onPause();}
     @Override protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);setIntent(intent);
@@ -143,6 +143,8 @@ public final class ManagementActivity extends Activity {
         if(tiktok<0)info("TikTokは未登録です。CSVまたはサイトの旧データを取り込んでください。");
         info("ウィジェットは同じ端末内の収益・目標を表示します。Couponは中央管理台帳の読取専用です。");
         action("CSVを取り込む",()->pick("text/*",OPEN_CSV));
+        action("データ更新（ポイント履歴を自動取得）",
+            ()->startActivity(new Intent(this,PayFetchActivity.class)));
         action("TikTok収益を手動追加",this::showManualAdd);
         action("Couponを今すぐ更新",()->{
             RevenueUpdate.start(this,()->runOnUiThread(()->execute(this::showHome)));
@@ -193,6 +195,19 @@ public final class ManagementActivity extends Activity {
         if(code==OPEN_CSV)i.putExtra(Intent.EXTRA_MIME_TYPES,new String[]{"text/csv","text/plain","text/comma-separated-values","application/vnd.ms-excel","application/octet-stream"});
         startActivityForResult(i,code);
     }
+    private String csvAcquisitionDate(Uri uri, VatonRevenueCsv.CsvResult parsed) {
+        if (!parsed.datesComplete) return "";
+        String column=android.provider.DocumentsContract.Document.COLUMN_LAST_MODIFIED;
+        try (android.database.Cursor cursor=getContentResolver().query(uri,new String[]{column},null,null,null)) {
+            if(cursor==null||!cursor.moveToFirst())return "";
+            int index=cursor.getColumnIndex(column);
+            if(index<0||cursor.isNull(index))return "";
+            return VatonRevenueCsv.suggestAcquiredDate(parsed,cursor.getLong(index),System.currentTimeMillis());
+        } catch(IllegalArgumentException|SecurityException ignored) {
+            return "";
+        }
+    }
+
     @Override protected void onActivityResult(int request,int result,Intent data) {
         super.onActivityResult(request,result,data);
         if(result!=RESULT_OK||data==null||data.getData()==null)return;
@@ -216,12 +231,15 @@ public final class ManagementActivity extends Activity {
                     EditText acquired=new EditText(this);
                     acquired.setSingleLine(true);
                     acquired.setHint("取得日（任意） yyyy-MM-dd");
+                    String candidate=csvAcquisitionDate(uri,parsed);
+                    if(!candidate.isEmpty())acquired.setText(candidate);
                     AlertDialog.Builder confirm=new AlertDialog.Builder(this).setTitle("CSV反映の確認")
                         .setMessage("対象月："+month+"\n新CSV："+money(parsed.total)+"（"+parsed.count+"件）"
                             +"\n日別："+(parsed.datesComplete?"保存可能":"日付を確認できないため月計のみ")
                             +"\n既存CSV："+money(old)
                             +"\n\n既存CSV合計を置き換えます。手動追加分は別に保持します。"
-                            +(parsed.datesComplete?"\nCSVの取得日が分かる場合、取得日まで明細のない日を0円で表示します。":""))
+                            +(parsed.datesComplete?"\n取得日まで明細のない日は0円で表示します。":"")
+                            +(!candidate.isEmpty()?"\nファイルの最終更新日時から取得日を入力しました。違う場合は修正してください。":""))
                         .setNegativeButton("やめる",null)
                         .setPositiveButton("この金額に更新",(d,w)->execute(()->{
                             model.setCsv(month,parsed,file,acquired.getText().toString().trim());showHome();

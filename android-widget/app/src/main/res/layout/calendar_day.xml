@@ -1,27 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/calendar_day_root" android:layout_width="0dp"
-    android:layout_weight="1" android:layout_height="match_parent"
-    android:orientation="vertical" android:padding="1dp" android:background="#202020"
-    android:gravity="center_horizontal">
-    <TextView android:id="@+id/calendar_day_number" android:layout_width="match_parent"
-        android:layout_height="0dp" android:layout_weight="1" android:gravity="center" android:text="1"
-        android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="11sp" android:autoSizeTextType="uniform"
-        android:autoSizeMinTextSize="5dp" android:autoSizeMaxTextSize="11sp" android:autoSizeStepGranularity="0.5dp"
-        android:includeFontPadding="false" android:maxLines="1" />
-    <TextView android:id="@+id/calendar_day_total" android:layout_width="match_parent"
-        android:layout_height="0dp" android:layout_weight="1" android:gravity="center" android:text="—"
-        android:textColor="#FFFFFF" android:textSize="10sp" android:autoSizeTextType="uniform"
-        android:autoSizeMinTextSize="4dp" android:autoSizeMaxTextSize="10sp" android:autoSizeStepGranularity="0.5dp" android:fontFamily="monospace"
-        android:includeFontPadding="false" android:maxLines="1" />
-    <TextView android:id="@+id/calendar_day_coupon" android:layout_width="match_parent"
-        android:layout_height="0dp" android:layout_weight="1" android:gravity="center" android:text="C —"
-        android:textColor="#63E09E" android:textSize="10sp" android:autoSizeTextType="uniform"
-        android:autoSizeMinTextSize="4dp" android:autoSizeMaxTextSize="10sp" android:autoSizeStepGranularity="0.5dp" android:fontFamily="monospace"
-        android:includeFontPadding="false" android:maxLines="1" />
-    <TextView android:id="@+id/calendar_day_tiktok" android:layout_width="match_parent"
-        android:layout_height="0dp" android:layout_weight="1" android:gravity="center" android:text="T —"
-        android:textColor="#7FBAFF" android:textSize="10sp" android:autoSizeTextType="uniform"
-        android:autoSizeMinTextSize="4dp" android:autoSizeMaxTextSize="10sp" android:autoSizeStepGranularity="0.5dp" android:fontFamily="monospace"
-        android:includeFontPadding="false" android:maxLines="1" />
+    android:id="@+id/calendar_day_root" style="@style/CalendarCell"
+    android:orientation="vertical" android:paddingLeft="2dp" android:paddingRight="2dp"
+    android:paddingTop="1dp" android:paddingBottom="1dp" android:background="#202020">
+    <TextView android:id="@+id/calendar_day_number" style="@style/CalendarText"
+        android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1" android:gravity="center" android:textStyle="bold" />
+    <TextView android:id="@+id/calendar_day_total" style="@style/CalendarAmount"
+        android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
+    <LinearLayout android:id="@+id/calendar_coupon_row"
+        android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+        android:orientation="horizontal">
+        <TextView android:id="@+id/calendar_coupon_label" style="@style/CalendarCategory"
+            android:text="C" android:textColor="#63E09E" />
+        <TextView android:id="@+id/calendar_day_coupon" style="@style/CalendarAmount"
+            android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent"
+            android:textColor="#63E09E" />
+    </LinearLayout>
+    <LinearLayout android:id="@+id/calendar_tiktok_row"
+        android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+        android:orientation="horizontal">
+        <TextView android:id="@+id/calendar_tiktok_label" style="@style/CalendarCategory"
+            android:text="T" android:textColor="#7FBAFF" />
+        <TextView android:id="@+id/calendar_day_tiktok" style="@style/CalendarAmount"
+            android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent"
+            android:textColor="#7FBAFF" />
+    </LinearLayout>
 </LinearLayout>
