@@ -1,4 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.aruno.foolquest.widget.next" android:versionCode="22" android:versionName="0.1.21">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.aruno.foolquest.widget.next" android:versionCode="23" android:versionName="0.1.22">
     <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="35" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -13,6 +13,30 @@
             <intent-filter><action android:name="android.intent.action.VIEW" /><category android:name="android.intent.category.DEFAULT" /><category android:name="android.intent.category.BROWSABLE" /><data android:scheme="tfqwidget" android:host="snapshot" /></intent-filter>
             <intent-filter><action android:name="android.intent.action.SEND" /><category android:name="android.intent.category.DEFAULT" /><data android:mimeType="text/plain" /></intent-filter>
         </activity>
+        <activity android:name=".PayFetchActivity" android:exported="true" android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="content" />
+                <data android:mimeType="text/csv" />
+                <data android:mimeType="text/comma-separated-values" />
+                <data android:mimeType="application/csv" />
+                <data android:mimeType="application/vnd.ms-excel" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/csv" />
+                <data android:mimeType="text/comma-separated-values" />
+                <data android:mimeType="application/csv" />
+                <data android:mimeType="application/vnd.ms-excel" />
+                <data android:mimeType="application/octet-stream" />
+            </intent-filter>
+        </activity>
+        <service android:name=".PayFetchAccessibilityService" android:description="@string/pay_fetch_accessibility_description" android:exported="false" android:label="Aru-MyBest データ更新" android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter><action android:name="android.accessibilityservice.AccessibilityService" /></intent-filter>
+            <meta-data android:name="android.accessibilityservice" android:resource="@xml/pay_fetch_accessibility_service_config" />
+        </service>
         <activity android:name=".CalendarControlActivity" android:exported="false" android:theme="@android:style/Theme.Translucent.NoTitleBar" />
         <activity android:name=".RefreshActivity" android:exported="false" android:theme="@style/QuietRefresh" android:taskAffinity="com.aruno.foolquest.widget.next.refresh" android:excludeFromRecents="true" android:launchMode="singleTask" android:configChanges="orientation|screenSize" />
         <receiver android:name=".CalendarWidget" android:label="@string/calendar_widget_name" android:exported="false">
