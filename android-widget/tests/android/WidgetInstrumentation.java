@@ -331,6 +331,11 @@ public class WidgetInstrumentation extends Instrumentation {
         ok(parsed.total==1200 && parsed.count==2,"CSV parser handles quoted values and returns total");
         RevenueManager manager=new RevenueManager(c);
         String csvMonth=month.replace('-','/');
+        RevenueManager.CsvResult bom=RevenueManager.parseCsv("\uFEFF日付,チャージポイント\n"
+            +csvMonth+"/01,150\n");
+        ok(bom.datesComplete&&bom.total==150&&bom.count==1&&
+            month.equals(bom.datesMonth)&&bom.days.get(month+"-01")==150L,
+            "UTF-8 BOM must not invalidate the leading 日付 column");
         RevenueManager.CsvResult daily=RevenueManager.parseCsv("日付,チャージポイント\n"
             +csvMonth+"/01,750\n"+csvMonth+"/02,250\n");
         ok(daily.datesComplete&&daily.total==1000&&month.equals(daily.datesMonth),

@@ -25,7 +25,7 @@ public final class CalendarControlActivity extends Activity {
     }
     private void showFilters(){
         final String[] entries={"3種類表示","合計のみ","クーポンのみ","TikTok Liteのみ"};
-        new AlertDialog.Builder(this).setTitle("日別の表示").setSingleChoiceItems(
+        new AlertDialog.Builder(this,android.R.style.Theme_Material_Light_Dialog_Alert).setTitle("日別の表示").setSingleChoiceItems(
             entries,CalendarWidgetState.filter(this,widgetId),(dialog,which)->{
                 CalendarWidgetState.filter(this,widgetId,which);
                 CalendarWidget.renderOne(this,widgetId);
@@ -45,13 +45,19 @@ public final class CalendarControlActivity extends Activity {
         LinearLayout row=new LinearLayout(this);row.setGravity(Gravity.CENTER);
         row.setPadding(16,8,16,8);row.addView(year,new LinearLayout.LayoutParams(0,-2,1));
         row.addView(monthPicker,new LinearLayout.LayoutParams(0,-2,1));
-        new AlertDialog.Builder(this).setTitle("表示する年月").setView(row)
-            .setPositiveButton("表示",(dialog,which)->{
+        new AlertDialog.Builder(this,android.R.style.Theme_Material_Light_Dialog_Alert).setTitle("表示する年月").setView(row)
+            .setPositiveButton("選択月を表示",(dialog,which)->{
                 String selected=String.format(Locale.US,"%04d-%02d",year.getValue(),monthPicker.getValue());
                 CalendarWidgetState.month(this,widgetId,selected);
                 CalendarWidget.renderOne(this,widgetId);
                 finish();
-            }).setNegativeButton("閉じる",(d,w)->finish())
+            })
+            .setNeutralButton("今月に戻す（自動）",(dialog,which)->{
+                CalendarWidgetState.followCurrentMonth(this,widgetId);
+                CalendarWidget.renderOne(this,widgetId);
+                finish();
+            })
+            .setNegativeButton("閉じる",(d,w)->finish())
             .setOnCancelListener(d->finish()).show();
     }
 }

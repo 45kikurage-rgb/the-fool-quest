@@ -21,6 +21,13 @@ final class CalendarWidgetState {
         int saved=prefs(c).getInt("calendar.summary."+id,0);
         return saved>=0&&saved<=2?saved:0;
     }
+    static void followCurrentMonth(Context c,int id){
+        // No saved month means always follow JST current month at redraw.
+        prefs(c).edit().remove("calendar.month."+id).apply();
+    }
+    static boolean isFollowingCurrentMonth(Context c,int id){
+        return !RevenueMath.validMonth(prefs(c).getString("calendar.month."+id,""));
+    }
     static void month(Context c,int id,String value){
         if(!RevenueMath.validMonth(value))throw new IllegalArgumentException("Invalid month");
         prefs(c).edit().putString("calendar.month."+id,value).apply();
