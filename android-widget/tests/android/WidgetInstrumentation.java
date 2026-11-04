@@ -435,6 +435,7 @@ public class WidgetInstrumentation extends Instrumentation {
             "calendar daily TikTok equals dated CSV");
         ok(calendar.totals[2]==1000,"daily CSV reconciles to monthly baseline");
         manager.addManual(month+"-10",250);
+        String id=manager.manual().getJSONObject(manager.manual().length()-1).getString("id");
         ok(manager.tiktok(month)==1250,"native manual amount adds to CSV exactly once");
         manager.setCsv(month,daily,"dated-fixture.csv");
         CalendarRevenueData.Month reimport=CalendarRevenueData.read(c,month);
@@ -464,7 +465,6 @@ public class WidgetInstrumentation extends Instrumentation {
         catch(IllegalArgumentException expected){undatedRefused=true;}
         ok(undatedRefused&&CalendarRevenueData.read(c,month).days[1][2]==750,
             "undated import cannot erase existing verified daily amounts");
-        String id=manager.manual().getJSONObject(manager.manual().length()-1).getString("id");
         manager.updateManual(id,month+"-10",275);
         ok(manager.tiktok(month)==1275,"editing manual entry replaces amount exactly once");
         ok(RevenueStore.read(c).tiktok==1275,"widget receives native value instantly");
