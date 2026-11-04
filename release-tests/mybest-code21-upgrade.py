@@ -17,11 +17,14 @@ OLD_PACKAGE = 'com.aruno.foolquest.widget'
 PACKAGE = OLD_PACKAGE + '.next'
 OLD_CERTIFICATE = '18946d320bb61c58aa627abbf2b53ea521b273b218eaec57f7fbc662f375bdb1'
 OLD_APK = pathlib.Path('android-widget/releases/fool-quest-widget-0.1.12.apk')
-BASE_APK = pathlib.Path('android-widget/releases/fool-quest-widget-0.1.19.apk')
-BASE_SHA256 = '5c548d4f08753d94b94321491037dcab09a9e02c3196311daa67a63fff5c75d1'
-BASE_SIZE = 79662
+RELEASES = pathlib.Path('android-widget/releases')
+MANIFEST = json.loads((RELEASES / 'manifest.json').read_text())
+PREVIOUS = MANIFEST['previousRelease']
+BASE_APK = RELEASES / PREVIOUS['file']
+BASE_SHA256 = PREVIOUS['sha256']
+BASE_SIZE = PREVIOUS['size']
 SUCCESSOR_CERTIFICATE = '8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730'
-NEW_APK = pathlib.Path('android-widget/releases/aru-mybest-0.1.20.apk')
+NEW_APK = RELEASES / MANIFEST['file']
 OUT = pathlib.Path('android-widget/build/release-upgrade')
 OUT.mkdir(parents=True, exist_ok=True)
 (OUT / 'result.txt').unlink(missing_ok=True)
@@ -92,19 +95,14 @@ assert all(apk.is_file() for apk in [OLD_APK, BASE_APK, NEW_APK]), 'Legacy, prev
 assert hashlib.sha256(BASE_APK.read_bytes()).hexdigest() == BASE_SHA256
 assert BASE_APK.stat().st_size == BASE_SIZE
 assert BASE_APK.read_bytes() != NEW_APK.read_bytes(), 'Upgrade must test two distinct official binaries'
-manifest = json.loads(pathlib.Path('android-widget/releases/manifest.json').read_text())
-assert (manifest['applicationId'], manifest['version'], manifest['versionCode']) == (PACKAGE, '0.1.20', 21)
-assert manifest['previousRelease']['file'] == BASE_APK.name
-assert manifest['previousRelease']['sha256'] == BASE_SHA256
-assert manifest['previousRelease']['size'] == BASE_SIZE
-new_certificate = manifest['certificateSha256']
-assert re.fullmatch(r'[a-f0-9]{64}', new_certificate)
-assert new_certificate == SUCCESSOR_CERTIFICATE, 'Successor signing identity must remain unchanged'
-assert hashlib.sha256(NEW_APK.read_bytes()).hexdigest() == manifest['sha256']
-assert NEW_APK.stat().st_size == manifest['size']
+assert MANIFEST['applicationId'] == PREVIOUS['applicationId'] == PACKAGE
+assert MANIFEST['versionCode'] > PREVIOUS['versionCode'], 'Candidate version must advance'
+assert MANIFEST['certificateSha256'] == PREVIOUS['certificateSha256'] == SUCCESSOR_CERTIFICATE
+assert hashlib.sha256(NEW_APK.read_bytes()).hexdigest() == MANIFEST['sha256']
+assert NEW_APK.stat().st_size == MANIFEST['size']
 verify_apk(OLD_APK, OLD_PACKAGE, '0.1.12', 13, OLD_CERTIFICATE)
-verify_apk(BASE_APK, PACKAGE, '0.1.19', 20, new_certificate)
-verify_apk(NEW_APK, PACKAGE, '0.1.20', 21, new_certificate)
+verify_apk(BASE_APK, PACKAGE, PREVIOUS['version'], PREVIOUS['versionCode'], SUCCESSOR_CERTIFICATE)
+verify_apk(NEW_APK, PACKAGE, MANIFEST['version'], MANIFEST['versionCode'], SUCCESSOR_CERTIFICATE)
 assert adb('shell', 'getprop', 'ro.kernel.qemu').strip() == '1', 'Isolated emulator only'
 assert not adb('shell', 'pm', 'list', 'packages', OLD_PACKAGE).strip(), 'Clean emulator required; do not uninstall'
 adb('root')
@@ -155,12 +153,35 @@ assert prefs(OLD_PACKAGE) == old_snapshot, 'Old settings/cache/history must rema
 old_info = adb('shell', 'dumpsys', 'package', OLD_PACKAGE)
 assert re.search(r'versionCode=13\b', old_info) and 'versionName=0.1.12' in old_info
 info = adb('shell', 'dumpsys', 'package', PACKAGE)
-assert re.search(r'versionCode=20\b', info) and 'versionName=0.1.19' in info
-# Seed the previous official successor, then update without uninstalling it.
+assert re.search(rf"versionCode={PREVIOUS['versionCode']}\b", info) and f"versionName={PREVIOUS['version']}" in info
+# Seed the previous official successor with both widget settings and native history.
+first = month + '-01'
+history = {
+    'format': 'the-fool-quest-migration',
+    'version': 1,
+    'months': {month: {'csv': 1149000, 'csvDaily': {first: 1149000},
+                       'csvDailyComplete': True, 'csvCoveredThrough': first}},
+    'manual': [{'id': 'upgrade-check', 'date': first, 'amount': 1000}],
+    'goals': {'tiktok': 1000000, 'coupon': 600000},
+}
+for name, kind, value in [
+    ('nativeRevenueV1', 'string', json.dumps(history)),
+    ('calendar.month.42', 'string', month),
+    ('calendar.filter.42', 'int', '2'),
+    ('calendar.summary.42', 'int', '1'),
+]:
+    elem = ET.SubElement(fixture, kind, name=name)
+    if kind == 'string':
+        elem.text = value
+    else:
+        elem.set('value', value)
+    expected[name] = value
+ET.ElementTree(fixture).write(fixture_path, encoding='utf-8', xml_declaration=True)
 write_fixture(PACKAGE)
 before_upgrade = prefs(PACKAGE)
 assert 'Success' in adb('install', '-r', str(NEW_APK))
 assert uid(PACKAGE) == new_uid
+assert f"versionName={MANIFEST['version']}" in adb('shell', 'dumpsys', 'package', PACKAGE)
 assert prefs(PACKAGE) == before_upgrade, 'Successor preferences must survive the revised APK upgrade exactly'
 check_preserved(PACKAGE, expected)
 adb('shell', 'am', 'start', '-W', '-n', PACKAGE + '/.SettingsActivity')
@@ -187,14 +208,11 @@ with (OUT / 'upgrade-preview.png').open('wb') as screenshot:
 adb('shell', 'am', 'force-stop', PACKAGE)
 check_preserved(PACKAGE, expected, after_fetch=True)
 assert uid(OLD_PACKAGE) == old_uid and prefs(OLD_PACKAGE) == old_snapshot
-# Confirm the new native activity sees retained code14 values without a fresh import.
+# Confirm the new native activity sees the existing history without another import.
 adb('shell', 'am', 'start', '-W', '-n', PACKAGE + '/.ManagementActivity')
 time.sleep(2)
 native = prefs(PACKAGE)
-assert 'nativeRevenueV1' in native, 'Native manager did not create migration snapshot'
-snapshot = json.loads(native['nativeRevenueV1'])
-assert snapshot['months'][month]['csv'] == 1150000, 'Existing TikTok amount lost during upgrade'
-assert snapshot['goals']['tiktok'] == 1000000, 'Existing TikTok goal lost during upgrade'
+assert json.loads(native['nativeRevenueV1']) == history, 'Existing CSV, manual entries, or goals changed'
 assert native['tiktok'] == '1150000', 'Widget projection changed unexpectedly'
 assert uid(PACKAGE) == new_uid, 'Successor UID changed'
 adb('shell', 'uiautomator', 'dump', '/sdcard/target-home.xml')
@@ -213,12 +231,16 @@ if 'クーポン日別の接続設定' not in home_ui:
     adb('shell', 'uiautomator', 'dump', '/sdcard/target-setup.xml')
     assert 'クーポン日別の接続設定' in adb('shell', 'cat', '/sdcard/target-setup.xml')
 assert uid(OLD_PACKAGE) == old_uid and prefs(OLD_PACKAGE) == old_snapshot, 'Legacy application modified'
+providers = adb('shell', 'dumpsys', 'appwidget')
+for component in ('RevenueWidget', 'CalendarWidget', 'CombinedWidget'):
+    assert component in providers, 'Launcher provider missing: ' + component
 (OUT / 'result.txt').write_text(
-    'PASS existing v0.1.19/code20 upgraded to Aru-MyBest v0.1.20/code21 '
+    f"PASS existing v{PREVIOUS['version']}/code{PREVIOUS['versionCode']} upgraded to "
+    f"Aru-MyBest v{MANIFEST['version']}/code{MANIFEST['versionCode']} "
     'using adb install -r with unchanged official certificate; two distinct APKs verified; '
-    'successor UID and all 29 fixture fields retained exactly after update; '
-    '28 fixture values retained after launch with offline lastFailureAt refreshed; '
-    'legacy v0.1.12/code13 UID and all 29 fixture fields remain untouched; '
+    f'successor UID and all {len(expected)} fixture fields retained exactly after update; '
+    'saved daily CSV, manual entries, and per-widget calendar settings retained; '
+    'legacy v0.1.12/code13 UID and fixture fields remain untouched; '
     'native preview cumulative revenue 115.00% verified and screenshot recorded; '
     'native revenue and gauge rendering are separately checked by Android instrumentation. '
     'No uninstall and no automatic legacy-to-successor migration. '
