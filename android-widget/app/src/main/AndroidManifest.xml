@@ -4,7 +4,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-    <application android:label="Aru-MyBest" android:icon="@drawable/ic_widget" android:theme="@android:style/Theme.Material.Light.NoActionBar" android:allowBackup="false" android:usesCleartextTraffic="false" android:supportsRtl="true">
+    <application android:label="@string/app_name" android:icon="@drawable/ic_widget" android:theme="@android:style/Theme.Material.Light.NoActionBar" android:allowBackup="false" android:usesCleartextTraffic="false" android:supportsRtl="true">
         <activity android:name=".ManagementActivity" android:exported="true">
             <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
         </activity>
@@ -15,11 +15,11 @@
         </activity>
         <activity android:name=".CalendarControlActivity" android:exported="false" android:theme="@android:style/Theme.Translucent.NoTitleBar" />
         <activity android:name=".RefreshActivity" android:exported="false" android:theme="@style/QuietRefresh" android:taskAffinity="com.aruno.foolquest.widget.next.refresh" android:excludeFromRecents="true" android:launchMode="singleTask" android:configChanges="orientation|screenSize" />
-        <receiver android:name=".CalendarWidget" android:exported="true">
+        <receiver android:name=".CalendarWidget" android:label="@string/calendar_widget_name" android:exported="false">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /><action android:name="android.intent.action.BOOT_COMPLETED" /><action android:name="android.intent.action.MY_PACKAGE_REPLACED" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/calendar_widget" />
         </receiver>
-        <receiver android:name=".RevenueWidget" android:exported="true">
+        <receiver android:name=".RevenueWidget" android:label="@string/gauge_widget_name" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /><action android:name="android.intent.action.BOOT_COMPLETED" /><action android:name="android.intent.action.MY_PACKAGE_REPLACED" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/revenue_widget" />
         </receiver>

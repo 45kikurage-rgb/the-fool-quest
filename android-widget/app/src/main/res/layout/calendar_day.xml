@@ -5,19 +5,23 @@
     android:orientation="vertical" android:padding="1dp" android:background="#202020"
     android:gravity="center_horizontal">
     <TextView android:id="@+id/calendar_day_number" android:layout_width="match_parent"
-        android:layout_height="wrap_content" android:gravity="center" android:text="1"
-        android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="10sp"
-        android:includeFontPadding="false" android:singleLine="true" />
+        android:layout_height="0dp" android:layout_weight="1" android:gravity="center" android:text="1"
+        android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="11sp" android:autoSizeTextType="uniform"
+        android:autoSizeMinTextSize="5dp" android:autoSizeMaxTextSize="11sp" android:autoSizeStepGranularity="0.5dp"
+        android:includeFontPadding="false" android:maxLines="1" />
     <TextView android:id="@+id/calendar_day_total" android:layout_width="match_parent"
-        android:layout_height="wrap_content" android:gravity="center" android:text="—"
-        android:textColor="#FFFFFF" android:textSize="7.5sp" android:fontFamily="monospace"
-        android:includeFontPadding="false" android:singleLine="true" />
+        android:layout_height="0dp" android:layout_weight="1" android:gravity="center" android:text="—"
+        android:textColor="#FFFFFF" android:textSize="10sp" android:autoSizeTextType="uniform"
+        android:autoSizeMinTextSize="4dp" android:autoSizeMaxTextSize="10sp" android:autoSizeStepGranularity="0.5dp" android:fontFamily="monospace"
+        android:includeFontPadding="false" android:maxLines="1" />
     <TextView android:id="@+id/calendar_day_coupon" android:layout_width="match_parent"
-        android:layout_height="wrap_content" android:gravity="center" android:text="C —"
-        android:textColor="#63E09E" android:textSize="7.5sp" android:fontFamily="monospace"
-        android:includeFontPadding="false" android:singleLine="true" />
+        android:layout_height="0dp" android:layout_weight="1" android:gravity="center" android:text="C —"
+        android:textColor="#63E09E" android:textSize="10sp" android:autoSizeTextType="uniform"
+        android:autoSizeMinTextSize="4dp" android:autoSizeMaxTextSize="10sp" android:autoSizeStepGranularity="0.5dp" android:fontFamily="monospace"
+        android:includeFontPadding="false" android:maxLines="1" />
     <TextView android:id="@+id/calendar_day_tiktok" android:layout_width="match_parent"
-        android:layout_height="wrap_content" android:gravity="center" android:text="T —"
-        android:textColor="#7FBAFF" android:textSize="7.5sp" android:fontFamily="monospace"
-        android:includeFontPadding="false" android:singleLine="true" />
+        android:layout_height="0dp" android:layout_weight="1" android:gravity="center" android:text="T —"
+        android:textColor="#7FBAFF" android:textSize="10sp" android:autoSizeTextType="uniform"
+        android:autoSizeMinTextSize="4dp" android:autoSizeMaxTextSize="10sp" android:autoSizeStepGranularity="0.5dp" android:fontFamily="monospace"
+        android:includeFontPadding="false" android:maxLines="1" />
 </LinearLayout>

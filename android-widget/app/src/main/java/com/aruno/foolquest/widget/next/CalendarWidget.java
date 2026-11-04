@@ -10,9 +10,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.RemoteViews;
-import java.util.Calendar;
-import java.util.Locale;
-import java.util.TimeZone;
 
 /** Independent monthly revenue calendar. Does not modify the existing three-gauge widget. */
 public final class CalendarWidget extends AppWidgetProvider {
@@ -28,11 +25,15 @@ public final class CalendarWidget extends AppWidgetProvider {
         for(int id:ids(c))renderOne(c,id);
     }
     private static PendingIntent control(Context c,int id,String mode){
+        return control(c,id,mode,"");
+    }
+    private static PendingIntent control(Context c,int id,String mode,String date){
         Intent intent=new Intent(c,CalendarControlActivity.class);
-        intent.setData(Uri.parse("tfq-calendar://control/"+id+"/"+mode));
+        intent.setData(Uri.parse("tfq-calendar://control/"+id+"/"+mode+"/"+date));
         intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,id);
         intent.putExtra(CalendarControlActivity.EXTRA_MODE,mode);
-        return PendingIntent.getActivity(c,3000+id*2+("filter".equals(mode)?1:0),intent,
+        intent.putExtra(CalendarControlActivity.EXTRA_DATE,date);
+        return PendingIntent.getActivity(c,0,intent,
             PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
     }
     private static PendingIntent cycle(Context c,int id){
@@ -45,20 +46,26 @@ public final class CalendarWidget extends AppWidgetProvider {
     static void renderOne(Context c,int id){
         if(!CalendarWidgetState.exists(c,id))return;
         String month=CalendarWidgetState.month(c,id);
-        int filter=CalendarWidgetState.filter(c,id);
-        int summary=CalendarWidgetState.summary(c,id);
-        CalendarRevenueData.Month data=CalendarRevenueData.read(c,month);
+        RemoteViews views=buildViews(c,id,month,CalendarWidgetState.filter(c,id),
+            CalendarWidgetState.summary(c,id),CalendarRevenueData.read(c,month));
+        AppWidgetManager.getInstance(c).updateAppWidget(id,views);
+    }
+    static RemoteViews buildViews(Context c,int id,String month,int filter,int summary,CalendarRevenueData.Month data){
         RemoteViews rv=new RemoteViews(c.getPackageName(),R.layout.widget_calendar);
-        rv.setTextViewText(R.id.calendar_filter,filter==0?"表示 ▾":filter==1?"合計 ▾":filter==2?"Coupon ▾":"TikTok ▾");
+        rv.setContentDescription(R.id.calendar_filter,"表示："+(filter==0?"3種類":filter==1?"合計":filter==2?"クーポン":"TikTok Lite"));
         rv.setTextViewText(R.id.calendar_month,month.substring(0,4)+"年"+Integer.parseInt(month.substring(5))+"月 ▾");
-        rv.setTextViewText(R.id.calendar_summary,
-            (summary==0?"合計":summary==1?"Coupon":"TikTok")+" ↻\n"+CalendarAmountFormatter.month(data.totals[summary]));
+        String summaryLabel=(summary==0?"合計":summary==1?"クーポン":"TikTok Lite")+" ↻";
+        String summaryAmount=CalendarAmountFormatter.month(data.totals[summary]);
+        rv.setTextViewText(R.id.calendar_summary_label,summaryLabel);
+        rv.setTextViewText(R.id.calendar_summary_amount,summaryAmount);
+        rv.setContentDescription(R.id.calendar_summary,summaryLabel+" "+summaryAmount);
         rv.setOnClickPendingIntent(R.id.calendar_filter,control(c,id,CalendarControlActivity.FILTER));
         rv.setOnClickPendingIntent(R.id.calendar_month,control(c,id,CalendarControlActivity.MONTH));
         rv.setOnClickPendingIntent(R.id.calendar_summary,cycle(c,id));
         int days=CalendarRevenueData.daysInMonth(month),offset=CalendarRevenueData.firstWeekday(month);
-        String current=RevenueMath.month(System.currentTimeMillis());
-        int today=Integer.parseInt(RevenueMath.date("dd",System.currentTimeMillis()));
+        long now=System.currentTimeMillis();
+        String current=RevenueMath.month(now);
+        int today=Integer.parseInt(RevenueMath.date("dd",now));
         for(int week=0;week<6;week++){
             rv.removeAllViews(WEEKS[week]);
             for(int dayOfWeek=0;dayOfWeek<7;dayOfWeek++){
@@ -77,13 +84,16 @@ public final class CalendarWidget extends AppWidgetProvider {
                     cell.setTextViewText(R.id.calendar_day_total,CalendarAmountFormatter.day(data.days[day][0]));
                     cell.setTextViewText(R.id.calendar_day_coupon,CalendarAmountFormatter.dayWithPrefix("C",data.days[day][1]));
                     cell.setTextViewText(R.id.calendar_day_tiktok,CalendarAmountFormatter.dayWithPrefix("T",data.days[day][2]));
+                    if(data.days[day][0]>999999L||data.days[day][1]>999999L||data.days[day][2]>999999L){
+                        String date=month+(day<10?"-0":"-")+day;
+                        cell.setOnClickPendingIntent(R.id.calendar_day_root,control(c,id,CalendarControlActivity.DAY,date));
+                    }
                 }
                 rv.addView(WEEKS[week],cell);
             }
         }
-        rv.setTextViewText(R.id.calendar_note,
-            (!data.couponDaily||!data.tiktokDaily)?"C＝クーポン T＝TikTok  —＝未取得  ≈＝概算":"C＝クーポン T＝TikTok  ≈＝概算");
-        AppWidgetManager.getInstance(c).updateAppWidget(id,rv);
+        rv.setTextViewText(R.id.calendar_note,"C＝クーポン  T＝TikTok Lite  —＝未取得  ≈＝概算");
+        return rv;
     }
     @Override public void onReceive(Context c,Intent intent){
         if(CYCLE.equals(intent.getAction())){

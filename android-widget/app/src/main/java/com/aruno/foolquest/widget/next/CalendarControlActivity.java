@@ -7,21 +7,34 @@ import android.os.Bundle;
 import android.view.Gravity;
 import android.widget.LinearLayout;
 import android.widget.NumberPicker;
-import java.util.Calendar;
 import java.util.Locale;
-import java.util.TimeZone;
 
 /** Small OS dialog launched from the widget; Android widgets cannot open a popup in place. */
 public final class CalendarControlActivity extends Activity {
-    static final String EXTRA_MODE="controlMode";
-    static final String FILTER="filter",MONTH="month";
+    static final String EXTRA_MODE="controlMode",EXTRA_DATE="controlDate";
+    static final String FILTER="filter",MONTH="month",DAY="day";
     private int widgetId;
     @Override public void onCreate(Bundle state){
         super.onCreate(state);
         widgetId=getIntent().getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,AppWidgetManager.INVALID_APPWIDGET_ID);
         if(!CalendarWidgetState.exists(this,widgetId)){finish();return;}
-        if(FILTER.equals(getIntent().getStringExtra(EXTRA_MODE)))showFilters();
+        String mode=getIntent().getStringExtra(EXTRA_MODE);
+        if(FILTER.equals(mode))showFilters();
+        else if(DAY.equals(mode))showDay(getIntent().getStringExtra(EXTRA_DATE));
         else showMonthPicker();
+    }
+    private void showDay(String date){
+        String normalized=CalendarDateMath.normalizeCsvDate(date);
+        if(normalized==null){finish();return;}
+        String month=normalized.substring(0,7);
+        int day=Integer.parseInt(normalized.substring(8));
+        long[] amounts=CalendarRevenueData.read(this,month).days[day];
+        String detail="合計  "+CalendarAmountFormatter.month(amounts[0])
+            +"\nクーポン  "+CalendarAmountFormatter.month(amounts[1])
+            +"\nTikTok Lite  "+CalendarAmountFormatter.month(amounts[2]);
+        new AlertDialog.Builder(this,android.R.style.Theme_Material_Light_Dialog_Alert)
+            .setTitle(normalized).setMessage(detail).setPositiveButton("閉じる",(d,w)->finish())
+            .setOnCancelListener(d->finish()).show();
     }
     private void showFilters(){
         final String[] entries={"3種類表示","合計のみ","クーポンのみ","TikTok Liteのみ"};
@@ -34,11 +47,12 @@ public final class CalendarControlActivity extends Activity {
     }
     private void showMonthPicker(){
         String month=CalendarWidgetState.month(this,widgetId);
-        Calendar today=Calendar.getInstance(TimeZone.getTimeZone("Asia/Tokyo"));
-        int maxYear=today.get(Calendar.YEAR)+1;
+        int selectedYear=Integer.parseInt(month.substring(0,4));
+        int currentYear=Integer.parseInt(RevenueMath.date("yyyy",System.currentTimeMillis()));
         NumberPicker year=new NumberPicker(this);
-        year.setMinValue(2024);year.setMaxValue(Math.max(2024,maxYear));
-        year.setValue(Math.max(2024,Math.min(maxYear,Integer.parseInt(month.substring(0,4)))));
+        year.setMinValue(2000);
+        year.setMaxValue(Math.min(2099,Math.max(selectedYear,currentYear+1)));
+        year.setValue(selectedYear);
         NumberPicker monthPicker=new NumberPicker(this);
         monthPicker.setMinValue(1);monthPicker.setMaxValue(12);
         monthPicker.setValue(Integer.parseInt(month.substring(5,7)));
@@ -48,7 +62,9 @@ public final class CalendarControlActivity extends Activity {
         new AlertDialog.Builder(this,android.R.style.Theme_Material_Light_Dialog_Alert).setTitle("表示する年月").setView(row)
             .setPositiveButton("選択月を表示",(dialog,which)->{
                 String selected=String.format(Locale.US,"%04d-%02d",year.getValue(),monthPicker.getValue());
-                CalendarWidgetState.month(this,widgetId,selected);
+                if(selected.equals(RevenueMath.month(System.currentTimeMillis())))
+                    CalendarWidgetState.followCurrentMonth(this,widgetId);
+                else CalendarWidgetState.month(this,widgetId,selected);
                 CalendarWidget.renderOne(this,widgetId);
                 finish();
             })

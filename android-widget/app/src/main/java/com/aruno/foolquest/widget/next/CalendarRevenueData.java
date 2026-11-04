@@ -12,7 +12,7 @@ final class CalendarRevenueData {
     static final class Month {
         final long[] totals={-1L,-1L,-1L}; // total, coupon, TikTok
         final long[][] days=new long[32][3];
-        boolean tiktokDaily, couponDaily;
+        boolean tiktokDaily;
         Month(){for(long[] row:days)Arrays.fill(row,-1L);}
     }
     private CalendarRevenueData(){}
@@ -24,7 +24,8 @@ final class CalendarRevenueData {
     /** Only fully dated, reconciled CSV snapshots become known daily values. */
     static boolean applyDays(JSONObject map,String month,long expected,long[][] target,int column){
         if(map==null||expected<0)return false;
-        long[] candidate=new long[32];long total=0;
+        long[] candidate=new long[32];Arrays.fill(candidate,-1L);
+        long total=0;
         for(Iterator<String> it=map.keys();it.hasNext();){
             String key=it.next();
             if(!key.matches("20[0-9]{2}-(0[1-9]|1[0-2])-([0-2][0-9]|3[01])")||!key.startsWith(month+"-"))return false;
@@ -71,27 +72,26 @@ final class CalendarRevenueData {
             long oldTotal=selected.equals(p.getString("importMonth",""))
                 ?p.getLong("tiktok",-1):-1;
             long fromHistory=csv>=0?sum(csv,manualTotal):-1;
-            // Match the existing three-gauge widget on the current month.
-            // A newer site snapshot may differ from older imported native history.
-            long cached=oldTotal>=0&&oldTotal<=RevenueMath.MAX_YEN?oldTotal:-1;
-            result.totals[2]=selected.equals(RevenueMath.month(System.currentTimeMillis()))&&cached>=0
-                ?cached:fromHistory>=0?fromHistory:cached;
-            if(csv==0){
-                for(int d=1;d<=daysInMonth(selected);d++)result.days[d][2]=manualByDay[d];
-                result.tiktokDaily=true;
-            } else if(record!=null&&record.optBoolean("csvDailyComplete",false)
+            // A dated native import owns the calendar for its month. The old site
+            // snapshot remains a monthly fallback when no verified daily data exists.
+            if(record!=null&&record.optBoolean("csvDailyComplete",false)
                 &&applyDays(record.optJSONObject("csvDaily"),selected,csv,result.days,2)){
-                for(int d=1;d<=daysInMonth(selected);d++)result.days[d][2]=sum(result.days[d][2],manualByDay[d]);
-                result.tiktokDaily=true;
-            }
-            if(result.tiktokDaily) {
                 long checked=0;
-                for(int d=1;d<=daysInMonth(selected);d++)checked=sum(checked,result.days[d][2]);
-                if(checked!=result.totals[2]){
-                    result.tiktokDaily=false;
-                    for(int d=1;d<=daysInMonth(selected);d++)result.days[d][2]=-1L;
+                for(int d=1;d<=daysInMonth(selected);d++){
+                    long imported=result.days[d][2];
+                    long manualAmount=manualByDay[d];
+                    if(imported<0&&manualAmount==0)continue;
+                    result.days[d][2]=sum(Math.max(0,imported),manualAmount);
+                    checked=sum(checked,result.days[d][2]);
                 }
+                result.tiktokDaily=checked>=0&&checked==fromHistory;
+                if(!result.tiktokDaily)
+                    for(int d=1;d<=daysInMonth(selected);d++)result.days[d][2]=-1L;
             }
+            long cached=oldTotal>=0&&oldTotal<=RevenueMath.MAX_YEN?oldTotal:-1;
+            result.totals[2]=result.tiktokDaily?fromHistory:
+                selected.equals(RevenueMath.month(System.currentTimeMillis()))&&cached>=0
+                    ?cached:fromHistory>=0?fromHistory:cached;
             if(selected.equals(p.getString("couponMonth","")))result.totals[1]=p.getLong("coupon",-1);
             else{
                 JSONObject history=new JSONObject(p.getString("couponRevenueMonthlyV1","{}"));
@@ -103,9 +103,9 @@ final class CalendarRevenueData {
             JSONObject couponSnapshots=new JSONObject(p.getString("couponRevenueDailyV1","{}"));
             JSONObject couponMonth=couponSnapshots.optJSONObject(selected);
             if(couponMonth!=null&&couponMonth.optBoolean("verified",false)
-                &&couponMonth.optLong("total",-1)==result.totals[1]
-                &&applyDays(couponMonth.optJSONObject("days"),selected,result.totals[1],result.days,1))
-                result.couponDaily=true;
+                &&couponMonth.optLong("total",-1)==result.totals[1]){
+                applyDays(couponMonth.optJSONObject("days"),selected,result.totals[1],result.days,1);
+            }
             result.totals[0]=sum(result.totals[1],result.totals[2]);
             for(int day=1;day<=daysInMonth(selected);day++)
                 result.days[day][0]=sum(result.days[day][1],result.days[day][2]);

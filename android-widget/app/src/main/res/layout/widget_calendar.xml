@@ -4,20 +4,33 @@
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:orientation="vertical" android:background="#151515"
     android:padding="5dp" android:layoutDirection="ltr">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="46dp"
+    <LinearLayout android:layout_width="match_parent" android:layout_height="48dp"
         android:orientation="horizontal" android:gravity="center_vertical">
         <TextView android:id="@+id/calendar_filter"
             android:layout_width="66dp" android:layout_height="match_parent"
             android:gravity="center" android:text="表示 ▾"
-            android:textSize="11sp" android:textColor="#FFFFFF" android:singleLine="true" />
+            android:textSize="11sp" android:textColor="#FFFFFF" android:maxLines="1"
+            android:autoSizeTextType="uniform" android:autoSizeMinTextSize="5dp"
+            android:autoSizeMaxTextSize="11sp" android:autoSizeStepGranularity="0.5dp" />
         <TextView android:id="@+id/calendar_month"
             android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent"
             android:gravity="center" android:text="2026年11月 ▾" android:textStyle="bold"
-            android:textSize="14sp" android:textColor="#FFFFFF" android:singleLine="true" />
-        <TextView android:id="@+id/calendar_summary"
-            android:layout_width="122dp" android:layout_height="match_parent" android:gravity="center"
-            android:text="合計 ↻&#10;—" android:textSize="9sp" android:textColor="#FFFFFF"
-            android:maxLines="2" />
+            android:textSize="14sp" android:textColor="#FFFFFF" android:maxLines="1"
+            android:autoSizeTextType="uniform" android:autoSizeMinTextSize="5dp"
+            android:autoSizeMaxTextSize="14sp" android:autoSizeStepGranularity="0.5dp" />
+        <LinearLayout android:id="@+id/calendar_summary" android:layout_width="0dp"
+            android:layout_weight="1.25" android:layout_height="match_parent" android:orientation="vertical">
+            <TextView android:id="@+id/calendar_summary_label" android:layout_width="match_parent"
+                android:layout_height="0dp" android:layout_weight="1" android:gravity="center"
+                android:text="合計 ↻" android:textColor="#FFFFFF" android:maxLines="1"
+                android:autoSizeTextType="uniform" android:autoSizeMinTextSize="5dp"
+                android:autoSizeMaxTextSize="12sp" android:autoSizeStepGranularity="0.5dp" />
+            <TextView android:id="@+id/calendar_summary_amount" android:layout_width="match_parent"
+                android:layout_height="0dp" android:layout_weight="1" android:gravity="center"
+                android:text="—" android:textColor="#FFFFFF" android:textStyle="bold" android:maxLines="1"
+                android:autoSizeTextType="uniform" android:autoSizeMinTextSize="4dp"
+                android:autoSizeMaxTextSize="14sp" android:autoSizeStepGranularity="0.5dp" />
+        </LinearLayout>
     </LinearLayout>
     <LinearLayout android:layout_width="match_parent" android:layout_height="23dp"
         android:orientation="horizontal" android:weightSum="7">
@@ -37,5 +50,7 @@
     <LinearLayout android:id="@+id/calendar_week_5" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="horizontal" android:weightSum="7"/>
     <TextView android:id="@+id/calendar_note" android:layout_width="match_parent" android:layout_height="20dp"
         android:gravity="center" android:text="C＝クーポン T＝TikTok Lite"
-        android:textSize="9sp" android:textColor="#BEBEBE" android:singleLine="true" />
+        android:textSize="9sp" android:textColor="#BEBEBE" android:maxLines="1"
+        android:autoSizeTextType="uniform" android:autoSizeMinTextSize="5dp"
+        android:autoSizeMaxTextSize="9sp" android:autoSizeStepGranularity="0.5dp" />
 </LinearLayout>

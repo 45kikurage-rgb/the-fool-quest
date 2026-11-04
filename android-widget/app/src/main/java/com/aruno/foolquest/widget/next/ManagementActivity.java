@@ -26,7 +26,6 @@ import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -109,7 +108,7 @@ public final class ManagementActivity extends Activity {
         content.addView(target);
     }
     private void showHome() throws Exception {
-        screen("Aru-MyBest");showingHome=true;
+        screen(getString(R.string.app_name));showingHome=true;
         String month=model.month();
         long tiktok=model.tiktok(month),coupon=model.coupon(month);
         long total=RevenueMath.total(tiktok,coupon);
@@ -189,13 +188,7 @@ public final class ManagementActivity extends Activity {
             }else {
                 byte[] input=readLimited(uri,request==OPEN_CSV?4_000_000:2_000_000);
                 if(request==OPEN_CSV) {
-                    String decoded;
-                    try{decoded=decodeUtf8(input);}
-                    catch(IllegalArgumentException utf8Error){
-                        decoded=new String(input,Charset.forName("MS932"));
-                    }
-                    RevenueManager.CsvResult parsed=RevenueManager.parseCsv(decoded);
-                    final RevenueManager.CsvResult resultCsv=parsed;
+                    VatonRevenueCsv.CsvResult parsed=VatonRevenueCsv.parseCsv(input);
                     String name=uri.getLastPathSegment();
                     if(name==null)name="選択したCSV";
                     final String file=name;
@@ -208,7 +201,7 @@ public final class ManagementActivity extends Activity {
                             +"\n\n既存CSV合計を置き換えます。手動追加分は別に保持するため二重加算しません。")
                         .setNegativeButton("やめる",null)
                         .setPositiveButton("この金額に更新",(d,w)->execute(()->{
-                            model.setCsv(month,resultCsv,file);showHome();
+                            model.setCsv(month,parsed,file);showHome();
                         })).show();
                 } else if(request==OPEN_MIGRATION) {
                     String json=decodeUtf8(input);

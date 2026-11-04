@@ -5,8 +5,8 @@ import android.content.SharedPreferences;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.text.SimpleDateFormat;
 
@@ -149,7 +149,7 @@ final class RevenueManager {
     void setCsv(String key,long amount,String filename,int count) throws Exception {
         saveCsv(key,amount,filename,count,null,false);
     }
-    void setCsv(String key,CsvResult parsed,String filename) throws Exception {
+    void setCsv(String key,VatonRevenueCsv.CsvResult parsed,String filename) throws Exception {
         if(parsed.datesComplete && !key.equals(parsed.datesMonth))
             throw new IllegalArgumentException("CSVの日付と対象月が一致しません");
         saveCsv(key,parsed.total,filename,parsed.count,parsed.days,
@@ -164,6 +164,8 @@ final class RevenueManager {
         JSONObject candidateMonths=candidate.getJSONObject("months");
         JSONObject record=candidateMonths.optJSONObject(key);
         if(record==null){record=new JSONObject();candidateMonths.put(key,record);}
+        if(!complete&&record.optBoolean("csvDailyComplete",false))
+            throw new IllegalArgumentException("保存済みの日別履歴を更新するには日付付きCSVを選んでください");
         record.put("csv",amount);
         record.put("file",filename);
         record.put("count",count);
@@ -185,7 +187,7 @@ final class RevenueManager {
         }
         validate(candidate);
         JSONObject old=state;state=candidate;
-        try{persistAndRender();}catch(Exception e){state=old;throw e;}
+        try{saveAndRender(true,key.equals(month()));}catch(Exception e){state=old;throw e;}
     }
     static void checkDate(String date) throws Exception {
         if(!date.matches("20[0-9]{2}-(0[1-9]|1[0-2])-([0-2][0-9]|3[01])"))
@@ -245,24 +247,47 @@ final class RevenueManager {
             throw new IllegalStateException("端末に保存できませんでした");
     }
     void persistAndRender() throws Exception {
-        persist();
-        projectWidget();
+        saveAndRender(true,true);
     }
     void projectWidget() throws Exception {
+        saveAndRender(false,true);
+    }
+    private void saveAndRender(boolean saveHistory,boolean projectCurrentMonth) throws Exception {
         SharedPreferences.Editor ed=preferences.edit();
-        JSONObject g=goals();long t=g.getLong("tiktok"),c=g.getLong("coupon");
-        ed.putLong("goalTiktok",t).putLong("goalCoupon",c).putLong("goalTotal",plus(t,c));
-        long current=tiktok(month());
-        if(current>=0) {
-            ed.putString("importMonth",month()).putLong("tiktok",current)
-                .putLong("importAt",System.currentTimeMillis());
-        } else {
-            // Do not silently represent unimported TikTok as zero.
-            ed.remove("importMonth").remove("tiktok");
+        if(saveHistory)ed.putString(KEY,state.toString());
+        if(projectCurrentMonth){
+            JSONObject g=goals();
+            long t=g.getLong("tiktok"),c=g.getLong("coupon");
+            ed.putLong("goalTiktok",t).putLong("goalCoupon",c).putLong("goalTotal",plus(t,c));
+            String currentMonth=month();
+            long current=tiktok(currentMonth);
+            if(current>=0) {
+                ed.putString("importMonth",currentMonth).putLong("tiktok",current)
+                    .putLong("importAt",System.currentTimeMillis());
+            } else {
+                ed.remove("importMonth").remove("tiktok");
+            }
         }
-        if(!ed.commit())throw new IllegalStateException("ウィジェット保存に失敗しました");
-        RevenueWidget.renderAll(context);
-        CalendarWidget.renderAll(context);
+        java.util.Map<String,?> previous=preferences.getAll();
+        if(!ed.commit()){
+            // SharedPreferences can change the in-memory map even if the disk write fails.
+            SharedPreferences.Editor rollback=preferences.edit();
+            for(String key:new String[]{KEY,"goalTiktok","goalCoupon","goalTotal","importMonth","tiktok","importAt"}){
+                if(KEY.equals(key)?!saveHistory:!projectCurrentMonth)continue;
+                Object value=previous.get(key);
+                if(value instanceof String)rollback.putString(key,(String)value);
+                else if(value instanceof Long)rollback.putLong(key,(Long)value);
+                else if(value==null)rollback.remove(key);
+            }
+            rollback.commit();
+            throw new IllegalStateException("端末に保存できませんでした");
+        }
+        try {
+            if(projectCurrentMonth)RevenueWidget.renderAll(context);
+            CalendarWidget.renderAll(context);
+        } catch(RuntimeException e) {
+            android.util.Log.w("AruMyBest","Widget refresh failed after saving revenue",e);
+        }
     }
     String backup() throws Exception { return snapshot().toString(); }
 
@@ -282,7 +307,7 @@ final class RevenueManager {
     }
     static void validate(JSONObject root) throws Exception {
         if(!FORMAT.equals(root.optString("format"))||root.optInt("version")!=1)
-            throw new IllegalArgumentException("THE FOOL QUESTの移行ファイルではありません");
+            throw new IllegalArgumentException("Aru-MyBestの移行ファイルではありません");
         JSONObject months=root.getJSONObject("months");
         if(months.length()>240)throw new IllegalArgumentException("月別履歴が多すぎます");
         Iterator<String> keys=months.keys();
@@ -326,67 +351,5 @@ final class RevenueManager {
                 plus(base,total);
             }
         }
-    }
-    static final class CsvResult {
-        final long total;final int count;
-        final java.util.Map<String,Long> days;
-        final boolean datesComplete;
-        final String datesMonth;
-        CsvResult(long total,int count,java.util.Map<String,Long> days,boolean datesComplete,String datesMonth){
-            this.total=total;this.count=count;this.days=days;
-            this.datesComplete=datesComplete;this.datesMonth=datesMonth;
-        }
-    }
-    static CsvResult parseCsv(String text) {
-        if(text.length()>4_000_000)throw new IllegalArgumentException("CSVが大きすぎます");
-        List<List<String>> rows=new ArrayList<>();
-        List<String> row=new ArrayList<>();StringBuilder cell=new StringBuilder();
-        boolean quoted=false;
-        for(int i=0;i<text.length();i++) {
-            char ch=text.charAt(i);
-            if(i==0&&ch=='\uFEFF')continue;
-            if(ch=='"') {
-                if(quoted && i+1<text.length()&&text.charAt(i+1)=='"'){cell.append('"');i++;}
-                else quoted=!quoted;
-            }else if(!quoted&&(ch==','||ch=='\n')){
-                row.add(cell.toString().replace("\r",""));cell.setLength(0);
-                if(ch=='\n'){rows.add(row);row=new ArrayList<>();}
-            }else cell.append(ch);
-        }
-        if(quoted)throw new IllegalArgumentException("CSVの引用符が閉じていません");
-        if(cell.length()>0||!row.isEmpty()){row.add(cell.toString().replace("\r",""));rows.add(row);}
-        int head=-1,index=-1,dateIndex=-1;
-        for(int i=0;i<rows.size();i++){
-            List<String> header=rows.get(i);
-            for(int j=0;j<header.size();j++)if("チャージポイント".equals(header.get(j).trim())){head=i;index=j;break;}
-            if(head>=0){
-                for(int j=0;j<header.size();j++)if("日付".equals(header.get(j).trim())){dateIndex=j;break;}
-                break;
-            }
-        }
-        if(head<0)throw new IllegalArgumentException("「チャージポイント」列が見つかりません");
-        long total=0;int count=0;boolean complete=dateIndex>=0;String month="";
-        java.util.Map<String,Long> days=new java.util.TreeMap<>();
-        for(int i=head+1;i<rows.size();i++){
-            List<String> record=rows.get(i);
-            if(record.size()<=index)continue;
-            String raw=record.get(index).trim().replace(",","");
-            if(raw.isEmpty()||!raw.matches("-?[0-9]+"))continue;
-            long amount;
-            try{amount=Long.parseLong(raw);}catch(NumberFormatException e){throw new IllegalArgumentException("チャージ金額が大きすぎます");}
-            if(amount==Long.MIN_VALUE)throw new IllegalArgumentException("CSV金額が不正です");
-            long positive=Math.abs(amount);total=plus(total,positive);count++;
-            String date=dateIndex>=0&&record.size()>dateIndex?record.get(dateIndex).trim():"";
-            String normalized=CalendarDateMath.normalizeCsvDate(date);
-            if(dateIndex>=0&&normalized==null)
-                throw new IllegalArgumentException("CSVの日付を認識できません。日別データの保存は中止しました");
-            if(normalized==null){complete=false;continue;}
-            String rowMonth=normalized.substring(0,7);
-            if(!month.isEmpty()&&!month.equals(rowMonth))
-                throw new IllegalArgumentException("CSVに複数月の日付があります。月別CSVを選択してください");
-            month=rowMonth;
-            days.put(normalized,plus(days.containsKey(normalized)?days.get(normalized):0L,positive));
-        }
-        return new CsvResult(total,count,days,complete&&count>0,month);
     }
 }
