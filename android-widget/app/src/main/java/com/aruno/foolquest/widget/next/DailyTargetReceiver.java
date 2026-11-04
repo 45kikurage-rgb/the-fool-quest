@@ -19,7 +19,7 @@ public final class DailyTargetReceiver extends BroadcastReceiver {
     }
     static void cancel(Context c){c.getSystemService(AlarmManager.class).cancel(alarm(c));}
     static void schedule(Context c) {
-        if(RevenueWidget.ids(c).length==0){cancel(c);return;}
+        if(RevenueWidget.ids(c).length==0&&CalendarWidget.ids(c).length==0){cancel(c);return;}
         AlarmManager manager=c.getSystemService(AlarmManager.class);
         long next=RevenueMath.nextMidnightJst(System.currentTimeMillis());
         PendingIntent intent=alarm(c);
@@ -28,5 +28,7 @@ public final class DailyTargetReceiver extends BroadcastReceiver {
         }catch(SecurityException revoked){/* Permission may change after the check. */}
         manager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,next,intent);
     }
-    @Override public void onReceive(Context c,Intent intent){RevenueWidget.renderAll(c);}
+    @Override public void onReceive(Context c,Intent intent){
+        RevenueWidget.renderAll(c);CalendarWidget.renderAll(c);
+    }
 }

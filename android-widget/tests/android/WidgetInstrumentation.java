@@ -7,6 +7,7 @@ import android.appwidget.AppWidgetHostView;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.Intent;
 import android.graphics.Paint;
 import android.graphics.Typeface;
@@ -325,15 +326,161 @@ public class WidgetInstrumentation extends Instrumentation {
         }
         return null;
     }
+    void calendarLayoutChecks() {
+        ok(c.getApplicationInfo().icon==R.drawable.ic_mybest &&
+            c.getDrawable(R.drawable.ic_mybest) instanceof android.graphics.drawable.AdaptiveIconDrawable,
+            "application uses the MyBest adaptive launcher icon");
+        int first=13001, second=13002;
+        CalendarWidgetState.month(c,first,"2026-05");
+        CalendarWidgetState.filter(c,first,CalendarWidgetState.COUPON);
+        CalendarWidgetState.cycleSummary(c,first);
+        ok("2026-05".equals(CalendarWidgetState.month(c,first))
+            &&CalendarWidgetState.filter(c,first)==CalendarWidgetState.COUPON
+            &&CalendarWidgetState.summary(c,first)==1,"calendar controls are saved per widget");
+        ok(CalendarWidgetState.isFollowingCurrentMonth(c,second)
+            &&CalendarWidgetState.filter(c,second)==CalendarWidgetState.ALL
+            &&CalendarWidgetState.summary(c,second)==0,"second widget is independent");
+        CalendarWidgetState.followCurrentMonth(c,first);
+        ok(CalendarWidgetState.isFollowingCurrentMonth(c,first)
+            &&RevenueMath.month(System.currentTimeMillis()).equals(CalendarWidgetState.month(c,first)),
+            "calendar returns to JST current-month tracking");
+        CalendarWidgetState.delete(c,first);
+        ok(CalendarWidgetState.filter(c,first)==CalendarWidgetState.ALL,"widget removal clears display preferences");
+
+        CalendarRevenueData.Month data=new CalendarRevenueData.Month();
+        data.totals[0]=RevenueMath.MAX_YEN;
+        data.days[31][0]=999999;
+        data.days[31][1]=350000;
+        data.days[31][2]=649999;
+        runOnMainSync(()->{
+            for(float fontScale:new float[]{1f,2f}){
+                android.content.res.Configuration config=new android.content.res.Configuration(c.getResources().getConfiguration());
+                config.fontScale=fontScale;
+                Context sized=c.createConfigurationContext(config);
+                for(int widthDp:new int[]{320,411}){
+                    float density=sized.getResources().getDisplayMetrics().density;
+                    int width=Math.round(widthDp*density);
+                    int height=Math.round(360*density);
+                    android.widget.FrameLayout host=new android.widget.FrameLayout(sized);
+                    android.view.View calendar=CalendarWidget.buildViews(sized,first,"2026-05",0,0,data).apply(sized,host);
+                    host.addView(calendar,new android.widget.FrameLayout.LayoutParams(-1,-1));
+                    host.measure(android.view.View.MeasureSpec.makeMeasureSpec(width,android.view.View.MeasureSpec.EXACTLY),
+                        android.view.View.MeasureSpec.makeMeasureSpec(height,android.view.View.MeasureSpec.EXACTLY));
+                    host.layout(0,0,width,height);
+                    android.view.ViewGroup lastWeek=calendar.findViewById(R.id.calendar_week_5);
+                    ok(lastWeek.getChildCount()==7,"calendar includes the sixth week");
+                    android.view.View lastDay=lastWeek.getChildAt(0);
+                    completeCalendarText(lastDay,R.id.calendar_day_number,"31");
+                    completeCalendarText(lastDay,R.id.calendar_day_total,"999999");
+                    completeCalendarText(lastDay,R.id.calendar_day_coupon,"C 350000");
+                    completeCalendarText(lastDay,R.id.calendar_day_tiktok,"T 649999");
+                    completeCalendarText(calendar,R.id.calendar_summary_amount,"¥9,007,199,254,740,991");
+                }
+            }
+        });
+    }
+
+    void completeCalendarText(android.view.View root,int id,String expected){
+        android.widget.TextView text=root.findViewById(id);
+        android.text.Layout layout=text.getLayout();
+        ok(expected.contentEquals(text.getText())&&layout!=null&&layout.getLineCount()==1
+            &&layout.getLineEnd(0)==expected.length()&&layout.getEllipsisCount(0)==0
+            &&layout.getLineWidth(0)<=text.getWidth()-text.getPaddingLeft()-text.getPaddingRight()
+            &&layout.getHeight()<=text.getHeight()-text.getPaddingTop()-text.getPaddingBottom(),
+            "unclipped calendar text "+expected);
+    }
+
+    void couponDailyContractChecks() throws Exception {
+        long now=java.time.Instant.parse("2026-11-02T15:00:00Z").toEpochMilli();
+        String raw="{\"month\":\"2026-11\",\"coupon_revenue\":600,\"through\":\"2026-11-02\","
+            +"\"days\":{\"2026-11-01\":300,\"2026-11-02\":0}}";
+        org.json.JSONObject snapshot=CouponDailyReader.validate(raw,"2026-11",now);
+        ok(snapshot.getLong("total")==600&&snapshot.getLong("sum")==300,
+            "verified month total can include today's amount, but daily display stops yesterday JST");
+        boolean invalid=false;
+        try{CouponDailyReader.validate(raw.replace("2026-11-02\":0","2026-11-03\":0"),"2026-11",now);}
+        catch(Exception expected){invalid=true;}
+        ok(invalid,"daily coverage rejects gaps and future entries");
+    }
+
     void nativeRevenueChecks() throws Exception {
         String month=RevenueMath.month(System.currentTimeMillis());
-        RevenueManager.CsvResult parsed=RevenueManager.parseCsv("ID,チャージポイント\nA,\"1,000\"\nB,-200\n");
+        VatonRevenueCsv.CsvResult parsed=VatonRevenueCsv.parseCsv("ID,チャージポイント\nA,\"1,000\"\nB,-200\n");
         ok(parsed.total==1200 && parsed.count==2,"CSV parser handles quoted values and returns total");
         RevenueManager manager=new RevenueManager(c);
-        manager.setCsv(month,1000,"fixture.csv",1);
+        String csvMonth=month.replace('-','/');
+        VatonRevenueCsv.CsvResult vatonFixture=VatonRevenueCsv.parseCsv(
+            "\uFEFF※ エクスポート結果です。\n" +
+            "実績の説明（テスト用）\n" +
+            "※ 円換算額は商品の交換価値です。\n" +
+            "記載の金額を保証しません。\n" +
+            "日付,種別,ブランド名,商品名,交換ポイント,円換算額,チャージポイント\n" +
+            csvMonth+"/01,チャージ,,,0,0,200\n" +
+            csvMonth+"/02,交換,例,商品,-5000,5000,0\n" +
+            csvMonth+"/02,チャージ,,,0,0,300\n" +
+            csvMonth+"/03,チャージ,,,0,0,1700\n" +
+            csvMonth+"/04,交換,例,商品,-5000,5000,0\n");
+        ok(vatonFixture.datesComplete&&vatonFixture.count==5&&
+            vatonFixture.total==2200&&month.equals(vatonFixture.datesMonth)&&
+            vatonFixture.days.get(month+"-01")==200L&&
+            vatonFixture.days.get(month+"-02")==300L&&
+            vatonFixture.days.get(month+"-03")==1700L&&
+            vatonFixture.days.get(month+"-04")==0L,
+            "Vaton-style BOM/preamble/seven columns/zero-point exchanges are parsed");
+
+        boolean invalidDateRejected=false;
+        try{
+            VatonRevenueCsv.parseCsv("日付,チャージポイント\n"+csvMonth+"/32,150\n");
+        }catch(IllegalArgumentException expected){invalidDateRejected=true;}
+        ok(invalidDateRejected,"malformed dated CSV is rejected, not reassigned to current month");
+        VatonRevenueCsv.CsvResult bom=VatonRevenueCsv.parseCsv("\uFEFF日付,チャージポイント\n"
+            +csvMonth+"/01,150\n");
+        ok(bom.datesComplete&&bom.total==150&&bom.count==1&&
+            month.equals(bom.datesMonth)&&bom.days.get(month+"-01")==150L,
+            "UTF-8 BOM must not invalidate the leading 日付 column");
+        VatonRevenueCsv.CsvResult daily=VatonRevenueCsv.parseCsv("日付,チャージポイント\n"
+            +csvMonth+"/01,750\n"+csvMonth+"/02,250\n");
+        ok(daily.datesComplete&&daily.total==1000&&month.equals(daily.datesMonth),
+            "dated CSV parsed into selected month");
+        manager.setCsv(month,daily,"dated-fixture.csv");
+        CalendarRevenueData.Month calendar=CalendarRevenueData.read(c,month);
+        ok(calendar.tiktokDaily&&calendar.days[1][2]==750&&calendar.days[2][2]==250,
+            "calendar daily TikTok equals dated CSV");
+        ok(calendar.totals[2]==1000,"daily CSV reconciles to monthly baseline");
         manager.addManual(month+"-10",250);
-        ok(manager.tiktok(month)==1250,"native manual amount adds to CSV exactly once");
         String id=manager.manual().getJSONObject(manager.manual().length()-1).getString("id");
+        ok(manager.tiktok(month)==1250,"native manual amount adds to CSV exactly once");
+        manager.setCsv(month,daily,"dated-fixture.csv");
+        CalendarRevenueData.Month reimport=CalendarRevenueData.read(c,month);
+        ok(reimport.totals[2]==1250&&reimport.days[10][2]==250&&reimport.days[11][2]==-1,
+            "repeat import keeps manual income once and missing dates unknown");
+        SharedPreferences prefs=RevenueStore.prefs(c);
+        prefs.edit().putLong("tiktok",333).commit();
+        ok(CalendarRevenueData.read(c,month).totals[2]==1250,
+            "legacy site cache cannot replace the dated native calendar");
+        String previous=RevenueMath.date("yyyy-MM",System.currentTimeMillis()-35L*24*60*60*1000);
+        VatonRevenueCsv.CsvResult older=VatonRevenueCsv.parseCsv("日付,チャージポイント\n"+previous+"-01,500\n");
+        manager.addManual(previous+"-10",75);
+        CalendarRevenueData.Month manualOnly=CalendarRevenueData.read(c,previous);
+        ok(manualOnly.totals[2]==75&&manualOnly.days[10][2]==75&&manualOnly.days[11][2]==-1,
+            "manual-only month displays dated entries and leaves other days unknown");
+        prefs.edit().putLong("tiktok",333).commit();
+        RevenueManager stalePicker=new RevenueManager(c);
+        manager.setCsv(previous,older,"older-fixture.csv",previous+"-03");
+        CalendarRevenueData.Month covered=CalendarRevenueData.read(c,previous);
+        ok(covered.days[2][2]==0&&covered.days[3][2]==0&&covered.days[4][2]==-1,
+            "confirmed CSV acquisition date distinguishes zero from unknown");
+        ok(RevenueStore.read(c).tiktok==333&&manager.tiktok(month)==1250&&
+            CalendarRevenueData.read(c,previous).totals[2]==575,
+            "past CSV import preserves the current gauge cache and native month");
+        stalePicker.setCsv(month,daily,"dated-fixture.csv");
+        ok(CalendarRevenueData.read(c,previous).totals[2]==575,
+            "an already open picker cannot overwrite a month saved by another import");
+        boolean undatedRefused=false;
+        try{manager.setCsv(month,parsed,"legacy-fixture.csv");}
+        catch(IllegalArgumentException expected){undatedRefused=true;}
+        ok(undatedRefused&&CalendarRevenueData.read(c,month).days[1][2]==750,
+            "undated import cannot erase existing verified daily amounts");
         manager.updateManual(id,month+"-10",275);
         ok(manager.tiktok(month)==1275,"editing manual entry replaces amount exactly once");
         ok(RevenueStore.read(c).tiktok==1275,"widget receives native value instantly");
@@ -666,6 +813,8 @@ public class WidgetInstrumentation extends Instrumentation {
                 ok(view[0].findViewById(R.id.coupon_gauge_holder).getHeight()>0,"real host resize retains the third gauge");
             });
             host.stopListening();runOnMainSync(activity::finish);
+            calendarLayoutChecks();
+            couponDailyContractChecks();
             nativeRevenueChecks();
             result.putString("stream","PASS "+checks+" native Android checks; Coupon "+live.coupon+"; screenshots "+output);
             finish(ActivityResult.OK,result);

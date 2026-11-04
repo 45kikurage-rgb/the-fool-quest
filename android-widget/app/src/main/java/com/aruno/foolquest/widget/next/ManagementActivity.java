@@ -26,7 +26,6 @@ import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -108,8 +107,26 @@ public final class ManagementActivity extends Activity {
         target.setTag(tag);target.setTextColor(0xffffd43b);target.setPadding(dp(4),0,dp(4),dp(8));
         content.addView(target);
     }
+    private void showCouponDailyConnection(){
+        android.widget.EditText key=new android.widget.EditText(this);
+        key.setSingleLine(true);
+        key.setImportantForAutofill(android.view.View.IMPORTANT_FOR_AUTOFILL_NO);
+        key.setInputType(android.text.InputType.TYPE_CLASS_TEXT|android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        new AlertDialog.Builder(this).setTitle("クーポン日別の接続設定")
+            .setMessage("日別収益の読取専用キーを設定します。通常の取込操作はこれまでどおりです。")
+            .setView(key).setNegativeButton("戻る",null)
+            .setNeutralButton("接続解除",(d,w)->execute(()->{
+                CouponDailyReader.setToken(this,"");CalendarWidget.renderAll(this);
+            }))
+            .setPositiveButton("保存",(d,w)->execute(()->{
+                String token=key.getText().toString().trim();
+                if(token.isEmpty())throw new IllegalArgumentException("読取専用キーを入力してください");
+                CouponDailyReader.setToken(this,token);
+                RevenueJob.requestRefresh(this);
+            })).show();
+    }
     private void showHome() throws Exception {
-        screen("THE FOOL QUEST");showingHome=true;
+        screen(getString(R.string.app_name));showingHome=true;
         String month=model.month();
         long tiktok=model.tiktok(month),coupon=model.coupon(month);
         long total=RevenueMath.total(tiktok,coupon);
@@ -135,6 +152,7 @@ public final class ManagementActivity extends Activity {
         action("月間目標を設定",this::showGoals);
         action("収益履歴・手動追加の編集",this::showHistory);
         action("表示設定・進捗ゲージ",()->startActivity(new Intent(this,SettingsActivity.class)));
+        action("クーポン日別の接続設定",this::showCouponDailyConnection);
         action("えらべるPayのポイント履歴をChromeで開く",
             ()->openUrl("https://wallet.vaton.jp/point/point_logs"));
         action("バックアップ・復元",this::showBackupMenu);
@@ -189,27 +207,27 @@ public final class ManagementActivity extends Activity {
             }else {
                 byte[] input=readLimited(uri,request==OPEN_CSV?4_000_000:2_000_000);
                 if(request==OPEN_CSV) {
-                    String utf8=decodeUtf8(input);
-                    RevenueManager.CsvResult parsed;
-                    try{parsed=RevenueManager.parseCsv(utf8);}
-                    catch(IllegalArgumentException error){
-                        String legacy=new String(input,Charset.forName("MS932"));
-                        parsed=RevenueManager.parseCsv(legacy);
-                    }
-                    final RevenueManager.CsvResult resultCsv=parsed;
+                    VatonRevenueCsv.CsvResult parsed=VatonRevenueCsv.parseCsv(input);
                     String name=uri.getLastPathSegment();
                     if(name==null)name="選択したCSV";
                     final String file=name;
-                    String month=model.month();
+                    String month=parsed.datesComplete ? parsed.datesMonth : model.month();
                     long old=model.csvBase(month);
-                    new AlertDialog.Builder(this).setTitle("CSV反映の確認")
+                    EditText acquired=new EditText(this);
+                    acquired.setSingleLine(true);
+                    acquired.setHint("取得日（任意） yyyy-MM-dd");
+                    AlertDialog.Builder confirm=new AlertDialog.Builder(this).setTitle("CSV反映の確認")
                         .setMessage("対象月："+month+"\n新CSV："+money(parsed.total)+"（"+parsed.count+"件）"
+                            +"\n日別："+(parsed.datesComplete?"保存可能":"日付を確認できないため月計のみ")
                             +"\n既存CSV："+money(old)
-                            +"\n\n既存CSV合計を置き換えます。手動追加分は別に保持するため二重加算しません。")
+                            +"\n\n既存CSV合計を置き換えます。手動追加分は別に保持します。"
+                            +(parsed.datesComplete?"\nCSVの取得日が分かる場合、取得日まで明細のない日を0円で表示します。":""))
                         .setNegativeButton("やめる",null)
                         .setPositiveButton("この金額に更新",(d,w)->execute(()->{
-                            model.setCsv(month,resultCsv.total,file,resultCsv.count);showHome();
-                        })).show();
+                            model.setCsv(month,parsed,file,acquired.getText().toString().trim());showHome();
+                        }));
+                    if(parsed.datesComplete)confirm.setView(acquired);
+                    confirm.show();
                 } else if(request==OPEN_MIGRATION) {
                     String json=decodeUtf8(input);
                     JSONObject payload=new JSONObject(json);

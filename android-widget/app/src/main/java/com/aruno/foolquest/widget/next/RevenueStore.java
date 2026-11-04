@@ -75,6 +75,7 @@ final class RevenueStore {
             if(at<p.getLong("importAt",0)) throw new IllegalArgumentException("新しいデータが既に保存されています");
             p.edit().putString("importMonth",month).putLong("tiktok",tiktok).putLong("goalTotal",goalTotal)
                 .putLong("goalTiktok",goalTiktok).putLong("goalCoupon",goalCoupon).putLong("importAt",at).apply();
+            CalendarWidget.renderAll(c);
         }
     }
 }
