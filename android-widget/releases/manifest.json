@@ -1,20 +1,20 @@
 {
   "applicationId": "com.aruno.foolquest.widget.next",
-  "version": "0.1.23",
-  "versionCode": 24,
+  "version": "0.1.24",
+  "versionCode": 25,
   "minSdk": 26,
   "targetSdk": 35,
   "size": 162200,
-  "sha256": "98ae7c75079e9fb7c9e488972a1969e75a44efd2a5f1b4269f5e21b3cb8aebce",
+  "sha256": "380c023e24276b2f2f4a6e59e2634eca301fd98056ab7c07dfebf8ffc31c1eeb",
   "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
   "couponUpdate": "Daily revenue for priced coupons via authenticated Ledger; monthly reader retained",
   "tiktokUpdate": "On-demand current-month point-history CSV fetch in the in-app WebView; manual CSV import and manual revenue entry remain available",
   "changes": [
-    "Download the current month’s point-history CSV inside Aru-MyBest",
-    "Verify the original CSV filename, month and daily totals before saving",
-    "Compact the daily revenue calendar"
+    "Keep the gift wallet login page visible during sign-in",
+    "Permit HTTPS authentication navigation initiated from the official login flow",
+    "Resume automatic CSV retrieval on the wallet point history page"
   ],
-  "file": "aru-mybest-0.1.23.apk",
+  "file": "aru-mybest-0.1.24.apk",
   "installation": "Update the existing successor without uninstalling; preserve revenue, goals, colors and saved settings. Photo-two reference button resets layout only.",
   "legacy": {
     "applicationId": "com.aruno.foolquest.widget",
@@ -27,14 +27,23 @@
   },
   "previousRelease": {
     "applicationId": "com.aruno.foolquest.widget.next",
-    "version": "0.1.20",
-    "versionCode": 21,
-    "size": 149682,
-    "sha256": "5853ce1ce72b17e384e746529bd28bb638c56543d44d3f8434ce467ef664ab7b",
+    "version": "0.1.23",
+    "versionCode": 24,
+    "size": 162200,
+    "sha256": "98ae7c75079e9fb7c9e488972a1969e75a44efd2a5f1b4269f5e21b3cb8aebce",
     "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
-    "file": "aru-mybest-0.1.20.apk"
+    "file": "aru-mybest-0.1.23.apk"
   },
   "archives": [
+    {
+      "applicationId": "com.aruno.foolquest.widget.next",
+      "version": "0.1.20",
+      "versionCode": 21,
+      "size": 149682,
+      "sha256": "5853ce1ce72b17e384e746529bd28bb638c56543d44d3f8434ce467ef664ab7b",
+      "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+      "file": "aru-mybest-0.1.20.apk"
+    },
     {
       "applicationId": "com.aruno.foolquest.widget.next",
       "version": "0.1.19",
@@ -108,8 +117,8 @@
       "file": "fool-quest-widget-0.1.13-original.apk"
     }
   ],
-  "sourceCommit": "d4881fd61eb193d58b33034f3fee7552cf35ef08",
-  "unsignedSha256": "ac8263940ccf1e22a0df6dfc3d8c846117451638b068f3ea6e02165c1a4ad295",
+  "sourceCommit": "6d8154bb799547558415db734d115ac6fc7575a1",
+  "unsignedSha256": "cc036129a095fa37fd4e0f2a446d9903dd37347cf3b0dcd61b82188da2057836",
   "deviceVerified": false,
   "deliveryStatus": "production-update",
   "dailyTargetUpdate": "JST midnight; exact alarm when allowed, inexact fallback otherwise; no network required"
