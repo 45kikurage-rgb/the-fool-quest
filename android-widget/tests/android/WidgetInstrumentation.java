@@ -331,6 +331,25 @@ public class WidgetInstrumentation extends Instrumentation {
         ok(parsed.total==1200 && parsed.count==2,"CSV parser handles quoted values and returns total");
         RevenueManager manager=new RevenueManager(c);
         String csvMonth=month.replace('-','/');
+        RevenueManager.CsvResult vatonFixture=RevenueManager.parseCsv(
+            "\uFEFF※ エクスポート結果です。\n" +
+            "実績の説明（テスト用）\n" +
+            "※ 円換算額は商品の交換価値です。\n" +
+            "記載の金額を保証しません。\n" +
+            "日付,種別,ブランド名,商品名,交換ポイント,円換算額,チャージポイント\n" +
+            csvMonth+"/01,チャージ,,,0,0,200\n" +
+            csvMonth+"/02,交換,例,商品,-5000,5000,0\n" +
+            csvMonth+"/02,チャージ,,,0,0,300\n" +
+            csvMonth+"/03,チャージ,,,0,0,1700\n" +
+            csvMonth+"/04,交換,例,商品,-5000,5000,0\n");
+        ok(vatonFixture.datesComplete&&vatonFixture.count==5&&
+            vatonFixture.total==2200&&month.equals(vatonFixture.datesMonth)&&
+            vatonFixture.days.get(month+"-01")==200L&&
+            vatonFixture.days.get(month+"-02")==300L&&
+            vatonFixture.days.get(month+"-03")==1700L&&
+            vatonFixture.days.get(month+"-04")==0L,
+            "Vaton-style BOM/preamble/seven columns/zero-point exchanges are parsed");
+
         boolean invalidDateRejected=false;
         try{
             RevenueManager.parseCsv("日付,チャージポイント\n"+csvMonth+"/32,150\n");
