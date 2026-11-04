@@ -1,0 +1,21 @@
+package com.aruno.foolquest.widget.next;
+
+import android.content.Context;
+import android.widget.RemoteViews;
+
+/** One launcher widget containing the existing gauge and calendar views. */
+public final class CombinedWidget extends CalendarWidget {
+    static final int MIN_HEIGHT=350;
+
+    static RemoteViews buildViews(Context c,int id,String month,int filter,int summary,CalendarRevenueData.Month days,
+                                  long now,RevenueStore.Data revenue,DisplaySettings settings,int width,int height){
+        int gaugeHeight=Math.round(height*0.31f);
+        RemoteViews views=new RemoteViews(c.getPackageName(),R.layout.widget_combined);
+        views.removeAllViews(R.id.combined_gauge);
+        views.addView(R.id.combined_gauge,NativeWidgetViews.create(c,revenue,settings,width,gaugeHeight).views);
+        views.removeAllViews(R.id.combined_calendar);
+        views.addView(R.id.combined_calendar,CalendarWidget.buildViews(c,id,month,filter,summary,days,
+            now,width,height-gaugeHeight-1));
+        return views;
+    }
+}

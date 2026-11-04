@@ -21,6 +21,10 @@
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /><action android:name="android.intent.action.BOOT_COMPLETED" /><action android:name="android.intent.action.MY_PACKAGE_REPLACED" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/calendar_widget" />
         </receiver>
+        <receiver android:name=".CombinedWidget" android:label="@string/combined_widget_name" android:exported="false">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /><action android:name="android.intent.action.BOOT_COMPLETED" /><action android:name="android.intent.action.MY_PACKAGE_REPLACED" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/combined_widget" />
+        </receiver>
         <receiver android:name=".RevenueWidget" android:label="@string/gauge_widget_name" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /><action android:name="android.intent.action.BOOT_COMPLETED" /><action android:name="android.intent.action.MY_PACKAGE_REPLACED" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/revenue_widget" />
