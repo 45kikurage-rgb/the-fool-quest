@@ -25,13 +25,15 @@ public final class CalendarControlActivity extends Activity {
     }
     private void showDay(String date){
         String normalized=CalendarDateMath.normalizeCsvDate(date);
-        if(normalized==null||normalized.compareTo(RevenueMath.date("yyyy-MM-dd",System.currentTimeMillis()))>=0){finish();return;}
+        String today=RevenueMath.date("yyyy-MM-dd",System.currentTimeMillis());
+        if(normalized==null||normalized.compareTo(today)>0){finish();return;}
         String month=normalized.substring(0,7);
         int day=Integer.parseInt(normalized.substring(8));
         long[] amounts=CalendarRevenueData.read(this,month).days[day];
-        String detail="合計  "+CalendarAmountFormatter.month(amounts[0])
-            +"\nクーポン  "+CalendarAmountFormatter.month(amounts[1])
-            +"\nTikTok Lite  "+CalendarAmountFormatter.month(amounts[2]);
+        String coupon=CalendarAmountFormatter.month(amounts[1]);
+        String detail=today.equals(normalized)?"クーポン  "+coupon:
+            "合計  "+CalendarAmountFormatter.month(amounts[0])
+            +"\nクーポン  "+coupon+"\nTikTok Lite  "+CalendarAmountFormatter.month(amounts[2]);
         new AlertDialog.Builder(this,android.R.style.Theme_Material_Light_Dialog_Alert)
             .setTitle(normalized).setMessage(detail).setPositiveButton("閉じる",(d,w)->finish())
             .setOnCancelListener(d->finish()).show();

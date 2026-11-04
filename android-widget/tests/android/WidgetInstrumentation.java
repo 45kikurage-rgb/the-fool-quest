@@ -357,37 +357,68 @@ public class WidgetInstrumentation extends Instrumentation {
                 android.content.res.Configuration config=new android.content.res.Configuration(c.getResources().getConfiguration());
                 config.fontScale=fontScale;
                 Context sized=c.createConfigurationContext(config);
-                for(int widthDp:new int[]{320,411}){
+                for(int widthDp:new int[]{280,320,411}){
                     float density=sized.getResources().getDisplayMetrics().density;
                     int width=Math.round(widthDp*density);
-                    int height=Math.round(360*density);
+                    int height=Math.round(236*density);
                     android.widget.FrameLayout host=new android.widget.FrameLayout(sized);
-                    android.view.View calendar=CalendarWidget.buildViews(sized,first,"2026-05",0,0,data).apply(sized,host);
+                    android.view.View calendar=CalendarWidget.buildViews(sized,first,"2026-05",0,0,data,java.time.Instant.parse("2026-06-01T00:00:00Z").toEpochMilli()).apply(sized,host);
                     host.addView(calendar,new android.widget.FrameLayout.LayoutParams(-1,-1));
                     host.measure(android.view.View.MeasureSpec.makeMeasureSpec(width,android.view.View.MeasureSpec.EXACTLY),
                         android.view.View.MeasureSpec.makeMeasureSpec(height,android.view.View.MeasureSpec.EXACTLY));
                     host.layout(0,0,width,height);
-                    android.view.ViewGroup lastWeek=calendar.findViewById(R.id.calendar_week_5);
-                    ok(lastWeek.getChildCount()==7,"calendar includes the sixth week");
-                    android.view.View lastDay=lastWeek.getChildAt(0);
+                    android.view.ViewGroup grid=calendar.findViewById(R.id.calendar_grid);
+                    ok(grid.getChildCount()==5,"calendar always uses five date rows");
+                    android.view.ViewGroup firstRow=(android.view.ViewGroup)grid.getChildAt(0);
+                    completeCalendarText(firstRow.getChildAt(0),R.id.calendar_day_number,"1");
+                    android.view.ViewGroup lastRow=(android.view.ViewGroup)grid.getChildAt(4);
+                    ok(lastRow.getChildCount()==7,"calendar keeps seven columns");
+                    android.view.View lastDay=lastRow.getChildAt(2);
                     completeCalendarText(lastDay,R.id.calendar_day_number,"31");
                     completeCalendarText(lastDay,R.id.calendar_day_total,"999999");
-                    completeCalendarText(lastDay,R.id.calendar_day_coupon,"C 350000");
-                    completeCalendarText(lastDay,R.id.calendar_day_tiktok,"T 649999");
+                    completeCalendarText(lastDay,R.id.calendar_coupon_label,"C");
+                    completeCalendarText(lastDay,R.id.calendar_day_coupon,"350000");
+                    completeCalendarText(lastDay,R.id.calendar_tiktok_label,"T");
+                    completeCalendarText(lastDay,R.id.calendar_day_tiktok,"649999");
+                    completeCalendarText(lastRow.getChildAt(5),R.id.calendar_control,"カテゴリー\n表示変更");
+                    completeCalendarText(lastRow.getChildAt(6),R.id.calendar_control,"年月\n表示変更");
+                    completeCalendarText(calendar,R.id.calendar_summary_label,"合計");
                     completeCalendarText(calendar,R.id.calendar_summary_amount,"¥9,007,199,254,740,991");
                 }
             }
+            long now=java.time.Instant.parse("2026-11-03T15:00:00Z").toEpochMilli();
+            CalendarRevenueData.Month current=new CalendarRevenueData.Month();
+            current.days[4][1]=12345;
+            current.days[4][2]=45678;
+            android.widget.FrameLayout host=new android.widget.FrameLayout(c);
+            android.view.View calendar=CalendarWidget.buildViews(c,first,"2026-11",0,0,current,now).apply(c,host);
+            android.view.ViewGroup firstRow=calendar.findViewById(R.id.calendar_week_0);
+            android.view.View today=firstRow.getChildAt(3);
+            ok("12345".contentEquals(((android.widget.TextView)today.findViewById(R.id.calendar_day_total)).getText())
+                &&today.findViewById(R.id.calendar_coupon_row).getVisibility()==android.view.View.VISIBLE
+                &&today.findViewById(R.id.calendar_tiktok_row).getVisibility()==android.view.View.INVISIBLE,
+                "today shows coupon and coupon-only total");
+            android.view.View tomorrow=firstRow.getChildAt(4);
+            ok(tomorrow.findViewById(R.id.calendar_day_total).getVisibility()==android.view.View.INVISIBLE
+                &&tomorrow.findViewById(R.id.calendar_coupon_row).getVisibility()==android.view.View.INVISIBLE,
+                "future days show their date but no revenue");
         });
     }
 
     void completeCalendarText(android.view.View root,int id,String expected){
         android.widget.TextView text=root.findViewById(id);
         android.text.Layout layout=text.getLayout();
-        ok(expected.contentEquals(text.getText())&&layout!=null&&layout.getLineCount()==1
-            &&layout.getLineEnd(0)==expected.length()&&layout.getEllipsisCount(0)==0
-            &&layout.getLineWidth(0)<=text.getWidth()-text.getPaddingLeft()-text.getPaddingRight()
+        String[] lines=expected.split("\n",-1);
+        ok(expected.contentEquals(text.getText())&&layout!=null&&layout.getLineCount()==lines.length
             &&layout.getHeight()<=text.getHeight()-text.getPaddingTop()-text.getPaddingBottom(),
             "unclipped calendar text "+expected);
+        int end=0;
+        for(int line=0;line<lines.length;line++){
+            end+=lines[line].length()+(line<lines.length-1?1:0);
+            ok(layout.getLineEnd(line)==end&&layout.getEllipsisCount(line)==0
+                &&layout.getLineWidth(line)<=text.getWidth()-text.getPaddingLeft()-text.getPaddingRight()+0.01f,
+                "unclipped calendar line "+lines[line]);
+        }
     }
 
     void couponDailyContractChecks() throws Exception {
@@ -395,8 +426,13 @@ public class WidgetInstrumentation extends Instrumentation {
         String raw="{\"month\":\"2026-11\",\"coupon_revenue\":600,\"through\":\"2026-11-02\","
             +"\"days\":{\"2026-11-01\":300,\"2026-11-02\":0}}";
         org.json.JSONObject snapshot=CouponDailyReader.validate(raw,"2026-11",now);
-        ok(snapshot.getLong("total")==600&&snapshot.getLong("sum")==300,
-            "verified month total can include today's amount, but daily display stops yesterday JST");
+        ok(snapshot.getLong("total")==600&&snapshot.getLong("sum")==600
+            &&snapshot.getJSONObject("days").getLong("2026-11-03")==300,
+            "current day equals the reconciled monthly total minus completed days");
+        long firstDay=java.time.Instant.parse("2026-10-31T15:00:00Z").toEpochMilli();
+        org.json.JSONObject start=CouponDailyReader.validate(
+            "{\"month\":\"2026-11\",\"coupon_revenue\":0,\"through\":null,\"days\":{}}","2026-11",firstDay);
+        ok(start.getJSONObject("days").getLong("2026-11-01")==0,"verified zero on the first day JST");
         boolean invalid=false;
         try{CouponDailyReader.validate(raw.replace("2026-11-02\":0","2026-11-03\":0"),"2026-11",now);}
         catch(Exception expected){invalid=true;}

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/calendar_control" style="@style/CalendarCell"
+    android:background="#303E50" android:gravity="center"
+    android:paddingLeft="1dp" android:paddingRight="1dp"
+    android:includeFontPadding="false" android:maxLines="2"
+    android:autoSizeTextType="uniform" android:autoSizeMinTextSize="4dp"
+    android:autoSizeMaxTextSize="10sp" android:autoSizeStepGranularity="0.5dp"
+    android:textColor="#FFFFFF" android:textStyle="bold" />
