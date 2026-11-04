@@ -37,7 +37,9 @@ final class CalendarWidgetState {
         prefs(c).edit().putInt("calendar.filter."+id,value).apply();
     }
     static void cycleSummary(Context c,int id){
-        prefs(c).edit().putInt("calendar.summary."+id,(summary(c,id)+1)%3).apply();
+        // Stored indices match the revenue arrays: total, coupon, TikTok.
+        // The button visits total, TikTok, coupon without changing those indices.
+        prefs(c).edit().putInt("calendar.summary."+id,(summary(c,id)+2)%3).apply();
     }
     static void delete(Context c,int id){
         prefs(c).edit().remove("calendar.month."+id).remove("calendar.filter."+id)

@@ -24,8 +24,8 @@
         <item name="android:autoSizeMaxTextSize">11sp</item>
         <item name="android:autoSizeStepGranularity">0.5dp</item>
     </style>
-    <style name="CalendarAmount" parent="CalendarText">
-        <item name="android:gravity">end|center_vertical</item>
+    <style name="CalendarHeaderText" parent="CalendarDailyText">
+        <item name="android:textSize">20dp</item>
     </style>
     <style name="CalendarDailyText" parent="CalendarText">
         <item name="android:autoSizeTextType">none</item>
