@@ -34,6 +34,12 @@ final class RevenueUpdate {
                 try{value=RevenueStore.validateCoupon(raw,month);}catch(Exception invalid){throw new RevenueHttp.InvalidResponse();}
                 // A request crossing the JST month boundary must not become the new current month.
                 RevenueStore.saveCoupon(app,month,value);
+                java.util.Set<String> months=new java.util.LinkedHashSet<>();
+                for(int id:CalendarWidget.ids(app))months.add(CalendarWidgetState.month(app,id));
+                for(String selected:months){
+                    try{CouponDailyReader.refresh(app,selected);}
+                    catch(Exception unavailable){/* Keep the monthly reader and last verified snapshot independent. */}
+                }
             }catch(Exception e){
                 RevenueStore.saveFailure(app,RevenueFailure.code(e));
             }finally{

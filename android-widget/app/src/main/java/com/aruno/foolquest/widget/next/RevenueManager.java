@@ -147,16 +147,19 @@ final class RevenueManager {
         return old==null?-1:old.optLong("coupon",-1);
     }
     void setCsv(String key,long amount,String filename,int count) throws Exception {
-        saveCsv(key,amount,filename,count,null,false);
+        saveCsv(key,amount,filename,count,null,false,"");
     }
     void setCsv(String key,VatonRevenueCsv.CsvResult parsed,String filename) throws Exception {
+        setCsv(key,parsed,filename,"");
+    }
+    void setCsv(String key,VatonRevenueCsv.CsvResult parsed,String filename,String acquired) throws Exception {
         if(parsed.datesComplete && !key.equals(parsed.datesMonth))
             throw new IllegalArgumentException("CSVの日付と対象月が一致しません");
         saveCsv(key,parsed.total,filename,parsed.count,parsed.days,
-            parsed.datesComplete&&key.equals(parsed.datesMonth));
+            parsed.datesComplete&&key.equals(parsed.datesMonth),acquired);
     }
     private void saveCsv(String key,long amount,String filename,int count,
-                         java.util.Map<String,Long> dayAmounts,boolean complete) throws Exception {
+                         java.util.Map<String,Long> dayAmounts,boolean complete,String acquired) throws Exception {
         requireMonth(key);safe(amount,false);
         // Prepare and validate an independent copy: malformed CSV must never mutate
         // the live in-memory history or erase the last-good daily breakdown.
@@ -173,6 +176,7 @@ final class RevenueManager {
         record.put("source","csv");
         record.remove("csvDaily");
         record.remove("csvDailyComplete");
+        record.remove("csvCoveredThrough");
         if(complete && dayAmounts!=null) {
             JSONObject days=new JSONObject();long checked=0;
             for(java.util.Map.Entry<String,Long> entry:dayAmounts.entrySet()){
@@ -185,6 +189,17 @@ final class RevenueManager {
             if(checked!=amount)throw new IllegalArgumentException("CSVの日別合計が月計と一致しません");
             record.put("csvDaily",days);
             record.put("csvDailyComplete",true);
+            if(!acquired.isEmpty()){
+                checkDate(acquired);
+                if(acquired.compareTo(RevenueMath.date("yyyy-MM-dd",System.currentTimeMillis()))>0)
+                    throw new IllegalArgumentException("CSV取得日は今日以前を入力してください");
+                for(String day:dayAmounts.keySet()){
+                    if(day.compareTo(acquired)>0)
+                        throw new IllegalArgumentException("CSV取得日はCSVの明細日以降を入力してください");
+                }
+                String last=String.format(Locale.US,"%s-%02d",key,CalendarDateMath.daysInMonth(key));
+                record.put("csvCoveredThrough",acquired.compareTo(last)>0?last:acquired);
+            }
         }
         validate(candidate);
         JSONObject old=new JSONObject(saved);
@@ -324,6 +339,15 @@ final class RevenueManager {
                 long[][] verify=new long[32][3];
                 if(!CalendarRevenueData.applyDays(v.optJSONObject("csvDaily"),k,base,verify,2))
                     throw new IllegalArgumentException("日別CSVと月計が一致しません");
+            }
+            if(v.has("csvCoveredThrough")){
+                String date=v.getString("csvCoveredThrough");
+                checkDate(date);
+                if(!date.startsWith(k+"-")||!v.optBoolean("csvDailyComplete",false))
+                    throw new IllegalArgumentException("CSVの取得範囲が不正です");
+                Iterator<String> dates=v.getJSONObject("csvDaily").keys();
+                while(dates.hasNext())if(dates.next().compareTo(date)>0)
+                    throw new IllegalArgumentException("CSV明細が取得日を超えています");
             }
         }
         JSONArray manual=root.getJSONArray("manual");

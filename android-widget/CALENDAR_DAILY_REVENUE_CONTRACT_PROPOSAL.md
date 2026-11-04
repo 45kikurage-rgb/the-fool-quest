@@ -84,3 +84,14 @@ Vaultの現行 `getRevenueSummary()` は、当日の収益を `items.received_at
 **第一候補はA。** まず確定月を含む代表月で、保持された元明細と商品・月ごとの件数、適用単価、金額、確定状態、同期revisionを照合する。Vaultの確定済み月次行は再集計で更新されず、元明細の削除や単価の変更後に現在の行だけから過去日別を復元できるとは限らない。該当月が再現できない場合は未取得として扱い、今後の確定日別履歴が必要であればBの保存範囲を統括で決める。旧月の推測補完は行わない。
 
 統括判断は、Ledgerを窓口にする内部読取経路、端末の認可、確定月の保存範囲の3点。現行公開月次Readerに日別を無条件で追加しない。本番DB、他システム、公開先は変更対象外とした。
+
+## 日別連携の実装候補
+
+Aru-SuccessはJST月境界で有効な明細を集計し、同じDB読取で商品月次の件数・単価・金額・revisionを照合する。Ledgerは内部Service Bindingを通してその結果を取得し、Ledger自身の商品月次行と照合した後に `month`、`coupon_revenue`、`through`、`days` だけを返す。照合不能・未価格・確定月の未保存内訳にはHTTP 409を返す。DBの追加や移行はなし。
+
+新Reader `GET /api/v1/revenue/daily?month=YYYY-MM` は専用の読み取り資格情報か許可済み内部バインドで認証する。既存公開月次Readerの認証・応答契約は維持する。Androidは専用資格情報を一度設定し、Android Keystoreで暗号化保存する。CSV取込の既存画面内に任意の取得日欄を置き、確認できた日までの明細なしを0円とする。日別はJSTで当日以降を空欄とし、クーポン額が確定してTikTok Liteが未取得なら日別合計にクーポン額を表示する。
+
+本番前に、共有Readerの接続と認可方式、専用資格情報の発行・端末設定経路、確定済み月の扱いについて統括確認が必要。導入順はVaultの内部Reader、Ledgerの専用Reader、限定端末の照合、Androidの同一署名配布。専用資格情報はログ・コミット・会話に記載しない。
+
+- [Aru-Successの内部Reader候補](https://github.com/45kikurage-rgb/winning-url-vault/pull/25)
+- [中央Ledgerの認証付きReader候補](https://github.com/45kikurage-rgb/aruno-Consolidated-Ledger/pull/15)

@@ -77,13 +77,14 @@ public final class CalendarWidget extends AppWidgetProvider {
                     dayOfWeek==0?0xffff9292:dayOfWeek==6?0xff91baff:0xffeaeaea);
                 cell.setInt(R.id.calendar_day_root,"setBackgroundColor",
                     valid&&current.equals(month)&&day==today?0xff304154:valid?0xff202020:0xff121212);
-                cell.setViewVisibility(R.id.calendar_day_total,valid&&(filter==0||filter==1)?View.VISIBLE:View.GONE);
-                cell.setViewVisibility(R.id.calendar_day_coupon,valid&&(filter==0||filter==2)?View.VISIBLE:View.GONE);
-                cell.setViewVisibility(R.id.calendar_day_tiktok,valid&&(filter==0||filter==3)?View.VISIBLE:View.GONE);
-                if(valid){
+                boolean showAmounts=valid&&(month.compareTo(current)<0||(current.equals(month)&&day<today));
+                cell.setViewVisibility(R.id.calendar_day_total,showAmounts&&(filter==0||filter==1)?View.VISIBLE:View.GONE);
+                cell.setViewVisibility(R.id.calendar_day_coupon,showAmounts&&(filter==0||filter==2)?View.VISIBLE:View.GONE);
+                cell.setViewVisibility(R.id.calendar_day_tiktok,showAmounts&&(filter==0||filter==3)?View.VISIBLE:View.GONE);
+                if(showAmounts){
                     cell.setTextViewText(R.id.calendar_day_total,CalendarAmountFormatter.day(data.days[day][0]));
                     cell.setTextViewText(R.id.calendar_day_coupon,CalendarAmountFormatter.dayWithPrefix("C",data.days[day][1]));
-                    cell.setTextViewText(R.id.calendar_day_tiktok,CalendarAmountFormatter.dayWithPrefix("T",data.days[day][2]));
+                    cell.setTextViewText(R.id.calendar_day_tiktok,data.days[day][2]<0?"T 未取得":CalendarAmountFormatter.dayWithPrefix("T",data.days[day][2]));
                     if(data.days[day][0]>999999L||data.days[day][1]>999999L||data.days[day][2]>999999L){
                         String date=month+(day<10?"-0":"-")+day;
                         cell.setOnClickPendingIntent(R.id.calendar_day_root,control(c,id,CalendarControlActivity.DAY,date));

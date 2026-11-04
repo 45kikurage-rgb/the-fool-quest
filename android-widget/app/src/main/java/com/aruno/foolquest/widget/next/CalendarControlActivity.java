@@ -25,7 +25,7 @@ public final class CalendarControlActivity extends Activity {
     }
     private void showDay(String date){
         String normalized=CalendarDateMath.normalizeCsvDate(date);
-        if(normalized==null){finish();return;}
+        if(normalized==null||normalized.compareTo(RevenueMath.date("yyyy-MM-dd",System.currentTimeMillis()))>=0){finish();return;}
         String month=normalized.substring(0,7);
         int day=Integer.parseInt(normalized.substring(8));
         long[] amounts=CalendarRevenueData.read(this,month).days[day];
@@ -66,11 +66,13 @@ public final class CalendarControlActivity extends Activity {
                     CalendarWidgetState.followCurrentMonth(this,widgetId);
                 else CalendarWidgetState.month(this,widgetId,selected);
                 CalendarWidget.renderOne(this,widgetId);
+                RevenueJob.requestRefresh(this);
                 finish();
             })
             .setNeutralButton("今月に戻す（自動）",(dialog,which)->{
                 CalendarWidgetState.followCurrentMonth(this,widgetId);
                 CalendarWidget.renderOne(this,widgetId);
+                RevenueJob.requestRefresh(this);
                 finish();
             })
             .setNegativeButton("閉じる",(d,w)->finish())

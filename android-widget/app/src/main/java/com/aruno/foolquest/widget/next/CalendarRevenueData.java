@@ -78,11 +78,13 @@ final class CalendarRevenueData {
             boolean datedCsv=record!=null&&record.optBoolean("csvDailyComplete",false)
                 &&applyDays(record.optJSONObject("csvDaily"),selected,csv,result.days,2);
             if(manualOnly||datedCsv){
+                String coverage=datedCsv?record.optString("csvCoveredThrough",""):"";
                 long checked=0;
                 for(int d=1;d<=daysInMonth(selected);d++){
                     long imported=result.days[d][2];
                     long manualAmount=manualByDay[d];
-                    if(imported<0&&manualAmount==0)continue;
+                    String date=String.format(java.util.Locale.US,"%s-%02d",selected,d);
+                    if(imported<0&&manualAmount==0&&date.compareTo(coverage)>0)continue;
                     result.days[d][2]=sum(Math.max(0,imported),manualAmount);
                     checked=sum(checked,result.days[d][2]);
                 }
@@ -100,17 +102,17 @@ final class CalendarRevenueData {
                 if(history.has(selected))result.totals[1]=history.optLong(selected,-1);
                 else if(record!=null)result.totals[1]=record.optLong("coupon",-1);
             }
-            // Reserved for an approved read-only daily Ledger projection. No consumer
-            // is allowed to infer historic Coupon days from the monthly amount.
-            JSONObject couponSnapshots=new JSONObject(p.getString("couponRevenueDailyV1","{}"));
-            JSONObject couponMonth=couponSnapshots.optJSONObject(selected);
-            if(couponMonth!=null&&couponMonth.optBoolean("verified",false)
-                &&couponMonth.optLong("total",-1)==result.totals[1]){
-                applyDays(couponMonth.optJSONObject("days"),selected,result.totals[1],result.days,1);
+            JSONObject couponMonth=CouponDailyReader.snapshot(p,selected);
+            if(couponMonth!=null){
+                long total=couponMonth.optLong("total",-1);
+                if(result.totals[1]<0||!selected.equals(RevenueMath.month(System.currentTimeMillis())))
+                    result.totals[1]=total;
+                if(total==result.totals[1])
+                    applyDays(couponMonth.optJSONObject("days"),selected,couponMonth.optLong("sum",-1),result.days,1);
             }
             result.totals[0]=sum(result.totals[1],result.totals[2]);
             for(int day=1;day<=daysInMonth(selected);day++)
-                result.days[day][0]=sum(result.days[day][1],result.days[day][2]);
+                result.days[day][0]=sum(result.days[day][1],Math.max(0,result.days[day][2]));
         }catch(Exception invalid){
             // A corrupted local snapshot must never turn unknown daily revenue into zero.
             return new Month();

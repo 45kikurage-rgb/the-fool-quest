@@ -390,6 +390,19 @@ public class WidgetInstrumentation extends Instrumentation {
             "unclipped calendar text "+expected);
     }
 
+    void couponDailyContractChecks() throws Exception {
+        long now=java.time.Instant.parse("2026-11-02T15:00:00Z").toEpochMilli();
+        String raw="{\"month\":\"2026-11\",\"coupon_revenue\":600,\"through\":\"2026-11-02\","
+            +"\"days\":{\"2026-11-01\":300,\"2026-11-02\":0}}";
+        org.json.JSONObject snapshot=CouponDailyReader.validate(raw,"2026-11",now);
+        ok(snapshot.getLong("total")==600&&snapshot.getLong("sum")==300,
+            "verified month total can include today's amount, but daily display stops yesterday JST");
+        boolean invalid=false;
+        try{CouponDailyReader.validate(raw.replace("2026-11-02\":0","2026-11-03\":0"),"2026-11",now);}
+        catch(Exception expected){invalid=true;}
+        ok(invalid,"daily coverage rejects gaps and future entries");
+    }
+
     void nativeRevenueChecks() throws Exception {
         String month=RevenueMath.month(System.currentTimeMillis());
         VatonRevenueCsv.CsvResult parsed=VatonRevenueCsv.parseCsv("ID,チャージポイント\nA,\"1,000\"\nB,-200\n");
@@ -453,7 +466,10 @@ public class WidgetInstrumentation extends Instrumentation {
             "manual-only month displays dated entries and leaves other days unknown");
         prefs.edit().putLong("tiktok",333).commit();
         RevenueManager stalePicker=new RevenueManager(c);
-        manager.setCsv(previous,older,"older-fixture.csv");
+        manager.setCsv(previous,older,"older-fixture.csv",previous+"-03");
+        CalendarRevenueData.Month covered=CalendarRevenueData.read(c,previous);
+        ok(covered.days[2][2]==0&&covered.days[3][2]==0&&covered.days[4][2]==-1,
+            "confirmed CSV acquisition date distinguishes zero from unknown");
         ok(RevenueStore.read(c).tiktok==333&&manager.tiktok(month)==1250&&
             CalendarRevenueData.read(c,previous).totals[2]==575,
             "past CSV import preserves the current gauge cache and native month");
@@ -798,6 +814,7 @@ public class WidgetInstrumentation extends Instrumentation {
             });
             host.stopListening();runOnMainSync(activity::finish);
             calendarLayoutChecks();
+            couponDailyContractChecks();
             nativeRevenueChecks();
             result.putString("stream","PASS "+checks+" native Android checks; Coupon "+live.coupon+"; screenshots "+output);
             finish(ActivityResult.OK,result);
