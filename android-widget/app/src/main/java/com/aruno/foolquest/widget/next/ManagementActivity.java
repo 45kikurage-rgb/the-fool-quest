@@ -101,6 +101,8 @@ public final class ManagementActivity extends Activity {
         TextView t=text(value,18);t.setTextColor(0xffcaff40);content.addView(t);
     }
     private String money(long yen){return RevenueMath.money(yen);}
+    private String netMoney(long yen){return RevenueMath.moneyNet(yen);}
+    private String lossLabel(String category){return "coupon".equals(category)?"クーポン":"TikTok Lite";}
     private String today(){return RevenueMath.date("yyyy-MM-dd",System.currentTimeMillis());}
     private void dailyGoal(String tag,String month,long goal,long now){
         TextView target=text(RevenueMath.dailyTargetLabel(month,goal,now),13);
@@ -129,15 +131,19 @@ public final class ManagementActivity extends Activity {
         screen(getString(R.string.app_name));showingHome=true;
         String month=model.month();
         long tiktok=model.tiktok(month),coupon=model.coupon(month);
-        long total=RevenueMath.total(tiktok,coupon);
+        long tLoss=model.lossTotal(month,"tiktok"),cLoss=model.lossTotal(month,"coupon");
+        long tNet=model.netTikTok(month),cNet=model.netCoupon(month);
+        long total=RevenueMath.netTotal(tNet,cNet);
         long tg=model.goal("tiktok"),cg=model.goal("coupon");
         long now=System.currentTimeMillis();
         heading(month+" 収益");
-        content.addView(text("Total   "+money(total)+" / "+money(tg+cg),19));
+        content.addView(text("Total   "+netMoney(total)+" / "+money(tg+cg),19));
         dailyGoal("target-total",month,RevenueMath.total(tg,cg),now);
-        content.addView(text("TikTok   "+money(tiktok)+" / "+money(tg),16));
+        content.addView(text("TikTok   "+netMoney(tNet)+" / "+money(tg),16));
+        info("収益 "+money(tiktok)+" − 損失 "+money(tLoss));
         dailyGoal("target-tiktok",month,tg,now);
-        content.addView(text("Coupon   "+money(coupon)+" / "+money(cg),16));
+        content.addView(text("Coupon   "+netMoney(cNet)+" / "+money(cg),16));
+        info("収益 "+money(coupon)+" − 損失 "+money(cLoss));
         dailyGoal("target-coupon",month,cg,now);
         if(coupon<0)info("Couponは未取得です。ネットワーク接続後に更新してください。");
         if(tiktok<0)info("TikTokは未登録です。CSVまたはサイトの旧データを取り込んでください。");
@@ -146,13 +152,15 @@ public final class ManagementActivity extends Activity {
         action("データ更新（ポイント履歴を自動取得）",
             ()->startActivity(new Intent(this,PayFetchActivity.class)));
         action("TikTok収益を手動追加",this::showManualAdd);
+        action("TikTok Liteの損失を手動追加",()->showLossAdd("tiktok"));
+        action("クーポンの損失を手動追加",()->showLossAdd("coupon"));
         action("Couponを今すぐ更新",()->{
             RevenueUpdate.start(this,()->runOnUiThread(()->execute(this::showHome)));
             status.setText("更新中（正常値は維持）");
         });
         status=text(RevenueUpdate.busy()?"更新中（正常値は維持）":"",13);content.addView(status);
         action("月間目標を設定",this::showGoals);
-        action("収益履歴・手動追加の編集",this::showHistory);
+        action("収益・損失履歴の編集",this::showHistory);
         action("表示設定・進捗ゲージ",()->startActivity(new Intent(this,SettingsActivity.class)));
         action("クーポン日別の接続設定",this::showCouponDailyConnection);
         action("えらべるPayのポイント履歴をChromeで開く",
@@ -305,6 +313,18 @@ public final class ManagementActivity extends Activity {
                 showHome();
             })).show();
     }
+    private void showLossAdd(String category) throws Exception {
+        RevenueManager.requireCategory(category);
+        EditText date=field(today(),false),value=field("",true);
+        new AlertDialog.Builder(this).setTitle(lossLabel(category)+"の損失を手動追加")
+            .setView(form(new String[]{"損失日（yyyy-MM-dd）","損失金額（円）"},new EditText[]{date,value}))
+            .setNegativeButton("やめる",null)
+            .setPositiveButton("損失を登録",(d,w)->execute(()->{
+                model.addLoss(date.getText().toString(),category,
+                    RevenueManager.parseAmount(value.getText().toString(),true));
+                showHome();
+            })).show();
+    }
     private void showGoals() throws Exception {
         EditText t=field(String.valueOf(model.goal("tiktok")),true);
         EditText c=field(String.valueOf(model.goal("coupon")),true);
@@ -318,7 +338,8 @@ public final class ManagementActivity extends Activity {
             })).show();
     }
     private String tableAmount(long yen) {
-        return yen<0?"—":String.format(Locale.JAPAN,"%,d",yen);
+        return yen==RevenueMath.UNKNOWN?"—":
+            (yen<0?"−":"")+String.format(Locale.JAPAN,"%,d",Math.abs(yen));
     }
     private TextView historyCell(String label,int position,boolean header,boolean strong) {
         TextView cell=new TextView(this);
@@ -356,24 +377,29 @@ public final class ManagementActivity extends Activity {
     private void showHistory() throws Exception {
         screen("収益履歴");
         action("← 管理トップへ",this::showHome);
-        info("単位：円　月を押すと手動追加の編集・削除ができます。");
+        info("単位：円　損失控除後の収支を表示。月を押すと収益・損失の編集／削除ができます。");
         // Present all known source months, including Coupon-only archived months.
         List<String> months=new ArrayList<>();
         for(Iterator<String> it=model.months().keys();it.hasNext();)months.add(it.next());
         for(String m:model.archivedCouponMonths())if(!months.contains(m))months.add(m);
+        JSONArray lossRows=model.losses();
+        for(int i=0;i<lossRows.length();i++){
+            String m=lossRows.getJSONObject(i).getString("date").substring(0,7);
+            if(!months.contains(m))months.add(m);
+        }
         if(!months.contains(model.month()))months.add(model.month());
         Collections.sort(months,Collections.reverseOrder());
         long allTikTok=0,allCoupon=0;
         java.util.Map<String,long[]> years=new java.util.LinkedHashMap<>();
         java.util.Map<String,long[]> monthValues=new java.util.LinkedHashMap<>();
         for(String month:months){
-            long t=model.tiktok(month),c=model.coupon(month);
+            long t=model.netTikTok(month),c=model.netCoupon(month);
             monthValues.put(month,new long[]{t,c});
             String year=month.substring(0,4);
             long[] totals=years.get(year);
             if(totals==null){totals=new long[2];years.put(year,totals);}
-            if(t>=0){totals[0]=RevenueManager.plus(totals[0],t);allTikTok=RevenueManager.plus(allTikTok,t);}
-            if(c>=0){totals[1]=RevenueManager.plus(totals[1],c);allCoupon=RevenueManager.plus(allCoupon,c);}
+            if(t!=RevenueMath.UNKNOWN){totals[0]=RevenueMath.netTotal(totals[0],t);allTikTok=RevenueMath.netTotal(allTikTok,t);}
+            if(c!=RevenueMath.UNKNOWN){totals[1]=RevenueMath.netTotal(totals[1],c);allCoupon=RevenueMath.netTotal(allCoupon,c);}
         }
         // The entire table uses the same four columns and narrow borders as the former site.
         LinearLayout table=new LinearLayout(this);
@@ -381,17 +407,18 @@ public final class ManagementActivity extends Activity {
         table.setBackgroundColor(0xff090909);
         content.addView(table,new LinearLayout.LayoutParams(-1,-2));
         historyRow(table,new String[]{"","合計","TikTok","Coupon"},true,true,"収益履歴の項目",null);
-        historyRow(table,new String[]{"全期間",tableAmount(RevenueManager.plus(allTikTok,allCoupon)),tableAmount(allTikTok),tableAmount(allCoupon)},
+        historyRow(table,new String[]{"全期間",tableAmount(RevenueMath.netTotal(allTikTok,allCoupon)),tableAmount(allTikTok),tableAmount(allCoupon)},
             false,true,"全期間収益",null);
         for(java.util.Map.Entry<String,long[]> year:years.entrySet()) {
             String y=year.getKey();long[] values=year.getValue();
-            historyRow(table,new String[]{y+"年",tableAmount(RevenueManager.plus(values[0],values[1])),
+            historyRow(table,new String[]{y+"年",tableAmount(RevenueMath.netTotal(values[0],values[1])),
                 tableAmount(values[0]),tableAmount(values[1])},false,true,y+"年収益",null);
             for(String m:months){
                 if(!m.startsWith(y+"-"))continue;
                 long[] numbers=monthValues.get(m);
-                long total=RevenueMath.total(numbers[0],numbers[1]);
-                if(total<0)total=numbers[0]>=0?numbers[0]:numbers[1];
+                long total=RevenueMath.netTotal(numbers[0],numbers[1]);
+                if(total==RevenueMath.UNKNOWN)
+                    total=numbers[0]!=RevenueMath.UNKNOWN?numbers[0]:numbers[1];
                 String label=String.valueOf(Integer.parseInt(m.substring(5)))+"月";
                 historyRow(table,new String[]{label,tableAmount(total),tableAmount(numbers[0]),tableAmount(numbers[1])},
                     false,false,m+"収益",()->showMonthDetails(m));
@@ -401,8 +428,10 @@ public final class ManagementActivity extends Activity {
     private void showMonthDetails(String month) throws Exception {
         screen(month+" 収益");
         action("← 収益履歴へ",this::showHistory);
-        content.addView(text("TikTok："+money(model.tiktok(month)),19));
-        content.addView(text("Coupon："+money(model.coupon(month)),19));
+        content.addView(text("TikTok："+netMoney(model.netTikTok(month))+
+            "（損失 "+money(model.lossTotal(month,"tiktok"))+"）",18));
+        content.addView(text("Coupon："+netMoney(model.netCoupon(month))+
+            "（損失 "+money(model.lossTotal(month,"coupon"))+"）",18));
         heading("手動追加");
         JSONArray rows=model.manual();
         boolean found=false;
@@ -414,7 +443,45 @@ public final class ManagementActivity extends Activity {
                 ()->showEditManual(id,month));
             b.setGravity(Gravity.LEFT);
         }
-        if(!found)info("手動追加はありません");
+        if(!found)info("収益の手動追加はありません");
+        heading("損失の手動追加");
+        JSONArray losses=model.losses();
+        boolean hasLoss=false;
+        for(int i=0;i<losses.length();i++){
+            JSONObject row=losses.getJSONObject(i);
+            if(!row.getString("date").startsWith(month))continue;
+            hasLoss=true;String id=row.getString("id");
+            Button b=action(row.getString("date")+" "+lossLabel(row.getString("category"))+
+                " −"+money(row.getLong("amount"))+"  編集／削除",
+                ()->showEditLoss(id,month));
+            b.setGravity(Gravity.LEFT);
+        }
+        if(!hasLoss)info("損失の手動追加はありません");
+    }
+    private void showEditLoss(String id,String month) throws Exception {
+        JSONObject entry=null;
+        JSONArray rows=model.losses();
+        for(int i=0;i<rows.length();i++)
+            if(id.equals(rows.getJSONObject(i).optString("id")))entry=rows.getJSONObject(i);
+        if(entry==null){showMonthDetails(month);return;}
+        String category=entry.getString("category");
+        EditText date=field(entry.getString("date"),false);
+        EditText value=field(String.valueOf(entry.getLong("amount")),true);
+        new AlertDialog.Builder(this).setTitle(lossLabel(category)+"の損失を編集")
+            .setView(form(new String[]{"損失日（yyyy-MM-dd）","損失金額（円）"},new EditText[]{date,value}))
+            .setNeutralButton("削除",(d,w)->new AlertDialog.Builder(this)
+                .setTitle("損失履歴を削除しますか？")
+                .setMessage("この損失記録だけを削除します。元の収益は変更しません。")
+                .setNegativeButton("キャンセル",null)
+                .setPositiveButton("削除",(x,y)->execute(()->{
+                    model.deleteLoss(id);showMonthDetails(month);
+                })).show())
+            .setNegativeButton("戻る",null)
+            .setPositiveButton("変更を保存",(d,w)->execute(()->{
+                model.updateLoss(id,date.getText().toString(),category,
+                    RevenueManager.parseAmount(value.getText().toString(),true));
+                showMonthDetails(month);
+            })).show();
     }
     private void showEditManual(String id,String month) throws Exception {
         JSONObject entry=null;
