@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "applicationId": "com.aruno.foolquest.widget.next",
+  "release": "0.1.27",
+  "versionCode": 28,
+  "sourceCommit": "55a8caefa62f066369a59018769d348fc0bf9f8f",
+  "fixMergedCommit": "85db6304df601a9b2541beba6943e555fc9f95f3",
+  "unsignedSha256": "09c4c67f4f3cd154a2cf99bafa27f06d306679d1e382ff3db41771cbf9333201",
+  "signedApkFile": "aru-mybest-0.1.27.apk",
+  "signedApkSha256": "b4a04fe0f7faad50aca2c57b095265d585e9424f272febdca3d3d419d18c7ce9",
+  "signedApkBytes": 285386,
+  "signingCertificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+  "softwareTest": {
+    "status": "PASS",
+    "runId": 42013333942,
+    "platform": "Android 35 emulator"
+  },
+  "signing": {
+    "status": "PASS",
+    "runId": 42014246277,
+    "identity": "existing registered primary and independent backup restored",
+    "newKey": false
+  },
+  "upgradeTest": {
+    "status": "PASS",
+    "runId": 42015215712,
+    "fromCode": 27,
+    "toCode": 28,
+    "sameUid": true,
+    "preferencesPreserved": 33,
+    "priorApkKept": true,
+    "legacyUnchanged": true
+  },
+  "publication": {
+    "status": "PENDING_MAIN_MERGE_AND_PUBLIC_HTTP_VERIFICATION",
+    "downloadPage": "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
+    "alternate": "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
+  },
+  "deviceVerified": false,
+  "notes": "No changes to native revenue data format, Ledger, source data, signing keys or existing APKs. Never uninstall for the upgrade."
+}
