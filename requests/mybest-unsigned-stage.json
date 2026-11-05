@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "operation": "stage-verified-unsigned-mybest",
+  "approval_reference": "2026-11-05 user requested production Aru-MyBest update",
+  "source_sha": "55a8caefa62f066369a59018769d348fc0bf9f8f",
+  "sha256": "09c4c67f4f3cd154a2cf99bafa27f06d306679d1e382ff3db41771cbf9333201",
+  "run_id": 42013333942,
+  "versionCode": 28,
+  "versionName": "0.1.27"
+}
