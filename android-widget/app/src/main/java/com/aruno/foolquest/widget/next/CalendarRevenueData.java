@@ -12,6 +12,10 @@ final class CalendarRevenueData {
     static final class Month {
         final long[] totals={-1L,-1L,-1L}; // total, coupon, TikTok
         final long[][] days=new long[32][3];
+        final boolean[][] known=new boolean[32][3];
+        final boolean[] totalKnown=new boolean[3];
+        final long[][] losses=new long[32][2]; // TikTok Lite, Coupon
+        final long[] dailyLosses=new long[32];
         boolean tiktokDaily;
         Month(){for(long[] row:days)Arrays.fill(row,-1L);}
     }
@@ -67,6 +71,28 @@ final class CalendarRevenueData {
                 manualTotal=sum(manualTotal,amount);
                 manualByDay[day]=sum(manualByDay[day],amount);
             }
+            long tikTokLoss=0,couponLoss=0;
+            JSONArray losses=state.optJSONArray("losses");
+            if(state.has("losses")&&losses==null)throw new IllegalArgumentException("Invalid losses");
+            if(losses!=null)for(int i=0;i<losses.length();i++){
+                JSONObject row=losses.getJSONObject(i);
+                String date=row.getString("date");
+                if(!date.startsWith(selected+"-")||date.length()!=10)continue;
+                int day=Integer.parseInt(date.substring(8));
+                if(day<1||day>daysInMonth(selected))throw new IllegalArgumentException("Loss date");
+                long amount=row.getLong("amount");
+                if(amount<=0)throw new IllegalArgumentException("Loss amount");
+                String category=row.getString("category");
+                int column="tiktok".equals(category)?0:"coupon".equals(category)?1:-1;
+                if(column<0)throw new IllegalArgumentException("Loss category");
+                result.losses[day][column]=sum(result.losses[day][column],amount);
+                result.dailyLosses[day]=sum(result.dailyLosses[day],amount);
+                if(result.losses[day][column]<0||result.dailyLosses[day]<0)
+                    throw new IllegalArgumentException("Loss overflow");
+                if(column==0)tikTokLoss=sum(tikTokLoss,amount);
+                else couponLoss=sum(couponLoss,amount);
+                if(tikTokLoss<0||couponLoss<0)throw new IllegalArgumentException("Loss overflow");
+            }
             // The legacy site snapshot writes a monthly value to the existing widget cache.
             // It is a monthly fallback only: no daily breakdown may be inferred from it.
             long oldTotal=selected.equals(p.getString("importMonth",""))
@@ -110,9 +136,24 @@ final class CalendarRevenueData {
                 if(total==result.totals[1])
                     applyDays(couponMonth.optJSONObject("days"),selected,couponMonth.optLong("sum",-1),result.days,1);
             }
-            result.totals[0]=sum(result.totals[1],result.totals[2]);
-            for(int day=1;day<=daysInMonth(selected);day++)
-                result.days[day][0]=sum(result.days[day][1],Math.max(0,result.days[day][2]));
+            result.totalKnown[2]=result.totals[2]>=0;
+            result.totalKnown[1]=result.totals[1]>=0;
+            result.totals[2]=RevenueMath.net(result.totals[2],tikTokLoss);
+            result.totals[1]=RevenueMath.net(result.totals[1],couponLoss);
+            result.totalKnown[0]=result.totalKnown[1]&&result.totalKnown[2];
+            result.totals[0]=RevenueMath.netTotal(result.totals[1],result.totals[2]);
+            for(int day=1;day<=daysInMonth(selected);day++){
+                result.known[day][2]=result.days[day][2]>=0;
+                result.known[day][1]=result.days[day][1]>=0;
+                if(result.known[day][2])
+                    result.days[day][2]=RevenueMath.net(result.days[day][2],result.losses[day][0]);
+                if(result.known[day][1])
+                    result.days[day][1]=RevenueMath.net(result.days[day][1],result.losses[day][1]);
+                result.known[day][0]=result.known[day][1]&&result.known[day][2];
+                result.days[day][0]=result.known[day][0]
+                    ?RevenueMath.netTotal(result.days[day][1],result.days[day][2])
+                    :RevenueMath.UNKNOWN;
+            }
         }catch(Exception invalid){
             // A corrupted local snapshot must never turn unknown daily revenue into zero.
             return new Month();
