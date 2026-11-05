@@ -29,11 +29,17 @@ public final class CalendarControlActivity extends Activity {
         if(normalized==null||normalized.compareTo(today)>0){finish();return;}
         String month=normalized.substring(0,7);
         int day=Integer.parseInt(normalized.substring(8));
-        long[] amounts=CalendarRevenueData.read(this,month).days[day];
-        String coupon=CalendarAmountFormatter.month(amounts[1]);
-        String detail=today.equals(normalized)&&amounts[2]<0?"クーポン  "+coupon:
-            "合計  "+CalendarAmountFormatter.month(amounts[0])
-            +"\nクーポン  "+coupon+"\nTikTok Lite  "+CalendarAmountFormatter.month(amounts[2]);
+        CalendarRevenueData.Month data=CalendarRevenueData.read(this,month);
+        long[] amounts=data.days[day];
+        String coupon=CalendarAmountFormatter.monthNet(amounts[1],data.known[day][1]);
+        String detail=today.equals(normalized)&&!data.known[day][2]
+            ?"クーポン  "+coupon+"（TikTok Liteは未取得）"
+            :"合計  "+CalendarAmountFormatter.monthNet(amounts[0],data.known[day][0])
+                +"\nクーポン  "+coupon
+                +"\nTikTok Lite  "+CalendarAmountFormatter.monthNet(amounts[2],data.known[day][2]);
+        detail+="\n損失合計  "+CalendarAmountFormatter.dailyLoss(data.dailyLosses[day])
+            +"\n  TikTok Lite  "+CalendarAmountFormatter.dailyLoss(data.losses[day][0])
+            +"\n  クーポン  "+CalendarAmountFormatter.dailyLoss(data.losses[day][1]);
         new AlertDialog.Builder(this,android.R.style.Theme_Material_Light_Dialog_Alert)
             .setTitle(normalized).setMessage(detail).setPositiveButton("閉じる",(d,w)->finish())
             .setOnCancelListener(d->finish()).show();
