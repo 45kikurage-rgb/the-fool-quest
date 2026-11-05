@@ -100,7 +100,7 @@ final class CalendarRevenueData {
             long fromHistory=csv>=0?sum(csv,manualTotal):-1;
             // A dated native import owns the calendar for its month. The old site
             // snapshot remains a monthly fallback when no verified daily data exists.
-            boolean manualOnly=csv==0&&"manual-only".equals(record.optString("source"));
+            boolean manualOnly=csv==0&&record!=null&&"manual-only".equals(record.optString("source"));
             boolean datedCsv=record!=null&&record.optBoolean("csvDailyComplete",false)
                 &&applyDays(record.optJSONObject("csvDaily"),selected,csv,result.days,2);
             if(manualOnly||datedCsv){
