@@ -8,7 +8,17 @@ public class RevenueMathTest {
     static void ok(boolean value){checks++;if(!value)throw new AssertionError("check failed");}
     static void invalid(String value,boolean positive){checks++;try{RevenueMath.yen(value,positive);throw new AssertionError("accepted: "+value);}catch(IllegalArgumentException expected){}}
     public static void main(String[] args){
-        eq(RevenueMath.money(1000000),"¥1,000,000");eq(RevenueMath.money(9999999),"¥9,999,999");eq(RevenueMath.money(15),"¥15");eq(RevenueMath.money(-1),"—");
+        eq(RevenueMath.money(1000000),"¥1,000,000");
+        eq(RevenueMath.net(5000,1000),4000L);
+        eq(RevenueMath.net(3000,500),2500L);
+        eq(RevenueMath.netTotal(RevenueMath.net(5000,1000),RevenueMath.net(3000,500)),6500L);
+        eq(RevenueMath.net(100,150),-50L);
+        eq(RevenueMath.netTotal(-50,-75),-125L);
+        eq(RevenueMath.net(-1,5),RevenueMath.UNKNOWN);
+        eq(RevenueMath.netTotal(RevenueMath.UNKNOWN,100),RevenueMath.UNKNOWN);
+        eq(RevenueMath.moneyNet(-1500),"−¥1,500");
+        eq(RevenueMath.moneyNet(RevenueMath.UNKNOWN),"—");
+        eq(RevenueMath.percentNet(-1500,10000),"-15.00%");eq(RevenueMath.money(9999999),"¥9,999,999");eq(RevenueMath.money(15),"¥15");eq(RevenueMath.money(-1),"—");
         eq(RevenueMath.percent(1000000,1000000),"100.00%");eq(RevenueMath.percent(1234567,1000000),"123.46%");eq(RevenueMath.percent(10000000,1),"1000000000.00%");eq(RevenueMath.percent(-1,500000),"—%");
         // Exact integer lap boundaries; percentages remain cumulative.
         long[][] lapSamples={{0,1,0},{6310,1,6310},{10000,1,10000},
