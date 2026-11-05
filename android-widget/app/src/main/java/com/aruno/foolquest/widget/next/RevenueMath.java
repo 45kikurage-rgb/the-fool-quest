@@ -9,7 +9,26 @@ import java.util.Calendar;
 /** Pure display calculations. No source records or revenue database. */
 public final class RevenueMath {
     public static final long MAX_YEN = 9007199254740991L;
+    /** Net totals can be negative. Long.MIN_VALUE means the source has not been obtained. */
+    public static final long UNKNOWN = Long.MIN_VALUE;
     private RevenueMath() {}
+    public static long net(long gross,long loss) {
+        if(gross<0)return UNKNOWN;
+        if(loss<0||loss>MAX_YEN)throw new IllegalArgumentException("損失額が不正です");
+        return gross-loss;
+    }
+    public static long netTotal(long tikTok,long coupon){
+        if(tikTok==UNKNOWN||coupon==UNKNOWN)return UNKNOWN;
+        long combined=tikTok+coupon;
+        return combined>MAX_YEN||combined< -MAX_YEN?UNKNOWN:combined;
+    }
+    public static String moneyNet(long n){
+        return n==UNKNOWN?"—":n<0?"−¥"+String.format(Locale.US,"%,d",-n):money(n);
+    }
+    public static String percentNet(long value,long goal){
+        return value==UNKNOWN||goal<=0?"—%":
+            String.format(Locale.US,"%.2f%%",(double)value/goal*100);
+    }
     public static String month(long time) { return date("yyyy-MM", time); }
     public static String date(String pattern, long time) {
         SimpleDateFormat f = new SimpleDateFormat(pattern, Locale.JAPAN);
