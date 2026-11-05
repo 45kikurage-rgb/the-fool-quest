@@ -32,16 +32,23 @@
     "legacyUnchanged": true
   },
   "publication": {
-    "status": "PUBLIC_ORIGIN_VERIFICATION_PENDING",
+    "status": "PASS_BOTH_PUBLIC_ORIGINS",
+    "publicVerificationRunId": 42119526102,
+    "pagesDeploymentRunId": 42119525488,
+    "checkedDate": "2026-11-06",
+    "checkedApkFile": "aru-mybest-0.1.30.apk",
+    "checkedApkSha256": "8a9ed53b832e050e84853050917cf0a3f9124b29bbfd79f3b99542e1d20bccc7",
+    "bothFullBytesSha256Matched": true,
     "downloadPage": "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
     "alternate": "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
   },
   "deviceVerified": false,
-  "releaseStatus": "SOFTWARE_SIGNED_UPGRADE_TESTED_PUBLICATION_PENDING",
+  "releaseStatus": "PRODUCTION_DISTRIBUTED_SOFTWARE_AND_UPGRADE_TESTED_PHYSICAL_DEVICE_PENDING",
   "changes": [
     "Daily order Total/C/T/red loss",
     "Four reusable XML row templates, configured by four include lines in calendar_day.xml",
     "Original gross C and T shown; total deducts combined loss once",
     "No changes to CSV, Ledger DB, credentials, existing saved revenue or widget settings"
-  ]
+  ],
+  "releaseCommit": "099d57660aa8d7c5759f035043ffaa67de0737fc"
 }
