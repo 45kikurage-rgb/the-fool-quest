@@ -1,21 +1,21 @@
 {
   "applicationId": "com.aruno.foolquest.widget.next",
-  "version": "0.1.28",
-  "versionCode": 29,
+  "version": "0.1.29",
+  "versionCode": 30,
   "minSdk": 26,
   "targetSdk": 35,
   "size": 293578,
-  "sha256": "a2161faba808118329ff89dd5a1ec9f87e7d6bb2a15808391651c7fcfd95a63e",
+  "sha256": "1cc1cda068d748a14342c9f58522a01f8e73d4ade466dd3c0220d85f14a82246",
   "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
   "couponUpdate": "Daily revenue for priced coupons via authenticated Ledger; monthly reader retained",
   "tiktokUpdate": "On-demand current-month point-history CSV fetch in the in-app WebView; manual CSV import and manual revenue entry remain available",
   "changes": [
-    "Separate manual loss entry and editing for TikTok Lite and Coupon",
-    "Show combined red negative loss amount below daily TikTok revenue",
-    "Subtract recorded loss once in daily and monthly totals, management and gauge while keeping unknown income unknown",
-    "Retain all existing CSV, Ledger source, settings and backup contents"
+    "Daily cells show earned TikTok Lite and earned Coupon separately, never net amounts",
+    "Daily red loss row displays combined negative TikTok and Coupon losses",
+    "Daily total adds earned TikTok + earned Coupon - losses exactly once",
+    "Monthly net totals, gauge, Ledger, CSV, stored losses and settings are unchanged"
   ],
-  "file": "aru-mybest-0.1.28.apk",
+  "file": "aru-mybest-0.1.29.apk",
   "installation": "Update the existing successor without uninstalling; preserve revenue, goals, colors and saved settings. Photo-two reference button resets layout only.",
   "legacy": {
     "applicationId": "com.aruno.foolquest.widget",
@@ -28,14 +28,23 @@
   },
   "previousRelease": {
     "applicationId": "com.aruno.foolquest.widget.next",
-    "version": "0.1.27",
-    "versionCode": 28,
-    "size": 285386,
-    "sha256": "b4a04fe0f7faad50aca2c57b095265d585e9424f272febdca3d3d419d18c7ce9",
+    "version": "0.1.28",
+    "versionCode": 29,
+    "size": 293578,
+    "sha256": "a2161faba808118329ff89dd5a1ec9f87e7d6bb2a15808391651c7fcfd95a63e",
     "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
-    "file": "aru-mybest-0.1.27.apk"
+    "file": "aru-mybest-0.1.28.apk"
   },
   "archives": [
+    {
+      "applicationId": "com.aruno.foolquest.widget.next",
+      "version": "0.1.27",
+      "versionCode": 28,
+      "size": 285386,
+      "sha256": "b4a04fe0f7faad50aca2c57b095265d585e9424f272febdca3d3d419d18c7ce9",
+      "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+      "file": "aru-mybest-0.1.27.apk"
+    },
     {
       "applicationId": "com.aruno.foolquest.widget.next",
       "version": "0.1.26",
@@ -154,21 +163,21 @@
       "file": "fool-quest-widget-0.1.13-original.apk"
     }
   ],
-  "sourceCommit": "64e252863fd9cc565c0c9d048d032b79709d800c",
-  "unsignedSha256": "96a6274d45285cd58d14086f3c5f8fced91a1cac182fa5dbd2e45666c18908ae",
+  "sourceCommit": "4b419676a0dd7f6a452c037cb44a84001806bce5",
+  "unsignedSha256": "3ba354adf7c266e429ee1c776bdefa8cb300b825ce3eb34465e3c01503b2672f",
   "deviceVerified": false,
   "deliveryStatus": "production-update",
   "dailyTargetUpdate": "JST midnight; exact alarm when allowed, inexact fallback otherwise; no network required",
-  "signingRunId": 42105020591,
-  "softwareTestRunId": 42104279337,
+  "signingRunId": 42111510226,
+  "softwareTestRunId": 42110626308,
   "distributionUrls": [
     "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
     "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
   ],
   "lossUpdate": "Manually record, edit and delete separate TikTok Lite and Coupon losses by date; preserve the gross source; net amounts subtract losses once",
   "lossDisplay": "Combined daily losses shown in red below the TikTok row; daily and monthly totals are net of losses",
-  "upgradeTestRunId": 42105572114,
+  "upgradeTestRunId": 42111997989,
   "publicationStatus": "public-origin-verification-pending",
-  "signedSourceStagingBranch": "staging/mybest-code29-a2161faba808",
+  "signedSourceStagingBranch": "staging/mybest-code30-1cc1cda068d7",
   "publicationRequestedAt": "2026-11-06 JST"
 }

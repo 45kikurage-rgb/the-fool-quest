@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "appId": "foolquest-widget-next",
+  "version": "0.1.29",
+  "versionCode": 30,
+  "sourceCommit": "4b419676a0dd7f6a452c037cb44a84001806bce5",
+  "apkFile": "aru-mybest-0.1.29.apk",
+  "apkSha256": "1cc1cda068d748a14342c9f58522a01f8e73d4ade466dd3c0220d85f14a82246",
+  "apkSize": 293578,
+  "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+  "unsignedSha256": "3ba354adf7c266e429ee1c776bdefa8cb300b825ce3eb34465e3c01503b2672f",
+  "testRun": 42111272976,
+  "signingRun": 42111510226,
+  "upgradeRun": 42111997989,
+  "publicVerification": "pending",
+  "physicalDeviceVerified": false,
+  "changes": "Daily T and C show gross earnings; separate red negative combined loss; daily total = T + C - losses; monthly net and gauge unchanged"
+}
