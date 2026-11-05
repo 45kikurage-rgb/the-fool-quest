@@ -12,7 +12,13 @@
   "testRun": 42111272976,
   "signingRun": 42111510226,
   "upgradeRun": 42111997989,
-  "publicVerification": "pending",
+  "publicVerification": "PASS_BOTH_ORIGINS",
   "physicalDeviceVerified": false,
-  "changes": "Daily T and C show gross earnings; separate red negative combined loss; daily total = T + C - losses; monthly net and gauge unchanged"
+  "changes": "Daily T and C show gross earnings; separate red negative combined loss; daily total = T + C - losses; monthly net and gauge unchanged",
+  "releaseCommit": "9a733082449088bf4bf91f06ad349b0a52f4266b",
+  "publicVerificationRunId": 42112726683,
+  "pagesDeploymentRunId": 42112724740,
+  "publicCheckedDate": "2026-11-06",
+  "deviceVerified": false,
+  "releaseStatus": "PRODUCTION_PUBLISHED_SOFTWARE_AND_UPGRADE_TESTED_DEVICE_PENDING"
 }
