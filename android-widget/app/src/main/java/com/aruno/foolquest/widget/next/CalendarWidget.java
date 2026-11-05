@@ -154,16 +154,22 @@ public class CalendarWidget extends AppWidgetProvider {
                 cell.setInt(R.id.calendar_day_root,"setBackgroundColor",
                     isToday?0xff304154:valid?0xff202020:0xff121212);
                 boolean showCoupon=isPast||isToday;
+                // A verified CSV can already contain today's TikTok earnings.
+                // Do not hide those confirmed values until tomorrow.
+                boolean todayTikTokKnown=isToday&&data.days[day][2]>=0;
+                boolean showTikTok=isPast||todayTikTokKnown;
                 cell.setViewVisibility(R.id.calendar_day_total,showCoupon&&(filter==0||filter==1)?View.VISIBLE:View.INVISIBLE);
                 cell.setViewVisibility(R.id.calendar_coupon_row,showCoupon&&(filter==0||filter==2)?View.VISIBLE:View.INVISIBLE);
-                cell.setViewVisibility(R.id.calendar_tiktok_row,isPast&&(filter==0||filter==3)?View.VISIBLE:View.INVISIBLE);
+                cell.setViewVisibility(R.id.calendar_tiktok_row,showTikTok&&(filter==0||filter==3)?View.VISIBLE:View.INVISIBLE);
                 if(showCoupon){
-                    long total=isToday?data.days[day][1]:data.days[day][0];
+                    // Until today's dated TikTok data is available, retain the
+                    // existing coupon-only provisional amount without inventing data.
+                    long total=isToday&&!todayTikTokKnown?data.days[day][1]:data.days[day][0];
                     amount(cell,R.id.calendar_day_total,CalendarAmountFormatter.day(total),totalSize,amountWidth,measure);
                     amount(cell,R.id.calendar_day_coupon,CalendarAmountFormatter.day(data.days[day][1]),detailSize,detailWidth,measure);
-                    if(isPast)amount(cell,R.id.calendar_day_tiktok,
+                    if(showTikTok)amount(cell,R.id.calendar_day_tiktok,
                         data.days[day][2]<0?"未取得":CalendarAmountFormatter.day(data.days[day][2]),detailSize,detailWidth,measure);
-                    if(total>999999L||data.days[day][1]>999999L||(isPast&&data.days[day][2]>999999L)){
+                    if(total>999999L||data.days[day][1]>999999L||(showTikTok&&data.days[day][2]>999999L)){
                         String date=month+(day<10?"-0":"-")+day;
                         cell.setOnClickPendingIntent(R.id.calendar_day_root,control(c,id,CalendarControlActivity.DAY,date));
                     }

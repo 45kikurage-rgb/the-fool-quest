@@ -31,7 +31,7 @@ public final class CalendarControlActivity extends Activity {
         int day=Integer.parseInt(normalized.substring(8));
         long[] amounts=CalendarRevenueData.read(this,month).days[day];
         String coupon=CalendarAmountFormatter.month(amounts[1]);
-        String detail=today.equals(normalized)?"クーポン  "+coupon:
+        String detail=today.equals(normalized)&&amounts[2]<0?"クーポン  "+coupon:
             "合計  "+CalendarAmountFormatter.month(amounts[0])
             +"\nクーポン  "+coupon+"\nTikTok Lite  "+CalendarAmountFormatter.month(amounts[2]);
         new AlertDialog.Builder(this,android.R.style.Theme_Material_Light_Dialog_Alert)
