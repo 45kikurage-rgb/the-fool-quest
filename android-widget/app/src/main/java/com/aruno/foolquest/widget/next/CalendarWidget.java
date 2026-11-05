@@ -22,6 +22,7 @@ public class CalendarWidget extends AppWidgetProvider {
         R.id.calendar_week_0,R.id.calendar_week_1,R.id.calendar_week_2,
         R.id.calendar_week_3,R.id.calendar_week_4
     };
+    private static final String[] SUMMARY_LABELS={"合計","クーポン","TikTok Lite"};
     static int[] ids(Context c){
         int[] calendar=ids(c,CalendarWidget.class);
         int[] combined=ids(c,CombinedWidget.class);
@@ -100,11 +101,27 @@ public class CalendarWidget extends AppWidgetProvider {
             (rowSpace*0.90f-1)/lineHeight);
         float dateSize=Math.min(width*30/658f,(rowSpace*1.08f-1)/lineHeight);
         RemoteViews rv=new RemoteViews(c.getPackageName(),R.layout.widget_calendar);
-        rv.setTextViewText(R.id.calendar_title,month.substring(0,4)+"年"+Integer.parseInt(month.substring(5))+"月");
-        String summaryLabel=summary==0?"合計":summary==1?"クーポン":"TikTok Lite";
-        String summaryAmount=CalendarAmountFormatter.month(data.totals[summary]);
-        rv.setTextViewText(R.id.calendar_summary_label,summaryLabel);
-        rv.setTextViewText(R.id.calendar_summary_amount,summaryAmount);
+        String title=month.substring(0,4)+"年"+Integer.parseInt(month.substring(5))+"月";
+        String[] amounts=new String[SUMMARY_LABELS.length];
+        float widestSummary=0;
+        for(int i=0;i<amounts.length;i++){
+            amounts[i]=CalendarAmountFormatter.month(data.totals[i]);
+            float pairWidth=measure.measureText(SUMMARY_LABELS[i])+measure.measureText(amounts[i]);
+            widestSummary=Math.max(widestSummary,pairWidth);
+        }
+        // Leave room for the layout padding, the label/amount gap, and pixel rounding.
+        // Reserve the widest pair so switching categories does not resize the header.
+        TypedValue summaryScale=new TypedValue();
+        c.getResources().getValue(R.dimen.calendar_summary_width_scale,summaryScale,true);
+        float headerWidth=width-8;
+        float headerSize=Math.min(20f,Math.min(
+            100*(headerWidth*4/7-5)/measure.measureText(title),
+            100*(headerWidth*3/7-8)/(widestSummary*summaryScale.getFloat())));
+        String summaryLabel=SUMMARY_LABELS[summary];
+        String summaryAmount=amounts[summary];
+        headerText(rv,R.id.calendar_title,title,headerSize);
+        headerText(rv,R.id.calendar_summary_label,summaryLabel,headerSize);
+        headerText(rv,R.id.calendar_summary_amount,summaryAmount,headerSize);
         rv.setContentDescription(R.id.calendar_summary,summaryLabel+" "+summaryAmount);
         rv.setOnClickPendingIntent(R.id.calendar_summary,cycle(c,id));
         int days=CalendarRevenueData.daysInMonth(month),offset=CalendarRevenueData.firstWeekday(month);
@@ -155,6 +172,10 @@ public class CalendarWidget extends AppWidgetProvider {
             }
         }
         return rv;
+    }
+    private static void headerText(RemoteViews views,int id,String text,float size){
+        views.setTextViewText(id,text);
+        views.setTextViewTextSize(id,TypedValue.COMPLEX_UNIT_DIP,size);
     }
     private static void amount(RemoteViews cell,int view,String text,float size,float width,Paint measure){
         cell.setTextViewText(view,text);

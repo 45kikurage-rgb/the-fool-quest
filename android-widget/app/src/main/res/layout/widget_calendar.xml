@@ -7,22 +7,24 @@
     <LinearLayout android:layout_width="match_parent" android:layout_height="34dp"
         android:orientation="horizontal" android:gravity="center_vertical"
         android:weightSum="7" android:paddingLeft="1px">
-        <TextView android:id="@+id/calendar_title" style="@style/CalendarText"
+        <TextView android:id="@+id/calendar_title" style="@style/CalendarHeaderText"
             android:layout_width="0dp" android:layout_weight="4"
             android:layout_height="match_parent" android:gravity="start|center_vertical"
-            android:text="2026年11月" android:paddingStart="3dp"
-            android:autoSizeMaxTextSize="20dp" />
+            android:text="2026年11月" android:paddingStart="3dp" />
         <LinearLayout android:id="@+id/calendar_summary" android:layout_width="0dp"
             android:layout_weight="3" android:layout_height="match_parent"
-            android:orientation="horizontal" android:gravity="end|center_vertical" android:weightSum="3">
-            <TextView android:id="@+id/calendar_summary_label" style="@style/CalendarText"
-                android:layout_width="0dp" android:layout_weight="1"
+            android:orientation="horizontal" android:gravity="center_vertical"
+            android:clickable="true" android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackground">
+            <TextView android:id="@+id/calendar_summary_label" style="@style/CalendarSummaryText"
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent" android:gravity="start|center_vertical" android:text="合計"
-                android:autoSizeMaxTextSize="13dp" />
-            <TextView android:id="@+id/calendar_summary_amount" style="@style/CalendarAmount"
-                android:layout_width="0dp" android:layout_weight="2"
-                android:layout_height="match_parent" android:text="—" android:paddingEnd="2dp"
-                android:autoSizeMaxTextSize="13dp" />
+                android:importantForAccessibility="no" />
+            <TextView android:id="@+id/calendar_summary_amount" style="@style/CalendarSummaryText"
+                android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="match_parent" android:gravity="end|center_vertical"
+                android:text="—" android:paddingStart="4dp" android:paddingEnd="2dp"
+                android:importantForAccessibility="no" />
         </LinearLayout>
     </LinearLayout>
     <LinearLayout android:id="@+id/calendar_grid"

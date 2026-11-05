@@ -336,7 +336,11 @@ public class WidgetInstrumentation extends Instrumentation {
         CalendarWidgetState.cycleSummary(c,first);
         ok("2026-05".equals(CalendarWidgetState.month(c,first))
             &&CalendarWidgetState.filter(c,first)==CalendarWidgetState.COUPON
-            &&CalendarWidgetState.summary(c,first)==1,"calendar controls are saved per widget");
+            &&CalendarWidgetState.summary(c,first)==2,"the first header tap selects TikTok Lite");
+        CalendarWidgetState.cycleSummary(c,first);
+        ok(CalendarWidgetState.summary(c,first)==1,"the second header tap selects coupon");
+        CalendarWidgetState.cycleSummary(c,first);
+        ok(CalendarWidgetState.summary(c,first)==0,"the third header tap returns to total");
         ok(CalendarWidgetState.isFollowingCurrentMonth(c,second)
             &&CalendarWidgetState.filter(c,second)==CalendarWidgetState.ALL
             &&CalendarWidgetState.summary(c,second)==0,"second widget is independent");
@@ -398,19 +402,31 @@ public class WidgetInstrumentation extends Instrumentation {
                     ok(total.getTextSize()>coupon.getTextSize(),"daily total uses the free category width");
                     completeCalendarText(lastRow.getChildAt(5),R.id.calendar_control,"カテゴリー\n表示変更");
                     completeCalendarText(lastRow.getChildAt(6),R.id.calendar_control,"年月\n表示変更");
-                    completeCalendarText(calendar,R.id.calendar_summary_label,"合計");
-                    completeCalendarText(calendar,R.id.calendar_summary_amount,"¥9,007,199,254,740,991");
+                    checkCalendarHeader(calendar,"2026年5月","合計","¥9,007,199,254,740,991");
                 }
             }
+            CalendarRevenueData.Month typical=new CalendarRevenueData.Month();
+            typical.totals[0]=395601;
+            typical.totals[1]=382200;
+            typical.totals[2]=13401;
+            long headerNow=java.time.Instant.parse("2026-11-05T00:00:00Z").toEpochMilli();
             android.widget.FrameLayout combinedHost=new android.widget.FrameLayout(c);
-            android.view.View combined=CombinedWidget.buildViews(c,first,"2026-05",0,0,data,
-                java.time.Instant.parse("2026-06-01T00:00:00Z").toEpochMilli(),
-                RevenueStore.read(c),new DisplaySettings(),320,400).apply(c,combinedHost);
+            android.view.View combined=CombinedWidget.buildViews(c,first,"2026-11",0,2,typical,
+                headerNow,RevenueStore.read(c),new DisplaySettings(),411,400).apply(c,combinedHost);
+            combinedHost.addView(combined,new android.widget.FrameLayout.LayoutParams(-1,-1));
+            float density=c.getResources().getDisplayMetrics().density;
+            int width=Math.round(411*density),height=Math.round(400*density);
+            combinedHost.measure(android.view.View.MeasureSpec.makeMeasureSpec(width,android.view.View.MeasureSpec.EXACTLY),
+                android.view.View.MeasureSpec.makeMeasureSpec(height,android.view.View.MeasureSpec.EXACTLY));
+            combinedHost.layout(0,0,width,height);
             android.view.ViewGroup gauge=combined.findViewById(R.id.combined_gauge);
             android.view.ViewGroup dates=combined.findViewById(R.id.combined_calendar);
             ok(gauge.getChildCount()==1&&gauge.findViewById(R.id.row_coupon)!=null
                 &&dates.getChildCount()==1&&dates.findViewById(R.id.calendar_week_4)!=null,
                 "combined widget reuses the full gauge and calendar");
+            checkCalendarHeader(dates,"2026年11月","TikTok Lite","¥13,401");
+            android.widget.TextView title=dates.findViewById(R.id.calendar_title);
+            ok(title.getTextSize()>=19*density,"typical monthly values use the large header size");
             long now=java.time.Instant.parse("2026-11-03T15:00:00Z").toEpochMilli();
             CalendarRevenueData.Month current=new CalendarRevenueData.Month();
             current.days[4][1]=12345;
@@ -428,6 +444,24 @@ public class WidgetInstrumentation extends Instrumentation {
                 &&tomorrow.findViewById(R.id.calendar_coupon_row).getVisibility()==android.view.View.INVISIBLE,
                 "future days show their date but no revenue");
         });
+    }
+
+    void checkCalendarHeader(android.view.View root,String month,String category,String amount){
+        completeCalendarText(root,R.id.calendar_title,month);
+        completeCalendarText(root,R.id.calendar_summary_label,category);
+        completeCalendarText(root,R.id.calendar_summary_amount,amount);
+        android.widget.TextView title=root.findViewById(R.id.calendar_title);
+        android.widget.TextView label=root.findViewById(R.id.calendar_summary_label);
+        android.widget.TextView value=root.findViewById(R.id.calendar_summary_amount);
+        android.view.View summary=root.findViewById(R.id.calendar_summary);
+        ok(title.getTextSize()==label.getTextSize()&&title.getTextSize()==value.getTextSize()
+            &&title.getBaseline()==label.getBaseline()&&title.getBaseline()==value.getBaseline(),
+            "month and both summary fields share the font size and baseline");
+        ok(summary.isClickable()&&summary.hasOnClickListeners()
+            &&!label.isClickable()&&!value.isClickable()
+            &&label.getLeft()==0&&value.getRight()==summary.getWidth()
+            &&label.getHeight()==summary.getHeight()&&value.getHeight()==summary.getHeight(),
+            "the full label and amount row shares one click action");
     }
 
     void completeCalendarText(android.view.View root,int id,String expected){

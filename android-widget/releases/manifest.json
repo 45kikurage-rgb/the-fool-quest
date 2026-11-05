@@ -1,20 +1,20 @@
 {
   "applicationId": "com.aruno.foolquest.widget.next",
-  "version": "0.1.25",
-  "versionCode": 26,
+  "version": "0.1.26",
+  "versionCode": 27,
   "minSdk": 26,
   "targetSdk": 35,
   "size": 285386,
-  "sha256": "237132fa4ec02e3abf14a77f0db583b7d4ad3abcd151d0e8c83bc4134f92d54d",
+  "sha256": "3a458a3295eedca494e71a9f9c22479e82d404656a83452f9fcba6532acb94dc",
   "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
   "couponUpdate": "Daily revenue for priced coupons via authenticated Ledger; monthly reader retained",
   "tiktokUpdate": "On-demand current-month point-history CSV fetch in the in-app WebView; manual CSV import and manual revenue entry remain available",
   "changes": [
-    "Add a combined gauge and calendar home-screen widget alongside the existing two widgets",
-    "Use Corporate Logo Rounded Bold for the calendar and gauge text",
-    "Keep one consistent size within each daily amount row and separate the date and daily total"
+    "Align the monthly category and amount with the month title at a shared text size and baseline",
+    "Use the full monthly category and amount row as one tap target",
+    "Cycle Total, TikTok Lite, Coupon, and back to Total"
   ],
-  "file": "aru-mybest-0.1.25.apk",
+  "file": "aru-mybest-0.1.26.apk",
   "installation": "Update the existing successor without uninstalling; preserve revenue, goals, colors and saved settings. Photo-two reference button resets layout only.",
   "legacy": {
     "applicationId": "com.aruno.foolquest.widget",
@@ -27,14 +27,23 @@
   },
   "previousRelease": {
     "applicationId": "com.aruno.foolquest.widget.next",
-    "version": "0.1.24",
-    "versionCode": 25,
-    "size": 162200,
-    "sha256": "380c023e24276b2f2f4a6e59e2634eca301fd98056ab7c07dfebf8ffc31c1eeb",
+    "version": "0.1.25",
+    "versionCode": 26,
+    "size": 285386,
+    "sha256": "237132fa4ec02e3abf14a77f0db583b7d4ad3abcd151d0e8c83bc4134f92d54d",
     "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
-    "file": "aru-mybest-0.1.24.apk"
+    "file": "aru-mybest-0.1.25.apk"
   },
   "archives": [
+    {
+      "applicationId": "com.aruno.foolquest.widget.next",
+      "version": "0.1.24",
+      "versionCode": 25,
+      "size": 162200,
+      "sha256": "380c023e24276b2f2f4a6e59e2634eca301fd98056ab7c07dfebf8ffc31c1eeb",
+      "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+      "file": "aru-mybest-0.1.24.apk"
+    },
     {
       "applicationId": "com.aruno.foolquest.widget.next",
       "version": "0.1.23",
@@ -126,16 +135,16 @@
       "file": "fool-quest-widget-0.1.13-original.apk"
     }
   ],
-  "sourceCommit": "52a212a99fae76b725ae2bce5ae6404c067004ca",
-  "unsignedSha256": "7c171a83ed883ef1b7c56d6f13c33410af5e69e2b86927056817cb67ae4f1484",
+  "sourceCommit": "08d68659c7cd10be7f4ca3b5faaf0216f7716d69",
+  "unsignedSha256": "141e50c1cc31d3a16dde307b43c5145ce280b1c876feb12e348a5fd8565a35d5",
   "deviceVerified": false,
   "deliveryStatus": "production-update",
   "dailyTargetUpdate": "JST midnight; exact alarm when allowed, inexact fallback otherwise; no network required",
-  "signingRunId": 41927001513,
-  "softwareTestRunId": 41926261774,
+  "signingRunId": 41951380349,
+  "softwareTestRunId": 41950678943,
   "distributionUrls": [
     "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
     "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
   ],
-  "upgradeTestRunId": 41927391886
+  "upgradeTestRunId": 41951571099
 }
