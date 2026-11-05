@@ -19,6 +19,17 @@ public final class CalendarAmountFormatter {
     public static String month(long yen) {
         return yen<0?"—":String.format(Locale.JAPAN,"¥%,d",yen);
     }
+    public static String dayNet(long value,boolean known) {
+        if(!known||value==RevenueMath.UNKNOWN)return "—";
+        return value<0?"−"+day(-value):day(value);
+    }
+    public static String monthNet(long value,boolean known) {
+        return known?RevenueMath.moneyNet(value):"—";
+    }
+    /** A loss is always displayed as an explicit negative, even if source income is unknown. */
+    public static String dailyLoss(long positiveYen) {
+        return positiveYen<=0?"":"−"+day(positiveYen);
+    }
     public static String dayWithPrefix(String prefix,long yen) {
         return prefix+" "+day(yen);
     }
