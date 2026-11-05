@@ -171,8 +171,11 @@ public class CalendarWidget extends AppWidgetProvider {
                 if(showCoupon){
                     // Until today's dated TikTok data is available, retain the
                     // existing coupon-only provisional amount without inventing data.
-                    long total=isToday&&!todayTikTokKnown?data.days[day][1]:data.days[day][0];
-                    boolean totalKnown=isToday&&!todayTikTokKnown?(data.known[day][1]||data.days[day][1]>=0):(data.known[day][0]||data.days[day][0]>=0);
+                    boolean provisional=isToday&&!todayTikTokKnown&&!data.known[day][0];
+                    long total=provisional?data.days[day][1]:data.days[day][0];
+                    boolean totalKnown=provisional
+                        ?(data.known[day][1]||data.days[day][1]>=0)
+                        :(data.known[day][0]||data.days[day][0]>=0);
                     amount(cell,R.id.calendar_day_total,CalendarAmountFormatter.dayNet(total,totalKnown),totalSize,amountWidth,measure);
                     amount(cell,R.id.calendar_day_coupon,CalendarAmountFormatter.dayNet(data.days[day][1],(data.known[day][1]||data.days[day][1]>=0)),detailSize,detailWidth,measure);
                     if(showTikTok)amount(cell,R.id.calendar_day_tiktok,
