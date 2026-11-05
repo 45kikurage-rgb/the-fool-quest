@@ -393,7 +393,7 @@ public class WidgetInstrumentation extends Instrumentation {
                     completeCalendarText(lastDay,R.id.calendar_day_loss,"−1500");
                     android.widget.TextView loss=lastDay.findViewById(R.id.calendar_day_loss);
                     ok(loss.getCurrentTextColor()==0xffff6464,"loss appears red below TikTok Lite");
-                    ok(loss.getTop()>=lastDay.findViewById(R.id.calendar_tiktok_row).getBottom(),
+                    ok(lastDay.findViewById(R.id.calendar_loss_row).getTop()>=lastDay.findViewById(R.id.calendar_tiktok_row).getBottom(),
                         "loss line is physically below TikTok Lite");
                     android.view.View firstDay=firstRow.getChildAt(0);
                     for(int id:new int[]{R.id.calendar_day_total,R.id.calendar_day_coupon,R.id.calendar_day_tiktok}){
