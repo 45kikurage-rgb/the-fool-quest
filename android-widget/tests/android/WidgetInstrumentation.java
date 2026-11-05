@@ -393,8 +393,11 @@ public class WidgetInstrumentation extends Instrumentation {
                     completeCalendarText(lastDay,R.id.calendar_day_loss,"−1500");
                     android.widget.TextView loss=lastDay.findViewById(R.id.calendar_day_loss);
                     ok(loss.getCurrentTextColor()==0xffff6464,"loss appears red below TikTok Lite");
-                    ok(lastDay.findViewById(R.id.calendar_loss_row).getTop()>=lastDay.findViewById(R.id.calendar_tiktok_row).getBottom(),
-                        "loss line is physically below TikTok Lite");
+                    android.view.View tRow=lastDay.findViewById(R.id.calendar_tiktok_row);
+                    android.view.View cRow=lastDay.findViewById(R.id.calendar_coupon_row);
+                    android.view.View lossRow=lastDay.findViewById(R.id.calendar_loss_row);
+                    ok(tRow.getTop()<cRow.getTop()&&cRow.getBottom()<=lossRow.getTop(),
+                        "earned T, earned C and red loss appear in that order");
                     android.view.View firstDay=firstRow.getChildAt(0);
                     for(int id:new int[]{R.id.calendar_day_total,R.id.calendar_day_coupon,R.id.calendar_day_tiktok}){
                         android.widget.TextView shortValue=firstDay.findViewById(id);
@@ -437,17 +440,20 @@ public class WidgetInstrumentation extends Instrumentation {
             ok(title.getTextSize()>=19*density,"typical monthly values use the large header size");
             long now=java.time.Instant.parse("2026-11-03T15:00:00Z").toEpochMilli();
             CalendarRevenueData.Month current=new CalendarRevenueData.Month();
-            current.days[4][0]=58023;
+            current.days[4][0]=56523; // earned 45678 + earned 12345 - loss 1500
             current.days[4][1]=12345;
             current.days[4][2]=45678;
+            current.dailyLosses[4]=1500;
             android.widget.FrameLayout host=new android.widget.FrameLayout(c);
             android.view.View calendar=CalendarWidget.buildViews(c,first,"2026-11",0,0,current,now).apply(c,host);
             android.view.ViewGroup firstRow=calendar.findViewById(R.id.calendar_week_0);
             android.view.View today=firstRow.getChildAt(3);
-            ok("58023".contentEquals(((android.widget.TextView)today.findViewById(R.id.calendar_day_total)).getText())
+            ok("56523".contentEquals(((android.widget.TextView)today.findViewById(R.id.calendar_day_total)).getText())
                 &&today.findViewById(R.id.calendar_coupon_row).getVisibility()==android.view.View.VISIBLE
                 &&today.findViewById(R.id.calendar_tiktok_row).getVisibility()==android.view.View.VISIBLE
-                &&"45678".contentEquals(((android.widget.TextView)today.findViewById(R.id.calendar_day_tiktok)).getText()),
+                &&"45678".contentEquals(((android.widget.TextView)today.findViewById(R.id.calendar_day_tiktok)).getText())
+                &&"12345".contentEquals(((android.widget.TextView)today.findViewById(R.id.calendar_day_coupon)).getText())
+                &&"−1500".contentEquals(((android.widget.TextView)today.findViewById(R.id.calendar_day_loss)).getText()),
                 "today immediately shows verified TikTok and the combined total");
             CalendarRevenueData.Month couponOnly=new CalendarRevenueData.Month();
             couponOnly.days[4][1]=12345;
@@ -621,9 +627,22 @@ public class WidgetInstrumentation extends Instrumentation {
         String couponLossId=manager.losses().getJSONObject(manager.losses().length()-1).getString("id");
         ok(manager.netTikTok(month)==1125&&manager.lossTotal(month,"tiktok")==150,
             "TikTok Lite losses reduce current month independently");
+        // The original earned T and C must remain visible; only Total subtracts losses.
+        RevenueStore.saveCoupon(c,month,500);
+        JSONObject couponDay=new JSONObject().put("total",500).put("sum",500)
+            .put("days",new JSONObject().put(month+"-01",500));
+        prefs.edit().putString("couponRevenueDailyV2",
+            new JSONObject().put(month,couponDay).toString()).commit();
         CalendarRevenueData.Month withLoss=CalendarRevenueData.read(c,month);
-        ok(withLoss.days[1][2]==600&&withLoss.dailyLosses[1]==230,
-            "calendar subtracts TikTok Lite loss once and shows combined red loss separately");
+        ok(withLoss.known[1][2]&&withLoss.known[1][1]
+                &&withLoss.days[1][2]==750&&withLoss.days[1][1]==500,
+            "day T and C retain gross earned revenue");
+        ok(withLoss.dailyLosses[1]==230&&withLoss.days[1][0]==1020,
+            "day total 750 + 500 - 230 = 1020 with losses counted exactly once");
+        ok(withLoss.totals[0]==1545&&withLoss.totals[1]==420
+                &&withLoss.totals[2]==1125,
+            "monthly net totals still deduct each category loss exactly once");
+        prefs.edit().remove("couponRevenueDailyV2").commit();
         manager.setCsv(month,daily,"dated-fixture.csv");
         ok(manager.lossTotal(month,"tiktok")==150&&manager.lossTotal(month,"coupon")==80,
             "re-importing CSV cannot reset either loss category");
