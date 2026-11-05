@@ -21,7 +21,7 @@ final class WidgetRenderer {
         WidgetLayout l=new WidgetLayout(w,h,s.left,s.right,s.top,s.bottom,s.gap);
         long[] values=data.values(),goals=data.goals(); String[] current=new String[3],targets=new String[3],percents=new String[3];
         float font=s.font;
-        for(int i=0;i<3;i++){ current[i]=RevenueMath.money(values[i]); targets[i]=RevenueMath.money(goals[i]); percents[i]=RevenueMath.percent(values[i],goals[i]); }
+        for(int i=0;i<3;i++){ current[i]=RevenueMath.moneyNet(values[i]); targets[i]=RevenueMath.money(goals[i]); percents[i]=RevenueMath.percentNet(values[i],goals[i]); }
         // Reserve the same seven-digit money and four-digit percent widths even for small values.
         p.setTextSize(font);
         font=Math.min(font,s.font*l.labelWidth()/p.measureText("Coupon"));
@@ -107,7 +107,7 @@ final class WidgetRenderer {
     }
     static String description(RevenueStore.Data d){
         StringBuilder b=new StringBuilder(d.month+" ");long[] v=d.values(),g=d.goals();
-        for(int i=0;i<3;i++)b.append(LABELS[i]).append(' ').append(RevenueMath.money(v[i])).append('/').append(RevenueMath.money(g[i])).append(' ').append(RevenueMath.percent(v[i],g[i])).append("。 ");
+        for(int i=0;i<3;i++)b.append(LABELS[i]).append(' ').append(RevenueMath.moneyNet(v[i])).append('/').append(RevenueMath.money(g[i])).append(' ').append(RevenueMath.percentNet(v[i],g[i])).append("。 ");
         b.append("Total ").append(RevenueMath.dailyTargetLabel(d.month,g[0],System.currentTimeMillis())).append("。 ");
         return b.append(footer(d)).toString();
     }
