@@ -1,0 +1,43 @@
+name: Stage exact verified MyBest unsigned candidate
+on:
+  push:
+    branches: ['release/mybest-calendar-today-code28-20261105']
+    paths: ['requests/mybest-unsigned-stage.json']
+permissions:
+  contents: write
+  actions: read
+jobs:
+  stage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Retrieve approved source-CI APK and stage as base64
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,re
+          q=json.load(open('requests/mybest-unsigned-stage.json'))
+          assert q['schema']==1 and q['operation']=='stage-verified-unsigned-mybest'
+          assert q['approval_reference']=='2026-11-05 user requested production Aru-MyBest update'
+          for k in ('source_sha','sha256'):
+              assert re.fullmatch(r'[a-f0-9]{40}' if k=='source_sha' else r'[a-f0-9]{64}',q[k])
+          assert isinstance(q['run_id'],int) and q['run_id']>0
+          PY
+          RUN_ID=$(jq -r .run_id requests/mybest-unsigned-stage.json)
+          SOURCE_SHA=$(jq -r .source_sha requests/mybest-unsigned-stage.json)
+          EXPECTED=$(jq -r .sha256 requests/mybest-unsigned-stage.json)
+          [[ "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID" --jq .head_sha)" == "$SOURCE_SHA" ]]
+          [[ "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID" --jq .conclusion)" == "success" ]]
+          mkdir -p candidate
+          gh run download "$RUN_ID" -R "$GITHUB_REPOSITORY" -n "foolquest-widget-code17-unsigned-$SOURCE_SHA" -D candidate
+          printf '%s  candidate/aligned.apk\n' "$EXPECTED" | sha256sum -c -
+          mkdir -p staging/mybest-unsigned
+          TARGET="staging/mybest-unsigned/$EXPECTED.apk.b64"
+          base64 -w0 candidate/aligned.apk > "$TARGET"
+          git config user.name 'ARUNO Verification CI'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add "$TARGET"
+          git diff --cached --quiet || { git commit -m 'Stage CI-verified MyBest code28 unsigned APK [skip ci]'; git push origin HEAD:"${GITHUB_REF_NAME}"; }
