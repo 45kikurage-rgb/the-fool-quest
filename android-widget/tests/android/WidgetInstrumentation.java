@@ -668,7 +668,7 @@ public class WidgetInstrumentation extends Instrumentation {
         });
         waitForIdleSync();
         png(getUiAutomation().takeScreenshot(),"native-revenue-daily-targets");
-        runOnMainSync(()->button(home.getWindow().getDecorView(),"収益履歴・手動追加の編集").performClick());
+        runOnMainSync(()->button(home.getWindow().getDecorView(),"収益・損失履歴の編集").performClick());
         waitForIdleSync();
         runOnMainSync(()->{
             android.view.View root=home.getWindow().getDecorView();
