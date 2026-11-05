@@ -429,16 +429,25 @@ public class WidgetInstrumentation extends Instrumentation {
             ok(title.getTextSize()>=19*density,"typical monthly values use the large header size");
             long now=java.time.Instant.parse("2026-11-03T15:00:00Z").toEpochMilli();
             CalendarRevenueData.Month current=new CalendarRevenueData.Month();
+            current.days[4][0]=58023;
             current.days[4][1]=12345;
             current.days[4][2]=45678;
             android.widget.FrameLayout host=new android.widget.FrameLayout(c);
             android.view.View calendar=CalendarWidget.buildViews(c,first,"2026-11",0,0,current,now).apply(c,host);
             android.view.ViewGroup firstRow=calendar.findViewById(R.id.calendar_week_0);
             android.view.View today=firstRow.getChildAt(3);
-            ok("12345".contentEquals(((android.widget.TextView)today.findViewById(R.id.calendar_day_total)).getText())
+            ok("58023".contentEquals(((android.widget.TextView)today.findViewById(R.id.calendar_day_total)).getText())
                 &&today.findViewById(R.id.calendar_coupon_row).getVisibility()==android.view.View.VISIBLE
-                &&today.findViewById(R.id.calendar_tiktok_row).getVisibility()==android.view.View.INVISIBLE,
-                "today shows coupon and coupon-only total");
+                &&today.findViewById(R.id.calendar_tiktok_row).getVisibility()==android.view.View.VISIBLE
+                &&"45678".contentEquals(((android.widget.TextView)today.findViewById(R.id.calendar_day_tiktok)).getText()),
+                "today immediately shows verified TikTok and the combined total");
+            CalendarRevenueData.Month couponOnly=new CalendarRevenueData.Month();
+            couponOnly.days[4][1]=12345;
+            android.view.View provisional=CalendarWidget.buildViews(c,first,"2026-11",0,0,couponOnly,now).apply(c,host);
+            android.view.View provisionalToday=((android.view.ViewGroup)provisional.findViewById(R.id.calendar_week_0)).getChildAt(3);
+            ok("12345".contentEquals(((android.widget.TextView)provisionalToday.findViewById(R.id.calendar_day_total)).getText())
+                &&provisionalToday.findViewById(R.id.calendar_tiktok_row).getVisibility()==android.view.View.INVISIBLE,
+                "unknown today TikTok stays hidden without inventing zero revenue");
             android.view.View tomorrow=firstRow.getChildAt(4);
             ok(tomorrow.findViewById(R.id.calendar_day_total).getVisibility()==android.view.View.INVISIBLE
                 &&tomorrow.findViewById(R.id.calendar_coupon_row).getVisibility()==android.view.View.INVISIBLE,
