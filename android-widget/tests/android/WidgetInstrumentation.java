@@ -443,12 +443,12 @@ public class WidgetInstrumentation extends Instrumentation {
                 "today immediately shows verified TikTok and the combined total");
             CalendarRevenueData.Month couponOnly=new CalendarRevenueData.Month();
             couponOnly.days[4][1]=12345;
-            android.view provisional=CalendarWidget.buildViews(c,first,"2026-11",0,0,couponOnly,now).apply(c,host);
-            android.view provisionalToday=((android.view.ViewGroup)provisional.findViewById(R.id.calendar_week_0)).getChildAt(3);
+            android.view.View provisional=CalendarWidget.buildViews(c,first,"2026-11",0,0,couponOnly,now).apply(c,host);
+            android.view.View provisionalToday=((android.view.ViewGroup)provisional.findViewById(R.id.calendar_week_0)).getChildAt(3);
             ok("12345".contentEquals(((android.widget.TextView)provisionalToday.findViewById(R.id.calendar_day_total)).getText())
                 &&provisionalToday.findViewById(R.id.calendar_tiktok_row).getVisibility()==android.view.View.INVISIBLE,
                 "unknown today TikTok stays hidden without inventing zero revenue");
-            android.view tomorrow=firstRow.getChildAt(4);
+            android.view.View tomorrow=firstRow.getChildAt(4);
             ok(tomorrow.findViewById(R.id.calendar_day_total).getVisibility()==android.view.View.INVISIBLE
                 &&tomorrow.findViewById(R.id.calendar_coupon_row).getVisibility()==android.view.View.INVISIBLE,
                 "future days show their date but no revenue");
