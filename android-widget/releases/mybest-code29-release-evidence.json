@@ -29,11 +29,18 @@
     "legacyUnchanged": true
   },
   "publication": {
-    "status": "PUBLIC_ORIGIN_VERIFICATION_PENDING",
+    "status": "PASS_BOTH_PUBLIC_ORIGINS",
     "downloadPage": "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
-    "alternate": "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
+    "alternate": "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html",
+    "publicVerificationRunId": 42106085901,
+    "pagesDeploymentRunId": 42106084490,
+    "checkedDate": "2026-11-06",
+    "checkedApkFile": "aru-mybest-0.1.28.apk",
+    "checkedApkSha256": "a2161faba808118329ff89dd5a1ec9f87e7d6bb2a15808391651c7fcfd95a63e",
+    "bothFullBytesSha256Matched": true
   },
   "deviceVerified": false,
-  "releaseStatus": "SOFTWARE_VERIFIED_EXISTING_SIGNER_UPGRADE_VERIFIED_PUBLICATION_PENDING",
-  "notes": "No alterations to Coupon Ledger/API, signed predecessor APKs, source CSV, central DB or signing keys. Update in place without uninstalling."
+  "releaseStatus": "PRODUCTION_DISTRIBUTED_SOFTWARE_TESTED_UPGRADE_TESTED_PHYSICAL_DEVICE_PENDING",
+  "notes": "No alterations to Coupon Ledger/API, signed predecessor APKs, source CSV, central DB or signing keys. Update in place without uninstalling.",
+  "releaseCommit": "503f91a856178a779f5158d2dc1bd6583e7440a9"
 }
