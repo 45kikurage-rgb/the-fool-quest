@@ -149,9 +149,13 @@ final class CalendarRevenueData {
                     result.days[day][2]=RevenueMath.net(result.days[day][2],result.losses[day][0]);
                 if(result.known[day][1])
                     result.days[day][1]=RevenueMath.net(result.days[day][1],result.losses[day][1]);
-                result.known[day][0]=result.known[day][1]&&result.known[day][2];
+                // Preserve the previous Coupon-only provisional daily total,
+                // but still debit recorded TikTok losses even before its CSV arrives.
+                result.known[day][0]=result.known[day][1];
+                long tikTokPart=result.known[day][2]
+                    ?result.days[day][2]:-result.losses[day][0];
                 result.days[day][0]=result.known[day][0]
-                    ?RevenueMath.netTotal(result.days[day][1],result.days[day][2])
+                    ?RevenueMath.netTotal(result.days[day][1],tikTokPart)
                     :RevenueMath.UNKNOWN;
             }
         }catch(Exception invalid){
