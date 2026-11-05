@@ -12,8 +12,13 @@ final class RevenueStore {
     static final class Data {
         String month, importMonth, couponMonth, error, errorCode;
         long tiktok=-1,coupon=-1,goalTotal=-1,goalTiktok=-1,goalCoupon=-1,couponAt,importAt;
-        boolean loading;
-        long[] values(){ return new long[]{RevenueMath.total(tiktok,coupon),tiktok,coupon}; }
+        long lossTiktok,lossCoupon;
+        boolean lossesValid=true,loading;
+        long[] values(){
+            if(!lossesValid)return new long[]{RevenueMath.UNKNOWN,RevenueMath.UNKNOWN,RevenueMath.UNKNOWN};
+            long t=RevenueMath.net(tiktok,lossTiktok),c=RevenueMath.net(coupon,lossCoupon);
+            return new long[]{RevenueMath.netTotal(t,c),t,c};
+        }
         long[] goals(){ return new long[]{goalTotal,goalTiktok,goalCoupon}; }
     }
     static Data read(Context c) {
@@ -29,6 +34,9 @@ final class RevenueStore {
             d.month=d.couponMonth; d.coupon=p.getLong("coupon",-1);
             d.tiktok=d.importMonth.equals(d.month)?p.getLong("tiktok",-1):-1;
         }
+        long[] losses=RevenueManager.readLosses(p,d.month);
+        if(losses==null)d.lossesValid=false;
+        else{d.lossTiktok=losses[0];d.lossCoupon=losses[1];}
         d.loading=RevenueUpdate.busy(); d.error=p.getString("error",""); d.errorCode=p.getString("errorCode",""); return d;
     }
     static long validateCoupon(String raw,String expected) throws Exception {

@@ -93,6 +93,39 @@ final class RevenueManager {
     }
     JSONObject months() throws Exception { return state.getJSONObject("months"); }
     JSONArray manual() throws Exception { return state.getJSONArray("manual"); }
+    /** Optional field: legacy v1 backups remain loadable without migration. */
+    JSONArray losses() { JSONArray value=state.optJSONArray("losses");return value==null?new JSONArray():value; }
+    static String requireCategory(String category){
+        if(!"tiktok".equals(category)&&!"coupon".equals(category))
+            throw new IllegalArgumentException("損失の種類が不正です");
+        return category;
+    }
+    static long lossSum(JSONArray rows,String month,String category) throws Exception {
+        long total=0;
+        for(int i=0;rows!=null&&i<rows.length();i++){
+            JSONObject row=rows.getJSONObject(i);
+            if(row.getString("date").startsWith(month+"-")&&category.equals(row.getString("category")))
+                total=plus(total,row.getLong("amount"));
+        }
+        return total;
+    }
+    long lossTotal(String month,String category) throws Exception {
+        requireMonth(month);requireCategory(category);
+        return lossSum(losses(),month,category);
+    }
+    static long[] readLosses(SharedPreferences preferences,String month){
+        try {
+            JSONObject snapshot=new JSONObject(preferences.getString(KEY,"{}"));
+            JSONArray rows=snapshot.optJSONArray("losses");
+            return new long[]{lossSum(rows,month,"tiktok"),lossSum(rows,month,"coupon")};
+        }catch(Exception invalid){
+            android.util.Log.e("AruMyBest","Invalid local losses",invalid);
+            return null; // Unknown is safer than incorrectly displaying an unadjusted gain.
+        }
+    }
+    long netTikTok(String month) throws Exception {return RevenueMath.net(tiktok(month),lossTotal(month,"tiktok"));}
+    long netCoupon(String month) throws Exception {return RevenueMath.net(coupon(month),lossTotal(month,"coupon"));}
+    long netTotal(String month) throws Exception {return RevenueMath.netTotal(netTikTok(month),netCoupon(month));}
     JSONObject goals() throws Exception { return state.getJSONObject("goals"); }
     String month() { return RevenueMath.month(System.currentTimeMillis()); }
     static long safe(long n, boolean positive) {
@@ -229,6 +262,52 @@ final class RevenueManager {
         manual().put(row);
         persistAndRender();
     }
+    void addLoss(String date,String category,long amount) throws Exception {
+        checkDate(date);requireCategory(category);safe(amount,true);
+        JSONArray rows=losses();
+        if(rows.length()>=10000)throw new IllegalArgumentException("損失履歴件数の上限です");
+        JSONObject candidate=new JSONObject(state.toString());
+        JSONArray newRows=candidate.optJSONArray("losses");
+        if(newRows==null){newRows=new JSONArray();candidate.put("losses",newRows);}
+        JSONObject row=new JSONObject();
+        row.put("id",java.util.UUID.randomUUID().toString());
+        row.put("date",date);row.put("category",category);row.put("amount",amount);
+        newRows.put(row);
+        validate(candidate);
+        JSONObject old=state;state=candidate;
+        try{persistAndRender();}catch(Exception e){state=old;throw e;}
+    }
+    void updateLoss(String id,String date,String category,long amount) throws Exception {
+        checkDate(date);requireCategory(category);safe(amount,true);
+        JSONObject candidate=new JSONObject(state.toString());
+        JSONArray rows=candidate.optJSONArray("losses");
+        if(rows==null)throw new IllegalArgumentException("損失履歴が見つかりません");
+        boolean found=false;
+        for(int i=0;i<rows.length();i++){
+            JSONObject row=rows.getJSONObject(i);
+            if(id.equals(row.optString("id"))){
+                row.put("date",date);row.put("category",category);row.put("amount",amount);
+                found=true;break;
+            }
+        }
+        if(!found)throw new IllegalArgumentException("損失履歴が見つかりません");
+        validate(candidate);
+        JSONObject old=state;state=candidate;
+        try{persistAndRender();}catch(Exception e){state=old;throw e;}
+    }
+    void deleteLoss(String id) throws Exception {
+        JSONObject candidate=new JSONObject(state.toString());
+        JSONArray rows=candidate.optJSONArray("losses"),updated=new JSONArray();
+        boolean found=false;
+        if(rows!=null)for(int i=0;i<rows.length();i++){
+            JSONObject row=rows.getJSONObject(i);
+            if(id.equals(row.optString("id")))found=true;else updated.put(row);
+        }
+        if(!found)throw new IllegalArgumentException("損失履歴が見つかりません");
+        candidate.put("losses",updated);
+        JSONObject old=state;state=candidate;
+        try{persistAndRender();}catch(Exception e){state=old;throw e;}
+    }
     void deleteManual(String id) throws Exception {
         JSONArray fresh=new JSONArray();boolean found=false;
         for(int i=0;i<manual().length();i++) {
@@ -362,6 +441,26 @@ final class RevenueManager {
             strictNumber(row.get("amount"),true);
             JSONObject base=months.optJSONObject(date.substring(0,7));
             if(base==null||!base.has("csv"))throw new IllegalArgumentException("手動追加の月にCSV元データがありません");
+        }
+        JSONArray losses=root.optJSONArray("losses");
+        if(root.has("losses")&&losses==null)throw new IllegalArgumentException("損失履歴が不正です");
+        if(losses!=null){
+            if(losses.length()>10000)throw new IllegalArgumentException("損失履歴が多すぎます");
+            java.util.HashSet<String> lossIds=new java.util.HashSet<>();
+            for(int i=0;i<losses.length();i++){
+                JSONObject row=losses.getJSONObject(i);
+                checkDate(row.getString("date"));
+                requireCategory(row.getString("category"));
+                strictNumber(row.get("amount"),true);
+                String id=row.getString("id");
+                if(id.isEmpty()||id.length()>100||!lossIds.add(id))
+                    throw new IllegalArgumentException("損失履歴IDが不正です");
+            }
+            for(Iterator<String> it=months.keys();it.hasNext();){
+                String month=it.next();
+                lossSum(losses,month,"tiktok");
+                lossSum(losses,month,"coupon");
+            }
         }
         JSONObject goals=root.getJSONObject("goals");
         plus(strictNumber(goals.get("tiktok"),true),strictNumber(goals.get("coupon"),true));

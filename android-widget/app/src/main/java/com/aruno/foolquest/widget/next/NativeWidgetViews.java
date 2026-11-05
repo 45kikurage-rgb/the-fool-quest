@@ -40,9 +40,9 @@ final class NativeWidgetViews {
         long[] values=d.values(),goals=d.goals();
         for(int j=0;j<5;j++)font=Math.min(font,available[j]*100/measure.measureText(reserved[j]));
         for(int i=0;i<3;i++){
-            font=Math.min(font,available[1]*100/measure.measureText(RevenueMath.money(values[i])));
+            font=Math.min(font,available[1]*100/measure.measureText(RevenueMath.moneyNet(values[i])));
             font=Math.min(font,available[3]*100/measure.measureText(RevenueMath.money(goals[i])));
-            font=Math.min(font,available[4]*100/measure.measureText(RevenueMath.percent(values[i],goals[i])));
+            font=Math.min(font,available[4]*100/measure.measureText(RevenueMath.percentNet(values[i],goals[i])));
         }
         float widthFont=font;
         // Photo two is the 32-unit midpoint. Let both sides of that midpoint
@@ -65,7 +65,7 @@ final class NativeWidgetViews {
         int[] colors={s.total,s.tiktok,s.coupon};
         long now=System.currentTimeMillis();
         for(int i=0;i<3;i++){
-            String[] texts={WidgetRenderer.LABELS[i],RevenueMath.money(values[i]),"/",RevenueMath.money(goals[i]),RevenueMath.percent(values[i],goals[i])};
+            String[] texts={WidgetRenderer.LABELS[i],RevenueMath.moneyNet(values[i]),"/",RevenueMath.money(goals[i]),RevenueMath.percentNet(values[i],goals[i])};
             for(int j=0;j<5;j++){
                 rv.setTextViewText(TEXT[i][j],texts[j]);rv.setTextColor(TEXT[i][j],s.text);
                 rv.setTextViewTextSize(TEXT[i][j],TypedValue.COMPLEX_UNIT_DIP,result.font);

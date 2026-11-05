@@ -93,19 +93,20 @@ public class CalendarWidget extends AppWidgetProvider {
         float detailWidth=Math.max(5,amountWidth-9);
         Paint.FontMetrics fm=measure.getFontMetrics();
         float lineHeight=(fm.descent-fm.ascent)/100;
-        // Five rows share the body; four text lines share each cell after its padding and gap.
-        float rowSpace=Math.max(4,((height-42)/5f-6)/4f);
+        // Five weeks, with an independent, compact fifth line reserved for daily losses.
+        float rowSpace=Math.max(4,((height-42)/5f-6)/4.90f);
         float totalSize=Math.min(Math.min(width*22/658f,amountWidth/(6*digit)),
             (rowSpace*1.12f-1)/lineHeight);
         float detailSize=Math.min(Math.min(width*18/658f,detailWidth/(6*digit)),
             (rowSpace*0.90f-1)/lineHeight);
         float dateSize=Math.min(width*30/658f,(rowSpace*1.08f-1)/lineHeight);
+        float lossSize=Math.min(detailSize,(rowSpace*0.64f-0.35f)/lineHeight);
         RemoteViews rv=new RemoteViews(c.getPackageName(),R.layout.widget_calendar);
         String title=month.substring(0,4)+"年"+Integer.parseInt(month.substring(5))+"月";
         String[] amounts=new String[SUMMARY_LABELS.length];
         float widestSummary=0;
         for(int i=0;i<amounts.length;i++){
-            amounts[i]=CalendarAmountFormatter.month(data.totals[i]);
+            amounts[i]=CalendarAmountFormatter.monthNet(data.totals[i],data.totalKnown[i]||data.totals[i]>=0);
             float pairWidth=measure.measureText(SUMMARY_LABELS[i])+measure.measureText(amounts[i]);
             widestSummary=Math.max(widestSummary,pairWidth);
         }
@@ -149,6 +150,7 @@ public class CalendarWidget extends AppWidgetProvider {
                 cell.setTextViewTextSize(R.id.calendar_day_number,TypedValue.COMPLEX_UNIT_DIP,dateSize);
                 cell.setTextViewTextSize(R.id.calendar_coupon_label,TypedValue.COMPLEX_UNIT_DIP,detailSize);
                 cell.setTextViewTextSize(R.id.calendar_tiktok_label,TypedValue.COMPLEX_UNIT_DIP,detailSize);
+                cell.setTextViewTextSize(R.id.calendar_day_loss,TypedValue.COMPLEX_UNIT_DIP,lossSize);
                 cell.setTextColor(R.id.calendar_day_number,
                     dayOfWeek==0?0xffff9292:dayOfWeek==6?0xff91baff:0xffeaeaea);
                 cell.setInt(R.id.calendar_day_root,"setBackgroundColor",
@@ -156,20 +158,32 @@ public class CalendarWidget extends AppWidgetProvider {
                 boolean showCoupon=isPast||isToday;
                 // A verified CSV can already contain today's TikTok earnings.
                 // Do not hide those confirmed values until tomorrow.
-                boolean todayTikTokKnown=isToday&&data.days[day][2]>=0;
+                boolean todayTikTokKnown=isToday&&(data.known[day][2]||data.days[day][2]>=0);
                 boolean showTikTok=isPast||todayTikTokKnown;
                 cell.setViewVisibility(R.id.calendar_day_total,showCoupon&&(filter==0||filter==1)?View.VISIBLE:View.INVISIBLE);
                 cell.setViewVisibility(R.id.calendar_coupon_row,showCoupon&&(filter==0||filter==2)?View.VISIBLE:View.INVISIBLE);
                 cell.setViewVisibility(R.id.calendar_tiktok_row,showTikTok&&(filter==0||filter==3)?View.VISIBLE:View.INVISIBLE);
+                // Reserve the loss line even when zero, so every date keeps the same glyph heights.
+                boolean showLoss=showCoupon&&data.dailyLosses[day]>0;
+                cell.setViewVisibility(R.id.calendar_loss_row,showLoss?View.VISIBLE:View.INVISIBLE);
+                if(showLoss)amount(cell,R.id.calendar_day_loss,
+                    CalendarAmountFormatter.dailyLoss(data.dailyLosses[day]),lossSize,amountWidth,measure);
                 if(showCoupon){
                     // Until today's dated TikTok data is available, retain the
                     // existing coupon-only provisional amount without inventing data.
-                    long total=isToday&&!todayTikTokKnown?data.days[day][1]:data.days[day][0];
-                    amount(cell,R.id.calendar_day_total,CalendarAmountFormatter.day(total),totalSize,amountWidth,measure);
-                    amount(cell,R.id.calendar_day_coupon,CalendarAmountFormatter.day(data.days[day][1]),detailSize,detailWidth,measure);
+                    boolean provisional=isToday&&!todayTikTokKnown&&!data.known[day][0];
+                    long total=provisional?data.days[day][1]:data.days[day][0];
+                    boolean totalKnown=provisional
+                        ?(data.known[day][1]||data.days[day][1]>=0)
+                        :(data.known[day][0]||data.days[day][0]>=0);
+                    amount(cell,R.id.calendar_day_total,CalendarAmountFormatter.dayNet(total,totalKnown),totalSize,amountWidth,measure);
+                    amount(cell,R.id.calendar_day_coupon,CalendarAmountFormatter.dayNet(data.days[day][1],(data.known[day][1]||data.days[day][1]>=0)),detailSize,detailWidth,measure);
                     if(showTikTok)amount(cell,R.id.calendar_day_tiktok,
-                        data.days[day][2]<0?"未取得":CalendarAmountFormatter.day(data.days[day][2]),detailSize,detailWidth,measure);
-                    if(total>999999L||data.days[day][1]>999999L||(showTikTok&&data.days[day][2]>999999L)){
+                        !(data.known[day][2]||data.days[day][2]>=0)?"未取得":CalendarAmountFormatter.dayNet(data.days[day][2],true),detailSize,detailWidth,measure);
+                    if((totalKnown&&Math.abs(total)>999999L)
+                        ||(data.known[day][1]&&Math.abs(data.days[day][1])>999999L)
+                        ||(showTikTok&&data.known[day][2]&&Math.abs(data.days[day][2])>999999L)
+                        ||showLoss){
                         String date=month+(day<10?"-0":"-")+day;
                         cell.setOnClickPendingIntent(R.id.calendar_day_root,control(c,id,CalendarControlActivity.DAY,date));
                     }
