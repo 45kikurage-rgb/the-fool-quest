@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "operation": "cancel-stuck-mybest-pages-deployment",
+  "execute": true,
+  "repository": "45kikurage-rgb/the-fool-quest",
+  "stuck_commit": "3f6040dd4bf9ff04ea49920b121a0d30636d3d5e",
+  "observedFailedRuns": [
+    42099904671,
+    42104278782
+  ],
+  "approval_reference": "2026-11-06 user requested full Aru-MyBest production deployment; failed Pages logs explicitly require cancellation of this stale unserved commit. Do not change Pages source settings, delete deployment history, or unpublish the last-good site."
+}

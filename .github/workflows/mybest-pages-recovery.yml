@@ -1,0 +1,41 @@
+name: Recover stuck Aru-MyBest GitHub Pages deployment
+on:
+  push:
+    branches: [main]
+    paths: ['requests/mybest-pages-recover.json']
+permissions:
+  contents: read
+  pages: write
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cancel only the already-failed Pages deployment lock
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          STUCK='3f6040dd4bf9ff04ea49920b121a0d30636d3d5e'
+          python3 - <<'PY'
+          import json
+          q=json.load(open('requests/mybest-pages-recover.json'))
+          assert q.get('schema')==1 and q.get('operation')=='cancel-stuck-mybest-pages-deployment'
+          assert q.get('execute') is True
+          assert q.get('repository')=='45kikurage-rgb/the-fool-quest'
+          assert q.get('stuck_commit')=='3f6040dd4bf9ff04ea49920b121a0d30636d3d5e'
+          assert q.get('approval_reference')
+          PY
+          status='unknown'
+          if value=$(gh api "repos/$GITHUB_REPOSITORY/pages/deployments/$STUCK" --jq .status 2>/dev/null); then
+            status="$value"
+          fi
+          echo "Prior deployment status: $status"
+          if [[ "$status" == "succeed" || "$status" == "success" || "$status" == "cancelled" || "$status" == "canceled" ]]; then
+            echo 'Stale deployment is already complete; no cancellation needed.'
+            exit 0
+          fi
+          # This exact SHA is identified by the failed new Pages deployment logs.
+          gh api -X POST "repos/$GITHUB_REPOSITORY/pages/deployments/$STUCK/cancel" --silent
+          echo 'Requested cancellation of only the stuck prior Pages deployment.'
