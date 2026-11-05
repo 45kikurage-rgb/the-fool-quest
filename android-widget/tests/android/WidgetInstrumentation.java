@@ -359,6 +359,9 @@ public class WidgetInstrumentation extends Instrumentation {
         data.days[31][0]=999999;
         data.days[31][1]=350000;
         data.days[31][2]=649999;
+        data.dailyLosses[31]=1500;
+        data.losses[31][0]=1000;
+        data.losses[31][1]=500;
         runOnMainSync(()->{
             for(float fontScale:new float[]{1f,2f}){
                 android.content.res.Configuration config=new android.content.res.Configuration(c.getResources().getConfiguration());
@@ -387,6 +390,11 @@ public class WidgetInstrumentation extends Instrumentation {
                     completeCalendarText(lastDay,R.id.calendar_day_coupon,"350000");
                     completeCalendarText(lastDay,R.id.calendar_tiktok_label,"T");
                     completeCalendarText(lastDay,R.id.calendar_day_tiktok,"649999");
+                    completeCalendarText(lastDay,R.id.calendar_day_loss,"−1500");
+                    android.widget.TextView loss=lastDay.findViewById(R.id.calendar_day_loss);
+                    ok(loss.getCurrentTextColor()==0xffff6464,"loss appears red below TikTok Lite");
+                    ok(loss.getTop()>=lastDay.findViewById(R.id.calendar_tiktok_row).getBottom(),
+                        "loss line is physically below TikTok Lite");
                     android.view.View firstDay=firstRow.getChildAt(0);
                     for(int id:new int[]{R.id.calendar_day_total,R.id.calendar_day_coupon,R.id.calendar_day_tiktok}){
                         android.widget.TextView shortValue=firstDay.findViewById(id);
@@ -607,6 +615,35 @@ public class WidgetInstrumentation extends Instrumentation {
         ok(manager.tiktok(month)==1000,"deleting manual entry restores CSV baseline");
         manager.replaceFromJson(saved);
         ok(manager.tiktok(month)==1275,"valid backup restores manual and CSV history");
+        manager.addLoss(month+"-01","tiktok",150);
+        String tikTokLossId=manager.losses().getJSONObject(manager.losses().length()-1).getString("id");
+        manager.addLoss(month+"-01","coupon",80);
+        String couponLossId=manager.losses().getJSONObject(manager.losses().length()-1).getString("id");
+        ok(manager.netTikTok(month)==1125&&manager.lossTotal(month,"tiktok")==150,
+            "TikTok Lite losses reduce current month independently");
+        CalendarRevenueData.Month withLoss=CalendarRevenueData.read(c,month);
+        ok(withLoss.days[1][2]==600&&withLoss.dailyLosses[1]==230,
+            "calendar subtracts TikTok Lite loss once and shows combined red loss separately");
+        manager.setCsv(month,daily,"dated-fixture.csv");
+        ok(manager.lossTotal(month,"tiktok")==150&&manager.lossTotal(month,"coupon")==80,
+            "re-importing CSV cannot reset either loss category");
+        manager.updateLoss(tikTokLossId,month+"-01","tiktok",100);
+        ok(manager.lossTotal(month,"tiktok")==100&&manager.netTikTok(month)==1175,
+            "editing a loss replaces its amount, without double subtraction");
+        String lossBackup=manager.backup();
+        manager.deleteLoss(tikTokLossId);
+        ok(manager.netTikTok(month)==1275,"deleting a loss restores net revenue");
+        manager.replaceFromJson(lossBackup);
+        ok(manager.netTikTok(month)==1175&&manager.lossTotal(month,"coupon")==80,
+            "backups restore both loss categories and original gross revenue");
+        boolean invalidLossRejected=false;
+        try{manager.addLoss(month+"-01","unknown",100);}
+        catch(IllegalArgumentException expected){invalidLossRejected=true;}
+        ok(invalidLossRejected,"invalid loss categories are rejected");
+        manager.deleteLoss(couponLossId);
+        manager.deleteLoss(tikTokLossId);
+        ok(manager.lossTotal(month,"coupon")==0&&manager.lossTotal(month,"tiktok")==0,
+            "deleting both loss records restores the original values");
         String lastMonth=RevenueMath.date("yyyy-MM",System.currentTimeMillis()-35L*24*60*60*1000);
         RevenueStore.saveCoupon(c,lastMonth,321);
         RevenueStore.saveCoupon(c,month,1000000);
@@ -897,8 +934,10 @@ public class WidgetInstrumentation extends Instrumentation {
             ok(!management.isFinishing()&&!management.isDestroyed(),"management stays open");
             runOnMainSync(()->{
                 android.view.View root=management.getWindow().getDecorView();
-                ok(button(root,"収益履歴・手動追加の編集")!=null,"history accessible on tap");
+                ok(button(root,"収益・損失履歴の編集")!=null,"history accessible on tap");
                 ok(button(root,"TikTok収益を手動追加")!=null,"manual TikTok accessible on tap");
+            ok(button(root,"TikTok Liteの損失を手動追加")!=null,"TikTok losses can be registered");
+            ok(button(root,"クーポンの損失を手動追加")!=null,"Coupon losses can be registered");
                 ok(button(root,"Couponを今すぐ更新")!=null,"Coupon refresh accessible on tap");
             });
             ok(RevenueUpdate.busy(),"tap starts direct Coupon refresh");
