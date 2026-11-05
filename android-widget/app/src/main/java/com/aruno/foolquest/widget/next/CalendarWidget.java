@@ -100,7 +100,7 @@ public class CalendarWidget extends AppWidgetProvider {
         float detailSize=Math.min(Math.min(width*18/658f,detailWidth/(6*digit)),
             (rowSpace*0.90f-1)/lineHeight);
         float dateSize=Math.min(width*30/658f,(rowSpace*1.08f-1)/lineHeight);
-        float lossSize=Math.min(detailSize,(rowSpace*0.77f-0.25f)/lineHeight);
+        float lossSize=Math.min(detailSize,(rowSpace*0.64f-0.35f)/lineHeight);
         RemoteViews rv=new RemoteViews(c.getPackageName(),R.layout.widget_calendar);
         String title=month.substring(0,4)+"年"+Integer.parseInt(month.substring(5))+"月";
         String[] amounts=new String[SUMMARY_LABELS.length];
