@@ -859,7 +859,7 @@ public class WidgetInstrumentation extends Instrumentation {
             ok(WidgetRenderer.footer(timedOut).startsWith("通信時間切れ"),"widget exposes controlled failure reason");
             RevenueStore.saveCoupon(c,month,live.coupon);RevenueStore.Data restored=RevenueStore.read(c);
             ok(restored.error.isEmpty()&&restored.errorCode.isEmpty(),"successful recovery clears current failure");
-            ok("TIMEOUT".equals(RevenueStore.prefs(c).getString("lastFailureCode","")),"recovery preserves last failure for diagnosis");ok(live.tiktok==-1&&live.values()[0]==-1,"missing TikTok not zero");
+            ok("TIMEOUT".equals(RevenueStore.prefs(c).getString("lastFailureCode","")),"recovery preserves last failure for diagnosis");ok(live.tiktok==-1&&live.values()[0]==RevenueMath.UNKNOWN,"missing TikTok not zero");
             png(WidgetRenderer.render(c,live,new DisplaySettings(),360,126).bitmap,"native-live-coupon");
             // Actual Android AppWidgetHostView: applies the production RemoteViews and PendingIntent.
             Activity activity=startActivitySync(new Intent(c,SettingsActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
