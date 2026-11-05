@@ -352,6 +352,14 @@ public class WidgetInstrumentation extends Instrumentation {
         CalendarWidgetState.delete(c,first);
         ok(CalendarWidgetState.filter(c,first)==CalendarWidgetState.ALL,"widget removal clears display preferences");
 
+        int[] configuredRows=CalendarDayRows.order();
+        ok(java.util.Arrays.equals(configuredRows,new int[]{
+                CalendarDayRows.TOTAL,CalendarDayRows.COUPON,CalendarDayRows.TIKTOK,CalendarDayRows.LOSS}),
+            "single row order configuration is Total, Coupon, TikTok Lite, loss");
+        configuredRows[0]=CalendarDayRows.LOSS;
+        ok(CalendarDayRows.order()[0]==CalendarDayRows.TOTAL,
+            "row order cannot be accidentally changed from outside its configuration");
+
         CalendarRevenueData.Month data=new CalendarRevenueData.Month();
         data.totals[0]=RevenueMath.MAX_YEN;
         data.days[1][0]=5;
@@ -397,8 +405,11 @@ public class WidgetInstrumentation extends Instrumentation {
                     android.view.View tRow=lastDay.findViewById(R.id.calendar_tiktok_row);
                     android.view.View cRow=lastDay.findViewById(R.id.calendar_coupon_row);
                     android.view.View lossRow=lastDay.findViewById(R.id.calendar_loss_row);
-                    ok(tRow.getTop()<cRow.getTop()&&cRow.getBottom()<=lossRow.getTop(),
-                        "earned T, earned C and red loss appear in that order");
+                    android.view.View totalRow=lastDay.findViewById(R.id.calendar_day_total);
+                    ok(totalRow.getBottom()<=cRow.getTop()
+                            &&cRow.getBottom()<=tRow.getTop()
+                            &&tRow.getBottom()<=lossRow.getTop(),
+                        "display order is Total, earned C, earned T, then red loss");
                     android.view.View firstDay=firstRow.getChildAt(0);
                     for(int id:new int[]{R.id.calendar_day_total,R.id.calendar_day_coupon,R.id.calendar_day_tiktok}){
                         android.widget.TextView shortValue=firstDay.findViewById(id);
@@ -409,7 +420,8 @@ public class WidgetInstrumentation extends Instrumentation {
                     android.widget.TextView date=lastDay.findViewById(R.id.calendar_day_number);
                     android.widget.TextView total=lastDay.findViewById(R.id.calendar_day_total);
                     android.widget.TextView coupon=lastDay.findViewById(R.id.calendar_day_coupon);
-                    ok(total.getTop()-date.getBottom()>=Math.round(2*density),
+                    android.view.View amountRows=lastDay.findViewById(R.id.calendar_amount_rows);
+                    ok(amountRows.getTop()+total.getTop()-date.getBottom()>=Math.round(2*density),
                         "there is a gap between the date and daily total");
                     ok(total.getTextSize()>coupon.getTextSize(),"daily total uses the free category width");
                     completeCalendarText(lastRow.getChildAt(5),R.id.calendar_control,"カテゴリー\n表示変更");
