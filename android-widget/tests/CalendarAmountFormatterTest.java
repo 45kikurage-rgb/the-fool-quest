@@ -1,4 +1,5 @@
 import com.aruno.foolquest.widget.next.CalendarAmountFormatter;
+import com.aruno.foolquest.widget.next.RevenueMath;
 
 public class CalendarAmountFormatterTest {
     private static int assertions=0;
@@ -8,6 +9,13 @@ public class CalendarAmountFormatterTest {
     }
     public static void main(String[] args) {
         eq(CalendarAmountFormatter.day(-1),"—");
+        eq(CalendarAmountFormatter.dailyLoss(0),"");
+        eq(CalendarAmountFormatter.dailyLoss(1500),"−1500");
+        eq(CalendarAmountFormatter.dayNet(-50,true),"−50");
+        eq(CalendarAmountFormatter.dayNet(-1,true),"−1");
+        eq(CalendarAmountFormatter.dayNet(-1,false),"—");
+        eq(CalendarAmountFormatter.monthNet(-125,true),"−¥125");
+        eq(CalendarAmountFormatter.monthNet(RevenueMath.UNKNOWN,false),"—");
         eq(CalendarAmountFormatter.day(0),"0");
         eq(CalendarAmountFormatter.day(9999),"9999");
         eq(CalendarAmountFormatter.day(10000),"10000");
