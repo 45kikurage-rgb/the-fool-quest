@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "appId": "foolquest-widget-next",
+  "applicationId": "com.aruno.foolquest.widget.next",
+  "version": "0.1.30",
+  "versionCode": 31,
+  "sourceCommit": "a5a2a080e55faef0063d182e9047762d418f3781",
+  "featurePullRequest": 50,
+  "apkFile": "aru-mybest-0.1.30.apk",
+  "apkSha256": "8a9ed53b832e050e84853050917cf0a3f9124b29bbfd79f3b99542e1d20bccc7",
+  "apkBytes": 293895,
+  "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+  "unsignedSha256": "a4f1edf4d8ebfd6cd248ff48ce240f94b3d30264fa5820f9b9e573db42d3d94f",
+  "softwareTest": {
+    "status": "PASS",
+    "runId": 42117549442,
+    "environment": "Android 35 emulator"
+  },
+  "signing": {
+    "status": "PASS",
+    "runId": 42118369002,
+    "existingKey": true,
+    "independentBackupRestore": true,
+    "newKey": false
+  },
+  "upgradeTest": {
+    "status": "PASS",
+    "runId": 42118879311,
+    "fromCode": 30,
+    "toCode": 31,
+    "previousDataPreserved": true,
+    "legacyUnchanged": true
+  },
+  "publication": {
+    "status": "PUBLIC_ORIGIN_VERIFICATION_PENDING",
+    "downloadPage": "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
+    "alternate": "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
+  },
+  "deviceVerified": false,
+  "releaseStatus": "SOFTWARE_SIGNED_UPGRADE_TESTED_PUBLICATION_PENDING",
+  "changes": [
+    "Daily order Total/C/T/red loss",
+    "Four reusable XML row templates, configured by four include lines in calendar_day.xml",
+    "Original gross C and T shown; total deducts combined loss once",
+    "No changes to CSV, Ledger DB, credentials, existing saved revenue or widget settings"
+  ]
+}
