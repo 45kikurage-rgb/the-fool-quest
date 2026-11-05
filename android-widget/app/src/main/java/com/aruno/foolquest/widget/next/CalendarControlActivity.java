@@ -32,11 +32,12 @@ public final class CalendarControlActivity extends Activity {
         CalendarRevenueData.Month data=CalendarRevenueData.read(this,month);
         long[] amounts=data.days[day];
         String coupon=CalendarAmountFormatter.monthNet(amounts[1],data.known[day][1]);
-        String detail=today.equals(normalized)&&!data.known[day][2]
-            ?"クーポン  "+coupon+"（TikTok Liteは未取得）"
-            :"合計  "+CalendarAmountFormatter.monthNet(amounts[0],data.known[day][0])
-                +"\nクーポン  "+coupon
-                +"\nTikTok Lite  "+CalendarAmountFormatter.monthNet(amounts[2],data.known[day][2]);
+        String detail="合計（損失控除後）  "
+            +CalendarAmountFormatter.monthNet(amounts[0],data.known[day][0])
+            +"\nTikTok Lite（獲得額）  "
+            +CalendarAmountFormatter.monthNet(amounts[2],data.known[day][2])
+            +"\nクーポン（獲得額）  "+coupon
+            +(!data.known[day][2]?"\n※ TikTok Liteの当日収益は未取得":"");
         detail+="\n損失合計  "+CalendarAmountFormatter.dailyLoss(data.dailyLosses[day])
             +"\n  TikTok Lite  "+CalendarAmountFormatter.dailyLoss(data.losses[day][0])
             +"\n  クーポン  "+CalendarAmountFormatter.dailyLoss(data.losses[day][1]);

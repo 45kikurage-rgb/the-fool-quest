@@ -145,17 +145,13 @@ final class CalendarRevenueData {
             for(int day=1;day<=daysInMonth(selected);day++){
                 result.known[day][2]=result.days[day][2]>=0;
                 result.known[day][1]=result.days[day][1]>=0;
-                if(result.known[day][2])
-                    result.days[day][2]=RevenueMath.net(result.days[day][2],result.losses[day][0]);
-                if(result.known[day][1])
-                    result.days[day][1]=RevenueMath.net(result.days[day][1],result.losses[day][1]);
-                // Preserve the previous Coupon-only provisional daily total,
-                // but still debit recorded TikTok losses even before its CSV arrives.
+                // T and C retain gross earnings; only the combined Total subtracts loss.
+                // If today's TikTok CSV is unknown, retain Coupon-only provisional total.
                 result.known[day][0]=result.known[day][1];
-                long tikTokPart=result.known[day][2]
-                    ?result.days[day][2]:-result.losses[day][0];
-                result.days[day][0]=result.known[day][0]
-                    ?RevenueMath.netTotal(result.days[day][1],tikTokPart)
+                long knownTikTok=result.known[day][2]?result.days[day][2]:0L;
+                long gross=result.known[day][0]?sum(result.days[day][1],knownTikTok):-1L;
+                result.days[day][0]=gross>=0
+                    ?RevenueMath.net(gross,result.dailyLosses[day])
                     :RevenueMath.UNKNOWN;
             }
         }catch(Exception invalid){
