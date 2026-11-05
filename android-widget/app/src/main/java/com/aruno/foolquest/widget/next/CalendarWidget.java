@@ -94,7 +94,7 @@ public class CalendarWidget extends AppWidgetProvider {
         Paint.FontMetrics fm=measure.getFontMetrics();
         float lineHeight=(fm.descent-fm.ascent)/100;
         // Five weeks, with an independent, compact fifth line reserved for daily losses.
-        float rowSpace=Math.max(4,((height-42)/5f-6)/4.66f);
+        float rowSpace=Math.max(4,((height-42)/5f-6)/4.90f);
         float totalSize=Math.min(Math.min(width*22/658f,amountWidth/(6*digit)),
             (rowSpace*1.12f-1)/lineHeight);
         float detailSize=Math.min(Math.min(width*18/658f,detailWidth/(6*digit)),
