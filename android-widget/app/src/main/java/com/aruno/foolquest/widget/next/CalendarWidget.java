@@ -142,8 +142,6 @@ public class CalendarWidget extends AppWidgetProvider {
                 }
                 int day=week*7+column+1;
                 RemoteViews cell=new RemoteViews(c.getPackageName(),R.layout.calendar_day);
-                // Add independent amount rows in the single configured order.
-                CalendarDayRows.append(cell,c.getPackageName());
                 boolean valid=day<=days;
                 boolean isToday=valid&&current.equals(month)&&day==today;
                 boolean isPast=valid&&(month.compareTo(current)<0||(current.equals(month)&&day<today));

@@ -6,8 +6,13 @@
     <TextView android:id="@+id/calendar_day_number" style="@style/CalendarDailyText"
         android:layout_width="match_parent" android:layout_height="0dp"
         android:layout_weight="1.08" android:gravity="center" android:layout_marginBottom="2dp" />
-    <!-- The order of four independent rows is specified in CalendarDayRows.java. -->
+    <!-- Daily row order is configured ONLY here. To reorder, move these four include lines. -->
     <LinearLayout android:id="@+id/calendar_amount_rows"
         android:layout_width="match_parent" android:layout_height="0dp"
-        android:layout_weight="3.82" android:orientation="vertical" />
+        android:layout_weight="3.82" android:orientation="vertical">
+        <include layout="@layout/calendar_row_total" />
+        <include layout="@layout/calendar_row_coupon" />
+        <include layout="@layout/calendar_row_tiktok" />
+        <include layout="@layout/calendar_row_loss" />
+    </LinearLayout>
 </LinearLayout>

@@ -352,14 +352,6 @@ public class WidgetInstrumentation extends Instrumentation {
         CalendarWidgetState.delete(c,first);
         ok(CalendarWidgetState.filter(c,first)==CalendarWidgetState.ALL,"widget removal clears display preferences");
 
-        int[] configuredRows=CalendarDayRows.order();
-        ok(java.util.Arrays.equals(configuredRows,new int[]{
-                CalendarDayRows.TOTAL,CalendarDayRows.COUPON,CalendarDayRows.TIKTOK,CalendarDayRows.LOSS}),
-            "single row order configuration is Total, Coupon, TikTok Lite, loss");
-        configuredRows[0]=CalendarDayRows.LOSS;
-        ok(CalendarDayRows.order()[0]==CalendarDayRows.TOTAL,
-            "row order cannot be accidentally changed from outside its configuration");
-
         CalendarRevenueData.Month data=new CalendarRevenueData.Month();
         data.totals[0]=RevenueMath.MAX_YEN;
         data.days[1][0]=5;
@@ -406,6 +398,13 @@ public class WidgetInstrumentation extends Instrumentation {
                     android.view.View cRow=lastDay.findViewById(R.id.calendar_coupon_row);
                     android.view.View lossRow=lastDay.findViewById(R.id.calendar_loss_row);
                     android.view.View totalRow=lastDay.findViewById(R.id.calendar_day_total);
+                    android.view.ViewGroup orderedRows=lastDay.findViewById(R.id.calendar_amount_rows);
+                    ok(orderedRows.getChildCount()==4
+                            &&orderedRows.getChildAt(0).getId()==R.id.calendar_day_total
+                            &&orderedRows.getChildAt(1).getId()==R.id.calendar_coupon_row
+                            &&orderedRows.getChildAt(2).getId()==R.id.calendar_tiktok_row
+                            &&orderedRows.getChildAt(3).getId()==R.id.calendar_loss_row,
+                        "the four XML include lines alone set Total/C/T/loss order");
                     ok(totalRow.getBottom()<=cRow.getTop()
                             &&cRow.getBottom()<=tRow.getTop()
                             &&tRow.getBottom()<=lossRow.getTop(),
