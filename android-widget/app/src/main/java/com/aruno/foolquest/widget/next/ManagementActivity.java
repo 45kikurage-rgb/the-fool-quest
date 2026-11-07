@@ -114,9 +114,14 @@ public final class ManagementActivity extends Activity {
         key.setSingleLine(true);
         key.setImportantForAutofill(android.view.View.IMPORTANT_FOR_AUTOFILL_NO);
         key.setInputType(android.text.InputType.TYPE_CLASS_TEXT|android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        LinearLayout form=new LinearLayout(this);form.setOrientation(LinearLayout.VERTICAL);
+        form.setPadding(dp(20),0,dp(20),0);
+        Button help=new Button(this);help.setText("専用キーの確認ページを開く");help.setAllCaps(false);
+        help.setOnClickListener(v->openUrl("https://aruno-consolidated-ledger-api.45kikurage.workers.dev/api/v1/admin/mybest-reader-key"));
+        form.addView(help);form.addView(key);
         new AlertDialog.Builder(this).setTitle("クーポン日別の接続設定")
-            .setMessage("日別収益の読取専用キーを設定します。通常の取込操作はこれまでどおりです。")
-            .setView(key).setNegativeButton("戻る",null)
+            .setMessage("通常のパスワードではなく、日別収益の読取専用キーを入力します。確認ページで管理者認証後に表示されるキーをコピーし、ここへ貼り付けて保存してください。")
+            .setView(form).setNegativeButton("戻る",null)
             .setNeutralButton("接続解除",(d,w)->execute(()->{
                 CouponDailyReader.setToken(this,"");CalendarWidget.renderAll(this);
             }))
