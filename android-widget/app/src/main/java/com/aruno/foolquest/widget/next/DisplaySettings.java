@@ -11,7 +11,7 @@ public final class DisplaySettings {
     int targetMarkerColor = Color.WHITE, tickDivisor = 5;
     boolean paceColors = true;
     int paceAchieved = GaugePalette.FIRST_GREEN, paceBehind = GaugePalette.PACE_BEHIND, paceLow = GaugePalette.PACE_LOW, secondLap = GaugePalette.SECOND_LIME;
-    int opacity = 100, font = 32, left = 17, right = 16, top = 0, bottom = 0, gap = 5, gauge = 14, textGap = 4;
+    int opacity = 100, font = 32, left = 17, right = 6, top = 0, bottom = 0, gap = 0, gauge = 20, textGap = 7;
     static DisplaySettings load(SharedPreferences p) {
         DisplaySettings s = new DisplaySettings();
         s.targetMarkerColor=p.getInt("colorTargetMarker",s.targetMarkerColor);
@@ -29,7 +29,7 @@ public final class DisplaySettings {
         s.left=p.getInt("left",s.left); s.right=p.getInt("right",s.right); s.top=p.getInt("top",s.top); s.bottom=p.getInt("bottom",s.bottom);
         s.gap=p.getInt("gap",s.gap); s.gauge=p.getInt("gauge",s.gauge); s.textGap=p.getInt("textGap",s.textGap); s.clamp(); return s;
     }
-    void referenceLayout(){font=32;left=17;right=16;top=0;bottom=0;gap=5;gauge=14;textGap=4;}
+    void referenceLayout(){font=32;left=17;right=6;top=0;bottom=0;gap=0;gauge=20;textGap=7;}
     boolean isSecondLap(long value,long goal,String month,long now) {
         return RevenueMath.beyondGoal(value,goal) && RevenueMath.month(now).equals(month);
     }

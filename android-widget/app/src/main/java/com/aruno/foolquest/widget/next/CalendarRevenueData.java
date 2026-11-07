@@ -146,10 +146,12 @@ final class CalendarRevenueData {
                 result.known[day][2]=result.days[day][2]>=0;
                 result.known[day][1]=result.days[day][1]>=0;
                 // T and C retain gross earnings; only the combined Total subtracts loss.
-                // If today's TikTok CSV is unknown, retain Coupon-only provisional total.
-                result.known[day][0]=result.known[day][1];
+                // Show the available subtotal when either source is known, including zero.
+                // Keep the missing source unknown; this is only a display projection.
+                result.known[day][0]=result.known[day][1]||result.known[day][2];
                 long knownTikTok=result.known[day][2]?result.days[day][2]:0L;
-                long gross=result.known[day][0]?sum(result.days[day][1],knownTikTok):-1L;
+                long knownCoupon=result.known[day][1]?result.days[day][1]:0L;
+                long gross=result.known[day][0]?sum(knownCoupon,knownTikTok):-1L;
                 result.days[day][0]=gross>=0
                     ?RevenueMath.net(gross,result.dailyLosses[day])
                     :RevenueMath.UNKNOWN;

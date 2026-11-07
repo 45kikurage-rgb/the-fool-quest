@@ -1,22 +1,21 @@
 {
   "applicationId": "com.aruno.foolquest.widget.next",
-  "version": "0.1.32",
-  "versionCode": 33,
+  "version": "0.1.33",
+  "versionCode": 34,
   "minSdk": 26,
   "targetSdk": 35,
   "size": 310366,
-  "sha256": "37cc40d381c4e7be1d33bc6d3879c7dba5fe97631bb56fa0d52f6fb7b0317e4d",
+  "sha256": "d5ac8dfc946d7c902b8d8e2ef365c3456f587b4af863552d70ec768881352800",
   "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
   "couponUpdate": "Daily revenue for priced coupons via authenticated Ledger; monthly reader retained",
   "tiktokUpdate": "On-demand current-month point-history CSV fetch in the in-app WebView; manual CSV import and manual revenue entry remain available",
   "changes": [
-    "Remove in-gauge daily target labels and amounts",
-    "Remove TikTok unlinked footer",
-    "Keep saved gauge thickness in dp without automatic enlargement in tall hosts",
-    "Retain Total/Coupon/TikTok order, target triangle, monthly target columns and fixed 10-percent ticks"
+    "Requested defaults: right padding 6, top/bottom 0, row gap 0, gauge 20dp and text gap 7",
+    "Show available daily subtotals including zero; preserve unknown source labels; deduct losses once",
+    "Add existing administrator-protected daily reader-key confirmation link"
   ],
-  "file": "aruno-result-0.1.32.apk",
-  "installation": "Update the existing successor without uninstalling; preserve revenue, goals, colors and saved settings. Photo-two reference button resets layout only.",
+  "file": "aruno-result-0.1.33.apk",
+  "installation": "Back up history first; update without uninstalling. Saved settings are preserved. The standard layout button applies only the requested layout defaults.",
   "legacy": {
     "applicationId": "com.aruno.foolquest.widget",
     "version": "0.1.12",
@@ -28,14 +27,23 @@
   },
   "previousRelease": {
     "applicationId": "com.aruno.foolquest.widget.next",
-    "version": "0.1.31",
-    "versionCode": 32,
+    "version": "0.1.32",
+    "versionCode": 33,
     "size": 310366,
-    "sha256": "3f9355ab9e92dae3e4ba9c0a45fd860437dd8adbc717881be6c91bab90e8c8d5",
+    "sha256": "37cc40d381c4e7be1d33bc6d3879c7dba5fe97631bb56fa0d52f6fb7b0317e4d",
     "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
-    "file": "aruno-result-0.1.31.apk"
+    "file": "aruno-result-0.1.32.apk"
   },
   "archives": [
+    {
+      "applicationId": "com.aruno.foolquest.widget.next",
+      "version": "0.1.31",
+      "versionCode": 32,
+      "size": 310366,
+      "sha256": "3f9355ab9e92dae3e4ba9c0a45fd860437dd8adbc717881be6c91bab90e8c8d5",
+      "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+      "file": "aruno-result-0.1.31.apk"
+    },
     {
       "applicationId": "com.aruno.foolquest.widget.next",
       "version": "0.1.30",

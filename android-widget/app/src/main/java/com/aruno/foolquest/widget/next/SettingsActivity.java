@@ -81,8 +81,8 @@ public final class SettingsActivity extends Activity {
         warning=text("",10);warning.setPadding(0,dp(2),0,dp(2));warning.setMaxLines(2);warning.setTextColor(0xff9b4100);body.addView(warning);
         ScrollView scroll=new ScrollView(this);scroll.setTag("settings-controls");scroll.setFillViewport(true);root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
         body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);body.setPadding(0,dp(8),0,dp(24));scroll.addView(body);
-        button("写真2の基準へ戻す",()->{settings.referenceLayout();build();markDirty();});
-        body.addView(text("中央が基準。小さく／大きく調整できます。",12));
+        button("標準レイアウトに戻す",()->{settings.referenceLayout();build();markDirty();});
+        body.addView(text("標準値から、小さく／大きく調整できます。",12));
         if(widgetId==AppWidgetManager.INVALID_APPWIDGET_ID)button("ホーム画面に追加",()->{
             if(!validateColors())return;settings.save(RevenueStore.prefs(this));RevenueWidget.renderAll(this);CalendarWidget.renderAll(this);
             AppWidgetManager m=AppWidgetManager.getInstance(this);
@@ -98,10 +98,10 @@ public final class SettingsActivity extends Activity {
         color("text","文字色",settings.text);color("background","背景色",settings.background);
         slider("背景の濃さ（100%＝不透明）",0,100,settings.opacity,v->settings.opacity=v);
         slider("文字サイズ（基準32）",24,40,settings.font,v->settings.font=v);
-        slider("左余白（基準17）",1,33,settings.left,v->settings.left=v);slider("右余白（基準16）",0,32,settings.right,v->settings.right=v);
+        slider("左余白（基準17）",1,33,settings.left,v->settings.left=v);slider("右余白（標準6）",0,32,settings.right,v->settings.right=v);
         slider("上余白",0,24,settings.top,v->settings.top=v);slider("下余白",0,24,settings.bottom,v->settings.bottom=v);
-        slider("ステータス行間（基準5）",0,10,settings.gap,v->settings.gap=v);slider("ゲージ太さ（基準14dp）",8,20,settings.gauge,v->settings.gauge=v);
-        slider("文字とゲージの間隔（基準4）",0,8,settings.textGap,v->settings.textGap=v);
+        slider("ステータス行間（標準0）",0,10,settings.gap,v->settings.gap=v);slider("ゲージ太さ（標準20dp）",8,20,settings.gauge,v->settings.gauge=v);
+        slider("文字とゲージの間隔（標準7）",0,8,settings.textGap,v->settings.textGap=v);
         body.addView(text("Total：今日までの目標位置 ▼",18));
         body.addView(text("月間目標を日割りした、今日までの累計目標の位置です。日本時間の0時に切り替わります。",13));
         colorPalette("targetMarker","▼の色",settings.targetMarkerColor);

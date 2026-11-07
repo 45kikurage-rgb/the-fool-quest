@@ -594,12 +594,18 @@ public class WidgetInstrumentation extends Instrumentation {
         CalendarRevenueData.Month manualOnly=CalendarRevenueData.read(c,previous);
         ok(manualOnly.totals[2]==75&&manualOnly.days[10][2]==75&&manualOnly.days[11][2]==-1,
             "manual-only month displays dated entries and leaves other days unknown");
+        ok(manualOnly.known[10][0]&&manualOnly.days[10][0]==75&&!manualOnly.known[10][1],
+            "TikTok-only daily subtotal is visible without fabricating coupon data");
+        ok(!manualOnly.known[11][0]&&manualOnly.days[11][0]==RevenueMath.UNKNOWN,
+            "both missing daily sources stay unknown");
         prefs.edit().putLong("tiktok",333).commit();
         RevenueManager stalePicker=new RevenueManager(c);
         manager.setCsv(previous,older,"older-fixture.csv",previous+"-03");
         CalendarRevenueData.Month covered=CalendarRevenueData.read(c,previous);
         ok(covered.days[2][2]==0&&covered.days[3][2]==0&&covered.days[4][2]==-1,
             "confirmed CSV acquisition date distinguishes zero from unknown");
+        ok(covered.known[2][0]&&covered.days[2][0]==0&&!covered.known[2][1],
+            "a known zero TikTok day still displays a zero subtotal");
         ok(RevenueStore.read(c).tiktok==333&&manager.tiktok(month)==1250&&
             CalendarRevenueData.read(c,previous).totals[2]==575,
             "past CSV import preserves the current gauge cache and native month");
@@ -644,7 +650,18 @@ public class WidgetInstrumentation extends Instrumentation {
         ok(withLoss.totals[0]==1545&&withLoss.totals[1]==420
                 &&withLoss.totals[2]==1125,
             "monthly net totals still deduct each category loss exactly once");
+        JSONObject partialCoupon=new JSONObject().put("total",500).put("sum",500)
+            .put("days",new JSONObject().put(month+"-01",0).put(month+"-02",500));
+        prefs.edit().putString("couponRevenueDailyV2",new JSONObject().put(month,partialCoupon).toString()).commit();
+        CalendarRevenueData.Month partial=CalendarRevenueData.read(c,month);
+        ok(partial.days[1][0]==520&&partial.days[1][2]==750&&partial.days[1][1]==0,
+            "zero Coupon plus TikTok less both losses displays correctly");
+        ok(partial.days[2][0]==750&&partial.days[2][1]==500&&partial.days[2][2]==250,
+            "both source amounts sum normally");
         prefs.edit().remove("couponRevenueDailyV2").commit();
+        CalendarRevenueData.Month tOnlyLoss=CalendarRevenueData.read(c,month);
+        ok(tOnlyLoss.days[1][0]==520&&!tOnlyLoss.known[1][1],
+            "TikTok-only subtotal deducts combined losses exactly once");
         manager.setCsv(month,daily,"dated-fixture.csv");
         ok(manager.lossTotal(month,"tiktok")==150&&manager.lossTotal(month,"coupon")==80,
             "re-importing CSV cannot reset either loss category");
@@ -813,15 +830,17 @@ public class WidgetInstrumentation extends Instrumentation {
             nativeTextLayout(nativeData,moreGap,360,600,160,"native-row-gap-60");
             ok(measuredGaugeHeights.get("native-text-360x100-dpi320")<measuredGaugeHeights.get("native-text-360x196-dpi320"),"short hosts may shrink the gauge to keep every row visible");
             ok(measuredGaugeHeights.get("native-text-360x196-dpi320").equals(measuredGaugeHeights.get("native-text-tall-card")),"gauge thickness stays at the saved dp value in a taller card");
-            ok(NativeWidgetViews.create(c,nativeData,new DisplaySettings(),360,300).gauge==14,"fresh default remains a slim 14dp even in a tall host");
+            ok(NativeWidgetViews.create(c,nativeData,new DisplaySettings(),360,300).gauge==20,"fresh default uses requested 20dp even in a tall host");
             RevenueStore.Data unlinked=new RevenueStore.Data();unlinked.month=month;unlinked.couponAt=1;unlinked.importAt=0;unlinked.error="";unlinked.errorCode="";
             ok(WidgetRenderer.footer(unlinked).isEmpty(),"missing TikTok import does not add a footer");
             runOnMainSync(()->{
                 android.view.View clean=NativeWidgetViews.create(c,unlinked,new DisplaySettings(),360,196).views.apply(c,null);
                 ok(clean.findViewById(R.id.widget_footer).getVisibility()==android.view.View.GONE,"unlinked footer is hidden in the actual widget");
             });
-            ok(new DisplaySettings().font==32&&new DisplaySettings().gauge==14&&new DisplaySettings().textGap==4,
-                "photo-two reference is the default adjustment midpoint");
+            ok(new DisplaySettings().font==32&&new DisplaySettings().gauge==20&&new DisplaySettings().textGap==7
+                &&new DisplaySettings().right==6&&new DisplaySettings().gap==0
+                &&new DisplaySettings().top==0&&new DisplaySettings().bottom==0,
+                "requested screenshot layout is the default");
             ok(NativeWidgetViews.create(c,nativeData,new DisplaySettings(),360,196).font>NativeWidgetViews.create(c,nativeData,new DisplaySettings(),360,100).font,"larger card increases font within safe column limits");
             // Screenshot and explicit palette assertions for green / yellow / red in the same card.
             java.util.Calendar date=java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("Asia/Tokyo"));
