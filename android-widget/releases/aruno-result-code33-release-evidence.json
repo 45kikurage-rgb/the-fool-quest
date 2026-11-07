@@ -27,10 +27,27 @@
   "upgrade": {
     "fromCode": 32,
     "toCode": 33,
-    "status": "pending"
+    "status": "success",
+    "run": 42358475455,
+    "fixtureFields": 39,
+    "uidPreserved": true,
+    "oldPackagePreserved": true,
+    "includes": [
+      "daily CSV",
+      "manual revenue",
+      "TikTok/Coupon losses",
+      "display settings",
+      "target marker color",
+      "tick height",
+      "encrypted daily connection preference"
+    ]
   },
   "publication": {
-    "status": "not-published"
+    "status": "ready-not-yet-published",
+    "expectedOrigins": [
+      "https://the-fool-quest.45kikurage.workers.dev",
+      "https://45kikurage-rgb.github.io/the-fool-quest"
+    ]
   },
   "physicalDevice": {
     "verified": false,

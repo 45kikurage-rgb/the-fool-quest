@@ -203,11 +203,11 @@
   ],
   "lossUpdate": "Manually record, edit and delete separate TikTok Lite and Coupon losses by date; preserve the gross source; net amounts subtract losses once",
   "lossDisplay": "Combined daily losses shown in red below the TikTok row; daily and monthly totals are net of losses",
-  "upgradeTestRunId": null,
-  "publicationStatus": "candidate-not-published",
+  "upgradeTestRunId": 42358475455,
+  "publicationStatus": "public-origin-verification-pending",
   "publicationRequestedAt": "2026-11-06 JST",
   "displayName": "Aruno-Result",
-  "releaseStatus": "DISPLAY_CANDIDATE_RETENTION_TEST_PENDING",
+  "releaseStatus": "DISPLAY_FIX_AVAILABLE_DATA_LOSS_CAUSE_UNRESOLVED",
   "updateRecommended": false,
   "notice": "Display-only code33 candidate. The code32 physical-device local data-loss cause remains unresolved. Export JSON before updating; never uninstall or clear app data."
 }
