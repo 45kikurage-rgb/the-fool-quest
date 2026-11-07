@@ -7,7 +7,6 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.View;
 import android.widget.RemoteViews;
@@ -83,11 +82,16 @@ final class NativeWidgetViews {
             int trackWidth=Math.max(1,Math.round(content-GaugePalette.LAP_LABEL_WIDTH_DP));
             Bitmap track=gauge(c,s.text,
                 base,layered?1f:progress,layered?current:0,layered?progress:0f,
-                layered&&GaugePalette.hasMarker(lap,progress),gauge,
+                false,gauge,
                 trackWidth,result.font,
                 layered&&GaugeDrawing.rainbowLap(lap-1),layered&&GaugeDrawing.rainbowLap(lap));
-            if(i==0)GaugeDrawing.dailyTarget(dpCanvas(c,track),0,GaugePalette.MARKER_OVERHANG_DP,
-                trackWidth,gauge,RevenueMath.targetProgress(d.month,goals[i],now),s.targetLineColor,s.targetLineWidth);
+            Canvas annotations=dpCanvas(c,track);
+            GaugeDrawing.divisions(annotations,0,GaugePalette.MARKER_OVERHANG_DP,trackWidth,gauge,
+                1f/s.tickDivisor,c.getResources().getDisplayMetrics().density);
+            GaugeDrawing.targetLabel(annotations,0,GaugePalette.MARKER_OVERHANG_DP,trackWidth,gauge,
+                RevenueMath.targetThroughToday(d.month,goals[i],now),c.getResources().getFont(R.font.aru_widget_rounded));
+            if(i==0)GaugeDrawing.targetMarker(annotations,0,GaugePalette.MARKER_OVERHANG_DP,
+                trackWidth,gauge,RevenueMath.targetProgress(d.month,goals[i],now),s.targetMarkerColor);
             bar.setImageViewBitmap(R.id.gauge_image,track);
             String suffix=lap>=2?"×"+lap:"";
             Bitmap label=bitmap(c,GaugePalette.LAP_LABEL_WIDTH_DP,gauge+2*GaugePalette.MARKER_OVERHANG_DP);
@@ -128,9 +132,6 @@ final class NativeWidgetViews {
         p.setColor(color);if(baseRainbow)GaugeDrawing.rainbow(c,p,0,over,widthDp*progress,heightDp);else c.drawRect(0,over,widthDp*progress,over+heightDp,p);
         if(overlay>0f){
             p.setColor(overlayColor);if(overlayRainbow)GaugeDrawing.rainbow(c,p,0,over,widthDp*overlay,heightDp);else c.drawRect(0,over,widthDp*overlay,over+heightDp,p);
-            DisplayMetrics metrics=context.getResources().getDisplayMetrics();
-            GaugeDrawing.divisions(c,0,over,widthDp,heightDp,overlay,metrics.scaledDensity/metrics.density);
-            if(marker)GaugeDrawing.boundary(c,0,over,widthDp,heightDp,overlay,amountFontDp);
         }
         return b;
     }

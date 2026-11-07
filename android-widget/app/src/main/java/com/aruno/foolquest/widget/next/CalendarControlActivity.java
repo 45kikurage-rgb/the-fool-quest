@@ -46,7 +46,7 @@ public final class CalendarControlActivity extends Activity {
             .setOnCancelListener(d->finish()).show();
     }
     private void showFilters(){
-        final String[] entries={"3種類表示","合計のみ","クーポンのみ","TikTok Liteのみ"};
+        final String[] entries={"4種類表示","合計のみ","クーポンのみ","TikTok Liteのみ","損失のみ"};
         new AlertDialog.Builder(this,android.R.style.Theme_Material_Light_Dialog_Alert).setTitle("日別の表示").setSingleChoiceItems(
             entries,CalendarWidgetState.filter(this,widgetId),(dialog,which)->{
                 CalendarWidgetState.filter(this,widgetId,which);

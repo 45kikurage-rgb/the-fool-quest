@@ -102,10 +102,21 @@ public final class SettingsActivity extends Activity {
         slider("上余白",0,24,settings.top,v->settings.top=v);slider("下余白",0,24,settings.bottom,v->settings.bottom=v);
         slider("ステータス行間（基準5）",0,10,settings.gap,v->settings.gap=v);slider("ゲージ太さ（基準14）",8,20,settings.gauge,v->settings.gauge=v);
         slider("文字とゲージの間隔（基準4）",0,8,settings.textGap,v->settings.textGap=v);
-        body.addView(text("Total：今日までの目標線",18));
+        body.addView(text("Total：今日までの目標位置 ▼",18));
         body.addView(text("月間目標を日割りした、今日までの累計目標の位置です。日本時間の0時に切り替わります。",13));
-        colorPalette("targetLine","目標線の色",settings.targetLineColor);
-        slider("目標線の太さ（dp・基準2）",1,8,settings.targetLineWidth,v->settings.targetLineWidth=v);
+        colorPalette("targetMarker","▼の色",settings.targetMarkerColor);
+        body.addView(text("10%ごとの縦線（幅2px・下端からの高さ）",13));
+        android.widget.Spinner ticks=new android.widget.Spinner(this);ticks.setTag("gauge-tick-height");
+        ticks.setAdapter(new android.widget.ArrayAdapter<String>(this,android.R.layout.simple_spinner_dropdown_item,
+            new String[]{"1/5（初期値）","1/4","1/3"}));
+        final int[] divisors={5,4,3};ticks.setSelection(settings.tickDivisor==4?1:settings.tickDivisor==3?2:0);
+        body.addView(ticks,new LinearLayout.LayoutParams(-1,-2));
+        ticks.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener(){
+            public void onItemSelected(android.widget.AdapterView<?> parent,View view,int position,long id){
+                if(settings.tickDivisor!=divisors[position]){settings.tickDivisor=divisors[position];markDirty();updatePreview();}
+            }
+            public void onNothingSelected(android.widget.AdapterView<?> parent){}
+        });
         midnightStatus=text("",12);body.addView(midnightStatus);
         if(android.os.Build.VERSION.SDK_INT>=31)button("0時の更新を許可する",()->{
             try{startActivity(new Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,Uri.parse("package:"+getPackageName())));}
@@ -117,7 +128,7 @@ public final class SettingsActivity extends Activity {
         color("total","Total 固定色（進歩カラーOFF時）",settings.total);color("tiktok","TikTok 固定色（進歩カラーOFF時）",settings.tiktok);color("coupon","Coupon 固定色（進歩カラーOFF時）",settings.coupon);
         for(String key:new String[]{"total","tiktok","coupon"})colors.get(key).setEnabled(!settings.paceColors);
         body.addView(text("日別進歩カラー・2周目カラー",18));
-        body.addView(text("3周目（×3）はレインボーで表示します。",13));
+        body.addView(text("3周目（×3）以降はレインボーで表示します。",13));
         colorPalette("paceAchieved","今日までの目標達成：100%以上",settings.paceAchieved);
         colorPalette("paceBehind","今日までの目標未達：50%以上100%未満",settings.paceBehind);
         colorPalette("paceLow","今日までの目標不足：50%未満",settings.paceLow);
@@ -190,7 +201,7 @@ public final class SettingsActivity extends Activity {
                 case "paceBehind":settings.paceBehind=v;break;
                 case "paceLow":settings.paceLow=v;break;
                 case "secondLap":settings.secondLap=v;break;
-                case "targetLine":settings.targetLineColor=v;break;
+                case "targetMarker":settings.targetMarkerColor=v;break;
             }
         }
         return colorValid;

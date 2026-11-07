@@ -164,7 +164,8 @@ public class CalendarWidget extends AppWidgetProvider {
                 cell.setViewVisibility(R.id.calendar_coupon_row,showCoupon&&(filter==0||filter==2)?View.VISIBLE:View.INVISIBLE);
                 cell.setViewVisibility(R.id.calendar_tiktok_row,showTikTok&&(filter==0||filter==3)?View.VISIBLE:View.INVISIBLE);
                 // Reserve the loss line even when zero, so every date keeps the same glyph heights.
-                boolean showLoss=showCoupon&&data.dailyLosses[day]>0;
+                boolean showLoss=showCoupon&&(filter==CalendarWidgetState.ALL||filter==CalendarWidgetState.LOSS)
+                    &&data.dailyLosses[day]>0;
                 cell.setViewVisibility(R.id.calendar_loss_row,showLoss?View.VISIBLE:View.INVISIBLE);
                 if(showLoss)amount(cell,R.id.calendar_day_loss,
                     CalendarAmountFormatter.dailyLoss(data.dailyLosses[day]),lossSize,amountWidth,measure);

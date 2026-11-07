@@ -66,13 +66,13 @@ public class WidgetInstrumentation extends Instrumentation {
             ok(tree[0].getMeasuredHeight()<=height*density+1,"native content fits host height");
             android.view.View panel=tree[0].findViewById(R.id.widget_panel);
             ok(Math.abs(panel.getHeight()-(height-16)*density)<2,"card background follows resized host height");
-            android.view.View firstRow=tree[0].findViewById(R.id.row_total),lastRow=tree[0].findViewById(R.id.row_coupon);
+            android.view.View firstRow=tree[0].findViewById(R.id.row_total),lastRow=tree[0].findViewById(R.id.row_tiktok);
             ok(Math.abs(firstRow.getHeight()-lastRow.getHeight())<=2,"all three rows receive the actual host height equally");
             ok(lastRow.getBottom()<=tree[0].findViewById(R.id.widget_content).getHeight()+1,"last row stays inside content bounds");
             android.widget.TextView footer=tree[0].findViewById(R.id.widget_footer);
             ok(!footer.getText().toString().matches(".*[0-9]{2}:[0-9]{2}.*"),"widget never displays update times");
             if(data.importAt>0&&data.couponAt>0&&!data.loading&&data.error.isEmpty())ok(footer.getVisibility()==android.view.View.GONE,"normal display has no footer");
-            android.view.View secondRow=tree[0].findViewById(R.id.row_tiktok);
+            android.view.View secondRow=tree[0].findViewById(R.id.row_coupon);
             ok(secondRow.getTop()-firstRow.getBottom()==Math.round(result[0].gap*density),"first exact spacer keeps the configured gap");
             ok(lastRow.getTop()-secondRow.getBottom()==Math.round(result[0].gap*density),"second exact spacer keeps the configured gap");
             for(int row=0;row<3;row++){
@@ -88,7 +88,7 @@ public class WidgetInstrumentation extends Instrumentation {
                 int[] textPos=new int[2],barPos=new int[2];amount.getLocationInWindow(textPos);bar.getLocationInWindow(barPos);
                 ok(barPos[1]>=textPos[1]+amount.getHeight(),"adaptive gauge does not overlap numbers");
                 if(row==0)measuredGaugeHeights.put(name,bar.getHeight()/density);
-                ok(bar instanceof android.widget.ImageView,"v0.1.4 gauge has no embedded target text");
+                ok(bar instanceof android.widget.ImageView,"gauge and target annotations share a bounded bitmap");
                 android.graphics.Bitmap fill=((android.graphics.drawable.BitmapDrawable)((android.widget.ImageView)bar).getDrawable()).getBitmap();
                 ok(fill.getHeight()==Math.round((result[0].gauge+2*GaugePalette.MARKER_OVERHANG_DP)*density),
                     "gauge bitmap includes precisely 2dp of top and bottom marker overhang");
@@ -97,26 +97,12 @@ public class WidgetInstrumentation extends Instrumentation {
                 float progress=RevenueMath.progress(data.values()[row],data.goals()[row]);
                 int cy=fill.getHeight()/2;
                 boolean layered=lap>=2&&settings.isSecondLap(data.values()[row],data.goals()[row],data.month,System.currentTimeMillis());
-                if(progress>0){
-                    int first=layered?GaugePalette.currentColor(lap,settings.paceAchieved,settings.secondLap):expected;
-                    if(layered&&GaugeDrawing.rainbowLap(lap))ok(android.graphics.Color.red(fill.getPixel(0,cy))>240&&android.graphics.Color.green(fill.getPixel(0,cy))<130,"third-lap rainbow starts with red");
-                    else ok(fill.getPixel(0,cy)==first,"native gauge uses the active lap color");
-                }
-                if(layered){
-                    int near=Math.min(fill.getWidth()-1,Math.max(0,(int)(fill.getWidth()*Math.max(0,progress-.1f))));
-                    int right=fill.getWidth()-2;
-                    int base=GaugePalette.previousColor(lap,settings.paceAchieved,settings.secondLap);
-                    if(progress<.9f&&!GaugeDrawing.rainbowLap(lap-1))ok(fill.getPixel(right,cy)==base,"full previous lap remains visible");
-                    if(GaugePalette.hasMarker(lap,progress)){
-                        int edge=Math.round(fill.getWidth()*progress);
-                        boolean white=false;
-                        for(int dx=-2;dx<=2;dx++){
-                            int x=Math.max(0,Math.min(fill.getWidth()-1,edge+dx));
-                            if(fill.getPixel(x,0)==GaugePalette.MARKER_WHITE)white=true;
-                        }
-                        ok(white,"white 2dp marker protrudes above the active overlay");
-                    }else ok(lap>=2&&progress==1f,"exact completed lap has no marker");
-                }
+                // Target text now occupies the left of the bar. Only Total may draw above it.
+                int overhangInk=0;
+                for(int x=0;x<fill.getWidth();x++)if(android.graphics.Color.alpha(fill.getPixel(x,0))>0)overhangInk++;
+                if(row!=0)ok(overhangInk==0,"Coupon and TikTok have no target triangle or old progress boundary");
+                if(layered&&progress<.9f&&!GaugeDrawing.rainbowLap(lap-1))
+                    ok(fill.getPixel(fill.getWidth()-2,cy)==GaugePalette.previousColor(lap,settings.paceAchieved,settings.secondLap),"full previous lap remains visible");
                 ok(result[0].gauge<=48,"v0.1.4 gauge keeps its original height limit");
             }
         });
@@ -188,7 +174,7 @@ public class WidgetInstrumentation extends Instrumentation {
         png(getUiAutomation().takeScreenshot(),"host-hint-"+hint+"-actual-"+actual);
     }
     void rainbowThirdLap()throws Exception {
-        ok(!GaugeDrawing.rainbowLap(1)&&!GaugeDrawing.rainbowLap(2)&&GaugeDrawing.rainbowLap(3)&&!GaugeDrawing.rainbowLap(4),"rainbow is the third lap, not the third metric");
+        ok(!GaugeDrawing.rainbowLap(1)&&!GaugeDrawing.rainbowLap(2)&&GaugeDrawing.rainbowLap(3)&&GaugeDrawing.rainbowLap(4)&&GaugeDrawing.rainbowLap(5),"rainbow continues from the third lap onward");
         for(float progress:new float[]{.1162f,.5f,1f}){
             android.graphics.Bitmap b=NativeWidgetViews.gauge(c,0xffffffff,GaugePalette.SECOND_LIME,1f,
                 GaugePalette.FIRST_GREEN,progress,progress<1f,14,300,14,false,true);
@@ -210,31 +196,38 @@ public class WidgetInstrumentation extends Instrumentation {
         settings.referenceLayout();
         ok(settings.targetLineColor==0xff3dbdff&&settings.targetLineWidth==6,"reference layout preserves target preference");
         settings.targetLineWidth=100;settings.save(prefs);ok(DisplaySettings.load(prefs).targetLineWidth==8,"target width is bounded");
+        ok(DisplaySettings.load(prefs).targetMarkerColor==0xffffffff&&DisplaySettings.load(prefs).tickDivisor==5,
+            "new target defaults are white and bottom fifth even when legacy stripe keys exist");
+        for(int divisor:new int[]{5,4,3}){
+            DisplaySettings chosen=DisplaySettings.load(prefs);chosen.tickDivisor=divisor;chosen.targetMarkerColor=0xff3dbdff;chosen.save(prefs);
+            DisplaySettings restored=DisplaySettings.load(prefs);
+            ok(restored.tickDivisor==divisor&&restored.targetMarkerColor==0xff3dbdff,"each tick height and marker color survives save/load");
+            restored.referenceLayout();ok(restored.tickDivisor==divisor&&restored.targetMarkerColor==0xff3dbdff,"reference layout preserves new display settings");
+        }
+        prefs.edit().putInt("gaugeTickDivisor",0).commit();ok(DisplaySettings.load(prefs).tickDivisor==5,"invalid stored tick height safely uses one fifth");
         prefs.edit().clear().commit();
-        for(int dpi:new int[]{160,320})for(int thickness:new int[]{1,2,8})for(float progress:new float[]{-1f,0f,.1f,.5f,1f}){
-            android.content.res.Configuration config=new android.content.res.Configuration(c.getResources().getConfiguration());config.densityDpi=dpi;
-            Context host=c.createConfigurationContext(config);float density=host.getResources().getDisplayMetrics().density;
-            android.graphics.Bitmap b=NativeWidgetViews.gauge(host,0xffffffff,0xff00ee00,.1777f,0,0,false,14,300,13);
-            android.graphics.Bitmap before=b.copy(android.graphics.Bitmap.Config.ARGB_8888,false);
+        for(int dpi:new int[]{160,320,480})for(float progress:new float[]{-1f,0f,.1f,.5f,1f}){
+            float density=dpi/160f;
+            android.graphics.Bitmap b=android.graphics.Bitmap.createBitmap(Math.round(300*density),Math.round(18*density),android.graphics.Bitmap.Config.ARGB_8888);
             android.graphics.Canvas canvas=new android.graphics.Canvas(b);canvas.scale(density,density);
-            GaugeDrawing.dailyTarget(canvas,0,GaugePalette.MARKER_OVERHANG_DP,300,14,progress,0xff3dbdff,thickness);
-            int changed=0,minX=b.getWidth(),maxX=-1,minY=b.getHeight(),maxY=-1;
-            for(int y=0;y<b.getHeight();y++)for(int x=0;x<b.getWidth();x++)if(b.getPixel(x,y)!=before.getPixel(x,y)){
+            GaugeDrawing.targetMarker(canvas,0,2,300,14,progress,0xff3dbdff);
+            int changed=0,minX=b.getWidth(),maxX=-1,minY=b.getHeight(),maxY=-1,blue=0;
+            for(int y=0;y<b.getHeight();y++)for(int x=0;x<b.getWidth();x++)if(android.graphics.Color.alpha(b.getPixel(x,y))>0){
                 changed++;minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y);
-                if(b.getPixel(x,y)!=0xff3dbdff)throw new AssertionError("target color mismatch");
+                if(b.getPixel(x,y)==0xff3dbdff)blue++;
             }
-            if(progress<0)ok(changed==0,"unknown or stale target leaves pixels unchanged");
+            if(progress<0)ok(changed==0,"unknown or stale target has no triangle");
             else {
-                ok(maxX-minX+1==Math.round(thickness*density),"target keeps chosen width, including month end");
-                ok(minY==Math.round(GaugePalette.MARKER_OVERHANG_DP*density)&&maxY-minY+1==Math.round(14*density),"target stays inside gauge height");
-                ok(changed==Math.round(thickness*density)*Math.round(14*density),"only target stripe changes");
-                if(progress==1)ok(maxX==b.getWidth()-1,"month-end line stays visible at right edge");
+                ok(blue>0,"target triangle uses chosen color");
+                ok(maxX-minX+1<=Math.ceil(9*density)&&maxY-minY+1<=Math.ceil(5*density),"half-size marker keeps bounded dimensions");
+                ok(minY<Math.round(2*density)&&maxY>=Math.round(2*density),"triangle straddles upper track edge without adding height");
+                if(progress==1)ok(maxX==b.getWidth()-1,"month-end triangle remains visible at right edge");
             }
         }
         RevenueStore.Data data=new RevenueStore.Data();data.month=RevenueMath.month(System.currentTimeMillis());
         data.tiktok=11700;data.coupon=201500;data.goalTiktok=600000;data.goalCoupon=600000;data.goalTotal=1200000;
         data.importAt=1;data.couponAt=1;data.error="";data.errorCode="";
-        DisplaySettings yellow=new DisplaySettings(),blue=new DisplaySettings();blue.targetLineColor=0xff3dbdff;
+        DisplaySettings yellow=new DisplaySettings(),blue=new DisplaySettings();blue.targetMarkerColor=0xff3dbdff;
         runOnMainSync(()->{
             android.view.View first=NativeWidgetViews.create(c,data,yellow,340,126).views.apply(c,null);
             android.view.View second=NativeWidgetViews.create(c,data,blue,340,126).views.apply(c,null);
@@ -243,35 +236,29 @@ public class WidgetInstrumentation extends Instrumentation {
                 android.widget.ImageView b=second.findViewById(NativeWidgetViews.HOLDER[row]).findViewById(R.id.gauge_image);
                 android.graphics.Bitmap aa=((android.graphics.drawable.BitmapDrawable)a.getDrawable()).getBitmap();
                 android.graphics.Bitmap bb=((android.graphics.drawable.BitmapDrawable)b.getDrawable()).getBitmap();
-                ok(aa.sameAs(bb)==(row!=0),"only Total receives target line color changes");
+                ok(aa.sameAs(bb)==(row!=0),"only Total receives target triangle color changes");
             }
         });
     }
     void gaugeAnnotations()throws Exception {
         android.content.res.Configuration config=new android.content.res.Configuration(c.getResources().getConfiguration());config.densityDpi=320;
         Context host=c.createConfigurationContext(config);float density=host.getResources().getDisplayMetrics().density;
-        for(float progress:new float[]{0f,.1188f,.2f,.4f,.6f,.8f,.8859f,.5f,1f}){
-            android.graphics.Bitmap b=NativeWidgetViews.gauge(host,0xffffffff,GaugePalette.FIRST_GREEN,1f,
-                GaugePalette.SECOND_LIME,progress,progress>0&&progress<1,16,300,13);
-            int top=Math.round(GaugePalette.MARKER_OVERHANG_DP*density),bottom=top+Math.round(16*density);
-            for(int percent:new int[]{20,40,60,80}){
-                int x=Math.round(300*density*percent/100f);
-                if(progress>percent/100f && progress<1f){
-                    ok(b.getPixel(x,top)==GaugePalette.MARKER_WHITE,"reached divider is white: "+progress+" / "+percent);
-                    ok(android.graphics.Color.alpha(b.getPixel(x,0))==0,"divider never protrudes above gauge");
-                    boolean black=false;
-                    for(int y=top;y<bottom;y++)for(int xx=Math.max(0,x-Math.round(60*density));xx<x-Math.round(3*density);xx++)
-                        black|=b.getPixel(xx,y)==GaugePalette.LABEL_OUTLINE_BLACK;
-                    ok(!black,"percent annotation text is removed from gauge");
-                }else if(progress!=percent/100f){
-                    ok(b.getPixel(x,top)!=GaugePalette.MARKER_WHITE,"unreached or completed lap has no divider");
-                }
+        for(int dpi:new int[]{160,320,480})for(int divisor:new int[]{5,4,3})for(float progress:new float[]{0f,.1188f,.2f,.5f,.8859f,1f}){
+            config=new android.content.res.Configuration(c.getResources().getConfiguration());config.densityDpi=dpi;
+            Context tickHost=c.createConfigurationContext(config);float scale=dpi/160f;
+            android.graphics.Bitmap b=NativeWidgetViews.gauge(tickHost,0xffffffff,GaugePalette.FIRST_GREEN,progress,0,0,false,15,300,13);
+            android.graphics.Canvas canvas=new android.graphics.Canvas(b);canvas.scale(scale,scale);
+            GaugeDrawing.divisions(canvas,0,2,300,15,1f/divisor,scale);
+            int top=Math.round(2*scale),bottom=Math.round(17*scale);
+            for(int percent=10;percent<100;percent+=10){
+                int x=Math.round(300*scale*percent/100f),ink=0,minY=b.getHeight(),maxY=-1;
+                for(int y=top;y<bottom;y++)if(b.getPixel(x,y)==GaugePalette.MARKER_WHITE){ink++;minY=Math.min(minY,y);maxY=Math.max(maxY,y);}
+                ok(Math.abs(ink-15*scale/divisor)<=1,"all nine fixed marks have the chosen bottom height in every lap/fill/density");
+                int whiteWidth=0;for(int xx=x-4;xx<=x+4;xx++)if(b.getPixel(xx,bottom-1)==GaugePalette.MARKER_WHITE)whiteWidth++;
+                ok(whiteWidth==2,"tick width is exactly two device pixels at all densities");
+                ok(android.graphics.Color.alpha(b.getPixel(x,0))==0,"ticks never protrude above the track");
             }
-            png(b,"gauge-divisions-"+Math.round(progress*10000));
         }
-        ok(!GaugeDrawing.hasDivider(.2f,20)&&!GaugeDrawing.hasDivider(.4f,40)&&
-            !GaugeDrawing.hasDivider(.6f,60)&&!GaugeDrawing.hasDivider(.8f,80),"exact thresholds do not double-draw marker");
-        ok(!GaugeDrawing.hasDivider(1f,20),"completed lap suppresses all divisions");
         for(int height:new int[]{4,12,48})for(long lap:new long[]{1,2,3,9}){
             android.graphics.Bitmap label=android.graphics.Bitmap.createBitmap(GaugePalette.LAP_LABEL_WIDTH_DP*2,(height+4)*2,android.graphics.Bitmap.Config.ARGB_8888);
             android.graphics.Canvas canvas=new android.graphics.Canvas(label);canvas.scale(2,2);
@@ -290,19 +277,11 @@ public class WidgetInstrumentation extends Instrumentation {
         boolean black=false;for(int y=0;y<narrow.getHeight();y++)for(int x=0;x<narrow.getWidth();x++)black|=narrow.getPixel(x,y)==GaugePalette.LABEL_OUTLINE_BLACK;
         ok(!black,"narrow gauge also has no percent annotations");
         ok(GaugePalette.LAP_LABEL_WIDTH_DP==34,"legacy track width is restored by reserving only 34dp");
-        for(int font:new int[]{9,13,24}){
-            android.graphics.Bitmap b=NativeWidgetViews.gauge(host,0xffffffff,GaugePalette.FIRST_GREEN,1f,GaugePalette.SECOND_LIME,.5f,true,16,300,font);
-            Paint digit=GaugeDrawing.textPaint();digit.setTextSize(font);
-            int edge=Math.round(150*density),cap=Math.round(digit.measureText("0")*density);
-            int top=Math.round(GaugePalette.MARKER_OVERHANG_DP*density),bottom=top+Math.round(16*density);
-            ok(b.getPixel(edge-cap+2,top)==GaugePalette.SECOND_LIME,"upper horizontal cap removed at font "+font);
-            ok(b.getPixel(edge-cap+2,bottom-1)==GaugePalette.SECOND_LIME,"lower horizontal cap removed at font "+font);
-            ok(b.getPixel(edge,0)==GaugePalette.MARKER_WHITE,"original vertical marker protrudes above track");
-            ok(b.getPixel(edge,b.getHeight()-1)==GaugePalette.MARKER_WHITE,"original vertical marker protrudes below track");
-            ok(android.graphics.Color.alpha(b.getPixel(edge-cap+2,0))==0,"vertical marker has no upper side stroke");
-            ok(android.graphics.Color.alpha(b.getPixel(edge+Math.round(3*density),0))==0,"vertical marker retains original width");
-            ok(b.getPixel(edge-cap+2,b.getHeight()/2)==GaugePalette.SECOND_LIME,"track color remains intact");
-            png(b,"gauge-vertical-font-"+font);
+        // No progress-boundary marker survives, including a second-lap 50% boundary.
+        android.graphics.Bitmap clean=NativeWidgetViews.gauge(host,0xffffffff,GaugePalette.FIRST_GREEN,1f,GaugePalette.SECOND_LIME,.5f,true,16,300,13);
+        for(int x=0;x<clean.getWidth();x++){
+            ok(android.graphics.Color.alpha(clean.getPixel(x,0))==0,"old overlay boundary does not protrude above track");
+            ok(android.graphics.Color.alpha(clean.getPixel(x,clean.getHeight()-1))==0,"old overlay boundary does not protrude below track");
         }
     }
     java.util.concurrent.ExecutorService executor()throws Exception {
@@ -328,9 +307,9 @@ public class WidgetInstrumentation extends Instrumentation {
         return null;
     }
     void calendarLayoutChecks() {
-        ok(c.getApplicationInfo().icon==R.drawable.ic_mybest &&
-            c.getDrawable(R.drawable.ic_mybest) instanceof android.graphics.drawable.AdaptiveIconDrawable,
-            "application uses the MyBest adaptive launcher icon");
+        ok(c.getApplicationInfo().icon==R.drawable.ic_aruno_result &&
+            c.getDrawable(R.drawable.ic_aruno_result) instanceof android.graphics.drawable.BitmapDrawable,
+            "application uses the approved Aruno-Result bitmap launcher icon");
         int first=13001, second=13002;
         CalendarWidgetState.month(c,first,"2026-05");
         CalendarWidgetState.filter(c,first,CalendarWidgetState.COUPON);
@@ -345,6 +324,9 @@ public class WidgetInstrumentation extends Instrumentation {
         ok(CalendarWidgetState.isFollowingCurrentMonth(c,second)
             &&CalendarWidgetState.filter(c,second)==CalendarWidgetState.ALL
             &&CalendarWidgetState.summary(c,second)==0,"second widget is independent");
+        CalendarWidgetState.filter(c,first,CalendarWidgetState.LOSS);
+        ok(CalendarWidgetState.filter(c,first)==CalendarWidgetState.LOSS&&CalendarWidgetState.filter(c,second)==CalendarWidgetState.ALL,
+            "loss-only choice persists without changing another widget");
         CalendarWidgetState.followCurrentMonth(c,first);
         ok(CalendarWidgetState.isFollowingCurrentMonth(c,first)
             &&RevenueMath.month(System.currentTimeMillis()).equals(CalendarWidgetState.month(c,first)),
@@ -467,6 +449,14 @@ public class WidgetInstrumentation extends Instrumentation {
                 &&"12345".contentEquals(((android.widget.TextView)today.findViewById(R.id.calendar_day_coupon)).getText())
                 &&"−1500".contentEquals(((android.widget.TextView)today.findViewById(R.id.calendar_day_loss)).getText()),
                 "today immediately shows verified TikTok and the combined total");
+            for(int filter:new int[]{CalendarWidgetState.ALL,CalendarWidgetState.TOTAL,CalendarWidgetState.COUPON,CalendarWidgetState.TIKTOK,CalendarWidgetState.LOSS}){
+                android.view.View filtered=CalendarWidget.buildViews(c,first,"2026-11",filter,0,current,now).apply(c,host);
+                android.view.View day=((android.view.ViewGroup)filtered.findViewById(R.id.calendar_week_0)).getChildAt(3);
+                int[] rowIds={R.id.calendar_day_total,R.id.calendar_coupon_row,R.id.calendar_tiktok_row,R.id.calendar_loss_row};
+                for(int row=0;row<4;row++)ok((day.findViewById(rowIds[row]).getVisibility()==android.view.View.VISIBLE)==(filter==0||filter==row+1),
+                    "each of five filters displays only its requested rows, including loss");
+                ok("56523".contentEquals(((android.widget.TextView)day.findViewById(R.id.calendar_day_total)).getText()),"filtering never changes loss-adjusted total");
+            }
             CalendarRevenueData.Month couponOnly=new CalendarRevenueData.Month();
             couponOnly.days[4][1]=12345;
             android.view.View provisional=CalendarWidget.buildViews(c,first,"2026-11",0,0,couponOnly,now).apply(c,host);

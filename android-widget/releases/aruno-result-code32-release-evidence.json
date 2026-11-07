@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "appId": "foolquest-widget-next",
+  "displayName": "Aruno-Result",
+  "applicationId": "com.aruno.foolquest.widget.next",
+  "version": "0.1.31",
+  "versionCode": 32,
+  "sourceCommit": "b80ca2f4c4ecf09564ca7b5d3dd3000c4330c442",
+  "featurePullRequest": 51,
+  "apkFile": "aruno-result-0.1.31.apk",
+  "apkSha256": "3f9355ab9e92dae3e4ba9c0a45fd860437dd8adbc717881be6c91bab90e8c8d5",
+  "apkBytes": 310366,
+  "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+  "unsignedSha256": "a46e053b819443cbd47fc2a467a44101bdb45f8154d5eef6ccc177d04d568fba",
+  "signing": {
+    "status": "PASS",
+    "runId": 42353145726,
+    "existingKey": true,
+    "independentBackupRestore": true,
+    "newKey": false
+  },
+  "icon": {
+    "apkIcon": "res/drawable-nodpi-v4/ic_aruno_result.png",
+    "sourceSha256": "385711397ef52971da10dfb4b60fc6aa7f491edf88675f7d9ab82225dd16d24e",
+    "packagedPixelsMatch": true,
+    "dimensions": [
+      512,
+      512
+    ],
+    "transparent": true
+  },
+  "softwareTest": {
+    "status": "PASS",
+    "runId": 42353380519,
+    "environment": "Android35 emulator",
+    "initialRun": 42353127140,
+    "initialFailure": "Retired icon assertion; updated test only, product APK unchanged",
+    "checks": {
+      "normal": 8403,
+      "offline": 2759,
+      "reboot": 2749
+    }
+  },
+  "upgradeTest": {
+    "status": "PASS",
+    "runId": 42353296582,
+    "fromCode": 31,
+    "toCode": 32,
+    "previousDataPreserved": true,
+    "legacyUnchanged": true,
+    "lossDataPreserved": true,
+    "retainedFixtureFields": 36
+  },
+  "publication": {
+    "status": "PENDING_MAIN_PUBLICATION",
+    "downloadPage": "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
+    "alternate": "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
+  },
+  "deviceVerified": false,
+  "formalOperation": "UNCONFIRMED"
+}

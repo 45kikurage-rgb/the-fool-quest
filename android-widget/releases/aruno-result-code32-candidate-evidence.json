@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "appId": "foolquest-widget-next",
+  "displayName": "Aruno-Result",
+  "applicationId": "com.aruno.foolquest.widget.next",
+  "version": "0.1.31",
+  "versionCode": 32,
+  "sourceCommit": "f0fd6e72103007f8e7eab6806311a7bdcf6cc112",
+  "pullRequest": 51,
+  "status": "IMPLEMENTED_SOFTWARE_VERIFIED_ICON_AND_DISTRIBUTION_SIGNING_PENDING",
+  "expectedCertificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+  "softwareTest": {
+    "status": "PASS",
+    "runId": 42341358194,
+    "jobId": 128309526518,
+    "environment": "Android 35 emulator",
+    "checks": {
+      "normal": 8403,
+      "offline": 2759,
+      "reboot": 2749
+    },
+    "rendererImagesReviewed": true,
+    "signer": "ISOLATED_CI_FIXTURE_ONLY"
+  },
+  "unsignedArtifactId": 13561608084,
+  "nativeResultsArtifactId": 13561752778,
+  "icon": {
+    "status": "AWAITING_USER_IMAGE",
+    "oldIconRetainedUntilReplacement": true
+  },
+  "distributionSigning": {
+    "status": "NOT_RUN",
+    "newDistributionKey": false
+  },
+  "upgradeTest": {
+    "status": "NOT_RUN_FOR_DISTRIBUTION_SIGNED_CANDIDATE",
+    "fromCode": 31,
+    "toCode": 32
+  },
+  "publication": {
+    "status": "NOT_RUN",
+    "existingCode31Maintained": true
+  },
+  "physicalDevice": "NOT_RUN",
+  "preserved": [
+    "package",
+    "component names",
+    "revenue/goal array contract",
+    "saved preferences",
+    "source data",
+    "CSV/API contracts",
+    "loss calculation",
+    "existing release APKs"
+  ],
+  "display": {
+    "gaugeOrder": [
+      "Total",
+      "Coupon",
+      "TikTok"
+    ],
+    "rainbowFromLap": 3,
+    "tickStepPercent": 10,
+    "tickWidthPhysicalPx": 2,
+    "tickBottomHeightOptions": [
+      "1/5",
+      "1/4",
+      "1/3"
+    ],
+    "tickBottomHeightDefault": "1/5",
+    "targetTriangleMetrics": [
+      "Total"
+    ],
+    "targetTriangleDefaultColor": "#FFFFFF",
+    "targetLabel": [
+      "現目標値",
+      "amount"
+    ],
+    "dailyFilters": [
+      "4種類表示",
+      "合計のみ",
+      "クーポンのみ",
+      "TikTok Liteのみ",
+      "損失のみ"
+    ]
+  }
+}
