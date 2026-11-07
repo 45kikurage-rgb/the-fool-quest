@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "version": "0.1.33",
+  "versionCode": 34,
+  "sourceCommit": "019399d585a76684996482df3662b9d839b76a50",
+  "package": "com.aruno.foolquest.widget.next",
+  "apkFile": "aruno-result-0.1.33.apk",
+  "apkSha256": "d5ac8dfc946d7c902b8d8e2ef365c3456f587b4af863552d70ec768881352800",
+  "apkBytes": 310366,
+  "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+  "unsignedSha256": "eae75004e22ca3bfc66f9d2509028419b7f2d11fbfb60951052b60f3f48a8204",
+  "signing": {
+    "run": 42360540268,
+    "existingKey": true,
+    "independentPrimaryBackupRestore": true,
+    "primaryJob": 128367793366,
+    "backupJob": 128367793261,
+    "newKeyGenerated": false,
+    "registry": "45kikurage-rgb/aruno-platform-ops/config/signing-registry.json#foolquest-widget-next"
+  },
+  "software": {
+    "run": 42360536148,
+    "nativeChecks": 8412,
+    "offlineChecks": 2759,
+    "rebootChecks": 2749,
+    "compiledAndSignedPayloadMatch": true,
+    "payloadEntries": 40,
+    "includes": [
+      "TikTok-only daily subtotal",
+      "known zero plus unknown displays zero subtotal",
+      "both unknown remain unknown",
+      "zero Coupon with TikTok and losses",
+      "losses deducted exactly once"
+    ]
+  },
+  "upgrade": {
+    "fromCode": 33,
+    "toCode": 34,
+    "run": 42360744087,
+    "status": "success",
+    "fixtureFields": 39,
+    "uidPreserved": true,
+    "oldPackagePreserved": true
+  },
+  "publication": {
+    "status": "pending",
+    "urls": [
+      "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
+      "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
+    ],
+    "releaseCommit": "c12157e1d191652605bb5395c8bd99b6db03ad0a"
+  },
+  "physicalDevice": {
+    "verified": false,
+    "code32DataLossCause": "unresolved"
+  },
+  "scope": [
+    "layout defaults right 6/top 0/bottom 0/gap 0/gauge 20/text gap 7; saved preferences preserved",
+    "daily subtotal when either source known; unknown categories not overwritten; both unknown remain unknown",
+    "administrator-protected daily reader key link; no credential reset or embedded secret"
+  ],
+  "dataStorageChanges": false,
+  "sharedApiChanges": false
+}
