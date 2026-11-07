@@ -30,7 +30,9 @@ final class NativeWidgetViews {
         float left=s.left*paddingScale,right=s.right*paddingScale;
         String status=WidgetRenderer.footer(d);
         boolean showStatus=!status.isEmpty()&&height>=100;
-        float preferredGauge=Math.min(48,s.gauge*Math.max(.25f,(innerH-s.top-s.bottom)/98f));
+        // Gauge thickness is the saved dp value, independent of spare host height.
+        // Small hosts may still shrink the complete stack to avoid clipping.
+        float preferredGauge=s.gauge;
         float content=innerW-left-right;
         float font=Float.MAX_VALUE;
         Paint measure=new Paint();measure.setTypeface(c.getResources().getFont(R.font.aru_widget_rounded));measure.setTextSize(100);
@@ -88,8 +90,6 @@ final class NativeWidgetViews {
             Canvas annotations=dpCanvas(c,track);
             GaugeDrawing.divisions(annotations,0,GaugePalette.MARKER_OVERHANG_DP,trackWidth,gauge,
                 1f/s.tickDivisor,c.getResources().getDisplayMetrics().density);
-            GaugeDrawing.targetLabel(annotations,0,GaugePalette.MARKER_OVERHANG_DP,trackWidth,gauge,
-                RevenueMath.targetThroughToday(d.month,goals[i],now),c.getResources().getFont(R.font.aru_widget_rounded));
             if(i==0)GaugeDrawing.targetMarker(annotations,0,GaugePalette.MARKER_OVERHANG_DP,
                 trackWidth,gauge,RevenueMath.targetProgress(d.month,goals[i],now),s.targetMarkerColor);
             bar.setImageViewBitmap(R.id.gauge_image,track);
