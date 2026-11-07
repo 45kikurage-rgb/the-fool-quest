@@ -1,9 +1,9 @@
 <resources>
-    <string name="app_name">Aru-MyBest</string>
-    <string name="gauge_widget_name">Aru-MyBest 収益ゲージ</string>
-    <string name="calendar_widget_name">Aru-MyBest 収益カレンダー</string>
-    <string name="widget_description">Total・TikTok・Couponの収益。タップでCouponを更新、長押しでサイズ変更。</string>
+    <string name="app_name">Aruno-Result</string>
+    <string name="gauge_widget_name">Aruno-Result 収益ゲージ</string>
+    <string name="calendar_widget_name">Aruno-Result 収益カレンダー</string>
+    <string name="widget_description">Total・Coupon・TikTokの収益。タップでCouponを更新、長押しでサイズ変更。</string>
     <string name="calendar_widget_description">収益カレンダー。日付ごとのTikTok・Coupon収益、月変更、表示切替。</string>
-    <string name="combined_widget_name">Aru-MyBest ゲージ＋カレンダー</string>
+    <string name="combined_widget_name">Aruno-Result ゲージ＋カレンダー</string>
     <string name="combined_widget_description">収益ゲージと日別カレンダーを1つに表示。</string>
 </resources>

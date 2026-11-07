@@ -403,7 +403,7 @@ final class RevenueManager {
     }
     static void validate(JSONObject root) throws Exception {
         if(!FORMAT.equals(root.optString("format"))||root.optInt("version")!=1)
-            throw new IllegalArgumentException("Aru-MyBestの移行ファイルではありません");
+            throw new IllegalArgumentException("Aruno-Resultの移行ファイルではありません");
         JSONObject months=root.getJSONObject("months");
         if(months.length()>240)throw new IllegalArgumentException("月別履歴が多すぎます");
         Iterator<String> keys=months.keys();

@@ -6,7 +6,7 @@ import android.content.SharedPreferences;
 
 /** Display-only, per-widget preferences. No revenue or source mutations. */
 final class CalendarWidgetState {
-    static final int ALL=0, TOTAL=1, COUPON=2, TIKTOK=3;
+    static final int ALL=0, TOTAL=1, COUPON=2, TIKTOK=3, LOSS=4;
     private CalendarWidgetState(){}
     private static SharedPreferences prefs(Context c){ return RevenueStore.prefs(c); }
     static String month(Context c,int id){
@@ -15,7 +15,7 @@ final class CalendarWidgetState {
     }
     static int filter(Context c,int id){
         int saved=prefs(c).getInt("calendar.filter."+id,ALL);
-        return saved>=ALL&&saved<=TIKTOK?saved:ALL;
+        return saved>=ALL&&saved<=LOSS?saved:ALL;
     }
     static int summary(Context c,int id){
         int saved=prefs(c).getInt("calendar.summary."+id,0);
@@ -33,7 +33,7 @@ final class CalendarWidgetState {
         prefs(c).edit().putString("calendar.month."+id,value).apply();
     }
     static void filter(Context c,int id,int value){
-        if(value<ALL||value>TIKTOK)throw new IllegalArgumentException("Invalid filter");
+        if(value<ALL||value>LOSS)throw new IllegalArgumentException("Invalid filter");
         prefs(c).edit().putInt("calendar.filter."+id,value).apply();
     }
     static void cycleSummary(Context c,int id){

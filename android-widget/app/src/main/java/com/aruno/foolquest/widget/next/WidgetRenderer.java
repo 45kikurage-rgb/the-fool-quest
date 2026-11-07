@@ -10,6 +10,8 @@ import android.graphics.Typeface;
 
 final class WidgetRenderer {
     static final String[] LABELS={"Total","TikTok","Coupon"};
+    // Display order only. The persisted revenue/goal array contract remains Total/TikTok/Coupon.
+    static final int[] DISPLAY_ORDER={0,2,1};
     static final class Render { Bitmap bitmap; float font; boolean adjusted; float rowHeight,panelHeight; WidgetLayout layout; }
     static Render render(Context context,RevenueStore.Data data,DisplaySettings s,int w,int h) {return layout(context,data,s,w,h,true);}
     static Render measure(Context context,RevenueStore.Data data,DisplaySettings s,int w,int h) {return layout(context,data,s,w,h,false);}
@@ -55,8 +57,9 @@ final class WidgetRenderer {
         Canvas c=new Canvas(result.bitmap); c.scale(2,2);
         p.setColor((s.background&0x00ffffff)|(Math.round(s.opacity*2.55f)<<24));
         c.drawRoundRect(new RectF(.5f,.5f,w-.5f,panelHeight-.5f),5,5,p);
-        for(int i=0;i<3;i++) {
-            float y=l.top+i*(rowHeight+gap), baseline=y-fm.top;
+        for(int row=0;row<3;row++) {
+            int i=DISPLAY_ORDER[row];
+            float y=l.top+row*(rowHeight+gap), baseline=y-fm.top;
             p.setColor(s.text);p.setTextAlign(Paint.Align.LEFT);c.drawText(LABELS[i],l.left,baseline,p);
             p.setTextAlign(Paint.Align.RIGHT);c.drawText(current[i],l.currentEnd,baseline,p);c.drawText(targets[i],l.goalEnd,baseline,p);
             c.drawText(percents[i],l.percentEnd,baseline,p);
@@ -77,16 +80,15 @@ final class WidgetRenderer {
                 p.setColor(active);
                 if(GaugeDrawing.rainbowLap(lap))GaugeDrawing.rainbow(c,p,l.left,gy,trackWidth*fill,gauge);
                 else c.drawRect(l.left,gy,l.left+trackWidth*fill,gy+gauge,p);
-                android.util.DisplayMetrics metrics=context.getResources().getDisplayMetrics();
-                GaugeDrawing.divisions(c,l.left,gy,trackWidth,gauge,fill,metrics.scaledDensity/metrics.density);
-                if(GaugePalette.hasMarker(lap,fill))
-                    GaugeDrawing.boundary(c,l.left,gy,trackWidth,gauge,fill,font);
             }else if(fill>0){
                 p.setColor(s.gaugeColor(values[i],goals[i],data.month,now,colors[i]));
                 c.drawRoundRect(new RectF(l.left,gy,l.left+trackWidth*fill,gy+gauge),gauge/2,gauge/2,p);
             }
-            if(i==0)GaugeDrawing.dailyTarget(c,l.left,gy,trackWidth,gauge,
-                RevenueMath.targetProgress(data.month,goals[i],now),s.targetLineColor,s.targetLineWidth);
+            GaugeDrawing.divisions(c,l.left,gy,trackWidth,gauge,1f/s.tickDivisor,2f);
+            GaugeDrawing.targetLabel(c,l.left,gy,trackWidth,gauge,
+                RevenueMath.targetThroughToday(data.month,goals[i],now),context.getResources().getFont(R.font.aru_widget_rounded));
+            if(i==0)GaugeDrawing.targetMarker(c,l.left,gy,trackWidth,gauge,
+                RevenueMath.targetProgress(data.month,goals[i],now),s.targetMarkerColor);
             if(lap>=2){
                 GaugeDrawing.lapLabel(c,lap,layered?active:GaugePalette.PACE_UNKNOWN,l.right,gy,gauge);
             }
@@ -107,8 +109,8 @@ final class WidgetRenderer {
     }
     static String description(RevenueStore.Data d){
         StringBuilder b=new StringBuilder(d.month+" ");long[] v=d.values(),g=d.goals();
-        for(int i=0;i<3;i++)b.append(LABELS[i]).append(' ').append(RevenueMath.moneyNet(v[i])).append('/').append(RevenueMath.money(g[i])).append(' ').append(RevenueMath.percentNet(v[i],g[i])).append("。 ");
-        b.append("Total ").append(RevenueMath.dailyTargetLabel(d.month,g[0],System.currentTimeMillis())).append("。 ");
+        for(int i:DISPLAY_ORDER)b.append(LABELS[i]).append(' ').append(RevenueMath.moneyNet(v[i])).append('/').append(RevenueMath.money(g[i])).append(' ').append(RevenueMath.percentNet(v[i],g[i])).append("。 ")
+            .append(RevenueMath.dailyTargetLabel(d.month,g[i],System.currentTimeMillis())).append("。 ");
         return b.append(footer(d)).toString();
     }
 }
