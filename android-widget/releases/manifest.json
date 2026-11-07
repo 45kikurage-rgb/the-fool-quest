@@ -199,5 +199,8 @@
   "publicationStatus": "public-origin-verification-pending",
   "signedSourceStagingBranch": "staging/mybest-code31-8a9ed53b832e",
   "publicationRequestedAt": "2026-11-06 JST",
-  "displayName": "Aruno-Result"
+  "displayName": "Aruno-Result",
+  "releaseStatus": "HOLD_DATA_RETENTION_INVESTIGATION",
+  "updateRecommended": false,
+  "notice": "User reported missing local revenue, display settings and home widgets after update. Cause and recovery unconfirmed. Preserve APKs and data; do not uninstall or clear app data."
 }

@@ -79,5 +79,20 @@
   "deviceVerified": false,
   "formalOperation": "UNCONFIRMED",
   "releaseCommit": "fcff7bb82a1dbda9ce5200959aac20efdb08bb0d",
-  "releaseStatus": "PRODUCTION_DISTRIBUTED_SOFTWARE_AND_UPGRADE_TESTED_PHYSICAL_DEVICE_PENDING"
+  "releaseStatus": "HOLD_DATA_RETENTION_INVESTIGATION",
+  "physicalDeviceIncident": {
+    "reportedDate": "2026-11-07",
+    "installationReportedByUser": "in_place_update",
+    "symptoms": [
+      "Home widgets disappeared",
+      "Manual TikTok and losses missing",
+      "Display settings show defaults"
+    ],
+    "currentExportBytes": 142,
+    "currentExportContains": "November Coupon 531380; empty manual; no TikTok/loss/past months; both goals 500000",
+    "couponDailyCredentialStatus": "UNCONFIRMED_EMPTY_DIALOG_IS_NOT_STATUS",
+    "cause": "UNCONFIRMED",
+    "recovery": "NOT_COMPLETED",
+    "automatedUpgradePassDoesNotOverridePhysicalIncident": true
+  }
 }
