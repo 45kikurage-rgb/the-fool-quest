@@ -52,10 +52,32 @@
     "retainedFixtureFields": 36
   },
   "publication": {
-    "status": "PENDING_MAIN_PUBLICATION",
+    "status": "PASS_BOTH_PUBLIC_ORIGINS",
     "downloadPage": "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
-    "alternate": "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
+    "alternate": "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html",
+    "publicVerificationRunId": 42353671429,
+    "pagesDeploymentRunId": 42353670755,
+    "bothFullBytesSha256Matched": true,
+    "independentWorkspaceRetrieval": [
+      {
+        "origin": "https://the-fool-quest.45kikurage.workers.dev",
+        "status": 200,
+        "bytes": 310366,
+        "sha256": "3f9355ab9e92dae3e4ba9c0a45fd860437dd8adbc717881be6c91bab90e8c8d5",
+        "matches": true
+      },
+      {
+        "origin": "https://45kikurage-rgb.github.io/the-fool-quest",
+        "status": 200,
+        "bytes": 310366,
+        "sha256": "3f9355ab9e92dae3e4ba9c0a45fd860437dd8adbc717881be6c91bab90e8c8d5",
+        "matches": true
+      }
+    ],
+    "checkedDate": "2026-11-07"
   },
   "deviceVerified": false,
-  "formalOperation": "UNCONFIRMED"
+  "formalOperation": "UNCONFIRMED",
+  "releaseCommit": "fcff7bb82a1dbda9ce5200959aac20efdb08bb0d",
+  "releaseStatus": "PRODUCTION_DISTRIBUTED_SOFTWARE_AND_UPGRADE_TESTED_PHYSICAL_DEVICE_PENDING"
 }
