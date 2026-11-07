@@ -163,12 +163,17 @@ history = {
                        'csvDailyComplete': True, 'csvCoveredThrough': first}},
     'manual': [{'id': 'upgrade-check', 'date': first, 'amount': 1000}],
     'goals': {'tiktok': 1000000, 'coupon': 600000},
+    'losses': [{'id':'retained-t-loss','date':'2026-01-01','category':'tiktok','amount':300},
+               {'id':'retained-c-loss','date':'2026-01-01','category':'coupon','amount':500}],
 }
 for name, kind, value in [
     ('nativeRevenueV1', 'string', json.dumps(history)),
     ('calendar.month.42', 'string', month),
     ('calendar.filter.42', 'int', '2'),
     ('calendar.summary.42', 'int', '1'),
+    ('calendar.filter.43', 'int', '4'),
+    ('goalMarkerColor', 'int', '-256'),
+    ('goalMarkerWidth', 'int', '3'),
 ]:
     elem = ET.SubElement(fixture, kind, name=name)
     if kind == 'string':
@@ -218,7 +223,7 @@ assert uid(PACKAGE) == new_uid, 'Successor UID changed'
 adb('shell', 'uiautomator', 'dump', '/sdcard/target-home.xml')
 adb('pull', '/sdcard/target-home.xml', str(OUT / 'target-home.xml'))
 home_ui = (OUT / 'target-home.xml').read_text()
-assert 'Aru-MyBest' in home_ui
+assert 'Aruno-Result' in home_ui
 assert '今日までの目標' in home_ui, 'Daily target amounts missing from upgraded management screen'
 assert home_ui.count('今日までの目標') >= 3, 'Expected Total, TikTok and Coupon target amounts'
 with (OUT / 'target-home.png').open('wb') as screenshot:

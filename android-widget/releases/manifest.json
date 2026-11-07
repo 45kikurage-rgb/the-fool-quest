@@ -1,21 +1,22 @@
 {
   "applicationId": "com.aruno.foolquest.widget.next",
-  "version": "0.1.30",
-  "versionCode": 31,
+  "version": "0.1.31",
+  "versionCode": 32,
   "minSdk": 26,
   "targetSdk": 35,
-  "size": 293895,
-  "sha256": "8a9ed53b832e050e84853050917cf0a3f9124b29bbfd79f3b99542e1d20bccc7",
+  "size": 310366,
+  "sha256": "3f9355ab9e92dae3e4ba9c0a45fd860437dd8adbc717881be6c91bab90e8c8d5",
   "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
   "couponUpdate": "Daily revenue for priced coupons via authenticated Ledger; monthly reader retained",
   "tiktokUpdate": "On-demand current-month point-history CSV fetch in the in-app WebView; manual CSV import and manual revenue entry remain available",
   "changes": [
-    "Daily display order is Total, gross Coupon C, gross TikTok Lite T, and red negative combined loss",
-    "Four reusable row XML templates; reorder them by moving four includes in calendar_day.xml",
-    "Daily total deducts combined loss once; T and C still show earned amounts",
-    "Preserve prior monthly totals, loss records, CSV, Ledger integration, colors, calendar settings and widget layout dimensions"
+    "Aruno-Result name and approved transparent launcher icon",
+    "Total/Coupon/TikTok; rainbow from lap 3 onwards",
+    "10 percent ticks: 2px, height 1/5 default or 1/4 or 1/3",
+    "Daily target labels on all gauges; small white configurable Total triangle",
+    "Four daily rows and loss-only display"
   ],
-  "file": "aru-mybest-0.1.30.apk",
+  "file": "aruno-result-0.1.31.apk",
   "installation": "Update the existing successor without uninstalling; preserve revenue, goals, colors and saved settings. Photo-two reference button resets layout only.",
   "legacy": {
     "applicationId": "com.aruno.foolquest.widget",
@@ -28,14 +29,23 @@
   },
   "previousRelease": {
     "applicationId": "com.aruno.foolquest.widget.next",
-    "version": "0.1.29",
-    "versionCode": 30,
-    "size": 293578,
-    "sha256": "1cc1cda068d748a14342c9f58522a01f8e73d4ade466dd3c0220d85f14a82246",
+    "version": "0.1.30",
+    "versionCode": 31,
+    "size": 293895,
+    "sha256": "8a9ed53b832e050e84853050917cf0a3f9124b29bbfd79f3b99542e1d20bccc7",
     "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
-    "file": "aru-mybest-0.1.29.apk"
+    "file": "aru-mybest-0.1.30.apk"
   },
   "archives": [
+    {
+      "applicationId": "com.aruno.foolquest.widget.next",
+      "version": "0.1.29",
+      "versionCode": 30,
+      "size": 293578,
+      "sha256": "1cc1cda068d748a14342c9f58522a01f8e73d4ade466dd3c0220d85f14a82246",
+      "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+      "file": "aru-mybest-0.1.29.apk"
+    },
     {
       "applicationId": "com.aruno.foolquest.widget.next",
       "version": "0.1.28",
@@ -172,7 +182,7 @@
       "file": "fool-quest-widget-0.1.13-original.apk"
     }
   ],
-  "sourceCommit": "a5a2a080e55faef0063d182e9047762d418f3781",
+  "sourceCommit": "b80ca2f4c4ecf09564ca7b5d3dd3000c4330c442",
   "unsignedSha256": "a4f1edf4d8ebfd6cd248ff48ce240f94b3d30264fa5820f9b9e573db42d3d94f",
   "deviceVerified": false,
   "deliveryStatus": "production-update",
@@ -188,5 +198,6 @@
   "upgradeTestRunId": 42118879311,
   "publicationStatus": "public-origin-verification-pending",
   "signedSourceStagingBranch": "staging/mybest-code31-8a9ed53b832e",
-  "publicationRequestedAt": "2026-11-06 JST"
+  "publicationRequestedAt": "2026-11-06 JST",
+  "displayName": "Aruno-Result"
 }
