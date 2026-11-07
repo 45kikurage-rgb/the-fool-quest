@@ -43,12 +43,31 @@
     "oldPackagePreserved": true
   },
   "publication": {
-    "status": "pending",
+    "status": "primary_verified_secondary_pending",
     "urls": [
       "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
       "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
     ],
-    "releaseCommit": "c12157e1d191652605bb5395c8bd99b6db03ad0a"
+    "releaseCommit": "c12157e1d191652605bb5395c8bd99b6db03ad0a",
+    "verificationRun": 42360951814,
+    "verificationRunResult": "failure: secondary GitHub Pages still served code33 while its deployment was in progress; verification stopped at secondary before primary",
+    "primary": {
+      "origin": "https://the-fool-quest.45kikurage.workers.dev",
+      "pageCode": 34,
+      "manifestCode": 34,
+      "apkBytes": 310366,
+      "apkSha256": "d5ac8dfc946d7c902b8d8e2ef365c3456f587b4af863552d70ec768881352800",
+      "httpStatus": 200,
+      "independentReadback": true
+    },
+    "secondary": {
+      "origin": "https://45kikurage-rgb.github.io/the-fool-quest",
+      "observedPageCode": 33,
+      "observedManifestCode": 33,
+      "deploymentRun": 42360951520,
+      "deploymentStatus": "in_progress",
+      "apkCode34Verified": false
+    }
   },
   "physicalDevice": {
     "verified": false,
