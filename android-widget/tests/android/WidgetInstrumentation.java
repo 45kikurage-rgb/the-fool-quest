@@ -307,9 +307,9 @@ public class WidgetInstrumentation extends Instrumentation {
         return null;
     }
     void calendarLayoutChecks() {
-        ok(c.getApplicationInfo().icon==R.drawable.ic_mybest &&
-            c.getDrawable(R.drawable.ic_mybest) instanceof android.graphics.drawable.AdaptiveIconDrawable,
-            "application uses the MyBest adaptive launcher icon");
+        ok(c.getApplicationInfo().icon==R.drawable.ic_aruno_result &&
+            c.getDrawable(R.drawable.ic_aruno_result) instanceof android.graphics.drawable.BitmapDrawable,
+            "application uses the approved Aruno-Result bitmap launcher icon");
         int first=13001, second=13002;
         CalendarWidgetState.month(c,first,"2026-05");
         CalendarWidgetState.filter(c,first,CalendarWidgetState.COUPON);
