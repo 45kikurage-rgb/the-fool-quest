@@ -43,10 +43,28 @@
     ]
   },
   "publication": {
-    "status": "ready-not-yet-published",
-    "expectedOrigins": [
-      "https://the-fool-quest.45kikurage.workers.dev",
-      "https://45kikurage-rgb.github.io/the-fool-quest"
+    "status": "verified",
+    "releaseCommit": "a0457371d60ff6c71ef8383f49d1f6cded80b297",
+    "verificationRun": 42358750031,
+    "bothOriginsVerified": true,
+    "verifiedAtUtc": "2026-11-07T09:15:02.448305+00:00",
+    "origins": [
+      {
+        "origin": "https://the-fool-quest.45kikurage.workers.dev",
+        "pageCode": 33,
+        "manifestCode": 33,
+        "apkBytes": 310366,
+        "apkSha256": "37cc40d381c4e7be1d33bc6d3879c7dba5fe97631bb56fa0d52f6fb7b0317e4d",
+        "independentReadback": true
+      },
+      {
+        "origin": "https://45kikurage-rgb.github.io/the-fool-quest",
+        "pageCode": 33,
+        "manifestCode": 33,
+        "apkBytes": 310366,
+        "apkSha256": "37cc40d381c4e7be1d33bc6d3879c7dba5fe97631bb56fa0d52f6fb7b0317e4d",
+        "independentReadback": true
+      }
     ]
   },
   "physicalDevice": {
