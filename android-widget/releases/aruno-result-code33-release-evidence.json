@@ -1,0 +1,62 @@
+{
+  "schema": 1,
+  "version": "0.1.32",
+  "versionCode": 33,
+  "sourceCommit": "d235b93adf1a85950b05f365790f7742a773c252",
+  "package": "com.aruno.foolquest.widget.next",
+  "apkFile": "aruno-result-0.1.32.apk",
+  "apkSha256": "37cc40d381c4e7be1d33bc6d3879c7dba5fe97631bb56fa0d52f6fb7b0317e4d",
+  "apkBytes": 310366,
+  "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+  "unsignedSha256": "14bec14bf352416f2fcedc52ffb2b17a550a7f2abb4cad959bda6ed27f10f628",
+  "signing": {
+    "successfulRun": 42358221857,
+    "firstRun": 42358122110,
+    "firstRunResult": "stopped before build/sign due to incorrect versionName assertion; request remained 0.1.32; fixed signing workflow only",
+    "existingKey": true,
+    "independentPrimaryBackupRestore": true,
+    "newKeyGenerated": false
+  },
+  "software": {
+    "run": 42357982520,
+    "nativeChecks": 8406,
+    "offlineChecks": 2759,
+    "rebootChecks": 2749,
+    "compiledAndSignedPayloadMatch": true
+  },
+  "upgrade": {
+    "fromCode": 32,
+    "toCode": 33,
+    "status": "success",
+    "run": 42358475455,
+    "fixtureFields": 39,
+    "uidPreserved": true,
+    "oldPackagePreserved": true,
+    "includes": [
+      "daily CSV",
+      "manual revenue",
+      "TikTok/Coupon losses",
+      "display settings",
+      "target marker color",
+      "tick height",
+      "encrypted daily connection preference"
+    ]
+  },
+  "publication": {
+    "status": "ready-not-yet-published",
+    "expectedOrigins": [
+      "https://the-fool-quest.45kikurage.workers.dev",
+      "https://45kikurage-rgb.github.io/the-fool-quest"
+    ]
+  },
+  "physicalDevice": {
+    "verified": false,
+    "code32DataLossCause": "unresolved"
+  },
+  "scope": [
+    "remove in-gauge daily target label",
+    "remove TikTok unlinked footer",
+    "keep 14dp default gauge independent of host height"
+  ],
+  "dataStorageChanges": false
+}

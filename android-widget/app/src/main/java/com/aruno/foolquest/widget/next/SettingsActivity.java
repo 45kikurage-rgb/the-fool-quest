@@ -100,7 +100,7 @@ public final class SettingsActivity extends Activity {
         slider("文字サイズ（基準32）",24,40,settings.font,v->settings.font=v);
         slider("左余白（基準17）",1,33,settings.left,v->settings.left=v);slider("右余白（基準16）",0,32,settings.right,v->settings.right=v);
         slider("上余白",0,24,settings.top,v->settings.top=v);slider("下余白",0,24,settings.bottom,v->settings.bottom=v);
-        slider("ステータス行間（基準5）",0,10,settings.gap,v->settings.gap=v);slider("ゲージ太さ（基準14）",8,20,settings.gauge,v->settings.gauge=v);
+        slider("ステータス行間（基準5）",0,10,settings.gap,v->settings.gap=v);slider("ゲージ太さ（基準14dp）",8,20,settings.gauge,v->settings.gauge=v);
         slider("文字とゲージの間隔（基準4）",0,8,settings.textGap,v->settings.textGap=v);
         body.addView(text("Total：今日までの目標位置 ▼",18));
         body.addView(text("月間目標を日割りした、今日までの累計目標の位置です。日本時間の0時に切り替わります。",13));

@@ -174,6 +174,9 @@ for name, kind, value in [
     ('calendar.filter.43', 'int', '4'),
     ('goalMarkerColor', 'int', '-256'),
     ('goalMarkerWidth', 'int', '3'),
+    ('colorTargetMarker', 'int', '-16711936'),
+    ('gaugeTickDivisor', 'int', '3'),
+    ('myBestCouponDailyCredentialV1', 'string', 'upgrade-credential-fixture-not-a-real-token'),
 ]:
     elem = ET.SubElement(fixture, kind, name=name)
     if kind == 'string':

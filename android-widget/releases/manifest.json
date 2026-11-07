@@ -1,22 +1,21 @@
 {
   "applicationId": "com.aruno.foolquest.widget.next",
-  "version": "0.1.31",
-  "versionCode": 32,
+  "version": "0.1.32",
+  "versionCode": 33,
   "minSdk": 26,
   "targetSdk": 35,
   "size": 310366,
-  "sha256": "3f9355ab9e92dae3e4ba9c0a45fd860437dd8adbc717881be6c91bab90e8c8d5",
+  "sha256": "37cc40d381c4e7be1d33bc6d3879c7dba5fe97631bb56fa0d52f6fb7b0317e4d",
   "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
   "couponUpdate": "Daily revenue for priced coupons via authenticated Ledger; monthly reader retained",
   "tiktokUpdate": "On-demand current-month point-history CSV fetch in the in-app WebView; manual CSV import and manual revenue entry remain available",
   "changes": [
-    "Aruno-Result name and approved transparent launcher icon",
-    "Total/Coupon/TikTok; rainbow from lap 3 onwards",
-    "10 percent ticks: 2px, height 1/5 default or 1/4 or 1/3",
-    "Daily target labels on all gauges; small white configurable Total triangle",
-    "Four daily rows and loss-only display"
+    "Remove in-gauge daily target labels and amounts",
+    "Remove TikTok unlinked footer",
+    "Keep saved gauge thickness in dp without automatic enlargement in tall hosts",
+    "Retain Total/Coupon/TikTok order, target triangle, monthly target columns and fixed 10-percent ticks"
   ],
-  "file": "aruno-result-0.1.31.apk",
+  "file": "aruno-result-0.1.32.apk",
   "installation": "Update the existing successor without uninstalling; preserve revenue, goals, colors and saved settings. Photo-two reference button resets layout only.",
   "legacy": {
     "applicationId": "com.aruno.foolquest.widget",
@@ -29,14 +28,23 @@
   },
   "previousRelease": {
     "applicationId": "com.aruno.foolquest.widget.next",
-    "version": "0.1.30",
-    "versionCode": 31,
-    "size": 293895,
-    "sha256": "8a9ed53b832e050e84853050917cf0a3f9124b29bbfd79f3b99542e1d20bccc7",
+    "version": "0.1.31",
+    "versionCode": 32,
+    "size": 310366,
+    "sha256": "3f9355ab9e92dae3e4ba9c0a45fd860437dd8adbc717881be6c91bab90e8c8d5",
     "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
-    "file": "aru-mybest-0.1.30.apk"
+    "file": "aruno-result-0.1.31.apk"
   },
   "archives": [
+    {
+      "applicationId": "com.aruno.foolquest.widget.next",
+      "version": "0.1.30",
+      "versionCode": 31,
+      "size": 293895,
+      "sha256": "8a9ed53b832e050e84853050917cf0a3f9124b29bbfd79f3b99542e1d20bccc7",
+      "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+      "file": "aru-mybest-0.1.30.apk"
+    },
     {
       "applicationId": "com.aruno.foolquest.widget.next",
       "version": "0.1.29",
@@ -182,25 +190,24 @@
       "file": "fool-quest-widget-0.1.13-original.apk"
     }
   ],
-  "sourceCommit": "b80ca2f4c4ecf09564ca7b5d3dd3000c4330c442",
-  "unsignedSha256": "a4f1edf4d8ebfd6cd248ff48ce240f94b3d30264fa5820f9b9e573db42d3d94f",
+  "sourceCommit": "d235b93adf1a85950b05f365790f7742a773c252",
+  "unsignedSha256": "14bec14bf352416f2fcedc52ffb2b17a550a7f2abb4cad959bda6ed27f10f628",
   "deviceVerified": false,
   "deliveryStatus": "production-update",
   "dailyTargetUpdate": "JST midnight; exact alarm when allowed, inexact fallback otherwise; no network required",
-  "signingRunId": 42118369002,
-  "softwareTestRunId": 42117549442,
+  "signingRunId": 42358221857,
+  "softwareTestRunId": 42357982520,
   "distributionUrls": [
     "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
     "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
   ],
   "lossUpdate": "Manually record, edit and delete separate TikTok Lite and Coupon losses by date; preserve the gross source; net amounts subtract losses once",
   "lossDisplay": "Combined daily losses shown in red below the TikTok row; daily and monthly totals are net of losses",
-  "upgradeTestRunId": 42118879311,
+  "upgradeTestRunId": 42358475455,
   "publicationStatus": "public-origin-verification-pending",
-  "signedSourceStagingBranch": "staging/mybest-code31-8a9ed53b832e",
   "publicationRequestedAt": "2026-11-06 JST",
   "displayName": "Aruno-Result",
-  "releaseStatus": "HOLD_DATA_RETENTION_INVESTIGATION",
+  "releaseStatus": "DISPLAY_FIX_AVAILABLE_DATA_LOSS_CAUSE_UNRESOLVED",
   "updateRecommended": false,
-  "notice": "User reported missing local revenue, display settings and home widgets after update. Cause and recovery unconfirmed. Preserve APKs and data; do not uninstall or clear app data."
+  "notice": "Display-only code33 candidate. The code32 physical-device local data-loss cause remains unresolved. Export JSON before updating; never uninstall or clear app data."
 }

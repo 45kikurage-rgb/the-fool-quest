@@ -85,8 +85,6 @@ final class WidgetRenderer {
                 c.drawRoundRect(new RectF(l.left,gy,l.left+trackWidth*fill,gy+gauge),gauge/2,gauge/2,p);
             }
             GaugeDrawing.divisions(c,l.left,gy,trackWidth,gauge,1f/s.tickDivisor,2f);
-            GaugeDrawing.targetLabel(c,l.left,gy,trackWidth,gauge,
-                RevenueMath.targetThroughToday(data.month,goals[i],now),context.getResources().getFont(R.font.aru_widget_rounded));
             if(i==0)GaugeDrawing.targetMarker(c,l.left,gy,trackWidth,gauge,
                 RevenueMath.targetProgress(data.month,goals[i],now),s.targetMarkerColor);
             if(lap>=2){
@@ -105,12 +103,11 @@ final class WidgetRenderer {
         if(d.loading) return "更新中";
         if(!d.error.isEmpty()) return RevenueFailure.label(d.errorCode)+"・前回値を表示";
         if(d.couponAt==0) return "初回取得待ち";
-        return d.importAt==0 ? "TikTok・目標未連携" : "";
+        return "";
     }
     static String description(RevenueStore.Data d){
         StringBuilder b=new StringBuilder(d.month+" ");long[] v=d.values(),g=d.goals();
-        for(int i:DISPLAY_ORDER)b.append(LABELS[i]).append(' ').append(RevenueMath.moneyNet(v[i])).append('/').append(RevenueMath.money(g[i])).append(' ').append(RevenueMath.percentNet(v[i],g[i])).append("。 ")
-            .append(RevenueMath.dailyTargetLabel(d.month,g[i],System.currentTimeMillis())).append("。 ");
+        for(int i:DISPLAY_ORDER)b.append(LABELS[i]).append(' ').append(RevenueMath.moneyNet(v[i])).append('/').append(RevenueMath.money(g[i])).append(' ').append(RevenueMath.percentNet(v[i],g[i])).append("。 ");
         return b.append(footer(d)).toString();
     }
 }

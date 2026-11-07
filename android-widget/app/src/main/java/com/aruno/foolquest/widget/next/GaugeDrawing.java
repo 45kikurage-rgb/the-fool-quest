@@ -23,23 +23,6 @@ final class GaugeDrawing {
         c.drawPath(triangle,p);
     }
 
-    /** Same two-line label in every metric without increasing the track height. */
-    static void targetLabel(Canvas c,float left,float top,float width,float height,long target,Typeface typeface) {
-        if(width<=0||height<=0)return;
-        String title="現目標値",amount=target<0?"—":java.text.NumberFormat.getIntegerInstance(java.util.Locale.JAPAN).format(target);
-        Paint p=new Paint(Paint.ANTI_ALIAS_FLAG);p.setTypeface(typeface);p.setTextSize(100);
-        Paint.FontMetrics probe=p.getFontMetrics();
-        float size=Math.min(9f,Math.max(.5f,(height-1)/2)*100/(probe.descent-probe.ascent));
-        size=Math.min(size,Math.max(1,width-4)*100/Math.max(p.measureText(title),p.measureText(amount)));
-        p.setTextSize(Math.max(.5f,size));Paint.FontMetrics fm=p.getFontMetrics();
-        float line=fm.descent-fm.ascent,box=Math.min(width,Math.max(p.measureText(title),p.measureText(amount))+4);
-        int save=c.save();c.clipRect(left,top,left+width,top+height);
-        p.setColor(0xcc000000);c.drawRect(left,top,left+box,top+height,p);
-        p.setColor(0xffffffff);float baseline=top+(height-line*2)/2-fm.ascent;
-        c.drawText(title,left+2,baseline,p);c.drawText(amount,left+2,baseline+line,p);
-        c.restoreToCount(save);
-    }
-
     static Paint textPaint() {
         Paint p=new Paint(Paint.ANTI_ALIAS_FLAG);
         p.setTypeface(Typeface.create("monospace",Typeface.NORMAL));

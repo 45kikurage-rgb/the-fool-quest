@@ -97,7 +97,7 @@ public class WidgetInstrumentation extends Instrumentation {
                 float progress=RevenueMath.progress(data.values()[row],data.goals()[row]);
                 int cy=fill.getHeight()/2;
                 boolean layered=lap>=2&&settings.isSecondLap(data.values()[row],data.goals()[row],data.month,System.currentTimeMillis());
-                // Target text now occupies the left of the bar. Only Total may draw above it.
+                // The bar contains only progress/ticks; only Total may draw above it.
                 int overhangInk=0;
                 for(int x=0;x<fill.getWidth();x++)if(android.graphics.Color.alpha(fill.getPixel(x,0))>0)overhangInk++;
                 if(row!=0)ok(overhangInk==0,"Coupon and TikTok have no target triangle or old progress boundary");
@@ -811,8 +811,15 @@ public class WidgetInstrumentation extends Instrumentation {
             DisplaySettings moreGap=new DisplaySettings();moreGap.gap=60;
             ok(NativeWidgetViews.create(c,nativeData,moreGap,360,600).gap==60,"tall host honors 60dp row gap without the old fifteen-percent limit");
             nativeTextLayout(nativeData,moreGap,360,600,160,"native-row-gap-60");
-            ok(measuredGaugeHeights.get("native-text-360x100-dpi320")<measuredGaugeHeights.get("native-text-360x196-dpi320"),"gauge thickens when card height increases");
-            ok(measuredGaugeHeights.get("native-text-360x196-dpi320")<measuredGaugeHeights.get("native-text-tall-card"),"gauge continues to scale above two-row height");
+            ok(measuredGaugeHeights.get("native-text-360x100-dpi320")<measuredGaugeHeights.get("native-text-360x196-dpi320"),"short hosts may shrink the gauge to keep every row visible");
+            ok(measuredGaugeHeights.get("native-text-360x196-dpi320").equals(measuredGaugeHeights.get("native-text-tall-card")),"gauge thickness stays at the saved dp value in a taller card");
+            ok(NativeWidgetViews.create(c,nativeData,new DisplaySettings(),360,300).gauge==14,"fresh default remains a slim 14dp even in a tall host");
+            RevenueStore.Data unlinked=new RevenueStore.Data();unlinked.month=month;unlinked.couponAt=1;unlinked.importAt=0;unlinked.error="";unlinked.errorCode="";
+            ok(WidgetRenderer.footer(unlinked).isEmpty(),"missing TikTok import does not add a footer");
+            runOnMainSync(()->{
+                android.view.View clean=NativeWidgetViews.create(c,unlinked,new DisplaySettings(),360,196).views.apply(c,null);
+                ok(clean.findViewById(R.id.widget_footer).getVisibility()==android.view.View.GONE,"unlinked footer is hidden in the actual widget");
+            });
             ok(new DisplaySettings().font==32&&new DisplaySettings().gauge==14&&new DisplaySettings().textGap==4,
                 "photo-two reference is the default adjustment midpoint");
             ok(NativeWidgetViews.create(c,nativeData,new DisplaySettings(),360,196).font>NativeWidgetViews.create(c,nativeData,new DisplaySettings(),360,100).font,"larger card increases font within safe column limits");
