@@ -1,1 +1,5 @@
-{"schema": 1, "sourceCommit": "eb202ab64f3421ee6e06f2de6af951b474c9538c", "reason": "Android17 SDK is named android-37.0; use exact published package name; isolated fixtures only"}
+{
+  "schema": 1,
+  "sourceCommit": "e8707316316200ecc8c779cca970d2817683ab0e",
+  "reason": "Final source verification using Android17 minimum 4GiB RAM and current software GPU backend; bounded boot/test timeouts; isolated data only."
+}
