@@ -163,7 +163,7 @@ jobs:
           timeout 90 adb install android-widget/build/android-test/widget-tests.apk
           timeout 180 adb shell am instrument -w com.aruno.foolquest.widget.next.test/com.aruno.foolquest.widget.next.BackupInstrumentation | tee "$OUT/android17.txt"
           grep -q 'PASS .* backup Android checks' "$OUT/android17.txt"
-          timeout 10 adb reboot
+          timeout 60 adb reboot
           booted=false
           deadline=$((SECONDS+180))
           while (( SECONDS < deadline )); do
