@@ -229,7 +229,7 @@
   "lossUpdate": "Manually record, edit and delete separate TikTok Lite and Coupon losses by date; preserve the gross source; net amounts subtract losses once",
   "lossDisplay": "Combined daily losses shown in red below the TikTok row; daily and monthly totals are net of losses",
   "upgradeTestRunId": 42472448522,
-  "publicationStatus": "PENDING_PUBLIC_ORIGIN_READBACK",
+  "publicationStatus": "VERIFIED_BOTH_ORIGINS",
   "publicationRequestedAt": "2026-11-08T19:47:26.425116+09:00",
   "displayName": "Aruno-Result",
   "releaseStatus": "WHITE_ICON_UPDATE_AVAILABLE_PHYSICAL_PENDING",
@@ -297,5 +297,9 @@
   "releaseEvidence": "aruno-result-code36-release-evidence.json",
   "launcherBackground": "#FFFFFF",
   "launcherArtworkUnchanged": true,
-  "launcherIconResource": "@drawable/zz_aruno_launcher_white"
+  "launcherIconResource": "@drawable/zz_aruno_launcher_white",
+  "publicationVerifiedAt": "2026-11-08T10:55:33.615104+00:00",
+  "publicationVerificationRunId": 42473255459,
+  "publicationVerificationJobId": 128708763875,
+  "publicationCommit": "2653fdba5ae703637178ee651b6fc544bf4e7d78"
 }

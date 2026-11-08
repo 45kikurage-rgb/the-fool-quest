@@ -34,7 +34,7 @@
 
 ## code36 白背景アイコン更新記録（2026-11-08）
 
-実装済み・正式署名済み・ソフトウェア上書き保持合格。公開先照合は配布manifestとrelease JSONのpublication状態を参照。物理Pixel10は未接続・未確認、正式運用開始も未確認。
+実装済み・正式署名済み・ソフトウェア上書き保持合格。公開先のHTML・manifest・APKを両originから取得し、HTTP200・版・326812 bytes・SHA-256の一致、前code35 APKの維持を確認。公開照合run42473255459/job128708763875成功。公開merge2653fdba5ae703637178ee651b6fc544bf4e7d78、Pages run42473255004成功。照合2026-11-08T10:55:33.615104+00:00。物理Pixel10は未接続・未確認、正式運用開始も未確認。
 
 - package com.aruno.foolquest.widget.next / 0.1.35 / versionCode36 / 326812 bytes。
 - 実APKソース a3cac172991fa804ea1455dbca05acd8a88d2b8e。後続変更は検証・資料・配布資材。既存PNG・アプリ本体Java・保存形式は変更なし。白#FFFFFFの下地のみ追加。
@@ -48,7 +48,7 @@
 - 代替URL https://45kikurage-rgb.github.io/the-fool-quest/android-widget/releases/aruno-result-0.1.35.apk
 - 実機HOME/フォルダ/アプリ一覧と実データの上書きは未確認。code32消失原因は未特定。端末初期化・アンインストール・保存内容削除は実施しない。
 
-以前の候補停止は上書き試験未完了が理由。上記の同一署名・データ保持・復旧ゲートが全合格したため公開工程へ進む。失敗試行のActions履歴は保持し、成功と置換しない。
+以前の候補停止は上書き試験未完了が理由。上記の同一署名・データ保持・復旧ゲートが全合格し、既存の2配布先で公開・再取得照合済み。失敗試行のActions履歴は保持し、成功と置換しない。
 
 ## code35 公開後照合（2026-11-08）
 
