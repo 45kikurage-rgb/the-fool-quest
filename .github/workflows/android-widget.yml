@@ -102,7 +102,7 @@ jobs:
           path: android-widget/build/native-results/
           retention-days: 14
 
-  backup-android17:
+  backup-android36:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -126,10 +126,10 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-      - name: Android17 real SAF, recovery, permission loss and reboot
+      - name: Android36 real SAF (API37 SDK unavailable),, recovery, permission loss and reboot
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 37
+          api-level: 36
           arch: x86_64
           target: google_apis
           disable-animations: true
@@ -137,8 +137,8 @@ jobs:
             adb install android-widget/build/out/fool-quest-widget-0.1.16.apk
             adb install android-widget/build/android-test/widget-tests.apk
             mkdir -p android-widget/build/backup-results
-            adb shell am instrument -w com.aruno.foolquest.widget.next.test/com.aruno.foolquest.widget.next.BackupInstrumentation | tee android-widget/build/backup-results/android17.txt
-            grep -q 'PASS .* backup Android checks' android-widget/build/backup-results/android17.txt
+            adb shell am instrument -w com.aruno.foolquest.widget.next.test/com.aruno.foolquest.widget.next.BackupInstrumentation | tee android-widget/build/backup-results/android36.txt
+            grep -q 'PASS .* backup Android checks' android-widget/build/backup-results/android36.txt
             adb reboot
             adb wait-for-device
             timeout 180 bash -c 'until adb shell getprop sys.boot_completed | grep -q 1; do sleep 2; done'
@@ -154,6 +154,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: result-backup-android17-results
+          name: result-backup-android36-results
           path: android-widget/build/backup-results/
           retention-days: 14
