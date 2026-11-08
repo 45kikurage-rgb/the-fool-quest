@@ -130,6 +130,11 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: '37.0'
+          ram-size: 4096M
+          heap-size: 512M
+          cores: 4
+          emulator-boot-timeout: 240
+          emulator-options: -no-window -gpu software -no-snapshot -noaudio -no-boot-anim -camera-back none -camera-front none
           arch: x86_64
           target: google_apis
           disable-animations: true
@@ -139,7 +144,7 @@ jobs:
             adb install android-widget/build/out/fool-quest-widget-0.1.16.apk
             adb install android-widget/build/android-test/widget-tests.apk
             mkdir -p android-widget/build/backup-results
-            adb shell am instrument -w com.aruno.foolquest.widget.next.test/com.aruno.foolquest.widget.next.BackupInstrumentation | tee android-widget/build/backup-results/android17.txt
+            timeout 180 adb shell am instrument -w com.aruno.foolquest.widget.next.test/com.aruno.foolquest.widget.next.BackupInstrumentation | tee android-widget/build/backup-results/android17.txt
             grep -q 'PASS .* backup Android checks' android-widget/build/backup-results/android17.txt
             adb reboot
             adb wait-for-device
