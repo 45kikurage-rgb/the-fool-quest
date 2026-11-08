@@ -22,7 +22,7 @@
 | 復号情報の管理 | opsの既存GitHub Actions Secret ARUNO_SIGNING_ROOTS_JSON と config/signing-recovery.json。値は非公開・暗号文と別管理 |
 | アクセス方法 | GitHub接続で固定repo/commit/path/blobを確認。権限のあるopsの既存署名runnerだけで復元し、別runnerの両経路検証後に署名 |
 | 署名経路 | ops .github/workflows/aruno-result-code35-existing-signature.yml、projects/github-signing/trial_candidate.py |
-| 最終独立復元試験 | 2026-11-08。run42459295551、primary job128664915802 / backup job128664915931、両成功。今回の最終候補の証跡は下記release JSONを優先 |
+| 最終独立復元試験 | 2026-11-08。run42459999363、primary job128667046500 / backup job128667046511、両成功。今回の最終候補の証跡は下記release JSONを優先 |
 | 鍵の置換・新規作成 | なし |
 | 実機確認 | Pixel 10未接続。未確認 |
 

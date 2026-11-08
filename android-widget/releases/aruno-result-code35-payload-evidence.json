@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "eb202ab64f3421ee6e06f2de6af951b474c9538c",
+  "sourceCommit": "e8707316316200ecc8c779cca970d2817683ab0e",
   "testedPayloadMatchesSigned": true,
   "payloadEntries": 40,
   "payload": {
@@ -42,6 +42,6 @@
     "res/xml/combined_widget.xml": "d10bd06440bc932db0d04388f5978ec9d8923d1dc8f65d0bd5543d94a423657b",
     "res/xml/revenue_widget.xml": "34ea61738a525db5633d9f26f8949ad6eda7340a729a75b247fb6eab88678ee2",
     "resources.arsc": "0960840f152123baadfa9c9ab6bb6dee14b0cfe780847673e37ca38bd94af364",
-    "classes.dex": "e68c65400b7da4eff0c2ba392b41b576f0a1e04af4a72b36c9222f958c380823"
+    "classes.dex": "0fa39abdb72d13faabadcb1970102658f5837f2289b8e16a5bae89129317da71"
   }
 }
