@@ -2,4 +2,5 @@
  <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="35" />
  <application android:label="Widget tests" />
  <instrumentation android:name="com.aruno.foolquest.widget.next.WidgetInstrumentation" android:targetPackage="com.aruno.foolquest.widget.next" android:label="Widget native tests" />
+ <instrumentation android:name="com.aruno.foolquest.widget.next.BackupInstrumentation" android:targetPackage="com.aruno.foolquest.widget.next" android:label="Backup native tests" />
 </manifest>

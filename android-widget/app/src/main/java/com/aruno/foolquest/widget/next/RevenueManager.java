@@ -147,9 +147,12 @@ final class RevenueManager {
     }
     long goal(String key) throws Exception {return goals().getLong(key);}
     void setGoals(long t,long c) throws Exception {
+        synchronized(BackupCoordinator.LOCK){
+        reloadConfirmed();
         safe(t,true);safe(c,true);plus(t,c);
         goals().put("tiktok",t);goals().put("coupon",c);
         persistAndRender();
+    }
     }
     long csvBase(String key) throws Exception {
         JSONObject v=months().optJSONObject(key);
@@ -193,6 +196,8 @@ final class RevenueManager {
     }
     private void saveCsv(String key,long amount,String filename,int count,
                          java.util.Map<String,Long> dayAmounts,boolean complete,String acquired) throws Exception {
+        synchronized(BackupCoordinator.LOCK){
+        reloadConfirmed();
         requireMonth(key);safe(amount,false);
         // Prepare and validate an independent copy: malformed CSV must never mutate
         // the live in-memory history or erase the last-good daily breakdown.
@@ -239,6 +244,7 @@ final class RevenueManager {
         state=candidate;
         try{saveAndRender(true,key.equals(month()));}catch(Exception e){state=old;throw e;}
     }
+    }
     static void checkDate(String date) throws Exception {
         if(!date.matches("20[0-9]{2}-(0[1-9]|1[0-2])-([0-2][0-9]|3[01])"))
             throw new IllegalArgumentException("日付はyyyy-MM-dd形式で入力してください");
@@ -248,6 +254,8 @@ final class RevenueManager {
             throw new IllegalArgumentException("存在しない日付です");
     }
     void addManual(String date,long amount) throws Exception {
+        synchronized(BackupCoordinator.LOCK){
+        reloadConfirmed();
         checkDate(date);
         safe(amount,true);
         if(manual().length()>=10000)throw new IllegalArgumentException("履歴件数の上限です");
@@ -262,7 +270,10 @@ final class RevenueManager {
         manual().put(row);
         persistAndRender();
     }
+    }
     void addLoss(String date,String category,long amount) throws Exception {
+        synchronized(BackupCoordinator.LOCK){
+        reloadConfirmed();
         checkDate(date);requireCategory(category);safe(amount,true);
         JSONArray rows=losses();
         if(rows.length()>=10000)throw new IllegalArgumentException("損失履歴件数の上限です");
@@ -277,7 +288,10 @@ final class RevenueManager {
         JSONObject old=state;state=candidate;
         try{persistAndRender();}catch(Exception e){state=old;throw e;}
     }
+    }
     void updateLoss(String id,String date,String category,long amount) throws Exception {
+        synchronized(BackupCoordinator.LOCK){
+        reloadConfirmed();
         checkDate(date);requireCategory(category);safe(amount,true);
         JSONObject candidate=new JSONObject(state.toString());
         JSONArray rows=candidate.optJSONArray("losses");
@@ -295,7 +309,10 @@ final class RevenueManager {
         JSONObject old=state;state=candidate;
         try{persistAndRender();}catch(Exception e){state=old;throw e;}
     }
+    }
     void deleteLoss(String id) throws Exception {
+        synchronized(BackupCoordinator.LOCK){
+        reloadConfirmed();
         JSONObject candidate=new JSONObject(state.toString());
         JSONArray rows=candidate.optJSONArray("losses"),updated=new JSONArray();
         boolean found=false;
@@ -308,7 +325,10 @@ final class RevenueManager {
         JSONObject old=state;state=candidate;
         try{persistAndRender();}catch(Exception e){state=old;throw e;}
     }
+    }
     void deleteManual(String id) throws Exception {
+        synchronized(BackupCoordinator.LOCK){
+        reloadConfirmed();
         JSONArray fresh=new JSONArray();boolean found=false;
         for(int i=0;i<manual().length();i++) {
             JSONObject v=manual().getJSONObject(i);
@@ -318,7 +338,10 @@ final class RevenueManager {
         if(!found)throw new IllegalArgumentException("履歴が見つかりません");
         state.put("manual",fresh);persistAndRender();
     }
+    }
     void updateManual(String id,String date,long amount) throws Exception {
+        synchronized(BackupCoordinator.LOCK){
+        reloadConfirmed();
         checkDate(date);safe(amount,true);
         if(csvBase(date.substring(0,7))<0) { JSONObject record=new JSONObject();record.put("csv",0);record.put("source","manual-only");months().put(date.substring(0,7),record); }
         JSONArray changed=new JSONArray();boolean found=false;
@@ -337,6 +360,12 @@ final class RevenueManager {
         validate(candidate);
         JSONObject old=state;state=candidate;
         try{persistAndRender();}catch(Exception e){state=old;throw e;}
+    }
+    }
+    private void reloadConfirmed() throws Exception {
+        String saved=preferences.getString(KEY,"");
+        if(saved.isEmpty())throw new IllegalStateException("収益履歴が見つかりません。バックアップから復旧してください");
+        JSONObject fresh=new JSONObject(saved);validate(fresh);state=fresh;
     }
     void persist() throws Exception {
         if(!preferences.edit().putString(KEY,state.toString()).commit())
@@ -388,11 +417,14 @@ final class RevenueManager {
     String backup() throws Exception { return snapshot().toString(); }
 
     void replaceFromJson(String json) throws Exception {
+        synchronized(BackupCoordinator.LOCK){
+        reloadConfirmed();
         if(json.length()>2_000_000)throw new IllegalArgumentException("ファイルが大きすぎます");
         JSONObject incoming=new JSONObject(json);validate(incoming);
         // Stage validated data first; never erase the previous state for a malformed import.
         JSONObject old=state;state=incoming;
         try{persistAndRender();}catch(Exception e){state=old;throw e;}
+    }
     }
     static long strictNumber(Object raw,boolean positive) {
         if(!(raw instanceof Number))throw new IllegalArgumentException("金額は数値で指定してください");
