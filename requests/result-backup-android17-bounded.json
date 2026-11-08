@@ -1,1 +1,1 @@
-{"schema":1,"sourceCommit":"e8707316316200ecc8c779cca970d2817683ab0e","reason":"Use explicit --path for the AVD config instead of assuming the legacy SDK home path. Bounded Android17 verification; source/APK unchanged.","revision":4}
+{"schema":1,"sourceCommit":"e8707316316200ecc8c779cca970d2817683ab0e","reason":"Observed emulator could not discover AVD created by newer SDK home rules. Explicitly share ANDROID_AVD_HOME and a validated absolute AVD pointer; fail immediately if process exits. Source/APK unchanged.","revision":5}
