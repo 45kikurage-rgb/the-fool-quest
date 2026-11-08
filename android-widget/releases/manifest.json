@@ -222,7 +222,7 @@
   "lossUpdate": "Manually record, edit and delete separate TikTok Lite and Coupon losses by date; preserve the gross source; net amounts subtract losses once",
   "lossDisplay": "Combined daily losses shown in red below the TikTok row; daily and monthly totals are net of losses",
   "upgradeTestRunId": 42460331078,
-  "publicationStatus": "public-origin-verification-pending",
+  "publicationStatus": "PASS_BOTH_PUBLIC_ORIGINS",
   "publicationRequestedAt": "2026-11-08T17:19:58.980209+09:00",
   "displayName": "Aruno-Result",
   "releaseStatus": "AUTOMATIC_BACKUP_UPDATE_AVAILABLE_PHYSICAL_PENDING",
@@ -263,6 +263,7 @@
     }
   },
   "android17TestRunId": 42461997333,
-  "publicationMergeCommit": "6e211228f2a086c46bd2eecb9962467298bf8704",
-  "publicationVerificationRequestedAt": "2026-11-08T17:22:00+09:00"
+  "publicationVerificationRunId": 42462642329,
+  "publicationVerifiedAt": "2026-11-08T17:25:38.747301+09:00",
+  "releaseEvidence": "aruno-result-code35-release-evidence.json"
 }
