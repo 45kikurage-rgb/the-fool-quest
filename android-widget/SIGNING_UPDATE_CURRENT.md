@@ -1,19 +1,3 @@
-# code36 白背景アイコン候補：未配布（2026-11-08）
-
-- 変更：元の透過PNGを変更せず、白い下地を明示するLayerDrawableを追加。icon/roundIconを同じXMLへ統一。文字・枠・サイズ・配置、アプリ本体Java、保存形式、packageと署名は維持。
-- 候補：0.1.35 / versionCode36、326812 bytes、package com.aruno.foolquest.widget.next。
-- 実APKのアプリソース：`a3cac172991fa804ea1455dbca05acd8a88d2b8e`。試験期待値のみの後続修正：`5264f038a255787d0b741ef390d728bebc2753d2`。
-- APK SHA-256：`9c0829758631d7b1a129d8a0883fd9ce6dcd3dfa5f6a1a024060f8c5caeefee4`。証明書は従来の8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730。
-- 最終独立復元：run42470171563、primary128699257991 / backup128699257863、各別runner成功。署名128699307692成功。新しい鍵・復号情報の作成・移設はなし。
-- 同一署名候補を非公開opsの `staging/icon-white-result-42470171563`、`releases/icon-white-20261108/result/candidate.apk.b64` と `trial-result.json` に保管。これは公開配布ではない。
-- Android15通常8413・オフライン2759・再起動2749項目はrun42469943501のnative job128698128846で成功。Android17 backup job128698129011は通常37項目成功後、再起動後の保存先一覧取得で失敗。原因は未確定で、白背景変更が原因とは断定しない。
-- 正式同一署名35→36上書き、39項目の履歴/手入力/損失/表示/日別接続/ウィジェット設定保持と、元画像を維持した白背景描画はrun42470589105で検証中。APKの再build・再署名はしない。
-- **配布停止。** 公開ページと配布manifestはcode35を維持。Pixel10物理端末は未接続で、実機上書き保持・HOME/フォルダ/アプリ一覧は未確認。利用者のデータ保持ゲートを免除しない。
-
-以下のcode35公開記録と署名保管先は履歴を含めて維持する。
-
----
-
 # Aruno-Result 署名・更新台帳 CURRENT
 
 更新日：2026-11-08。秘密の値は記載しない。ソース・試験・配布・実機を分ける。
@@ -37,16 +21,34 @@
 | backup暗号文 SHA-256 | 38bc420fac1555130c16b89b2ee2700252e7b9e1c3a29b5f8c54b5e71cad673d |
 | 復号情報の管理 | opsの既存GitHub Actions Secret ARUNO_SIGNING_ROOTS_JSON と config/signing-recovery.json。値は非公開・暗号文と別管理 |
 | アクセス方法 | GitHub接続で固定repo/commit/path/blobを確認。権限のあるopsの既存署名runnerだけで復元し、別runnerの両経路検証後に署名 |
-| 署名経路 | ops .github/workflows/aruno-result-code35-existing-signature.yml、projects/github-signing/trial_candidate.py |
-| 最終独立復元試験 | 2026-11-08。run42459999363、primary job128667046500 / backup job128667046511、両成功。今回の最終候補の証跡は下記release JSONを優先 |
+| 署名経路 | ops .github/workflows/aruno-white-icons-existing-signature.yml、projects/github-signing/trial_candidate.py |
+| 最終独立復元試験 | 2026-11-08。run42470171563、primary job128699257991 / backup job128699257863、両成功。今回の最終候補の証跡は下記release JSONを優先 |
 | 鍵の置換・新規作成 | なし |
 | 実機確認 | Pixel 10未接続。未確認 |
 
 主/backupは独立repo・別runnerで検証するが、GitHubサービス全体から独立した災害復旧を新たに証明したものではない。外部保管コピーや復号情報の外部UIからの再取得は今回未実施。
 
-最新のAPK・ソースcommit・versionCode・APK SHA-256・証明書・試験run・配布URL・公開後照合は [code35更新記録](releases/aruno-result-code35-release-evidence.json) と [配布manifest](releases/manifest.json) を参照。これらの状態を最優先し、候補作成を公開済みと扱わない。
+最新のAPK・ソースcommit・versionCode・APK SHA-256・証明書・試験run・配布URL・公開後照合は [code36更新記録](releases/aruno-result-code36-release-evidence.json) と [配布manifest](releases/manifest.json) を参照。これらの状態を最優先し、候補作成を公開済みと扱わない。
 
 旧package com.aruno.foolquest.widget の鍵・証明書は別系列。流用・統合・新鍵への置換・アンインストールによる更新回避はしない。新しいチャットも、統括CURRENTとこの台帳・最新のrelease証拠を読み、GitHub接続とCI操作権限を確認して引き継ぐ。Library/利用者PCを通常の鍵取得元として必須にしない。
+
+## code36 白背景アイコン更新記録（2026-11-08）
+
+実装済み・正式署名済み・ソフトウェア上書き保持合格。公開先照合は配布manifestとrelease JSONのpublication状態を参照。物理Pixel10は未接続・未確認、正式運用開始も未確認。
+
+- package com.aruno.foolquest.widget.next / 0.1.35 / versionCode36 / 326812 bytes。
+- 実APKソース a3cac172991fa804ea1455dbca05acd8a88d2b8e。後続変更は検証・資料・配布資材。既存PNG・アプリ本体Java・保存形式は変更なし。白#FFFFFFの下地のみ追加。
+- APK SHA-256: 9c0829758631d7b1a129d8a0883fd9ce6dcd3dfa5f6a1a024060f8c5caeefee4。証明書SHA-256: 8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730。従来と一致。
+- 既存鍵の主/独立backup復元・署名run42470171563、primary128699257991 / backup128699257863 / sign128699307692、全成功。保管先・権限・復号情報は変更なし。
+- Android15通常8413/オフライン2759/再起動2749成功（run42469943501 job128698128846）。その試験APKの署名以外41エントリー全件と正式署名候補のバイト一致確認。
+- 正式同一署名35→36上書き：API35 run42471512339、API37 run42472448522、39項目・UID・再起動後保持・startup safety snapshot・旧保存領域維持に合格。
+- Android17のbackup/復旧37項目と再起動後4項目（既存SAF許可維持・再起動後新規保存）run42471512355 job128703132842成功。
+- Androidネイティブ描画：48/96/512/1024pxすべて元PNGと白下地の合成画素に完全一致。icon/roundIcon同一、黒文字・枠・配置は維持。
+- 配布URL https://the-fool-quest.45kikurage.workers.dev/android-widget/releases/aruno-result-0.1.35.apk
+- 代替URL https://45kikurage-rgb.github.io/the-fool-quest/android-widget/releases/aruno-result-0.1.35.apk
+- 実機HOME/フォルダ/アプリ一覧と実データの上書きは未確認。code32消失原因は未特定。端末初期化・アンインストール・保存内容削除は実施しない。
+
+以前の候補停止は上書き試験未完了が理由。上記の同一署名・データ保持・復旧ゲートが全合格したため公開工程へ進む。失敗試行のActions履歴は保持し、成功と置換しない。
 
 ## code35 公開後照合（2026-11-08）
 
