@@ -34,29 +34,51 @@
     "formatChecks": 12,
     "signedPayloadMatchesTestedUnsigned": true,
     "payloadEntries": 40,
-    "nativeJob": 128666087201
+    "nativeJob": 128666087201,
+    "scope": "Android35 native job passed; its obsolete default-emulator Android17 attempt was cancelled. Android17 final-source acceptance is independently PASS in run42461997333. Do not label cancelled/infrastructure attempts as functional passes."
   },
   "android17": {
-    "run": 42460149976,
-    "status": "running",
+    "run": 42461997333,
+    "status": "PASS",
     "sdkIdentifier": "android-37.0",
     "ramMiB": 4096,
     "heapMiB": 512,
-    "graphics": "software"
+    "graphics": "software",
+    "job": 128673089887,
+    "normalChecks": 37,
+    "rebootChecks": 3,
+    "osRelease": "17",
+    "sdk": 37,
+    "artifactId": 13610451582,
+    "artifactSha256": "05d5eb3a83ee49eee57c6b97499a54be530cf7cf3dde5a292685005a4835a504"
   },
   "upgrade": {
     "fromCode": 34,
     "toCode": 35,
-    "status": "pending"
+    "status": "PASS",
+    "run": 42460331078,
+    "job": 128668045784,
+    "fixtureFields": 39,
+    "uidPreserved": true,
+    "legacyUnchanged": true,
+    "preMigrationSnapshotVerified": true
   },
   "publication": {
-    "status": "not-published"
+    "status": "ready-pending-publication",
+    "urls": [
+      "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
+      "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
+    ],
+    "apkUrls": [
+      "https://the-fool-quest.45kikurage.workers.dev/android-widget/releases/aruno-result-0.1.34.apk",
+      "https://45kikurage-rgb.github.io/the-fool-quest/android-widget/releases/aruno-result-0.1.34.apk"
+    ]
   },
   "physicalDevice": {
     "verified": false,
     "code32DataLossCause": "unresolved"
   },
-  "formalOperation": "unconfirmed",
+  "formalOperation": "UNCONFIRMED_PHYSICAL_DEVICE_PENDING",
   "sharedApiChanges": false,
   "serverWrites": false,
   "supersededCandidate": {
@@ -66,5 +88,36 @@
     "upgradeStatus": "PASS_39_FIELDS_AND_STARTUP_SNAPSHOT",
     "published": false,
     "reason": "Historical Coupon cache merge and pending-only capacity fixes before production"
-  }
+  },
+  "infrastructureAttempts": [
+    {
+      "run": 42458582950,
+      "result": "native35 PASS; bare android-37 SDK identifier unavailable"
+    },
+    {
+      "run": 42459325046,
+      "result": "default Android17 emulator boot timed out; app not tested"
+    },
+    {
+      "run": 42460149976,
+      "result": "Android17 booted; guest storage insufficient before test installation"
+    },
+    {
+      "run": 42460377304,
+      "result": "superseded SDK download attempt cancelled"
+    },
+    {
+      "run": 42460904924,
+      "result": "SDK AVD home path mismatch before emulator startup"
+    },
+    {
+      "run": 42461093166,
+      "result": "AVD not discovered; no app test"
+    },
+    {
+      "run": 42461761660,
+      "result": "workflow syntax failure; no runner jobs"
+    }
+  ],
+  "productionRelease": true
 }

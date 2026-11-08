@@ -211,7 +211,7 @@
   "sourceCommit": "e8707316316200ecc8c779cca970d2817683ab0e",
   "unsignedSha256": "ff99b97be7c4a7498e302d7a51eeaac345ab08b54946d4ebf801465624b88764",
   "deviceVerified": false,
-  "deliveryStatus": "signed-candidate",
+  "deliveryStatus": "production-update",
   "dailyTargetUpdate": "JST midnight; exact alarm when allowed, inexact fallback otherwise; no network required",
   "signingRunId": 42459999363,
   "softwareTestRunId": 42459683528,
@@ -221,13 +221,13 @@
   ],
   "lossUpdate": "Manually record, edit and delete separate TikTok Lite and Coupon losses by date; preserve the gross source; net amounts subtract losses once",
   "lossDisplay": "Combined daily losses shown in red below the TikTok row; daily and monthly totals are net of losses",
-  "upgradeTestRunId": null,
-  "publicationStatus": "not-published-candidate",
-  "publicationRequestedAt": "2026-11-08 JST",
+  "upgradeTestRunId": 42460331078,
+  "publicationStatus": "public-origin-verification-pending",
+  "publicationRequestedAt": "2026-11-08T17:19:58.980209+09:00",
   "displayName": "Aruno-Result",
-  "releaseStatus": "SIGNED_BACKUP_CANDIDATE_SOFTWARE_PASS_PHYSICAL_PENDING",
+  "releaseStatus": "AUTOMATIC_BACKUP_UPDATE_AVAILABLE_PHYSICAL_PENDING",
   "updateRecommended": false,
-  "notice": "Automatic backup/recovery candidate. Code32 physical data-loss cause remains unresolved. Never uninstall or clear current app data. Physical Pixel10 acceptance remains pending.",
+  "notice": "Automatic verified local-folder backups and confirmed recovery. Export current revenue JSON before this first backup-capable update; never uninstall or clear data. Code32 physical data-loss cause is unresolved; Pixel10 physical acceptance remains pending.",
   "backup": {
     "format": "aruno-result-backup",
     "formatVersion": 1,
@@ -252,7 +252,15 @@
       "scope": "Earlier candidate baseline; final fixes tested separately"
     },
     "format": 12,
-    "android17RunId": 42460149976,
-    "android17Status": "running"
-  }
+    "android17RunId": 42461997333,
+    "android17Status": "PASS",
+    "backupAndroid17": {
+      "normal": 37,
+      "reboot": 3,
+      "api": 37,
+      "osRelease": "17",
+      "job": 128673089887
+    }
+  },
+  "android17TestRunId": 42461997333
 }
