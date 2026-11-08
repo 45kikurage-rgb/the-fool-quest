@@ -307,9 +307,13 @@ public class WidgetInstrumentation extends Instrumentation {
         return null;
     }
     void calendarLayoutChecks() {
-        ok(c.getApplicationInfo().icon==R.drawable.ic_aruno_result &&
+        ok(c.getApplicationInfo().icon==R.drawable.zz_aruno_launcher_white &&
+            c.getDrawable(R.drawable.zz_aruno_launcher_white) instanceof android.graphics.drawable.LayerDrawable &&
             c.getDrawable(R.drawable.ic_aruno_result) instanceof android.graphics.drawable.BitmapDrawable,
-            "application uses the approved Aruno-Result bitmap launcher icon");
+            "application uses explicit white backing with the unchanged approved bitmap");
+        android.graphics.drawable.LayerDrawable launcher=(android.graphics.drawable.LayerDrawable)c.getDrawable(R.drawable.zz_aruno_launcher_white);
+        ok(launcher.getNumberOfLayers()==2 && launcher.getDrawable(1) instanceof android.graphics.drawable.BitmapDrawable,
+            "white backing remains separate from the supplied transparent artwork");
         int first=13001, second=13002;
         CalendarWidgetState.month(c,first,"2026-05");
         CalendarWidgetState.filter(c,first,CalendarWidgetState.COUPON);

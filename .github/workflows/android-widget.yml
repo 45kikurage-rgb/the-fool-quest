@@ -112,6 +112,10 @@ jobs:
         with: {distribution: temurin, java-version: '17'}
       - uses: android-actions/setup-android@v3
         with: {packages: platform-tools, log-accepted-android-sdk-licenses: false}
+      - name: Free unused components only on a disposable hosted runner
+        run: |
+          test "$RUNNER_ENVIRONMENT" = github-hosted
+          sudo rm -rf -- /usr/share/dotnet /usr/local/lib/android/sdk/ndk /usr/local/lib/android/sdk/cmake
       - name: Build isolated unsigned-source test fixtures
         env: {SIGNING_STORE_PASSWORD: ci-test-only}
         run: |
@@ -163,7 +167,7 @@ jobs:
           timeout 90 adb install android-widget/build/android-test/widget-tests.apk
           timeout 180 adb shell am instrument -w com.aruno.foolquest.widget.next.test/com.aruno.foolquest.widget.next.BackupInstrumentation | tee "$OUT/android17.txt"
           grep -q 'PASS .* backup Android checks' "$OUT/android17.txt"
-          timeout 10 adb reboot
+          timeout 60 adb reboot
           booted=false
           deadline=$((SECONDS+180))
           while (( SECONDS < deadline )); do
