@@ -39,7 +39,18 @@ public final class BackupInstrumentation extends Instrumentation {
         if("reboot".equals(args.getString("mode"))){
             drained();ok(b.meta.getLong("backupTestExpected",0)==new RevenueManager(c).tiktok(month),"reboot retains native revenue");
             ok(!b.meta.getString("tree","").isEmpty(),"reboot retains selected tree");
-            b.capture("safety",true);b.flush();ok(b.meta.getLong("lastSuccess",0)>0,"persisted grant supports automatic writes after reboot");
+            Uri tree=Uri.parse(b.meta.getString("tree",""));boolean grant=false;
+            for(android.content.UriPermission permission:c.getContentResolver().getPersistedUriPermissions())
+                if(permission.getUri().equals(tree)&&permission.isReadPermission()&&permission.isWritePermission())grant=true;
+            ok(grant,"the original read/write SAF grant persists without reselection");
+            // BOOT_COMPLETED can precede ExternalStorageProvider readiness on an emulator.
+            // This is a bounded, read-only provider precondition; never reissue a grant or alter app data.
+            Exception last=null;boolean ready=false;int attempts=0;long deadline=System.currentTimeMillis()+30000;
+            while(System.currentTimeMillis()<deadline){attempts++;try{new BackupFiles(c,tree).documents();ready=true;break;}catch(Exception e){last=e;Thread.sleep(250);}}
+            android.util.Log.i("ARUNO_BACKUP_TEST","reboot provider precondition attempts="+attempts+" ready="+ready);
+            if(!ready)throw last;
+            long captureStarted=System.currentTimeMillis();
+            b.capture("safety",true);b.flush();ok(b.meta.getLong("lastSuccess",0)>=captureStarted,"the original persisted grant writes a new verified backup after reboot");
         }else {
             Activity screen=startActivitySync(new Intent(c,BackupActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             runOnMainSync(()->findButton(screen.getWindow().getDecorView(),"保存先を選択・権限を再設定"));
