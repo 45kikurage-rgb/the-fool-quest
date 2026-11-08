@@ -57,13 +57,31 @@ public final class BackupInstrumentation extends Instrumentation {
             String lossId=m.losses().getJSONObject(m.losses().length()-2).getString("id");
             DisplaySettings settings=DisplaySettings.load(RevenueStore.prefs(c));settings.font=37;settings.gap=8;settings.save(RevenueStore.prefs(c));
             CalendarWidgetState.month(c,12345,month);CalendarWidgetState.filter(c,12345,3);
+            RevenueManager.archiveCoupon(c,"2026-09",777);
+            JSONObject oldDaily=new JSONObject().put("2026-09",new JSONObject().put("total",777).put("sum",777).put("days",new JSONObject().put("2026-09-01",777)));
+            RevenueStore.prefs(c).edit().putString("couponRevenueDailyV2",oldDaily.toString()).apply();
             String restore=BackupFormat.create(b.raw.getAll(),"safety",System.currentTimeMillis(),35);
+            RevenueStore.saveCoupon(c,month,888);
+            RevenueStore.prefs(c).edit().putString("couponRevenueMonthlyV1",new JSONObject().put(month,888).toString())
+                .putString("couponRevenueDailyV2",new JSONObject().put(month,new JSONObject().put("total",888).put("sum",888).put("days",new JSONObject().put(month+"-01",888))).toString()).apply();
             m.updateLoss(lossId,month+"-02","tiktok",99);m.deleteLoss(lossId);
             settings.font=18;settings.save(RevenueStore.prefs(c));
             b.restore(restore,current());m=new RevenueManager(c);
             ok(m.lossTotal(month,"tiktok")==80&&m.lossTotal(month,"coupon")==50,"restore recovers edited/deleted category losses");
             ok(DisplaySettings.load(RevenueStore.prefs(c)).font==37&&DisplaySettings.load(RevenueStore.prefs(c)).gap==8,"restore recovers typed display settings");
             ok(CalendarWidgetState.filter(c,12345)==3,"restore recovers widget configuration");
+            ok(m.couponHistory().getLong("2026-09")==777&&m.couponHistory().getLong(month)==888,"restore fills missing historical Coupon months without replacing current projection");
+            JSONObject combinedDaily=new JSONObject(RevenueStore.prefs(c).getString("couponRevenueDailyV2","{}"));
+            ok(combinedDaily.getJSONObject("2026-09").getLong("total")==777&&combinedDaily.getJSONObject(month).getLong("total")==888,"daily projection merge preserves old history and current authority");
+            ok(RevenueStore.read(c).coupon==888,"restore does not roll back the current server display cache");
+            File alreadySent=new File(b.directory,"aruno-result-change-1000000000000-00000000-0000-0000-0000-000000000000.json");
+            File marker=new File(b.directory,alreadySent.getName()+".sent");
+            try{
+                try(RandomAccessFile sparse=new RandomAccessFile(alreadySent,"rw")){sparse.setLength(33L*1024*1024);}
+                BackupCoordinator.write(marker,"ok");
+                java.lang.reflect.Method capacity=BackupCoordinator.class.getDeclaredMethod("capacity");capacity.setAccessible(true);capacity.invoke(b);
+                ok(true,"exported generations do not consume the pending-outbox capacity");
+            }finally{alreadySent.delete();marker.delete();}
             VatonRevenueCsv.CsvResult csv=VatonRevenueCsv.parseCsv("日付,チャージポイント\n"+month+"-01,300\n"+month+"-02,700\n");
             m.setCsv(month,csv,"dated.csv");drained();
             ok(CalendarRevenueData.read(c,month).totals[2]==1170,"CSV and manual minus loss remain coherent");

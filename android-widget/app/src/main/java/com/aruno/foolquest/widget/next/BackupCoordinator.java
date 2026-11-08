@@ -48,7 +48,7 @@ final class BackupCoordinator {
         File out=new File(directory,name);write(out,json);return out;
     }
     private void capacity()throws Exception {
-        long bytes=0;for(File file:local())bytes+=file.length();
+        long bytes=0;for(File file:local())if(!new File(directory,file.getName()+".sent").exists())bytes+=file.length();
         if(bytes>32L*1024*1024)throw new IOException("未保存のバックアップが32MBを超えました。保存先の権限を確認して再試行してください");
     }
     private void recoverTransaction(Map<String,?> current)throws Exception {
@@ -205,7 +205,14 @@ final class BackupCoordinator {
             for(String key:new ArrayList<>(merged.keySet()))if(BackupFormat.type(key)!=null)merged.remove(key);
             merged.putAll(incoming);
             // Coupon data is a device display cache. No server/API writes; current server projections win.
-            for(String k:Arrays.asList("coupon","couponAt","couponMonth","couponRevenueMonthlyV1","couponRevenueDailyV2"))if(before.containsKey(k))merged.put(k,before.get(k));
+            for(String k:Arrays.asList("coupon","couponAt","couponMonth"))if(before.containsKey(k))merged.put(k,before.get(k));
+            for(String k:Arrays.asList("couponRevenueMonthlyV1","couponRevenueDailyV2"))if(before.containsKey(k)){
+                JSONObject combined=new JSONObject(incoming.containsKey(k)?(String)incoming.get(k):"{}");
+                JSONObject latest=new JSONObject((String)before.get(k));
+                for(Iterator<String> it=latest.keys();it.hasNext();){String month=it.next();combined.put(month,latest.get(month));}
+                merged.put(k,combined.toString());
+            }
+            BackupFormat.encode(merged);
             if(!BackupPreferences.replace(raw,merged)||!merged.equals(raw.getAll())){
                 BackupPreferences.replace(raw,before);throw new IOException("復旧内容を保存できませんでした。復旧前ファイルは保持しています");
             }
