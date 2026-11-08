@@ -42,8 +42,8 @@ jobs:
           OUT="$GITHUB_WORKSPACE/android-widget/build/backup-results"
           mkdir -p "$OUT"
           sudo chmod 666 /dev/kvm
-          echo no | avdmanager create avd --force --name result17 --package 'system-images;android-37.0;google_apis;x86_64' --device pixel_7
-          cat >> "$HOME/.android/avd/result17.avd/config.ini" <<'AVD'
+          echo no | avdmanager create avd --force --name result17 --package 'system-images;android-37.0;google_apis;x86_64' --device pixel_7 --path "$RUNNER_TEMP/result17.avd"
+          cat >> "$RUNNER_TEMP/result17.avd/config.ini" <<'AVD'
           hw.ramSize=4096
           vm.heapSize=512
           hw.cpu.ncore=4
