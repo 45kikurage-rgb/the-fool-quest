@@ -1,0 +1,1 @@
+{"schema":1,"sourceCommit":"e8707316316200ecc8c779cca970d2817683ab0e","reason":"Explicit AVD profile and numeric RAM/heap, 8GiB partition, per-command deadlines and persistent boot diagnostics. Stop only superseded emulator attempts. No user's data or production API writes."}

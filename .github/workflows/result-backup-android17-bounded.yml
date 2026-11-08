@@ -1,0 +1,89 @@
+name: Aruno-Result bounded Android17 backup verification
+on:
+  push:
+    paths: ['requests/result-backup-android17-bounded.json']
+permissions:
+  contents: read
+  actions: write
+jobs:
+  android17-backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: e8707316316200ecc8c779cca970d2817683ab0e, persist-credentials: false}
+      - name: Stop only superseded emulator attempts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for run in 42459683528 42460377304; do
+            state="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run" --jq .status)"
+            if [[ "$state" != completed ]]; then
+              gh api -X POST "repos/$GITHUB_REPOSITORY/actions/runs/$run/cancel" --silent || true
+            fi
+          done
+      - uses: actions/setup-java@v5
+        with: {distribution: temurin, java-version: '17'}
+      - uses: android-actions/setup-android@v3
+        with: {packages: platform-tools, log-accepted-android-sdk-licenses: false}
+      - name: Build isolated unsigned-source test fixtures
+        env: {SIGNING_STORE_PASSWORD: ci-test-only}
+        run: |
+          sdkmanager 'platforms;android-35' 'build-tools;35.0.0' 'platforms;android-37.0' 'system-images;android-37.0;google_apis;x86_64' 'emulator'
+          export ANDROID_JAR="$ANDROID_HOME/platforms/android-35/android.jar"
+          export ANDROID_BUILD_TOOLS="$ANDROID_HOME/build-tools/35.0.0"
+          export SIGNING_STORE="$RUNNER_TEMP/widget-ci.jks"
+          keytool -genkeypair -keystore "$SIGNING_STORE" -storepass:env SIGNING_STORE_PASSWORD -keypass:env SIGNING_STORE_PASSWORD -alias foolquestwidget -keyalg RSA -keysize 2048 -validity 2 -dname 'CN=CI TEST ONLY'
+          bash android-widget/scripts/build.sh
+          bash android-widget/scripts/build-android-tests.sh
+      - name: Real Android17 SAF, recovery and reboot with bounded commands
+        run: |
+          set -euo pipefail
+          OUT="$GITHUB_WORKSPACE/android-widget/build/backup-results"
+          mkdir -p "$OUT"
+          sudo chmod 666 /dev/kvm
+          echo no | avdmanager create avd --force --name result17 --package 'system-images;android-37.0;google_apis;x86_64' --device pixel_7
+          cat >> "$HOME/.android/avd/result17.avd/config.ini" <<'AVD'
+          hw.ramSize=4096
+          vm.heapSize=512
+          hw.cpu.ncore=4
+          disk.dataPartition.size=8G
+          AVD
+          adb start-server
+          "$ANDROID_HOME/emulator/emulator" -avd result17 -no-window -gpu software -memory 4096 -cores 4 -partition-size 8192 -no-snapshot -noaudio -no-boot-anim -no-metrics -camera-back none -camera-front none > "$OUT/emulator.txt" 2>&1 &
+          emulator_pid=$!
+          trap 'timeout 10 adb logcat -d -v time > "$OUT/logcat.txt" 2>&1 || true; kill "$emulator_pid" 2>/dev/null || true' EXIT
+          booted=false
+          deadline=$((SECONDS+300))
+          while (( SECONDS < deadline )); do
+            if [[ "$(timeout 5 adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" == 1 ]]; then booted=true; break; fi
+            sleep 2
+          done
+          [[ "$booted" == true ]]
+          timeout 10 adb shell getprop ro.build.version.release | tee "$OUT/os-release.txt"
+          timeout 10 adb shell getprop ro.build.version.sdk | tee "$OUT/os-sdk.txt"
+          grep -q '^37' "$OUT/os-sdk.txt"
+          timeout 10 adb shell df -h /data | tee "$OUT/storage.txt"
+          timeout 10 adb shell settings put global window_animation_scale 0
+          timeout 10 adb shell settings put global transition_animation_scale 0
+          timeout 10 adb shell settings put global animator_duration_scale 0
+          timeout 90 adb install android-widget/build/out/fool-quest-widget-0.1.16.apk
+          timeout 90 adb install android-widget/build/android-test/widget-tests.apk
+          timeout 180 adb shell am instrument -w com.aruno.foolquest.widget.next.test/com.aruno.foolquest.widget.next.BackupInstrumentation | tee "$OUT/android17.txt"
+          grep -q 'PASS .* backup Android checks' "$OUT/android17.txt"
+          timeout 10 adb reboot
+          booted=false
+          deadline=$((SECONDS+180))
+          while (( SECONDS < deadline )); do
+            if [[ "$(timeout 5 adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" == 1 ]]; then booted=true; break; fi
+            sleep 2
+          done
+          [[ "$booted" == true ]]
+          timeout 180 adb shell am instrument -w -e mode reboot com.aruno.foolquest.widget.next.test/com.aruno.foolquest.widget.next.BackupInstrumentation | tee "$OUT/reboot.txt"
+          grep -q 'PASS .* backup Android checks' "$OUT/reboot.txt"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: result-backup-android17-bounded-results
+          path: android-widget/build/backup-results/
+          retention-days: 14
