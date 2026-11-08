@@ -262,5 +262,7 @@
       "job": 128673089887
     }
   },
-  "android17TestRunId": 42461997333
+  "android17TestRunId": 42461997333,
+  "publicationMergeCommit": "6e211228f2a086c46bd2eecb9962467298bf8704",
+  "publicationVerificationRequestedAt": "2026-11-08T17:22:00+09:00"
 }
