@@ -215,6 +215,25 @@ with (OUT / 'upgrade-preview.png').open('wb') as screenshot:
     subprocess.run(['adb', 'exec-out', 'screencap', '-p'], check=True, stdout=screenshot)
 adb('shell', 'am', 'force-stop', PACKAGE)
 check_preserved(PACKAGE, expected, after_fetch=True)
+if MANIFEST['versionCode'] >= 35:
+    backup_dir = '/data/user/0/' + PACKAGE + '/files/result-backups-v1'
+    paths = adb('shell', 'find', backup_dir, '-name', 'aruno-result-safety-*.json').splitlines()
+    assert paths, 'Upgrade must preserve pre-migration history/settings before model initialization'
+    protected = []
+    for backup_path in paths:
+        envelope = json.loads(adb('shell', 'cat', backup_path))
+        body_text = envelope['body']
+        assert hashlib.sha256(body_text.encode()).hexdigest() == envelope['sha256']
+        body = json.loads(body_text)
+        saved = body['preferences']
+        assert 'myBestCouponDailyCredentialV1' not in saved
+        assert body['credentialsIncluded'] is False
+        if 'nativeRevenueV1' in saved and json.loads(saved['nativeRevenueV1']['value']) == history:
+            assert saved['font'] == {'type': 'int', 'value': 14}
+            assert saved['calendar.filter.42'] == {'type': 'int', 'value': 2}
+            protected.append(body)
+    assert protected, 'No validated startup snapshot matches the full previous revenue/settings fixture'
+    (OUT / 'startup-backup-result.json').write_text(json.dumps({'verified': True, 'matchingSnapshots': len(protected), 'recordCount': protected[0]['records'], 'credentialsIncluded': False}, indent=2))
 assert uid(OLD_PACKAGE) == old_uid and prefs(OLD_PACKAGE) == old_snapshot
 # Confirm the new native activity sees the existing history without another import.
 adb('shell', 'am', 'start', '-W', '-n', PACKAGE + '/.ManagementActivity')

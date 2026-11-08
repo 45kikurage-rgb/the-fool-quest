@@ -26,33 +26,35 @@ final class RevenueManager {
     RevenueManager(Context context) throws Exception {
         this.context = context.getApplicationContext();
         preferences = RevenueStore.prefs(this.context);
-        String raw = preferences.getString(KEY, "");
-        if (raw.isEmpty()) {
-            state = new JSONObject();
-            state.put("format", FORMAT);
-            state.put("version", 1);
-            state.put("months", new JSONObject());
-            state.put("manual", new JSONArray());
-            JSONObject goals = new JSONObject();
-            long t = preferences.getLong("goalTiktok", -1);
-            long c = preferences.getLong("goalCoupon", -1);
-            goals.put("tiktok", t > 0 ? t : 500000L);
-            goals.put("coupon", c > 0 ? c : 500000L);
-            state.put("goals", goals);
-            String month=RevenueMath.month(System.currentTimeMillis());
-            if(month.equals(preferences.getString("importMonth",""))) {
-                long old=preferences.getLong("tiktok",-1);
-                if(old>=0) {
-                    JSONObject record=new JSONObject();
-                    record.put("csv",old);
-                    record.put("source","widget-original");
-                    state.getJSONObject("months").put(month,record);
+        synchronized(BackupCoordinator.LOCK){
+            String raw = preferences.getString(KEY, "");
+            if (raw.isEmpty()) {
+                state = new JSONObject();
+                state.put("format", FORMAT);
+                state.put("version", 1);
+                state.put("months", new JSONObject());
+                state.put("manual", new JSONArray());
+                JSONObject goals = new JSONObject();
+                long t = preferences.getLong("goalTiktok", -1);
+                long c = preferences.getLong("goalCoupon", -1);
+                goals.put("tiktok", t > 0 ? t : 500000L);
+                goals.put("coupon", c > 0 ? c : 500000L);
+                state.put("goals", goals);
+                String month=RevenueMath.month(System.currentTimeMillis());
+                if(month.equals(preferences.getString("importMonth",""))) {
+                    long old=preferences.getLong("tiktok",-1);
+                    if(old>=0) {
+                        JSONObject record=new JSONObject();
+                        record.put("csv",old);
+                        record.put("source","widget-original");
+                        state.getJSONObject("months").put(month,record);
+                    }
                 }
+                persist();
+            } else {
+                state = new JSONObject(raw);
+                validate(state);
             }
-            persist();
-        } else {
-            state = new JSONObject(raw);
-            validate(state);
         }
     }
 
@@ -147,9 +149,12 @@ final class RevenueManager {
     }
     long goal(String key) throws Exception {return goals().getLong(key);}
     void setGoals(long t,long c) throws Exception {
-        safe(t,true);safe(c,true);plus(t,c);
-        goals().put("tiktok",t);goals().put("coupon",c);
-        persistAndRender();
+        synchronized(BackupCoordinator.LOCK){
+            reloadConfirmed();
+            safe(t,true);safe(c,true);plus(t,c);
+            goals().put("tiktok",t);goals().put("coupon",c);
+            persistAndRender();
+        }
     }
     long csvBase(String key) throws Exception {
         JSONObject v=months().optJSONObject(key);
@@ -193,51 +198,54 @@ final class RevenueManager {
     }
     private void saveCsv(String key,long amount,String filename,int count,
                          java.util.Map<String,Long> dayAmounts,boolean complete,String acquired) throws Exception {
-        requireMonth(key);safe(amount,false);
-        // Prepare and validate an independent copy: malformed CSV must never mutate
-        // the live in-memory history or erase the last-good daily breakdown.
-        String saved=preferences.getString(KEY,state.toString());
-        JSONObject candidate=new JSONObject(saved);
-        JSONObject candidateMonths=candidate.getJSONObject("months");
-        JSONObject record=candidateMonths.optJSONObject(key);
-        if(record==null){record=new JSONObject();candidateMonths.put(key,record);}
-        if(!complete&&record.optBoolean("csvDailyComplete",false))
-            throw new IllegalArgumentException("保存済みの日別履歴を更新するには日付付きCSVを選んでください");
-        record.put("csv",amount);
-        record.put("file",filename);
-        record.put("count",count);
-        record.put("source","csv");
-        record.remove("csvDaily");
-        record.remove("csvDailyComplete");
-        record.remove("csvCoveredThrough");
-        if(complete && dayAmounts!=null) {
-            JSONObject days=new JSONObject();long checked=0;
-            for(java.util.Map.Entry<String,Long> entry:dayAmounts.entrySet()){
-                checkDate(entry.getKey());
-                if(!entry.getKey().startsWith(key+"-"))
-                    throw new IllegalArgumentException("CSVの日付が対象月と一致しません");
-                checked=plus(checked,safe(entry.getValue(),false));
-                days.put(entry.getKey(),entry.getValue());
-            }
-            if(checked!=amount)throw new IllegalArgumentException("CSVの日別合計が月計と一致しません");
-            record.put("csvDaily",days);
-            record.put("csvDailyComplete",true);
-            if(!acquired.isEmpty()){
-                checkDate(acquired);
-                if(acquired.compareTo(RevenueMath.date("yyyy-MM-dd",System.currentTimeMillis()))>0)
-                    throw new IllegalArgumentException("CSV取得日は今日以前を入力してください");
-                for(String day:dayAmounts.keySet()){
-                    if(day.compareTo(acquired)>0)
-                        throw new IllegalArgumentException("CSV取得日はCSVの明細日以降を入力してください");
+        synchronized(BackupCoordinator.LOCK){
+            reloadConfirmed();
+            requireMonth(key);safe(amount,false);
+            // Prepare and validate an independent copy: malformed CSV must never mutate
+            // the live in-memory history or erase the last-good daily breakdown.
+            String saved=preferences.getString(KEY,state.toString());
+            JSONObject candidate=new JSONObject(saved);
+            JSONObject candidateMonths=candidate.getJSONObject("months");
+            JSONObject record=candidateMonths.optJSONObject(key);
+            if(record==null){record=new JSONObject();candidateMonths.put(key,record);}
+            if(!complete&&record.optBoolean("csvDailyComplete",false))
+                throw new IllegalArgumentException("保存済みの日別履歴を更新するには日付付きCSVを選んでください");
+            record.put("csv",amount);
+            record.put("file",filename);
+            record.put("count",count);
+            record.put("source","csv");
+            record.remove("csvDaily");
+            record.remove("csvDailyComplete");
+            record.remove("csvCoveredThrough");
+            if(complete && dayAmounts!=null) {
+                JSONObject days=new JSONObject();long checked=0;
+                for(java.util.Map.Entry<String,Long> entry:dayAmounts.entrySet()){
+                    checkDate(entry.getKey());
+                    if(!entry.getKey().startsWith(key+"-"))
+                        throw new IllegalArgumentException("CSVの日付が対象月と一致しません");
+                    checked=plus(checked,safe(entry.getValue(),false));
+                    days.put(entry.getKey(),entry.getValue());
                 }
-                String last=String.format(Locale.US,"%s-%02d",key,CalendarDateMath.daysInMonth(key));
-                record.put("csvCoveredThrough",acquired.compareTo(last)>0?last:acquired);
+                if(checked!=amount)throw new IllegalArgumentException("CSVの日別合計が月計と一致しません");
+                record.put("csvDaily",days);
+                record.put("csvDailyComplete",true);
+                if(!acquired.isEmpty()){
+                    checkDate(acquired);
+                    if(acquired.compareTo(RevenueMath.date("yyyy-MM-dd",System.currentTimeMillis()))>0)
+                        throw new IllegalArgumentException("CSV取得日は今日以前を入力してください");
+                    for(String day:dayAmounts.keySet()){
+                        if(day.compareTo(acquired)>0)
+                            throw new IllegalArgumentException("CSV取得日はCSVの明細日以降を入力してください");
+                    }
+                    String last=String.format(Locale.US,"%s-%02d",key,CalendarDateMath.daysInMonth(key));
+                    record.put("csvCoveredThrough",acquired.compareTo(last)>0?last:acquired);
+                }
             }
+            validate(candidate);
+            JSONObject old=new JSONObject(saved);
+            state=candidate;
+            try{saveAndRender(true,key.equals(month()));}catch(Exception e){state=old;throw e;}
         }
-        validate(candidate);
-        JSONObject old=new JSONObject(saved);
-        state=candidate;
-        try{saveAndRender(true,key.equals(month()));}catch(Exception e){state=old;throw e;}
     }
     static void checkDate(String date) throws Exception {
         if(!date.matches("20[0-9]{2}-(0[1-9]|1[0-2])-([0-2][0-9]|3[01])"))
@@ -248,95 +256,118 @@ final class RevenueManager {
             throw new IllegalArgumentException("存在しない日付です");
     }
     void addManual(String date,long amount) throws Exception {
-        checkDate(date);
-        safe(amount,true);
-        if(manual().length()>=10000)throw new IllegalArgumentException("履歴件数の上限です");
-        // A manual-only month starts with a zero CSV baseline, without inventing CSV data.
-        String key=date.substring(0,7);
-        if(csvBase(key)<0) { JSONObject record=new JSONObject();record.put("csv",0);record.put("source","manual-only");months().put(key,record); }
-        plus(plus(csvBase(key),manualTotal(key)),amount);
-        JSONObject row=new JSONObject();
-        row.put("id",java.util.UUID.randomUUID().toString());
-        row.put("date",date);
-        row.put("amount",amount);
-        manual().put(row);
-        persistAndRender();
+        synchronized(BackupCoordinator.LOCK){
+            reloadConfirmed();
+            checkDate(date);
+            safe(amount,true);
+            if(manual().length()>=10000)throw new IllegalArgumentException("履歴件数の上限です");
+            // A manual-only month starts with a zero CSV baseline, without inventing CSV data.
+            String key=date.substring(0,7);
+            if(csvBase(key)<0) { JSONObject record=new JSONObject();record.put("csv",0);record.put("source","manual-only");months().put(key,record); }
+            plus(plus(csvBase(key),manualTotal(key)),amount);
+            JSONObject row=new JSONObject();
+            row.put("id",java.util.UUID.randomUUID().toString());
+            row.put("date",date);
+            row.put("amount",amount);
+            manual().put(row);
+            persistAndRender();
+        }
     }
     void addLoss(String date,String category,long amount) throws Exception {
-        checkDate(date);requireCategory(category);safe(amount,true);
-        JSONArray rows=losses();
-        if(rows.length()>=10000)throw new IllegalArgumentException("損失履歴件数の上限です");
-        JSONObject candidate=new JSONObject(state.toString());
-        JSONArray newRows=candidate.optJSONArray("losses");
-        if(newRows==null){newRows=new JSONArray();candidate.put("losses",newRows);}
-        JSONObject row=new JSONObject();
-        row.put("id",java.util.UUID.randomUUID().toString());
-        row.put("date",date);row.put("category",category);row.put("amount",amount);
-        newRows.put(row);
-        validate(candidate);
-        JSONObject old=state;state=candidate;
-        try{persistAndRender();}catch(Exception e){state=old;throw e;}
+        synchronized(BackupCoordinator.LOCK){
+            reloadConfirmed();
+            checkDate(date);requireCategory(category);safe(amount,true);
+            JSONArray rows=losses();
+            if(rows.length()>=10000)throw new IllegalArgumentException("損失履歴件数の上限です");
+            JSONObject candidate=new JSONObject(state.toString());
+            JSONArray newRows=candidate.optJSONArray("losses");
+            if(newRows==null){newRows=new JSONArray();candidate.put("losses",newRows);}
+            JSONObject row=new JSONObject();
+            row.put("id",java.util.UUID.randomUUID().toString());
+            row.put("date",date);row.put("category",category);row.put("amount",amount);
+            newRows.put(row);
+            validate(candidate);
+            JSONObject old=state;state=candidate;
+            try{persistAndRender();}catch(Exception e){state=old;throw e;}
+        }
     }
     void updateLoss(String id,String date,String category,long amount) throws Exception {
-        checkDate(date);requireCategory(category);safe(amount,true);
-        JSONObject candidate=new JSONObject(state.toString());
-        JSONArray rows=candidate.optJSONArray("losses");
-        if(rows==null)throw new IllegalArgumentException("損失履歴が見つかりません");
-        boolean found=false;
-        for(int i=0;i<rows.length();i++){
-            JSONObject row=rows.getJSONObject(i);
-            if(id.equals(row.optString("id"))){
-                row.put("date",date);row.put("category",category);row.put("amount",amount);
-                found=true;break;
+        synchronized(BackupCoordinator.LOCK){
+            reloadConfirmed();
+            checkDate(date);requireCategory(category);safe(amount,true);
+            JSONObject candidate=new JSONObject(state.toString());
+            JSONArray rows=candidate.optJSONArray("losses");
+            if(rows==null)throw new IllegalArgumentException("損失履歴が見つかりません");
+            boolean found=false;
+            for(int i=0;i<rows.length();i++){
+                JSONObject row=rows.getJSONObject(i);
+                if(id.equals(row.optString("id"))){
+                    row.put("date",date);row.put("category",category);row.put("amount",amount);
+                    found=true;break;
+                }
             }
+            if(!found)throw new IllegalArgumentException("損失履歴が見つかりません");
+            validate(candidate);
+            JSONObject old=state;state=candidate;
+            try{persistAndRender();}catch(Exception e){state=old;throw e;}
         }
-        if(!found)throw new IllegalArgumentException("損失履歴が見つかりません");
-        validate(candidate);
-        JSONObject old=state;state=candidate;
-        try{persistAndRender();}catch(Exception e){state=old;throw e;}
     }
     void deleteLoss(String id) throws Exception {
-        JSONObject candidate=new JSONObject(state.toString());
-        JSONArray rows=candidate.optJSONArray("losses"),updated=new JSONArray();
-        boolean found=false;
-        if(rows!=null)for(int i=0;i<rows.length();i++){
-            JSONObject row=rows.getJSONObject(i);
-            if(id.equals(row.optString("id")))found=true;else updated.put(row);
+        synchronized(BackupCoordinator.LOCK){
+            reloadConfirmed();
+            JSONObject candidate=new JSONObject(state.toString());
+            JSONArray rows=candidate.optJSONArray("losses"),updated=new JSONArray();
+            boolean found=false;
+            if(rows!=null)for(int i=0;i<rows.length();i++){
+                JSONObject row=rows.getJSONObject(i);
+                if(id.equals(row.optString("id")))found=true;else updated.put(row);
+            }
+            if(!found)throw new IllegalArgumentException("損失履歴が見つかりません");
+            candidate.put("losses",updated);
+            JSONObject old=state;state=candidate;
+            try{persistAndRender();}catch(Exception e){state=old;throw e;}
         }
-        if(!found)throw new IllegalArgumentException("損失履歴が見つかりません");
-        candidate.put("losses",updated);
-        JSONObject old=state;state=candidate;
-        try{persistAndRender();}catch(Exception e){state=old;throw e;}
     }
     void deleteManual(String id) throws Exception {
-        JSONArray fresh=new JSONArray();boolean found=false;
-        for(int i=0;i<manual().length();i++) {
-            JSONObject v=manual().getJSONObject(i);
-            if(id.equals(v.optString("id")))found=true;
-            else fresh.put(v);
+        synchronized(BackupCoordinator.LOCK){
+            reloadConfirmed();
+            JSONArray fresh=new JSONArray();boolean found=false;
+            for(int i=0;i<manual().length();i++) {
+                JSONObject v=manual().getJSONObject(i);
+                if(id.equals(v.optString("id")))found=true;
+                else fresh.put(v);
+            }
+            if(!found)throw new IllegalArgumentException("履歴が見つかりません");
+            state.put("manual",fresh);persistAndRender();
         }
-        if(!found)throw new IllegalArgumentException("履歴が見つかりません");
-        state.put("manual",fresh);persistAndRender();
     }
     void updateManual(String id,String date,long amount) throws Exception {
-        checkDate(date);safe(amount,true);
-        if(csvBase(date.substring(0,7))<0) { JSONObject record=new JSONObject();record.put("csv",0);record.put("source","manual-only");months().put(date.substring(0,7),record); }
-        JSONArray changed=new JSONArray();boolean found=false;
-        for(int i=0;i<manual().length();i++) {
-            JSONObject entry=manual().getJSONObject(i);
-            if(id.equals(entry.optString("id"))) {
-                found=true;
-                JSONObject edited=new JSONObject(entry.toString());
-                edited.put("date",date);edited.put("amount",amount);
-                changed.put(edited);
-            }else changed.put(entry);
+        synchronized(BackupCoordinator.LOCK){
+            reloadConfirmed();
+            checkDate(date);safe(amount,true);
+            if(csvBase(date.substring(0,7))<0) { JSONObject record=new JSONObject();record.put("csv",0);record.put("source","manual-only");months().put(date.substring(0,7),record); }
+            JSONArray changed=new JSONArray();boolean found=false;
+            for(int i=0;i<manual().length();i++) {
+                JSONObject entry=manual().getJSONObject(i);
+                if(id.equals(entry.optString("id"))) {
+                    found=true;
+                    JSONObject edited=new JSONObject(entry.toString());
+                    edited.put("date",date);edited.put("amount",amount);
+                    changed.put(edited);
+                }else changed.put(entry);
+            }
+            if(!found)throw new IllegalArgumentException("履歴が見つかりません");
+            JSONObject candidate=new JSONObject(state.toString());
+            candidate.put("manual",changed);
+            validate(candidate);
+            JSONObject old=state;state=candidate;
+            try{persistAndRender();}catch(Exception e){state=old;throw e;}
         }
-        if(!found)throw new IllegalArgumentException("履歴が見つかりません");
-        JSONObject candidate=new JSONObject(state.toString());
-        candidate.put("manual",changed);
-        validate(candidate);
-        JSONObject old=state;state=candidate;
-        try{persistAndRender();}catch(Exception e){state=old;throw e;}
+    }
+    private void reloadConfirmed() throws Exception {
+        String saved=preferences.getString(KEY,"");
+        if(saved.isEmpty())throw new IllegalStateException("収益履歴が見つかりません。バックアップから復旧してください");
+        JSONObject fresh=new JSONObject(saved);validate(fresh);state=fresh;
     }
     void persist() throws Exception {
         if(!preferences.edit().putString(KEY,state.toString()).commit())
@@ -346,7 +377,7 @@ final class RevenueManager {
         saveAndRender(true,true);
     }
     void projectWidget() throws Exception {
-        saveAndRender(false,true);
+        synchronized(BackupCoordinator.LOCK){reloadConfirmed();saveAndRender(false,true);}
     }
     private void saveAndRender(boolean saveHistory,boolean projectCurrentMonth) throws Exception {
         SharedPreferences.Editor ed=preferences.edit();
@@ -388,11 +419,14 @@ final class RevenueManager {
     String backup() throws Exception { return snapshot().toString(); }
 
     void replaceFromJson(String json) throws Exception {
-        if(json.length()>2_000_000)throw new IllegalArgumentException("ファイルが大きすぎます");
-        JSONObject incoming=new JSONObject(json);validate(incoming);
-        // Stage validated data first; never erase the previous state for a malformed import.
-        JSONObject old=state;state=incoming;
-        try{persistAndRender();}catch(Exception e){state=old;throw e;}
+        synchronized(BackupCoordinator.LOCK){
+            reloadConfirmed();
+            if(json.length()>2_000_000)throw new IllegalArgumentException("ファイルが大きすぎます");
+            JSONObject incoming=new JSONObject(json);validate(incoming);
+            // Stage validated data first; never erase the previous state for a malformed import.
+            JSONObject old=state;state=incoming;
+            try{persistAndRender();}catch(Exception e){state=old;throw e;}
+        }
     }
     static long strictNumber(Object raw,boolean positive) {
         if(!(raw instanceof Number))throw new IllegalArgumentException("金額は数値で指定してください");

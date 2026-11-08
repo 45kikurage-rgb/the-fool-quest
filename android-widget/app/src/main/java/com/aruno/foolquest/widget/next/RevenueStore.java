@@ -8,7 +8,7 @@ import org.json.JSONObject;
 /** Last-good display projection only. Never writes to Ledger or the web source. */
 final class RevenueStore {
     static final String API = "https://aruno-consolidated-ledger-api.45kikurage.workers.dev/api/v1/revenue/monthly?month=";
-    static SharedPreferences prefs(Context c){ return c.getSharedPreferences("widget",Context.MODE_PRIVATE); }
+    static SharedPreferences prefs(Context c){ return BackupCoordinator.get(c).preferences; }
     static final class Data {
         String month, importMonth, couponMonth, error, errorCode;
         long tiktok=-1,coupon=-1,goalTotal=-1,goalTiktok=-1,goalCoupon=-1,couponAt,importAt;

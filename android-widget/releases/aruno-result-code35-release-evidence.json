@@ -1,0 +1,123 @@
+{
+  "schema": 1,
+  "version": "0.1.34",
+  "versionCode": 35,
+  "sourceCommit": "e8707316316200ecc8c779cca970d2817683ab0e",
+  "package": "com.aruno.foolquest.widget.next",
+  "apkFile": "aruno-result-0.1.34.apk",
+  "apkSha256": "51e4755362a22bb729afc0d9f2dd07b0e08a4259f11f0e7e6260e4eefa4417ff",
+  "apkBytes": 326750,
+  "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+  "unsignedSha256": "ff99b97be7c4a7498e302d7a51eeaac345ab08b54946d4ebf801465624b88764",
+  "signing": {
+    "run": 42459999363,
+    "workflowCommit": "70496dff51015c2af92949af7eb6df9a4ccaefea",
+    "existingKey": true,
+    "independentPrimaryBackupRestore": true,
+    "primaryJob": 128667046500,
+    "backupJob": 128667046511,
+    "newKeyGenerated": false
+  },
+  "software": {
+    "run": 42459683528,
+    "android35": {
+      "normal": 8412,
+      "offline": 2759,
+      "reboot": 2749
+    },
+    "backupAndroid36": {
+      "normal": 33,
+      "reboot": 3,
+      "sourceCommit": "eb202ab64f3421ee6e06f2de6af951b474c9538c",
+      "scope": "Earlier candidate baseline"
+    },
+    "formatChecks": 12,
+    "signedPayloadMatchesTestedUnsigned": true,
+    "payloadEntries": 40,
+    "nativeJob": 128666087201,
+    "scope": "Android35 native job passed; its obsolete default-emulator Android17 attempt was cancelled. Android17 final-source acceptance is independently PASS in run42461997333. Do not label cancelled/infrastructure attempts as functional passes."
+  },
+  "android17": {
+    "run": 42461997333,
+    "status": "PASS",
+    "sdkIdentifier": "android-37.0",
+    "ramMiB": 4096,
+    "heapMiB": 512,
+    "graphics": "software",
+    "job": 128673089887,
+    "normalChecks": 37,
+    "rebootChecks": 3,
+    "osRelease": "17",
+    "sdk": 37,
+    "artifactId": 13610451582,
+    "artifactSha256": "05d5eb3a83ee49eee57c6b97499a54be530cf7cf3dde5a292685005a4835a504"
+  },
+  "upgrade": {
+    "fromCode": 34,
+    "toCode": 35,
+    "status": "PASS",
+    "run": 42460331078,
+    "job": 128668045784,
+    "fixtureFields": 39,
+    "uidPreserved": true,
+    "legacyUnchanged": true,
+    "preMigrationSnapshotVerified": true
+  },
+  "publication": {
+    "status": "ready-pending-publication",
+    "urls": [
+      "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
+      "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
+    ],
+    "apkUrls": [
+      "https://the-fool-quest.45kikurage.workers.dev/android-widget/releases/aruno-result-0.1.34.apk",
+      "https://45kikurage-rgb.github.io/the-fool-quest/android-widget/releases/aruno-result-0.1.34.apk"
+    ]
+  },
+  "physicalDevice": {
+    "verified": false,
+    "code32DataLossCause": "unresolved"
+  },
+  "formalOperation": "UNCONFIRMED_PHYSICAL_DEVICE_PENDING",
+  "sharedApiChanges": false,
+  "serverWrites": false,
+  "supersededCandidate": {
+    "sourceCommit": "eb202ab64f3421ee6e06f2de6af951b474c9538c",
+    "apkSha256": "6c2a91a3ed525eabba04b47e1c92945374ffa1a8146e64609a062c7a99b11c8d",
+    "upgradeRun": 42459484510,
+    "upgradeStatus": "PASS_39_FIELDS_AND_STARTUP_SNAPSHOT",
+    "published": false,
+    "reason": "Historical Coupon cache merge and pending-only capacity fixes before production"
+  },
+  "infrastructureAttempts": [
+    {
+      "run": 42458582950,
+      "result": "native35 PASS; bare android-37 SDK identifier unavailable"
+    },
+    {
+      "run": 42459325046,
+      "result": "default Android17 emulator boot timed out; app not tested"
+    },
+    {
+      "run": 42460149976,
+      "result": "Android17 booted; guest storage insufficient before test installation"
+    },
+    {
+      "run": 42460377304,
+      "result": "superseded SDK download attempt cancelled"
+    },
+    {
+      "run": 42460904924,
+      "result": "SDK AVD home path mismatch before emulator startup"
+    },
+    {
+      "run": 42461093166,
+      "result": "AVD not discovered; no app test"
+    },
+    {
+      "run": 42461761660,
+      "result": "workflow syntax failure; no runner jobs"
+    }
+  ],
+  "productionRelease": true
+}

@@ -1,0 +1,6 @@
+{
+  "schema": 1,
+  "sourceCommit": "e8707316316200ecc8c779cca970d2817683ab0e",
+  "reason": "Android17 emulator boots with explicit RAM/heap; raise guest data partition to8GiB after INSTALL_FAILED_INSUFFICIENT_STORAGE before test APK installation.",
+  "revision": 3
+}

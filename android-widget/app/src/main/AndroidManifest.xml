@@ -1,10 +1,11 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.aruno.foolquest.widget.next" android:versionCode="34" android:versionName="0.1.33">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.aruno.foolquest.widget.next" android:versionCode="35" android:versionName="0.1.34">
     <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="35" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-    <application android:label="@string/app_name" android:icon="@drawable/ic_aruno_result" android:roundIcon="@drawable/ic_aruno_result" android:theme="@android:style/Theme.Material.Light.NoActionBar" android:allowBackup="false" android:usesCleartextTraffic="false" android:supportsRtl="true">
+    <application android:name=".ResultApplication" android:label="@string/app_name" android:icon="@drawable/ic_aruno_result" android:roundIcon="@drawable/ic_aruno_result" android:theme="@android:style/Theme.Material.Light.NoActionBar" android:allowBackup="false" android:usesCleartextTraffic="false" android:supportsRtl="true">
+        <activity android:name=".BackupActivity" android:exported="false" />
         <activity android:name=".ManagementActivity" android:exported="true">
             <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
         </activity>

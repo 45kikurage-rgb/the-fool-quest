@@ -78,7 +78,7 @@ public final class ManagementActivity extends Activity {
     }
     private void alert(String title,String message){
         if(isFinishing())return;
-        new AlertDialog.Builder(this).setTitle(title).setMessage(message).setPositiveButton("OK",null).show();
+        new AlertDialog.Builder(this).setTitle(title).setMessage(message).setPositiveButton("OK",null).setNeutralButton("バックアップ・復旧",(d,w)->startActivity(new Intent(this,BackupActivity.class))).show();
     }
     private void screen(String title) {
         showingHome=false;
@@ -171,10 +171,16 @@ public final class ManagementActivity extends Activity {
         action("えらべるPayのポイント履歴をChromeで開く",
             ()->openUrl("https://wallet.vaton.jp/point/point_logs"));
         action("バックアップ・復元",this::showBackupMenu);
+        if(!BackupCoordinator.get(this).meta.getString("error","").isEmpty() || BackupCoordinator.get(this).meta.getString("tree","").isEmpty()){
+            info(BackupCoordinator.get(this).status());
+            action("自動バックアップの保存先を設定・確認",()->startActivity(new Intent(this,BackupActivity.class)));
+        }
     }
     private void showBackupMenu() throws Exception {
         screen("バックアップ・復元");
         action("← 収益管理へ戻る",this::showHome);
+        action("自動バックアップ・復旧を開く",()->startActivity(new Intent(this,BackupActivity.class)));
+        info(BackupCoordinator.get(this).status());
         heading("サイトからの一度限りの移行");
         info("旧サイトと同じChromeで「移行ファイル作成」を開き、保存したJSONをここで取り込んでください。現在のアプリデータを上書きする前に確認します。");
         action("旧サイトの移行ファイル作成ページ",()->
@@ -268,6 +274,7 @@ public final class ManagementActivity extends Activity {
                         .setMessage("対象：月別"+n+"件／手動追加"+m+"件\n\nアプリ内の既存履歴・目標を移行ファイルの内容で置き換えます。既存アプリデータを残す場合、先にJSONバックアップしてください。Couponの当月値は中央管理台帳から取得します。")
                         .setNegativeButton("キャンセル",null)
                         .setPositiveButton("移行する",(d,w)->execute(()->{
+                            BackupCoordinator.get(this).capture("safety",true);
                             model.replaceFromJson(json);showHome();
                             alert("移行完了","収益・目標・過去の履歴を取り込みました。実際の金額と照合してください。");
                         })).show();

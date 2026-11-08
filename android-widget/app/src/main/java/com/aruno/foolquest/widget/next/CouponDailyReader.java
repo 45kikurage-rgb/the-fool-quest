@@ -102,9 +102,7 @@ final class CouponDailyReader {
             JSONObject data = validate(RevenueHttp.read(connection),month,System.currentTimeMillis());
             save(p,credential,month,data);
         } catch(RevenueHttp.HttpFailure e) {
-            if (e.status == 409) save(p,credential,month,null);
-            else if (e.status == 401 || e.status == 403) save(p,credential,null,null);
-            else throw e;
+            throw e; // A failed fetch must never erase the last-good daily projection.
         } finally {
             connection.disconnect();
         }
