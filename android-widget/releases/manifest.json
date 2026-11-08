@@ -1,21 +1,22 @@
 {
   "applicationId": "com.aruno.foolquest.widget.next",
-  "version": "0.1.33",
-  "versionCode": 34,
+  "version": "0.1.34",
+  "versionCode": 35,
   "minSdk": 26,
   "targetSdk": 35,
-  "size": 310366,
-  "sha256": "d5ac8dfc946d7c902b8d8e2ef365c3456f587b4af863552d70ec768881352800",
+  "size": 326750,
+  "sha256": "6c2a91a3ed525eabba04b47e1c92945374ffa1a8146e64609a062c7a99b11c8d",
   "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
   "couponUpdate": "Daily revenue for priced coupons via authenticated Ledger; monthly reader retained",
   "tiktokUpdate": "On-demand current-month point-history CSV fetch in the in-app WebView; manual CSV import and manual revenue entry remain available",
   "changes": [
-    "Requested defaults: right padding 6, top/bottom 0, row gap 0, gauge 20dp and text gap 7",
-    "Show available daily subtotals including zero; preserve unknown source labels; deduct losses once",
-    "Add existing administrator-protected daily reader-key confirmation link"
+    "Automatic verified device-folder JSON backups after committed revenue/settings changes",
+    "Ten changes plus ten daily anchors and ten independent startup/pre-restore safety generations",
+    "Confirmed preview/recovery with pre-restore preservation and no server writes",
+    "Serialize/reload mutations, reject accidental empty reset, keep last-good daily Coupon on failed fetch"
   ],
-  "file": "aruno-result-0.1.33.apk",
-  "installation": "Back up history first; update without uninstalling. Saved settings are preserved. The standard layout button applies only the requested layout defaults.",
+  "file": "aruno-result-0.1.34.apk",
+  "installation": "Before this first backup-capable update, export the current revenue JSON. Update in place without uninstalling. Select Documents/Aruno-Result once to enable automatic independent files.",
   "legacy": {
     "applicationId": "com.aruno.foolquest.widget",
     "version": "0.1.12",
@@ -27,14 +28,23 @@
   },
   "previousRelease": {
     "applicationId": "com.aruno.foolquest.widget.next",
-    "version": "0.1.32",
-    "versionCode": 33,
+    "version": "0.1.33",
+    "versionCode": 34,
     "size": 310366,
-    "sha256": "37cc40d381c4e7be1d33bc6d3879c7dba5fe97631bb56fa0d52f6fb7b0317e4d",
+    "sha256": "d5ac8dfc946d7c902b8d8e2ef365c3456f587b4af863552d70ec768881352800",
     "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
-    "file": "aruno-result-0.1.32.apk"
+    "file": "aruno-result-0.1.33.apk"
   },
   "archives": [
+    {
+      "applicationId": "com.aruno.foolquest.widget.next",
+      "version": "0.1.32",
+      "versionCode": 33,
+      "size": 310366,
+      "sha256": "37cc40d381c4e7be1d33bc6d3879c7dba5fe97631bb56fa0d52f6fb7b0317e4d",
+      "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+      "file": "aruno-result-0.1.32.apk"
+    },
     {
       "applicationId": "com.aruno.foolquest.widget.next",
       "version": "0.1.31",
@@ -198,24 +208,49 @@
       "file": "fool-quest-widget-0.1.13-original.apk"
     }
   ],
-  "sourceCommit": "d235b93adf1a85950b05f365790f7742a773c252",
-  "unsignedSha256": "14bec14bf352416f2fcedc52ffb2b17a550a7f2abb4cad959bda6ed27f10f628",
+  "sourceCommit": "eb202ab64f3421ee6e06f2de6af951b474c9538c",
+  "unsignedSha256": "2d8a26b3de30a5c9a2f1c2b1e91fbc58fce48d28f5c514c40971bb830c28e307",
   "deviceVerified": false,
-  "deliveryStatus": "production-update",
+  "deliveryStatus": "signed-candidate",
   "dailyTargetUpdate": "JST midnight; exact alarm when allowed, inexact fallback otherwise; no network required",
-  "signingRunId": 42358221857,
-  "softwareTestRunId": 42357982520,
+  "signingRunId": 42459295551,
+  "softwareTestRunId": 42458930555,
   "distributionUrls": [
     "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
     "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
   ],
   "lossUpdate": "Manually record, edit and delete separate TikTok Lite and Coupon losses by date; preserve the gross source; net amounts subtract losses once",
   "lossDisplay": "Combined daily losses shown in red below the TikTok row; daily and monthly totals are net of losses",
-  "upgradeTestRunId": 42358475455,
-  "publicationStatus": "public-origin-verification-pending",
-  "publicationRequestedAt": "2026-11-06 JST",
+  "upgradeTestRunId": null,
+  "publicationStatus": "not-published-candidate",
+  "publicationRequestedAt": "2026-11-08 JST",
   "displayName": "Aruno-Result",
-  "releaseStatus": "DISPLAY_FIX_AVAILABLE_DATA_LOSS_CAUSE_UNRESOLVED",
+  "releaseStatus": "SIGNED_BACKUP_CANDIDATE_SOFTWARE_PASS_PHYSICAL_PENDING",
   "updateRecommended": false,
-  "notice": "Display-only code33 candidate. The code32 physical-device local data-loss cause remains unresolved. Export JSON before updating; never uninstall or clear app data."
+  "notice": "Automatic backup/recovery candidate. Code32 physical data-loss cause remains unresolved. Never uninstall or clear current app data. Physical Pixel10 acceptance remains pending.",
+  "backup": {
+    "format": "aruno-result-backup",
+    "formatVersion": 1,
+    "requiresInitialFolderSelection": true,
+    "localDeviceFolder": true,
+    "recentGenerations": 10,
+    "dailyGenerations": 10,
+    "safetyGenerations": 10,
+    "credentialsIncluded": false,
+    "serverWrites": false
+  },
+  "softwareChecks": {
+    "android35": {
+      "normal": 8412,
+      "offline": 2759,
+      "reboot": 2749
+    },
+    "backupAndroid36": {
+      "normal": 33,
+      "reboot": 3
+    },
+    "format": 12,
+    "android17RunId": 42459325046,
+    "android17Status": "running"
+  }
 }

@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "version": "0.1.34",
+  "versionCode": 35,
+  "sourceCommit": "eb202ab64f3421ee6e06f2de6af951b474c9538c",
+  "package": "com.aruno.foolquest.widget.next",
+  "apkFile": "aruno-result-0.1.34.apk",
+  "apkSha256": "6c2a91a3ed525eabba04b47e1c92945374ffa1a8146e64609a062c7a99b11c8d",
+  "apkBytes": 326750,
+  "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+  "unsignedSha256": "2d8a26b3de30a5c9a2f1c2b1e91fbc58fce48d28f5c514c40971bb830c28e307",
+  "signing": {
+    "run": 42459295551,
+    "workflowCommit": "68cea7e301b4739e0ef483afea3bc385d640e9d1",
+    "existingKey": true,
+    "independentPrimaryBackupRestore": true,
+    "primaryJob": 128664915802,
+    "backupJob": 128664915931,
+    "newKeyGenerated": false
+  },
+  "software": {
+    "run": 42458930555,
+    "android35": {
+      "normal": 8412,
+      "offline": 2759,
+      "reboot": 2749
+    },
+    "backupAndroid36": {
+      "normal": 33,
+      "reboot": 3
+    },
+    "formatChecks": 12,
+    "signedPayloadMatchesTestedUnsigned": true,
+    "payloadEntries": 40
+  },
+  "android17": {
+    "run": 42459325046,
+    "status": "running",
+    "sdkIdentifier": "android-37.0"
+  },
+  "upgrade": {
+    "fromCode": 34,
+    "toCode": 35,
+    "status": "pending"
+  },
+  "publication": {
+    "status": "not-published"
+  },
+  "physicalDevice": {
+    "verified": false,
+    "code32DataLossCause": "unresolved"
+  },
+  "formalOperation": "unconfirmed",
+  "sharedApiChanges": false,
+  "serverWrites": false
+}
