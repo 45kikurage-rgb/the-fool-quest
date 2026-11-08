@@ -34,6 +34,7 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: '37.0'
+          disk-size: 8192M
           ram-size: 4096M
           heap-size: 512M
           cores: 4
