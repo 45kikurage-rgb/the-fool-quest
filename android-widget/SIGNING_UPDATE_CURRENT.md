@@ -1,3 +1,19 @@
+# code36 白背景アイコン候補：未配布（2026-11-08）
+
+- 変更：元の透過PNGを変更せず、白い下地を明示するLayerDrawableを追加。icon/roundIconを同じXMLへ統一。文字・枠・サイズ・配置、アプリ本体Java、保存形式、packageと署名は維持。
+- 候補：0.1.35 / versionCode36、326812 bytes、package com.aruno.foolquest.widget.next。
+- 実APKのアプリソース：`a3cac172991fa804ea1455dbca05acd8a88d2b8e`。試験期待値のみの後続修正：`5264f038a255787d0b741ef390d728bebc2753d2`。
+- APK SHA-256：`9c0829758631d7b1a129d8a0883fd9ce6dcd3dfa5f6a1a024060f8c5caeefee4`。証明書は従来の8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730。
+- 最終独立復元：run42470171563、primary128699257991 / backup128699257863、各別runner成功。署名128699307692成功。新しい鍵・復号情報の作成・移設はなし。
+- 同一署名候補を非公開opsの `staging/icon-white-result-42470171563`、`releases/icon-white-20261108/result/candidate.apk.b64` と `trial-result.json` に保管。これは公開配布ではない。
+- Android15通常8413・オフライン2759・再起動2749項目はrun42469943501のnative job128698128846で成功。Android17 backup job128698129011は通常37項目成功後、再起動後の保存先一覧取得で失敗。原因は未確定で、白背景変更が原因とは断定しない。
+- 正式同一署名35→36上書き、39項目の履歴/手入力/損失/表示/日別接続/ウィジェット設定保持と、元画像を維持した白背景描画はrun42470589105で検証中。APKの再build・再署名はしない。
+- **配布停止。** 公開ページと配布manifestはcode35を維持。Pixel10物理端末は未接続で、実機上書き保持・HOME/フォルダ/アプリ一覧は未確認。利用者のデータ保持ゲートを免除しない。
+
+以下のcode35公開記録と署名保管先は履歴を含めて維持する。
+
+---
+
 # Aruno-Result 署名・更新台帳 CURRENT
 
 更新日：2026-11-08。秘密の値は記載しない。ソース・試験・配布・実機を分ける。
