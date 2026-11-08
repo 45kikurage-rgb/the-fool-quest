@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Keep the supplied transparent artwork, bounds and colors unchanged.
+     Explicit white backing prevents launcher-generated background colors.
+     No adaptive mask/inset: it would crop or resize the existing black frame. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item><shape android:shape="rectangle"><solid android:color="#FFFFFF" /></shape></item>
+    <item><bitmap android:src="@drawable/ic_aruno_result" android:gravity="fill" /></item>
+</layer-list>
