@@ -39,6 +39,11 @@ jobs:
           keytool -genkeypair -keystore "$SIGNING_STORE" -storepass:env SIGNING_STORE_PASSWORD -keypass:env SIGNING_STORE_PASSWORD -alias foolquestwidget -keyalg RSA -keysize 2048 -validity 2 -dname 'CN=CI TEST ONLY'
           bash scripts/build.sh
           bash scripts/build-android-tests.sh
+          mkdir -p build/deps
+          curl -fsSL https://repo.maven.apache.org/maven2/org/json/json/20240303/json-20240303.jar -o build/deps/json.jar
+          echo '3cf6cd6892e32e2b4c1c39e0f52f5248a2f5b37646fdfbb79a66b46b618414ed  build/deps/json.jar' | sha256sum -c
+          javac --release 8 -encoding UTF-8 -classpath "build/classes:build/deps/json.jar:$ANDROID_JAR" -d build/test tests/BackupFormatTest.java
+          java -cp "build/test:build/classes:build/deps/json.jar:$ANDROID_JAR" com.aruno.foolquest.widget.next.BackupFormatTest
       - name: Enable emulator acceleration
         working-directory: .
         run: |
@@ -143,9 +148,9 @@ jobs:
         if: failure()
         run: |
           mkdir -p android-widget/build/backup-results
-          adb logcat -d -v time > android-widget/build/backup-results/logcat.txt || true
-          adb shell uiautomator dump /sdcard/backup-ui.xml || true
-          adb pull /sdcard/backup-ui.xml android-widget/build/backup-results/ || true
+          timeout 15 adb logcat -d -v time > android-widget/build/backup-results/logcat.txt || true
+          timeout 15 adb shell uiautomator dump /sdcard/backup-ui.xml || true
+          timeout 15 adb pull /sdcard/backup-ui.xml android-widget/build/backup-results/ || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
