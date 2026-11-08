@@ -41,3 +41,5 @@
 - 配布ページ：https://the-fool-quest.45kikurage.workers.dev/widget-download.html
 - APK：https://the-fool-quest.45kikurage.workers.dev/android-widget/releases/aruno-result-0.1.34.apk
 - 代替：https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html
+
+公開結果は配布manifest・更新証跡・本台帳に同じ版番号とハッシュで記録しています。検証結果の公開反映時にもAPKは再生成せず、上記の署名済みバイトを継続配布します。
