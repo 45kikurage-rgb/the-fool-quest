@@ -17,7 +17,7 @@ final class BackupFormat {
     static final Set<String> LONGS=new HashSet<>(Arrays.asList("goalTotal","goalTiktok","goalCoupon","tiktok","coupon","importAt","couponAt"));
     static final Set<String> STRINGS=new HashSet<>(Arrays.asList("nativeRevenueV1","couponRevenueMonthlyV1","couponRevenueDailyV2","importMonth","couponMonth"));
     static String type(String k){
-        if(INTS.contains(k)||k.matches("calendar\\.(filter|summary)\\.[0-9]+"))return "int";
+        if(INTS.contains(k)||k.matches("calendar\\.(filter|summary|forecastHidden)\\.[0-9]+"))return "int";
         if(LONGS.contains(k))return "long";
         if(STRINGS.contains(k)||k.matches("calendar\\.month\\.[0-9]+"))return "string";
         return "paceColors".equals(k)?"boolean":null;
@@ -78,7 +78,7 @@ final class BackupFormat {
         }
         for(String k:out.keySet())if(k.startsWith("calendar.")){
             if(k.startsWith("calendar.month."))RevenueManager.requireMonth((String)out.get(k));
-            else {int n=(Integer)out.get(k);if(n<0||n>(k.startsWith("calendar.filter.")?4:2))throw new IllegalArgumentException("カレンダー設定が不正です");}
+            else {int n=(Integer)out.get(k);if(n<0||n>(k.startsWith("calendar.filter.")?4:k.startsWith("calendar.forecastHidden.")?1:2))throw new IllegalArgumentException("カレンダー設定が不正です");}
         }
         return out;
     }

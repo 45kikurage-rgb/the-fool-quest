@@ -5,7 +5,7 @@
     android:paddingTop="1dp" android:paddingBottom="1dp" android:background="#202020">
     <TextView android:id="@+id/calendar_day_number" style="@style/CalendarDailyText"
         android:layout_width="match_parent" android:layout_height="0dp"
-        android:layout_weight="1.08" android:gravity="center" android:layout_marginBottom="2dp" />
+        android:layout_weight="1.08" android:gravity="start|center_vertical" android:layout_marginBottom="2dp" />
     <!-- Daily row order is configured ONLY here. To reorder, move these four include lines. -->
     <LinearLayout android:id="@+id/calendar_amount_rows"
         android:layout_width="match_parent" android:layout_height="0dp"

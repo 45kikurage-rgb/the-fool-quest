@@ -41,9 +41,15 @@ final class CalendarWidgetState {
         // The button visits total, TikTok, coupon without changing those indices.
         prefs(c).edit().putInt("calendar.summary."+id,(summary(c,id)+2)%3).apply();
     }
+    static boolean forecastVisible(Context c,int id){
+        return prefs(c).getInt("calendar.forecastHidden."+id,0)!=1;
+    }
+    static void toggleForecast(Context c,int id){
+        prefs(c).edit().putInt("calendar.forecastHidden."+id,forecastVisible(c,id)?1:0).apply();
+    }
     static void delete(Context c,int id){
         prefs(c).edit().remove("calendar.month."+id).remove("calendar.filter."+id)
-            .remove("calendar.summary."+id).apply();
+            .remove("calendar.summary."+id).remove("calendar.forecastHidden."+id).apply();
     }
     static boolean exists(Context c,int id){
         if(id==AppWidgetManager.INVALID_APPWIDGET_ID)return false;
