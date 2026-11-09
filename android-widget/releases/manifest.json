@@ -18,7 +18,7 @@
     "Exact daily yen available on tap; source revenue, loss data, package and signer preserved"
   ],
   "file": "aruno-result-0.1.36.apk",
-  "installation": "Before this first backup-capable update, export the current revenue JSON. Update in place without uninstalling. Select Documents/Aruno-Result once to enable automatic independent files.",
+  "installation": "Update in place without uninstalling. Existing package, signer and data paths are retained. Use the existing backup folder selection to keep automatic independent backup files.",
   "legacy": {
     "applicationId": "com.aruno.foolquest.widget",
     "version": "0.1.12",
@@ -242,7 +242,7 @@
   "lossUpdate": "Manually record, edit and delete separate TikTok Lite and Coupon losses by date; preserve the gross source; net amounts subtract losses once",
   "lossDisplay": "Combined daily losses shown in red below the TikTok row; daily and monthly totals are net of losses",
   "upgradeTestRunId": 42708371365,
-  "publicationStatus": "PENDING_PUBLIC_READBACK",
+  "publicationStatus": "VERIFIED_BOTH_ORIGINS",
   "publicationRequestedAt": "2026-11-09T22:12:17.274817+00:00",
   "displayName": "Aruno-Result",
   "releaseStatus": "CALENDAR_FORECAST_UPDATE_PHYSICAL_PENDING",
@@ -295,5 +295,9 @@
   "releaseEvidence": "aruno-result-code37-release-evidence.json",
   "launcherBackground": "#FFFFFF",
   "launcherArtworkUnchanged": true,
-  "launcherIconResource": "@drawable/zz_aruno_launcher_white"
+  "launcherIconResource": "@drawable/zz_aruno_launcher_white",
+  "publicationVerifiedAt": "2026-11-09T22:13:58.5438543Z",
+  "publicationVerificationRunId": 42709893084,
+  "publicationVerificationJobId": 129476339195,
+  "publicationCommit": "d4a39e5c9c10867d61573cf39c24875251f2a35e"
 }

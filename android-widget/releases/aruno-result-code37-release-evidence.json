@@ -83,7 +83,7 @@
     "Per-widget forecast preference persists, resets only with widget removal and is included in backup",
     "Exact daily yen available on tap; source revenue, loss data, package and signer preserved"
   ],
-  "publicationStatus": "PENDING_PUBLIC_READBACK",
+  "publicationStatus": "VERIFIED_BOTH_ORIGINS",
   "publicationRequestedAt": "2026-11-09T22:12:17.274817+00:00",
   "distributionUrls": [
     "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
@@ -104,5 +104,9 @@
       "run": 42706980218,
       "result": "Obsolete candidate; system launcher/GMS ANRs during emulator boot; expected UI absent; not published"
     }
-  ]
+  ],
+  "publicationVerifiedAt": "2026-11-09T22:13:58.5438543Z",
+  "publicationVerificationRunId": 42709893084,
+  "publicationVerificationJobId": 129476339195,
+  "publicationCommit": "d4a39e5c9c10867d61573cf39c24875251f2a35e"
 }
