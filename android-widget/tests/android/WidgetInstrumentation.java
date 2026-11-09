@@ -335,6 +335,11 @@ public class WidgetInstrumentation extends Instrumentation {
         ok(CalendarWidgetState.isFollowingCurrentMonth(c,first)
             &&RevenueMath.month(System.currentTimeMillis()).equals(CalendarWidgetState.month(c,first)),
             "calendar returns to JST current-month tracking");
+        ok(CalendarWidgetState.forecastVisible(c,first),"forecast is initially visible");
+        CalendarWidgetState.toggleForecast(c,first);
+        ok(!CalendarWidgetState.forecastVisible(c,first)&&CalendarWidgetState.forecastVisible(c,second),"forecast visibility persists per widget");
+        CalendarWidgetState.toggleForecast(c,first);
+        ok(CalendarWidgetState.forecastVisible(c,first),"second tap restores forecast");
         CalendarWidgetState.delete(c,first);
         ok(CalendarWidgetState.filter(c,first)==CalendarWidgetState.ALL,"widget removal clears display preferences");
 
@@ -343,9 +348,9 @@ public class WidgetInstrumentation extends Instrumentation {
         data.days[1][0]=5;
         data.days[1][1]=3;
         data.days[1][2]=2;
-        data.days[31][0]=999999;
+        data.days[31][0]=999000;
         data.days[31][1]=350000;
-        data.days[31][2]=649999;
+        data.days[31][2]=649000;
         data.dailyLosses[31]=1500;
         data.losses[31][0]=1000;
         data.losses[31][1]=500;
@@ -372,12 +377,12 @@ public class WidgetInstrumentation extends Instrumentation {
                     ok(lastRow.getChildCount()==7,"calendar keeps seven columns");
                     android.view.View lastDay=lastRow.getChildAt(2);
                     completeCalendarText(lastDay,R.id.calendar_day_number,"31");
-                    completeCalendarText(lastDay,R.id.calendar_day_total,"999999");
+                    completeCalendarText(lastDay,R.id.calendar_day_total,"99.9万");
                     completeCalendarText(lastDay,R.id.calendar_coupon_label,"C");
-                    completeCalendarText(lastDay,R.id.calendar_day_coupon,"350000");
+                    completeCalendarText(lastDay,R.id.calendar_day_coupon,"35.0万");
                     completeCalendarText(lastDay,R.id.calendar_tiktok_label,"T");
-                    completeCalendarText(lastDay,R.id.calendar_day_tiktok,"649999");
-                    completeCalendarText(lastDay,R.id.calendar_day_loss,"−1500");
+                    completeCalendarText(lastDay,R.id.calendar_day_tiktok,"64.9万");
+                    completeCalendarText(lastDay,R.id.calendar_day_loss,"−0.2万");
                     android.widget.TextView loss=lastDay.findViewById(R.id.calendar_day_loss);
                     ok(loss.getCurrentTextColor()==0xffff6464,"loss appears red below TikTok Lite");
                     android.view.View tRow=lastDay.findViewById(R.id.calendar_tiktok_row);
@@ -409,11 +414,25 @@ public class WidgetInstrumentation extends Instrumentation {
                     ok(amountRows.getTop()+total.getTop()-date.getBottom()>=Math.round(2*density),
                         "there is a gap between the date and daily total");
                     ok(total.getTextSize()>coupon.getTextSize(),"daily total uses the free category width");
+                    ok((date.getGravity()&android.view.Gravity.HORIZONTAL_GRAVITY_MASK)==android.view.Gravity.LEFT,
+                        "date is left aligned");
+                    android.widget.TextView header=calendar.findViewById(R.id.calendar_title);
+                    ok(header.getTextSize()>total.getTextSize(),"header is taller than daily totals");
+                    android.view.View forecast=lastRow.getChildAt(4);
+                    completeCalendarText(forecast,R.id.calendar_forecast_title,"月末予想");
+                    ok(forecast.isClickable()&&forecast.hasOnClickListeners(),"whole forecast cell is tappable");
                     completeCalendarText(lastRow.getChildAt(5),R.id.calendar_control,"カテゴリー\n表示変更");
                     completeCalendarText(lastRow.getChildAt(6),R.id.calendar_control,"年月\n表示変更");
                     checkCalendarHeader(calendar,"2026年5月","合計","¥9,007,199,254,740,991");
                 }
             }
+            CalendarWidgetState.toggleForecast(c,first);
+            android.view.View hidden=CalendarWidget.buildViews(c,first,"2026-11",0,0,data,
+                java.time.Instant.parse("2026-11-09T00:00:00Z").toEpochMilli()).apply(c,new android.widget.FrameLayout(c));
+            ok(hidden.findViewById(R.id.calendar_forecast_title).getVisibility()==android.view.View.VISIBLE
+                &&hidden.findViewById(R.id.calendar_forecast_values).getVisibility()==android.view.View.INVISIBLE,
+                "hidden forecast retains only title and cell dimensions");
+            CalendarWidgetState.toggleForecast(c,first);
             CalendarRevenueData.Month typical=new CalendarRevenueData.Month();
             typical.totals[0]=395601;
             typical.totals[1]=382200;
@@ -446,12 +465,12 @@ public class WidgetInstrumentation extends Instrumentation {
             android.view.View calendar=CalendarWidget.buildViews(c,first,"2026-11",0,0,current,now).apply(c,host);
             android.view.ViewGroup firstRow=calendar.findViewById(R.id.calendar_week_0);
             android.view.View today=firstRow.getChildAt(3);
-            ok("56523".contentEquals(((android.widget.TextView)today.findViewById(R.id.calendar_day_total)).getText())
+            ok("5.7万".contentEquals(((android.widget.TextView)today.findViewById(R.id.calendar_day_total)).getText())
                 &&today.findViewById(R.id.calendar_coupon_row).getVisibility()==android.view.View.VISIBLE
                 &&today.findViewById(R.id.calendar_tiktok_row).getVisibility()==android.view.View.VISIBLE
-                &&"45678".contentEquals(((android.widget.TextView)today.findViewById(R.id.calendar_day_tiktok)).getText())
-                &&"12345".contentEquals(((android.widget.TextView)today.findViewById(R.id.calendar_day_coupon)).getText())
-                &&"−1500".contentEquals(((android.widget.TextView)today.findViewById(R.id.calendar_day_loss)).getText()),
+                &&"4.6万".contentEquals(((android.widget.TextView)today.findViewById(R.id.calendar_day_tiktok)).getText())
+                &&"1.2万".contentEquals(((android.widget.TextView)today.findViewById(R.id.calendar_day_coupon)).getText())
+                &&"−0.2万".contentEquals(((android.widget.TextView)today.findViewById(R.id.calendar_day_loss)).getText()),
                 "today immediately shows verified TikTok and the combined total");
             for(int filter:new int[]{CalendarWidgetState.ALL,CalendarWidgetState.TOTAL,CalendarWidgetState.COUPON,CalendarWidgetState.TIKTOK,CalendarWidgetState.LOSS}){
                 android.view.View filtered=CalendarWidget.buildViews(c,first,"2026-11",filter,0,current,now).apply(c,host);
@@ -459,13 +478,13 @@ public class WidgetInstrumentation extends Instrumentation {
                 int[] rowIds={R.id.calendar_day_total,R.id.calendar_coupon_row,R.id.calendar_tiktok_row,R.id.calendar_loss_row};
                 for(int row=0;row<4;row++)ok((day.findViewById(rowIds[row]).getVisibility()==android.view.View.VISIBLE)==(filter==0||filter==row+1),
                     "each of five filters displays only its requested rows, including loss");
-                ok("56523".contentEquals(((android.widget.TextView)day.findViewById(R.id.calendar_day_total)).getText()),"filtering never changes loss-adjusted total");
+                ok("5.7万".contentEquals(((android.widget.TextView)day.findViewById(R.id.calendar_day_total)).getText()),"filtering never changes loss-adjusted total");
             }
             CalendarRevenueData.Month couponOnly=new CalendarRevenueData.Month();
             couponOnly.days[4][1]=12345;
             android.view.View provisional=CalendarWidget.buildViews(c,first,"2026-11",0,0,couponOnly,now).apply(c,host);
             android.view.View provisionalToday=((android.view.ViewGroup)provisional.findViewById(R.id.calendar_week_0)).getChildAt(3);
-            ok("12345".contentEquals(((android.widget.TextView)provisionalToday.findViewById(R.id.calendar_day_total)).getText())
+            ok("1.2万".contentEquals(((android.widget.TextView)provisionalToday.findViewById(R.id.calendar_day_total)).getText())
                 &&provisionalToday.findViewById(R.id.calendar_tiktok_row).getVisibility()==android.view.View.INVISIBLE,
                 "unknown today TikTok stays hidden without inventing zero revenue");
             android.view.View tomorrow=firstRow.getChildAt(4);
@@ -473,6 +492,40 @@ public class WidgetInstrumentation extends Instrumentation {
                 &&tomorrow.findViewById(R.id.calendar_coupon_row).getVisibility()==android.view.View.INVISIBLE,
                 "future days show their date but no revenue");
         });
+    }
+
+    void forecastInteractionChecks()throws Exception {
+        AppWidgetHost host=new AppWidgetHost(c,1337);
+        AppWidgetManager manager=AppWidgetManager.getInstance(c);
+        int id=host.allocateAppWidgetId();
+        ok(manager.bindAppWidgetIdIfAllowed(id,new ComponentName(c,CalendarWidget.class)),"bind forecast calendar");
+        CalendarRevenueData.Month data=new CalendarRevenueData.Month();
+        data.totals[0]=654152;data.totals[1]=491050;data.totals[2]=163102;
+        data.days[1][0]=999000;data.days[1][1]=900000;data.days[1][2]=99000;
+        final android.view.View[] tree={null};
+        long now=java.time.Instant.parse("2026-11-09T00:00:00Z").toEpochMilli();
+        for(int tap=0;tap<3;tap++){
+            final int n=tap;
+            runOnMainSync(()->{
+                android.widget.FrameLayout frame=new android.widget.FrameLayout(c);
+                tree[0]=CalendarWidget.buildViews(c,id,"2026-11",0,0,data,now,360,440).apply(c,frame);
+                frame.addView(tree[0]);
+                int w=Math.round(360*c.getResources().getDisplayMetrics().density),h=Math.round(440*c.getResources().getDisplayMetrics().density);
+                frame.measure(android.view.View.MeasureSpec.makeMeasureSpec(w,1073741824),android.view.View.MeasureSpec.makeMeasureSpec(h,1073741824));frame.layout(0,0,w,h);
+                android.view.View forecast=tree[0].findViewById(R.id.calendar_forecast);
+                ok(forecast.findViewById(R.id.calendar_forecast_title).getVisibility()==android.view.View.VISIBLE,"forecast title always remains");
+                ok((forecast.findViewById(R.id.calendar_forecast_values).getVisibility()==android.view.View.VISIBLE)==(n%2==0),"tap toggles every amount and C/T label together");
+                if(n==0){completeCalendarText(forecast,R.id.calendar_forecast_total,"218万");completeCalendarText(forecast,R.id.calendar_forecast_coupon,"163万");completeCalendarText(forecast,R.id.calendar_forecast_tiktok,"54万");}
+            });
+            android.graphics.Bitmap bitmap=android.graphics.Bitmap.createBitmap(tree[0].getWidth(),tree[0].getHeight(),android.graphics.Bitmap.Config.ARGB_8888);
+            runOnMainSync(()->tree[0].draw(new android.graphics.Canvas(bitmap)));
+            png(bitmap,"calendar-forecast-"+tap);
+            runOnMainSync(()->tree[0].findViewById(R.id.calendar_forecast).performClick());
+            waitForIdleSync();
+            for(int wait=0;wait<40&&CalendarWidgetState.forecastVisible(c,id)==(tap%2==0);wait++)Thread.sleep(50);
+            ok(CalendarWidgetState.forecastVisible(c,id)!=(tap%2==0),"production PendingIntent changes persisted forecast state");
+        }
+        RevenueStore.prefs(c).edit().putInt("test.forecastWidget",id).commit();
     }
 
     void checkCalendarHeader(android.view.View root,String month,String category,String amount){
@@ -499,7 +552,7 @@ public class WidgetInstrumentation extends Instrumentation {
         String[] lines=expected.split("\n",-1);
         ok(expected.contentEquals(text.getText())&&layout!=null&&layout.getLineCount()==lines.length
             &&layout.getHeight()<=text.getHeight()-text.getPaddingTop()-text.getPaddingBottom(),
-            "unclipped calendar text "+expected);
+            "unclipped calendar text "+expected+" textSize="+text.getTextSize()+" height="+text.getHeight()+" layoutHeight="+(layout==null?-1:layout.getHeight()));
         int end=0;
         for(int line=0;line<lines.length;line++){
             end+=lines[line].length()+(line<lines.length-1?1:0);
@@ -767,6 +820,8 @@ public class WidgetInstrumentation extends Instrumentation {
                 result.putString("stream","PASS "+checks+" native offline checks");finish(ActivityResult.OK,result);return;
             }
             if("reboot".equals(args.getString("mode"))){
+                int forecastId=RevenueStore.prefs(c).getInt("test.forecastWidget",-1);
+                ok(forecastId>0&&!CalendarWidgetState.forecastVisible(c,forecastId),"forecast hidden state survives process and device restart");
                 RevenueStore.Data cached=RevenueStore.read(c);ok(cached.coupon>=0&&cached.couponAt>0,"reboot saved data");
                 ok(c.getSystemService(android.app.job.JobScheduler.class).getPendingJob(RevenueJob.PERIODIC)!=null,"reboot persisted periodic job");
                 png(WidgetRenderer.render(c,cached,DisplaySettings.load(RevenueStore.prefs(c)),360,126).bitmap,"native-reboot-cache");
@@ -1018,6 +1073,7 @@ public class WidgetInstrumentation extends Instrumentation {
             });
             host.stopListening();runOnMainSync(activity::finish);
             calendarLayoutChecks();
+            forecastInteractionChecks();
             couponDailyContractChecks();
             payFetchEntryChecks();
             nativeRevenueChecks();

@@ -5,6 +5,21 @@ import java.util.Locale;
 /** UI-only money display: six-digit daily revenue is never rounded or abbreviated. */
 public final class CalendarAmountFormatter {
     private CalendarAmountFormatter() {}
+    /** Display only: round to 1,000 yen, retaining the full value in storage/details. */
+    public static String compact(long yen,boolean known) {
+        if(!known||yen==RevenueMath.UNKNOWN)return "—";
+        java.math.BigDecimal value=java.math.BigDecimal.valueOf(yen)
+            .divide(java.math.BigDecimal.valueOf(10000),1,java.math.RoundingMode.HALF_UP);
+        return (value.signum()<0?"−":"")+value.abs().toPlainString()+"万";
+    }
+    public static String compactLoss(long yen){return yen<=0?"":compact(-yen,true);}
+    /** Forecast in whole man-yen; integer arithmetic avoids rounding before projection. */
+    public static String forecast(long yen,boolean known,int elapsed,int days){
+        if(!known||yen==RevenueMath.UNKNOWN||elapsed<1||elapsed>days)return "—";
+        return java.math.BigInteger.valueOf(yen).multiply(java.math.BigInteger.valueOf(days))
+            .divide(java.math.BigInteger.valueOf(elapsed).multiply(java.math.BigInteger.valueOf(10000)))
+            .toString().replace('-','−')+"万";
+    }
     public static String day(long yen) {
         if(yen<0)return "—";
         if(yen<=999999L)return Long.toString(yen); // exact 0..999999, no ¥ or commas in narrow day cells

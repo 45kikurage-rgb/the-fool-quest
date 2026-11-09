@@ -1,0 +1,108 @@
+{
+  "schema": 1,
+  "applicationId": "com.aruno.foolquest.widget.next",
+  "version": "0.1.36",
+  "versionCode": 37,
+  "sourceCommit": "e93a236bf77c69689d9c5156fc1f17ba49f5df69",
+  "testCommit": "29c5dc5ec6e6f92cb83ff464604e992f91ce1851",
+  "apkSha256": "4140c2d7cd5dc02dfb786edec32fcb2eff5d47e508378c68a3c270cc16e58124",
+  "apkBytes": 331010,
+  "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+  "unsignedSha256": "476e8dc0ce00a0683bee051d21d57c3818684e90bef96fe7b342d5fdf88e694e",
+  "signingReceipt": {
+    "apk_sha256": "4140c2d7cd5dc02dfb786edec32fcb2eff5d47e508378c68a3c270cc16e58124",
+    "app_id": "foolquest-widget-next",
+    "certificate_sha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+    "device_verified": false,
+    "existing_key": true,
+    "package": "com.aruno.foolquest.widget.next",
+    "production_release": false,
+    "published": false,
+    "run_id": "42708371365",
+    "schema": 1,
+    "source_commit": "e93a236bf77c69689d9c5156fc1f17ba49f5df69",
+    "source_repository": "45kikurage-rgb/the-fool-quest",
+    "trial_signed": true,
+    "unsigned_sha256": "476e8dc0ce00a0683bee051d21d57c3818684e90bef96fe7b342d5fdf88e694e",
+    "version_code": 37,
+    "version_name": "0.1.36",
+    "workflow_commit": "141a07ab15b4a7e4b6f133699a3567ed431401a2"
+  },
+  "tests": {
+    "nativeRun": 42708319758,
+    "signingRun": 42708371365,
+    "nativeJob": 129470911332,
+    "signingJob": 129471443677,
+    "upgradeJob": 129471725123,
+    "primaryRestoreJob": 129471088825,
+    "backupRestoreJob": 129471088718,
+    "native": 8463,
+    "offline": 2759,
+    "reboot": 2750,
+    "backup": 37,
+    "backupReboot": 4,
+    "hostFormatting": 38,
+    "hostBackup": 13
+  },
+  "payloadComparison": {
+    "passed": true,
+    "entries": 42,
+    "nativeRun": 42708319758,
+    "testCommit": "29c5dc5ec6e6f92cb83ff464604e992f91ce1851",
+    "sourceCommit": "e93a236bf77c69689d9c5156fc1f17ba49f5df69",
+    "signedApkSha256": "4140c2d7cd5dc02dfb786edec32fcb2eff5d47e508378c68a3c270cc16e58124"
+  },
+  "officialUpgrade": {
+    "passed": true,
+    "app": "result",
+    "api": 37,
+    "package": "com.aruno.foolquest.widget.next",
+    "version_code": 37,
+    "source_commit": "e93a236bf77c69689d9c5156fc1f17ba49f5df69",
+    "apk_sha256": "4140c2d7cd5dc02dfb786edec32fcb2eff5d47e508378c68a3c270cc16e58124",
+    "certificate_sha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+    "data_preservation": "PASS_DISPOSABLE_EMULATOR",
+    "physical_device_verified": false,
+    "published": false
+  },
+  "startupBackup": {
+    "verified": true,
+    "matchingSnapshots": 1,
+    "recordCount": 6,
+    "credentialsIncluded": false
+  },
+  "reboot": {
+    "passed": true,
+    "exact_widget_preferences_preserved": true
+  },
+  "changes": [
+    "Daily amounts in 万 with one decimal; same font sizing through 99.9万, truthful overflow",
+    "Dates left aligned; header fonts larger than daily totals",
+    "Month-end forecast total/C/T from exact monthly cumulative yen / JST elapsed calendar days * days in month; truncate to whole 万",
+    "Entire bottom-row third-from-right cell toggles all amounts and C/T labels while keeping 月末予想 visible",
+    "Per-widget forecast preference persists, resets only with widget removal and is included in backup",
+    "Exact daily yen available on tap; source revenue, loss data, package and signer preserved"
+  ],
+  "publicationStatus": "PENDING_PUBLIC_READBACK",
+  "publicationRequestedAt": "2026-11-09T22:12:17.274817+00:00",
+  "distributionUrls": [
+    "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
+    "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
+  ],
+  "physicalDeviceVerified": false,
+  "formalOperationConfirmed": false,
+  "priorAttempts": [
+    {
+      "run": 42706757736,
+      "result": "Forecast heading clipped at small size; corrected and re-tested"
+    },
+    {
+      "run": 42707450810,
+      "result": "UI and offline passed; backup fixture collided with preceding dated CSV fixture; isolated emulator fixture lifecycle corrected"
+    },
+    {
+      "run": 42706980218,
+      "result": "Obsolete candidate; system launcher/GMS ANRs during emulator boot; expected UI absent; not published"
+    }
+  ]
+}

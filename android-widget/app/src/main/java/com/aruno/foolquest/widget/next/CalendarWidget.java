@@ -17,6 +17,7 @@ import android.widget.RemoteViews;
 
 /** Calendar presentation shared by standalone and combined widgets. */
 public class CalendarWidget extends AppWidgetProvider {
+    static final String FORECAST="com.aruno.foolquest.widget.next.CALENDAR_FORECAST";
     static final String CYCLE="com.aruno.foolquest.widget.next.CALENDAR_CYCLE";
     private static final int[] WEEKS={
         R.id.calendar_week_0,R.id.calendar_week_1,R.id.calendar_week_2,
@@ -48,9 +49,10 @@ public class CalendarWidget extends AppWidgetProvider {
         return PendingIntent.getActivity(c,0,intent,
             PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
     }
-    private static PendingIntent cycle(Context c,int id){
-        Intent intent=new Intent(c,CalendarWidget.class).setAction(CYCLE);
-        intent.setData(Uri.parse("tfq-calendar://cycle/"+id));
+    private static PendingIntent cycle(Context c,int id){return action(c,id,CYCLE);}
+    private static PendingIntent action(Context c,int id,String action){
+        Intent intent=new Intent(c,CalendarWidget.class).setAction(action);
+        intent.setData(Uri.parse("tfq-calendar://action/"+action+"/"+id));
         intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,id);
         return PendingIntent.getBroadcast(c,6000+id,intent,
             PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
@@ -95,12 +97,15 @@ public class CalendarWidget extends AppWidgetProvider {
         float lineHeight=(fm.descent-fm.ascent)/100;
         // Five weeks, with an independent, compact fifth line reserved for daily losses.
         float rowSpace=Math.max(4,((height-42)/5f-6)/4.90f);
-        float totalSize=Math.min(Math.min(width*22/658f,amountWidth/(6*digit)),
+        float unitWidth=measure.measureText("万")/100*0.55f;
+        float positiveWidth=3*digit+measure.measureText(".")/100+unitWidth;
+        float signedWidth=positiveWidth+measure.measureText("−")/100;
+        float totalSize=Math.min(Math.min(width*30/658f,amountWidth/signedWidth),
             (rowSpace*1.12f-1)/lineHeight);
-        float detailSize=Math.min(Math.min(width*18/658f,detailWidth/(6*digit)),
+        float detailSize=Math.min(Math.min(width*26/658f,detailWidth/positiveWidth),
             (rowSpace*0.90f-1)/lineHeight);
         float dateSize=Math.min(width*30/658f,(rowSpace*1.08f-1)/lineHeight);
-        float lossSize=Math.min(detailSize,(rowSpace*0.64f-0.35f)/lineHeight);
+        float lossSize=Math.min(detailSize,Math.min(amountWidth/signedWidth,(rowSpace*0.64f-0.35f)/lineHeight));
         RemoteViews rv=new RemoteViews(c.getPackageName(),R.layout.widget_calendar);
         String title=month.substring(0,4)+"年"+Integer.parseInt(month.substring(5))+"月";
         String[] amounts=new String[SUMMARY_LABELS.length];
@@ -115,9 +120,13 @@ public class CalendarWidget extends AppWidgetProvider {
         TypedValue summaryScale=new TypedValue();
         c.getResources().getValue(R.dimen.calendar_summary_width_scale,summaryScale,true);
         float headerWidth=width-8;
-        float headerSize=Math.min(20f,Math.min(
-            100*(headerWidth*4/7-5)/measure.measureText(title),
-            100*(headerWidth*3/7-8)/(widestSummary*summaryScale.getFloat())));
+        float headerSize=Math.min(26f,Math.min(
+            100*(headerWidth*3/7-5)/measure.measureText(title),
+            100*(headerWidth*4/7-8)/(widestSummary*summaryScale.getFloat())));
+        // Preserve the hierarchy even for exceptional large month totals.
+        totalSize=Math.min(totalSize,headerSize/1.25f);
+        detailSize=Math.min(detailSize,totalSize*0.90f);
+        lossSize=Math.min(lossSize,detailSize);
         String summaryLabel=SUMMARY_LABELS[summary];
         String summaryAmount=amounts[summary];
         headerText(rv,R.id.calendar_title,title,headerSize);
@@ -131,6 +140,27 @@ public class CalendarWidget extends AppWidgetProvider {
         for(int week=0;week<WEEKS.length;week++){
             rv.removeAllViews(WEEKS[week]);
             for(int column=0;column<7;column++){
+                if(week==WEEKS.length-1&&column==4){
+                    RemoteViews forecast=new RemoteViews(c.getPackageName(),R.layout.calendar_forecast);
+                    int elapsed=month.compareTo(current)<0?days:month.equals(current)?today:0;
+                    forecast.setTextViewText(R.id.calendar_forecast_title,"月末予想");
+                    int[] values={R.id.calendar_forecast_total,R.id.calendar_forecast_coupon,R.id.calendar_forecast_tiktok};
+                    String[] projected=new String[3];
+                    for(int i=0;i<3;i++){
+                        projected[i]=CalendarAmountFormatter.forecast(data.totals[i],data.totalKnown[i]||data.totals[i]>=0,elapsed,days);
+                        amount(forecast,values[i],projected[i],i==0?totalSize:detailSize,i==0?amountWidth:detailWidth,measure);
+                    }
+                    forecast.setTextViewTextSize(R.id.calendar_forecast_c_label,TypedValue.COMPLEX_UNIT_DIP,detailSize);
+                    forecast.setTextViewTextSize(R.id.calendar_forecast_t_label,TypedValue.COMPLEX_UNIT_DIP,detailSize);
+                    boolean visible=CalendarWidgetState.forecastVisible(c,id);
+                    forecast.setViewVisibility(R.id.calendar_forecast_values,visible?View.VISIBLE:View.INVISIBLE);
+                    forecast.setContentDescription(R.id.calendar_forecast,visible
+                        ?"月末予想 合計 "+projected[0]+" クーポン "+projected[1]+" TikTok "+projected[2]+"。タップで非表示"
+                        :"月末予想。タップで表示");
+                    forecast.setOnClickPendingIntent(R.id.calendar_forecast,action(c,id,FORECAST));
+                    rv.addView(WEEKS[week],forecast);
+                    continue;
+                }
                 if(week==WEEKS.length-1&&column>=5){
                     boolean changeMonth=column==6;
                     RemoteViews button=new RemoteViews(c.getPackageName(),R.layout.calendar_control);
@@ -168,7 +198,7 @@ public class CalendarWidget extends AppWidgetProvider {
                     &&data.dailyLosses[day]>0;
                 cell.setViewVisibility(R.id.calendar_loss_row,showLoss?View.VISIBLE:View.INVISIBLE);
                 if(showLoss)amount(cell,R.id.calendar_day_loss,
-                    CalendarAmountFormatter.dailyLoss(data.dailyLosses[day]),lossSize,amountWidth,measure);
+                    CalendarAmountFormatter.compactLoss(data.dailyLosses[day]),lossSize,amountWidth,measure);
                 if(showCoupon){
                     // Until today's dated TikTok data is available, retain the
                     // existing coupon-only provisional amount without inventing data.
@@ -177,14 +207,12 @@ public class CalendarWidget extends AppWidgetProvider {
                     boolean totalKnown=provisional
                         ?(data.known[day][1]||data.days[day][1]>=0)
                         :(data.known[day][0]||data.days[day][0]>=0);
-                    amount(cell,R.id.calendar_day_total,CalendarAmountFormatter.dayNet(total,totalKnown),totalSize,amountWidth,measure);
-                    amount(cell,R.id.calendar_day_coupon,CalendarAmountFormatter.dayNet(data.days[day][1],(data.known[day][1]||data.days[day][1]>=0)),detailSize,detailWidth,measure);
+                    amount(cell,R.id.calendar_day_total,CalendarAmountFormatter.compact(total,totalKnown),totalSize,amountWidth,measure);
+                    amount(cell,R.id.calendar_day_coupon,CalendarAmountFormatter.compact(data.days[day][1],(data.known[day][1]||data.days[day][1]>=0)),detailSize,detailWidth,measure);
                     if(showTikTok)amount(cell,R.id.calendar_day_tiktok,
-                        !(data.known[day][2]||data.days[day][2]>=0)?"未取得":CalendarAmountFormatter.dayNet(data.days[day][2],true),detailSize,detailWidth,measure);
-                    if((totalKnown&&Math.abs(total)>999999L)
-                        ||(data.known[day][1]&&Math.abs(data.days[day][1])>999999L)
-                        ||(showTikTok&&data.known[day][2]&&Math.abs(data.days[day][2])>999999L)
-                        ||showLoss){
+                        !(data.known[day][2]||data.days[day][2]>=0)?"未取得":CalendarAmountFormatter.compact(data.days[day][2],true),detailSize,detailWidth,measure);
+                    // Rounded amounts always offer the original exact yen values on tap.
+                    {
                         String date=month+(day<10?"-0":"-")+day;
                         cell.setOnClickPendingIntent(R.id.calendar_day_root,control(c,id,CalendarControlActivity.DAY,date));
                     }
@@ -199,16 +227,25 @@ public class CalendarWidget extends AppWidgetProvider {
         views.setTextViewTextSize(id,TypedValue.COMPLEX_UNIT_DIP,size);
     }
     private static void amount(RemoteViews cell,int view,String text,float size,float width,Paint measure){
-        cell.setTextViewText(view,text);
-        // Only exceptional abbreviations can exceed the reserved six-digit width.
+        android.text.SpannableString styled=new android.text.SpannableString(text);
+        int unit=text.indexOf('万');
+        float measured=measure.measureText(text);
+        if(unit>=0){
+            styled.setSpan(new android.text.style.RelativeSizeSpan(0.55f),unit,unit+1,
+                android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            measured-=measure.measureText("万")*0.45f;
+        }
+        cell.setTextViewText(view,styled);
         cell.setTextViewTextSize(view,TypedValue.COMPLEX_UNIT_DIP,
-            Math.min(size,100*width/measure.measureText(text)));
+            Math.min(size,100*width/Math.max(1,measured)));
     }
+
     @Override public void onReceive(Context c,Intent intent){
-        if(CYCLE.equals(intent.getAction())){
+        if(CYCLE.equals(intent.getAction())||FORECAST.equals(intent.getAction())){
             int id=intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,AppWidgetManager.INVALID_APPWIDGET_ID);
             if(CalendarWidgetState.exists(c,id)){
-                CalendarWidgetState.cycleSummary(c,id);
+                if(FORECAST.equals(intent.getAction()))CalendarWidgetState.toggleForecast(c,id);
+                else CalendarWidgetState.cycleSummary(c,id);
                 renderOne(c,id);
             }
             return;

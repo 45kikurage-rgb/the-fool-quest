@@ -1,6 +1,7 @@
 name: Android revenue widget verification
 on:
   push:
+    branches-ignore: [main]
     paths: ['android-widget/**', '.github/workflows/android-widget.yml', '!android-widget/**/*.md', '!android-widget/releases/**']
   workflow_dispatch:
 permissions:
@@ -9,102 +10,9 @@ concurrency:
   group: android-revenue-widget
   cancel-in-progress: true
 jobs:
-  native-android:
+  native-android17:
     runs-on: ubuntu-latest
     timeout-minutes: 25
-    defaults:
-      run:
-        working-directory: android-widget
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: '17'
-      - uses: android-actions/setup-android@v3
-        with:
-          packages: platform-tools
-          log-accepted-android-sdk-licenses: false
-      - name: SDK and local checks
-        run: |
-          sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
-          bash scripts/test.sh
-      - name: Build isolated CI test packages
-        env:
-          SIGNING_STORE_PASSWORD: ci-test-only
-        run: |
-          export ANDROID_JAR="$ANDROID_HOME/platforms/android-35/android.jar"
-          export ANDROID_BUILD_TOOLS="$ANDROID_HOME/build-tools/35.0.0"
-          export SIGNING_STORE="$RUNNER_TEMP/widget-ci.jks"
-          keytool -genkeypair -keystore "$SIGNING_STORE" -storepass:env SIGNING_STORE_PASSWORD -keypass:env SIGNING_STORE_PASSWORD -alias foolquestwidget -keyalg RSA -keysize 2048 -validity 2 -dname 'CN=CI TEST ONLY'
-          bash scripts/build.sh
-          bash scripts/build-android-tests.sh
-          mkdir -p build/deps
-          curl -fsSL https://repo.maven.apache.org/maven2/org/json/json/20240303/json-20240303.jar -o build/deps/json.jar
-          echo '3cf6cd6892e32e2b4c1c39e0f52f5248a2f5b37646fdfbb79a66b46b618414ed  build/deps/json.jar' | sha256sum -c
-          javac --release 8 -encoding UTF-8 -classpath "build/classes:build/deps/json.jar:$ANDROID_JAR" -d build/test tests/BackupFormatTest.java
-          java -cp "build/test:build/classes:build/deps/json.jar:$ANDROID_JAR" com.aruno.foolquest.widget.next.BackupFormatTest
-      - name: Enable emulator acceleration
-        working-directory: .
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-      - name: Native Android 35 renderer and production Reader
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 35
-          arch: x86_64
-          target: google_apis
-          disable-animations: true
-          script: |
-            adb shell wm size 1080x1920
-            adb shell wm density 480
-            adb install android-widget/build/out/fool-quest-widget-0.1.16.apk
-            adb install android-widget/build/android-test/widget-tests.apk
-            adb shell appwidget grantbind --package com.aruno.foolquest.widget.next --user 0
-            mkdir -p android-widget/build/native-results
-            adb shell am instrument -w com.aruno.foolquest.widget.next.test/com.aruno.foolquest.widget.next.WidgetInstrumentation | tee android-widget/build/native-results/instrumentation.txt
-            adb logcat -d -v time > android-widget/build/native-results/logcat.txt || true
-            adb wait-for-device
-            adb pull /sdcard/Android/data/com.aruno.foolquest.widget.next/files/verification android-widget/build/native-results/
-            grep -q 'PASS .* native Android checks' android-widget/build/native-results/instrumentation.txt
-            adb wait-for-device
-            adb shell svc wifi disable
-            adb wait-for-device
-            adb shell svc data disable
-            adb wait-for-device
-            adb shell cmd connectivity airplane-mode enable
-            adb wait-for-device
-            adb shell am instrument -w -e mode offline com.aruno.foolquest.widget.next.test/com.aruno.foolquest.widget.next.WidgetInstrumentation | tee android-widget/build/native-results/offline.txt
-            grep -q 'PASS .* native offline checks' android-widget/build/native-results/offline.txt
-            adb reboot
-            adb wait-for-device
-            timeout 180 bash -c 'until adb shell getprop sys.boot_completed | grep -q 1; do sleep 2; done'
-            adb shell am instrument -w -e mode reboot com.aruno.foolquest.widget.next.test/com.aruno.foolquest.widget.next.WidgetInstrumentation | tee android-widget/build/native-results/reboot.txt
-            grep -q 'PASS .* native reboot checks' android-widget/build/native-results/reboot.txt
-            adb pull /sdcard/Android/data/com.aruno.foolquest.widget.next/files/verification android-widget/build/native-results/
-      - name: Record unsigned release candidate after native tests
-        run: |
-          sha256sum build/out/aligned.apk > build/out/unsigned-code17.sha256
-          "$ANDROID_HOME/build-tools/35.0.0/aapt2" dump badging build/out/aligned.apk | head -8
-      - uses: actions/upload-artifact@v4
-        with:
-          name: foolquest-widget-code17-unsigned-${{ github.sha }}
-          path: |
-            android-widget/build/out/aligned.apk
-            android-widget/build/out/unsigned-code17.sha256
-          retention-days: 14
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: widget-native-results
-          path: android-widget/build/native-results/
-          retention-days: 14
-
-  backup-android17:
-    runs-on: ubuntu-latest
-    timeout-minutes: 16
     steps:
       - uses: actions/checkout@v4
         with: {persist-credentials: false}
@@ -116,21 +24,32 @@ jobs:
         run: |
           test "$RUNNER_ENVIRONMENT" = github-hosted
           sudo rm -rf -- /usr/share/dotnet /usr/local/lib/android/sdk/ndk /usr/local/lib/android/sdk/cmake
-      - name: Build isolated unsigned-source test fixtures
-        env: {SIGNING_STORE_PASSWORD: ci-test-only}
+      - name: SDK and local checks
         run: |
-          sdkmanager 'platforms;android-35' 'build-tools;35.0.0' 'platforms;android-37.0' 'system-images;android-37.0;google_apis;x86_64' 'emulator'
+          sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+          bash android-widget/scripts/test.sh
+      - name: Build isolated CI test packages
+        env:
+          SIGNING_STORE_PASSWORD: ci-test-only
+        run: |
           export ANDROID_JAR="$ANDROID_HOME/platforms/android-35/android.jar"
           export ANDROID_BUILD_TOOLS="$ANDROID_HOME/build-tools/35.0.0"
           export SIGNING_STORE="$RUNNER_TEMP/widget-ci.jks"
           keytool -genkeypair -keystore "$SIGNING_STORE" -storepass:env SIGNING_STORE_PASSWORD -keypass:env SIGNING_STORE_PASSWORD -alias foolquestwidget -keyalg RSA -keysize 2048 -validity 2 -dname 'CN=CI TEST ONLY'
           bash android-widget/scripts/build.sh
           bash android-widget/scripts/build-android-tests.sh
-      - name: Real Android17 SAF, recovery and reboot with bounded commands
+          cd android-widget
+          mkdir -p build/deps
+          curl -fsSL https://repo.maven.apache.org/maven2/org/json/json/20240303/json-20240303.jar -o build/deps/json.jar
+          echo '3cf6cd6892e32e2b4c1c39e0f52f5248a2f5b37646fdfbb79a66b46b618414ed  build/deps/json.jar' | sha256sum -c
+          javac --release 8 -encoding UTF-8 -classpath "build/classes:build/deps/json.jar:$ANDROID_JAR" -d build/test tests/BackupFormatTest.java
+          java -cp "build/test:build/classes:build/deps/json.jar:$ANDROID_JAR" com.aruno.foolquest.widget.next.BackupFormatTest
+      - name: Android17 native rendering, forecast taps, backup and reboot
         run: |
           set -euo pipefail
           OUT="$GITHUB_WORKSPACE/android-widget/build/backup-results"
           mkdir -p "$OUT"
+          sdkmanager 'system-images;android-37.0;google_apis;x86_64' emulator
           sudo chmod 666 /dev/kvm
           export ANDROID_AVD_HOME="$RUNNER_TEMP/result-avds"
           mkdir -p "$ANDROID_AVD_HOME"
@@ -165,6 +84,31 @@ jobs:
           timeout 10 adb shell settings put global animator_duration_scale 0
           timeout 90 adb install android-widget/build/out/fool-quest-widget-0.1.16.apk
           timeout 90 adb install android-widget/build/android-test/widget-tests.apk
+          timeout 10 adb shell wm size 1080x1920
+          timeout 10 adb shell wm density 480
+          timeout 10 adb shell appwidget grantbind --package com.aruno.foolquest.widget.next --user 0
+          timeout 480 adb shell am instrument -w com.aruno.foolquest.widget.next.test/com.aruno.foolquest.widget.next.WidgetInstrumentation | tee "$OUT/native.txt"
+          grep -q 'PASS .* native Android checks' "$OUT/native.txt"
+          timeout 60 adb pull /sdcard/Android/data/com.aruno.foolquest.widget.next/files/verification "$OUT/"
+          timeout 10 adb shell svc wifi disable
+          timeout 10 adb shell svc data disable
+          timeout 10 adb shell cmd connectivity airplane-mode enable
+          timeout 180 adb shell am instrument -w -e mode offline com.aruno.foolquest.widget.next.test/com.aruno.foolquest.widget.next.WidgetInstrumentation | tee "$OUT/offline.txt"
+          grep -q 'PASS .* native offline checks' "$OUT/offline.txt"
+          timeout 60 adb reboot
+          booted=false
+          deadline=$((SECONDS+180))
+          while (( SECONDS < deadline )); do
+            kill -0 "$emulator_pid" 2>/dev/null || { tail -80 "$OUT/emulator.txt"; exit 1; }
+            if [[ "$(timeout 5 adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" == 1 ]]; then booted=true; break; fi
+            sleep 2
+          done
+          [[ "$booted" == true ]]
+          timeout 180 adb shell am instrument -w -e mode reboot com.aruno.foolquest.widget.next.test/com.aruno.foolquest.widget.next.WidgetInstrumentation | tee "$OUT/native-reboot.txt"
+          grep -q 'PASS .* native reboot checks' "$OUT/native-reboot.txt"
+          # Reset only this disposable emulator's synthetic fixture, after proving native reboot retention.
+          test "$(adb shell getprop ro.kernel.qemu | tr -d '\r')" = 1
+          timeout 15 adb shell pm clear com.aruno.foolquest.widget.next
           timeout 180 adb shell am instrument -w com.aruno.foolquest.widget.next.test/com.aruno.foolquest.widget.next.BackupInstrumentation | tee "$OUT/android17.txt"
           grep -q 'PASS .* backup Android checks' "$OUT/android17.txt"
           timeout 60 adb reboot
@@ -179,8 +123,13 @@ jobs:
           timeout 180 adb shell am instrument -w -e mode reboot com.aruno.foolquest.widget.next.test/com.aruno.foolquest.widget.next.BackupInstrumentation | tee "$OUT/reboot.txt"
           grep -q 'PASS .* backup Android checks' "$OUT/reboot.txt"
       - uses: actions/upload-artifact@v4
+        with:
+          name: result-code37-unsigned
+          path: android-widget/build/out/aligned.apk
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: result-backup-android17-results
+          name: result-calendar-android17-results
           path: android-widget/build/backup-results/
           retention-days: 14

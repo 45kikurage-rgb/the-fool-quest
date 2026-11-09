@@ -8,11 +8,11 @@
         android:orientation="horizontal" android:gravity="center_vertical"
         android:weightSum="7" android:paddingLeft="1px">
         <TextView android:id="@+id/calendar_title" style="@style/CalendarHeaderText"
-            android:layout_width="0dp" android:layout_weight="4"
+            android:layout_width="0dp" android:layout_weight="3"
             android:layout_height="match_parent" android:gravity="start|center_vertical"
             android:text="2026年11月" android:paddingStart="3dp" />
         <LinearLayout android:id="@+id/calendar_summary" android:layout_width="0dp"
-            android:layout_weight="3" android:layout_height="match_parent"
+            android:layout_weight="4" android:layout_height="match_parent"
             android:orientation="horizontal" android:gravity="center_vertical"
             android:clickable="true" android:focusable="true"
             android:foreground="?android:attr/selectableItemBackground">
