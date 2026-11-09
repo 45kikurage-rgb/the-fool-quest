@@ -1,0 +1,1 @@
+Android 17 production RemoteViews screenshots from isolated synthetic test fixtures; these are not the user’s live balances. Visible, hidden, and second-tap restoration were verified, including forecast 218万 / C163万 / T54万 and the fixed 99.9万 daily width. Run 42708319758.
