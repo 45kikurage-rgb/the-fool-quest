@@ -95,8 +95,6 @@ jobs:
           timeout 10 adb shell cmd connectivity airplane-mode enable
           timeout 180 adb shell am instrument -w -e mode offline com.aruno.foolquest.widget.next.test/com.aruno.foolquest.widget.next.WidgetInstrumentation | tee "$OUT/offline.txt"
           grep -q 'PASS .* native offline checks' "$OUT/offline.txt"
-          timeout 180 adb shell am instrument -w com.aruno.foolquest.widget.next.test/com.aruno.foolquest.widget.next.BackupInstrumentation | tee "$OUT/android17.txt"
-          grep -q 'PASS .* backup Android checks' "$OUT/android17.txt"
           timeout 60 adb reboot
           booted=false
           deadline=$((SECONDS+180))
@@ -108,6 +106,20 @@ jobs:
           [[ "$booted" == true ]]
           timeout 180 adb shell am instrument -w -e mode reboot com.aruno.foolquest.widget.next.test/com.aruno.foolquest.widget.next.WidgetInstrumentation | tee "$OUT/native-reboot.txt"
           grep -q 'PASS .* native reboot checks' "$OUT/native-reboot.txt"
+          # Reset only this disposable emulator's synthetic fixture, after proving native reboot retention.
+          test "$(adb shell getprop ro.kernel.qemu | tr -d '\r')" = 1
+          timeout 15 adb shell pm clear com.aruno.foolquest.widget.next
+          timeout 180 adb shell am instrument -w com.aruno.foolquest.widget.next.test/com.aruno.foolquest.widget.next.BackupInstrumentation | tee "$OUT/android17.txt"
+          grep -q 'PASS .* backup Android checks' "$OUT/android17.txt"
+          timeout 60 adb reboot
+          booted=false
+          deadline=$((SECONDS+180))
+          while (( SECONDS < deadline )); do
+            kill -0 "$emulator_pid" 2>/dev/null || { tail -80 "$OUT/emulator.txt"; exit 1; }
+            if [[ "$(timeout 5 adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" == 1 ]]; then booted=true; break; fi
+            sleep 2
+          done
+          [[ "$booted" == true ]]
           timeout 180 adb shell am instrument -w -e mode reboot com.aruno.foolquest.widget.next.test/com.aruno.foolquest.widget.next.BackupInstrumentation | tee "$OUT/reboot.txt"
           grep -q 'PASS .* backup Android checks' "$OUT/reboot.txt"
       - uses: actions/upload-artifact@v4
