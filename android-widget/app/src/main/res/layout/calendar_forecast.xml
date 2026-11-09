@@ -5,7 +5,7 @@
     android:paddingLeft="2dp" android:paddingRight="2dp"
     android:paddingTop="2dp" android:paddingBottom="2dp"
     android:clickable="true" android:focusable="true">
-    <TextView android:id="@+id/calendar_forecast_title" style="@style/CalendarDailyText"
+    <TextView android:id="@+id/calendar_forecast_title" style="@style/CalendarText"
         android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
         android:gravity="center" android:text="月末予想" />
     <LinearLayout android:id="@+id/calendar_forecast_values"

@@ -143,10 +143,7 @@ public class CalendarWidget extends AppWidgetProvider {
                 if(week==WEEKS.length-1&&column==4){
                     RemoteViews forecast=new RemoteViews(c.getPackageName(),R.layout.calendar_forecast);
                     int elapsed=month.compareTo(current)<0?days:month.equals(current)?today:0;
-                    float forecastLine=Math.max(4,((height-42)/5f-5)/4f);
-                    float forecastTitle=Math.min(100*amountWidth/measure.measureText("月末予想"),
-                        (forecastLine-1)/lineHeight);
-                    headerText(forecast,R.id.calendar_forecast_title,"月末予想",forecastTitle);
+                    forecast.setTextViewText(R.id.calendar_forecast_title,"月末予想");
                     int[] values={R.id.calendar_forecast_total,R.id.calendar_forecast_coupon,R.id.calendar_forecast_tiktok};
                     String[] projected=new String[3];
                     for(int i=0;i<3;i++){
