@@ -415,8 +415,10 @@ public class WidgetInstrumentation extends Instrumentation {
                     for(int id:new int[]{R.id.calendar_day_total,R.id.calendar_day_coupon,R.id.calendar_day_tiktok}){
                         android.widget.TextView shortValue=firstDay.findViewById(id);
                         android.widget.TextView longValue=lastDay.findViewById(id);
-                        ok(shortValue.getTextSize()==longValue.getTextSize()&&longValue.getTextScaleX()==1f,
-                            "daily amounts keep the same natural glyph size from one to six digits");
+                        float expectedScale=id==R.id.calendar_day_total?0.94f:1f;
+                        ok(shortValue.getTextSize()==longValue.getTextSize()
+                                &&shortValue.getTextScaleX()==expectedScale&&longValue.getTextScaleX()==expectedScale,
+                            "daily amounts keep a fixed glyph size and width from one to six digits");
                     }
                     android.widget.TextView date=lastDay.findViewById(R.id.calendar_day_number);
                     android.widget.TextView total=lastDay.findViewById(R.id.calendar_day_total);
@@ -431,7 +433,7 @@ public class WidgetInstrumentation extends Instrumentation {
                         "daily total uses an emphasized, consistent size and weight");
                     android.text.Spanned styledTotal=(android.text.Spanned)total.getText();
                     android.text.style.RelativeSizeSpan[] units=styledTotal.getSpans(0,styledTotal.length(),android.text.style.RelativeSizeSpan.class);
-                    ok(units.length==1&&units[0].getSizeChange()==0.55f
+                    ok(units.length==1&&units[0].getSizeChange()==0.43f
                             &&styledTotal.getSpanStart(units[0])==styledTotal.length()-1,
                         "only the daily total unit uses the small suffix size");
                     ok(coupon.getCurrentTextColor()==0xff63e09e

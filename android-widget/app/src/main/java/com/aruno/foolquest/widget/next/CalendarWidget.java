@@ -23,6 +23,7 @@ public class CalendarWidget extends AppWidgetProvider {
         R.id.calendar_week_0,R.id.calendar_week_1,R.id.calendar_week_2,
         R.id.calendar_week_3,R.id.calendar_week_4
     };
+    private static final float DAILY_TOTAL_UNIT_SCALE=0.43f;
     private static final int DAILY_TOTAL_FLAGS=Paint.ANTI_ALIAS_FLAG|Paint.FAKE_BOLD_TEXT_FLAG|Paint.SUBPIXEL_TEXT_FLAG;
     private static final String[] SUMMARY_LABELS={"合計","クーポン","TikTok Lite"};
     static int[] ids(Context c){
@@ -128,10 +129,13 @@ public class CalendarWidget extends AppWidgetProvider {
         totalSize=Math.min(totalSize,headerSize/1.25f);
         Paint totalMeasure=new Paint(measure);
         totalMeasure.setFlags(DAILY_TOTAL_FLAGS);
+        TypedValue totalScale=new TypedValue();
+        c.getResources().getValue(R.dimen.calendar_daily_total_width_scale,totalScale,true);
+        totalMeasure.setTextScaleX(totalScale.getFloat());
         float boldDigit=0;
         for(char ch='0';ch<='9';ch++)boldDigit=Math.max(boldDigit,totalMeasure.measureText(String.valueOf(ch))/100);
         float boldWidth=3*boldDigit+totalMeasure.measureText("−.")/100
-            +totalMeasure.measureText("万")/100*0.55f;
+            +totalMeasure.measureText("万")/100*DAILY_TOTAL_UNIT_SCALE;
         // Use the existing total row's space while leaving every other row in place.
         float dailyTotalSize=Math.min(Math.min(width*34/658f,amountWidth/boldWidth),
             Math.min((rowSpace*1.12f-0.5f)/lineHeight,headerSize/1.20f));
@@ -221,7 +225,7 @@ public class CalendarWidget extends AppWidgetProvider {
                     cell.setTextColor(R.id.calendar_day_total,
                         totalKnown&&total<0&&total!=RevenueMath.UNKNOWN?0xffff9292:0xffffffff);
                     amount(cell,R.id.calendar_day_total,CalendarAmountFormatter.compact(total,totalKnown),
-                        dailyTotalSize,amountWidth,totalMeasure);
+                        dailyTotalSize,amountWidth,totalMeasure,DAILY_TOTAL_UNIT_SCALE);
                     amount(cell,R.id.calendar_day_coupon,CalendarAmountFormatter.compact(data.days[day][1],(data.known[day][1]||data.days[day][1]>=0)),detailSize,detailWidth,measure);
                     if(showTikTok)amount(cell,R.id.calendar_day_tiktok,
                         !(data.known[day][2]||data.days[day][2]>=0)?"未取得":CalendarAmountFormatter.compact(data.days[day][2],true),detailSize,detailWidth,measure);
@@ -241,13 +245,16 @@ public class CalendarWidget extends AppWidgetProvider {
         views.setTextViewTextSize(id,TypedValue.COMPLEX_UNIT_DIP,size);
     }
     private static void amount(RemoteViews cell,int view,String text,float size,float width,Paint measure){
+        amount(cell,view,text,size,width,measure,0.55f);
+    }
+    private static void amount(RemoteViews cell,int view,String text,float size,float width,Paint measure,float unitScale){
         android.text.SpannableString styled=new android.text.SpannableString(text);
         int unit=text.indexOf('万');
         float measured=measure.measureText(text);
         if(unit>=0){
-            styled.setSpan(new android.text.style.RelativeSizeSpan(0.55f),unit,unit+1,
+            styled.setSpan(new android.text.style.RelativeSizeSpan(unitScale),unit,unit+1,
                 android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            measured-=measure.measureText("万")*0.45f;
+            measured-=measure.measureText("万")*(1-unitScale);
         }
         cell.setTextViewText(view,styled);
         cell.setTextViewTextSize(view,TypedValue.COMPLEX_UNIT_DIP,
