@@ -91,7 +91,7 @@
     "Use the supplied 1024 × 1024 transparent icon artwork with the existing explicit white launcher background.",
     "Move the Chrome point-history button directly above CSV import."
   ],
-  "publicationStatus": "READY_FOR_PUBLICATION",
+  "publicationStatus": "VERIFIED_BOTH_ORIGINS",
   "publicationRequestedAt": "2026-11-10T21:59:36.529446+00:00",
   "distributionUrls": [
     "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
@@ -125,5 +125,31 @@
       "result": "Superseded pending signature candidate cancelled to avoid redundant work."
     }
   ],
-  "signingReceiptNote": "The signing receipt records the pre-publication stage. publicationStatus records the later distribution verification."
+  "signingReceiptNote": "The signing receipt records the pre-publication stage. publicationStatus records the later distribution verification.",
+  "publicationCommit": "d3a6b1cedc28731fb65c464ee17002427be5307b",
+  "publicationVerifiedAt": "2026-11-10T22:02:04Z",
+  "publicationVerificationRunId": 42910559334,
+  "publicationVerificationJobId": 130159788718,
+  "publicVerification": [
+    {
+      "origin": "https://the-fool-quest.45kikurage.workers.dev",
+      "passed": true,
+      "versionCode": 38,
+      "apkSha256": "bbedbf177e7e3aea68f9ddfce19f0ea12c5a4754c16d0f5e7221a5eaa088d50b",
+      "apkBytes": 335106,
+      "iconSourceSha256": "6ce98332e9f285ce180cbfa1e64ad8c0d73965d4858f09539cbfc03a22584a1c",
+      "apkUrl": "https://the-fool-quest.45kikurage.workers.dev/android-widget/releases/aruno-result-0.1.37.apk",
+      "checkedAt": "2026-11-10T22:01:56Z"
+    },
+    {
+      "origin": "https://45kikurage-rgb.github.io/the-fool-quest",
+      "passed": true,
+      "versionCode": 38,
+      "apkSha256": "bbedbf177e7e3aea68f9ddfce19f0ea12c5a4754c16d0f5e7221a5eaa088d50b",
+      "apkBytes": 335106,
+      "iconSourceSha256": "6ce98332e9f285ce180cbfa1e64ad8c0d73965d4858f09539cbfc03a22584a1c",
+      "apkUrl": "https://45kikurage-rgb.github.io/the-fool-quest/android-widget/releases/aruno-result-0.1.37.apk",
+      "checkedAt": "2026-11-10T22:02:04Z"
+    }
+  ]
 }

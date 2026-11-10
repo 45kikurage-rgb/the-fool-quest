@@ -40,7 +40,7 @@
 - APK SHA-256 `bbedbf177e7e3aea68f9ddfce19f0ea12c5a4754c16d0f5e7221a5eaa088d50b`、証明書 SHA-256 `8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730`。同一署名・同一packageを維持。
 - Android 17の表示・タップ／オフライン／再起動／バックアップは run42909212586。試験済み未署名APKと署名済みAPKの42ペイロード項目が全バイト一致。
 - 正式署名・code37→38上書きは run42908246014。既存UID・設定と収益等39項目、更新前バックアップ、再起動後の保持と管理画面のボタン順を確認。
-- 配布先は https://the-fool-quest.45kikurage.workers.dev/widget-download.html と GitHub Pages。公開後照合は更新記録に追記。Pixel 10実機・正式運用は未確認。
+- 本番公開済み。両配布先のページ・APK・manifest・1024pxアイコンを再取得し、版・全SHA-256・335106 bytesを照合。公開照合run42910559334 / job130159788718成功。公開merge `d3a6b1cedc28731fb65c464ee17002427be5307b`。照合 2026-11-10T22:02:04Z。Pixel 10実機・正式運用は未確認。
 
 ## code37 カレンダー・月末予想更新（2026-11-10 日本時間）
 
