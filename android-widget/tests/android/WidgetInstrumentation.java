@@ -314,6 +314,9 @@ public class WidgetInstrumentation extends Instrumentation {
         android.graphics.drawable.LayerDrawable launcher=(android.graphics.drawable.LayerDrawable)c.getDrawable(R.drawable.zz_aruno_launcher_white);
         ok(launcher.getNumberOfLayers()==2 && launcher.getDrawable(1) instanceof android.graphics.drawable.BitmapDrawable,
             "white backing remains separate from the supplied transparent artwork");
+        android.graphics.Bitmap launcherBitmap=((android.graphics.drawable.BitmapDrawable)launcher.getDrawable(1)).getBitmap();
+        ok(launcherBitmap.getWidth()==1024&&launcherBitmap.getHeight()==1024&&launcherBitmap.hasAlpha(),
+            "launcher uses the full 1024px transparent icon");
         int first=13001, second=13002;
         CalendarWidgetState.month(c,first,"2026-05");
         CalendarWidgetState.filter(c,first,CalendarWidgetState.COUPON);
@@ -348,6 +351,8 @@ public class WidgetInstrumentation extends Instrumentation {
         data.days[1][0]=5;
         data.days[1][1]=3;
         data.days[1][2]=2;
+        data.days[2][0]=-999000;
+        data.known[2][0]=true;
         data.days[31][0]=999000;
         data.days[31][1]=350000;
         data.days[31][2]=649000;
@@ -373,6 +378,12 @@ public class WidgetInstrumentation extends Instrumentation {
                     ok(grid.getChildCount()==5,"calendar always uses five date rows");
                     android.view.ViewGroup firstRow=(android.view.ViewGroup)grid.getChildAt(0);
                     completeCalendarText(firstRow.getChildAt(0),R.id.calendar_day_number,"1");
+                    android.view.View negativeDay=firstRow.getChildAt(1);
+                    completeCalendarText(negativeDay,R.id.calendar_day_total,"−99.9万");
+                    android.widget.TextView negative=negativeDay.findViewById(R.id.calendar_day_total);
+                    android.widget.TextView missing=firstRow.getChildAt(2).findViewById(R.id.calendar_day_total);
+                    ok(negative.getCurrentTextColor()==0xffff9292&&missing.getCurrentTextColor()==0xffffffff,
+                        "negative totals use red and unknown totals retain white");
                     android.view.ViewGroup lastRow=(android.view.ViewGroup)grid.getChildAt(4);
                     ok(lastRow.getChildCount()==7,"calendar keeps seven columns");
                     android.view.View lastDay=lastRow.getChildAt(2);
@@ -404,8 +415,10 @@ public class WidgetInstrumentation extends Instrumentation {
                     for(int id:new int[]{R.id.calendar_day_total,R.id.calendar_day_coupon,R.id.calendar_day_tiktok}){
                         android.widget.TextView shortValue=firstDay.findViewById(id);
                         android.widget.TextView longValue=lastDay.findViewById(id);
-                        ok(shortValue.getTextSize()==longValue.getTextSize()&&longValue.getTextScaleX()==1f,
-                            "daily amounts keep the same natural glyph size from one to six digits");
+                        float expectedScale=id==R.id.calendar_day_total?0.94f:1f;
+                        ok(shortValue.getTextSize()==longValue.getTextSize()
+                                &&shortValue.getTextScaleX()==expectedScale&&longValue.getTextScaleX()==expectedScale,
+                            "daily amounts keep a fixed glyph size and width from one to six digits");
                     }
                     android.widget.TextView date=lastDay.findViewById(R.id.calendar_day_number);
                     android.widget.TextView total=lastDay.findViewById(R.id.calendar_day_total);
@@ -413,7 +426,19 @@ public class WidgetInstrumentation extends Instrumentation {
                     android.view.View amountRows=lastDay.findViewById(R.id.calendar_amount_rows);
                     ok(amountRows.getTop()+total.getTop()-date.getBottom()>=Math.round(2*density),
                         "there is a gap between the date and daily total");
-                    ok(total.getTextSize()>coupon.getTextSize(),"daily total uses the free category width");
+                    ok(total.getTextSize()>coupon.getTextSize()
+                            &&total.getTextSize()==negative.getTextSize()
+                            &&total.getPaint().isFakeBoldText()
+                            &&total.getCurrentTextColor()==0xffffffff,
+                        "daily total uses an emphasized, consistent size and weight");
+                    android.text.Spanned styledTotal=(android.text.Spanned)total.getText();
+                    android.text.style.RelativeSizeSpan[] units=styledTotal.getSpans(0,styledTotal.length(),android.text.style.RelativeSizeSpan.class);
+                    ok(units.length==1&&units[0].getSizeChange()==0.43f
+                            &&styledTotal.getSpanStart(units[0])==styledTotal.length()-1,
+                        "only the daily total unit uses the small suffix size");
+                    ok(coupon.getCurrentTextColor()==0xff63e09e
+                            &&((android.widget.TextView)lastDay.findViewById(R.id.calendar_day_tiktok)).getCurrentTextColor()==0xff7fbaff,
+                        "coupon and TikTok colors are preserved");
                     ok((date.getGravity()&android.view.Gravity.HORIZONTAL_GRAVITY_MASK)==android.view.Gravity.LEFT,
                         "date is left aligned");
                     android.widget.TextView header=calendar.findViewById(R.id.calendar_title);

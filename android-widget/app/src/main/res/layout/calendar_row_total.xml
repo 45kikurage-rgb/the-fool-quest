@@ -1,3 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <TextView xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/calendar_day_total" style="@style/CalendarDailyAmount"
-        android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1.12" />
+        android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1.12"
+        android:textScaleX="@dimen/calendar_daily_total_width_scale" />

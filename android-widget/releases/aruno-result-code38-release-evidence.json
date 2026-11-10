@@ -1,0 +1,129 @@
+{
+  "schema": 1,
+  "applicationId": "com.aruno.foolquest.widget.next",
+  "version": "0.1.37",
+  "versionCode": 38,
+  "sourceCommit": "9c32a5181bb3a752b2717f0b362df9700aac72b7",
+  "testCommit": "ab0d5ee8fe5e1060ed38c3a913d07016f08f56d9",
+  "apkSha256": "bbedbf177e7e3aea68f9ddfce19f0ea12c5a4754c16d0f5e7221a5eaa088d50b",
+  "apkBytes": 335106,
+  "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+  "unsignedSha256": "d4cf5c43725eb6ee23d90940c8a407cf7ca70bac7bddae0a6b198296b3205a06",
+  "signingReceipt": {
+    "apk_sha256": "bbedbf177e7e3aea68f9ddfce19f0ea12c5a4754c16d0f5e7221a5eaa088d50b",
+    "app_id": "foolquest-widget-next",
+    "certificate_sha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+    "device_verified": false,
+    "existing_key": true,
+    "package": "com.aruno.foolquest.widget.next",
+    "production_release": false,
+    "published": false,
+    "run_id": "42908246014",
+    "schema": 1,
+    "source_commit": "9c32a5181bb3a752b2717f0b362df9700aac72b7",
+    "source_repository": "45kikurage-rgb/the-fool-quest",
+    "trial_signed": true,
+    "unsigned_sha256": "d4cf5c43725eb6ee23d90940c8a407cf7ca70bac7bddae0a6b198296b3205a06",
+    "version_code": 38,
+    "version_name": "0.1.37",
+    "workflow_commit": "72904f6de3c31ec3588804f94097e5f71b370504"
+  },
+  "tests": {
+    "runId": 42909212586,
+    "jobId": 130155101465,
+    "commit": "ab0d5ee8fe5e1060ed38c3a913d07016f08f56d9",
+    "hostFormatting": 38,
+    "hostBackup": 13,
+    "hostJavaScript": 13,
+    "native": 8494,
+    "offline": 2759,
+    "reboot": 2750,
+    "backup": 37,
+    "backupReboot": 4,
+    "signingRun": 42908246014,
+    "jobs": {
+      "unsigned": 130151804701,
+      "restore (backup)": 130151805489,
+      "restore (primary)": 130151805643,
+      "stage": 130152135457,
+      "upgrade-android17": 130152443560
+    }
+  },
+  "payloadComparison": {
+    "passed": true,
+    "entries": 42,
+    "nativeRun": 42909212586,
+    "sourceCommit": "9c32a5181bb3a752b2717f0b362df9700aac72b7"
+  },
+  "icon": {
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "pixelMatch": true,
+    "sourceSha256": "6ce98332e9f285ce180cbfa1e64ad8c0d73965d4858f09539cbfc03a22584a1c"
+  },
+  "officialUpgrade": {
+    "passed": true,
+    "app": "result",
+    "api": 37,
+    "package": "com.aruno.foolquest.widget.next",
+    "version_code": 38,
+    "source_commit": "9c32a5181bb3a752b2717f0b362df9700aac72b7",
+    "apk_sha256": "bbedbf177e7e3aea68f9ddfce19f0ea12c5a4754c16d0f5e7221a5eaa088d50b",
+    "certificate_sha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+    "data_preservation": "PASS_DISPOSABLE_EMULATOR",
+    "physical_device_verified": false,
+    "published": false
+  },
+  "startupBackup": {
+    "verified": true,
+    "matchingSnapshots": 1,
+    "recordCount": 6,
+    "credentialsIncluded": false
+  },
+  "reboot": {
+    "passed": true,
+    "exact_widget_preferences_preserved": true
+  },
+  "changes": [
+    "Daily total uses larger, heavier numerals and a smaller 万; negative totals use red.",
+    "Use the supplied 1024 × 1024 transparent icon artwork with the existing explicit white launcher background.",
+    "Move the Chrome point-history button directly above CSV import."
+  ],
+  "publicationStatus": "READY_FOR_PUBLICATION",
+  "publicationRequestedAt": "2026-11-10T21:59:36.529446+00:00",
+  "distributionUrls": [
+    "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
+    "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
+  ],
+  "apkUrls": [
+    "https://the-fool-quest.45kikurage.workers.dev/android-widget/releases/aruno-result-0.1.37.apk",
+    "https://45kikurage-rgb.github.io/the-fool-quest/android-widget/releases/aruno-result-0.1.37.apk"
+  ],
+  "physicalDeviceVerified": false,
+  "formalOperationConfirmed": false,
+  "priorAttempts": [
+    {
+      "run": 42908099236,
+      "result": "Native 8494, offline 2759, reboot 2750 and backup 37 passed. The forced test reboot preceded the Android OS delayed persist of a real reselected SAF grant. Added 12s before test reboot only, then re-ran unchanged APK payload."
+    },
+    {
+      "run": 42906892710,
+      "result": "Superseded while refining numeral width; cancelled."
+    },
+    {
+      "run": 42907352697,
+      "result": "Negative total fallback glyph exceeded compact row height by 1px. Corrected vertical limit and re-tested."
+    },
+    {
+      "run": 42907066355,
+      "result": "Earlier source passed restore/signing and official upgrade checks but was superseded and cancelled."
+    },
+    {
+      "run": 42907360776,
+      "result": "Superseded pending signature candidate cancelled to avoid redundant work."
+    }
+  ],
+  "signingReceiptNote": "The signing receipt records the pre-publication stage. publicationStatus records the later distribution verification."
+}

@@ -34,6 +34,7 @@
     <style name="CalendarDailyText" parent="CalendarText">
         <item name="android:autoSizeTextType">none</item>
     </style>
+    <item name="calendar_daily_total_width_scale" type="dimen" format="float">0.94</item>
     <style name="CalendarDailyAmount" parent="CalendarDailyText">
         <item name="android:gravity">end|center_vertical</item>
     </style>

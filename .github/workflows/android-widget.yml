@@ -111,6 +111,9 @@ jobs:
           timeout 15 adb shell pm clear com.aruno.foolquest.widget.next
           timeout 180 adb shell am instrument -w com.aruno.foolquest.widget.next.test/com.aruno.foolquest.widget.next.BackupInstrumentation | tee "$OUT/android17.txt"
           grep -q 'PASS .* backup Android checks' "$OUT/android17.txt"
+          # Android batches persisted URI-grant writes for 10 seconds. Allow the
+          # fixture's real SAF reselection to reach disk before this forced reboot.
+          sleep 12
           timeout 60 adb reboot
           booted=false
           deadline=$((SECONDS+180))
@@ -133,3 +136,4 @@ jobs:
           name: result-calendar-android17-results
           path: android-widget/build/backup-results/
           retention-days: 14
+
