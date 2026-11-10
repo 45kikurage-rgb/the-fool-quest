@@ -153,6 +153,8 @@ public final class ManagementActivity extends Activity {
         if(coupon<0)info("Couponは未取得です。ネットワーク接続後に更新してください。");
         if(tiktok<0)info("TikTokは未登録です。CSVまたはサイトの旧データを取り込んでください。");
         info("ウィジェットは同じ端末内の収益・目標を表示します。Couponは中央管理台帳の読取専用です。");
+        action("えらべるPayのポイント履歴をChromeで開く",
+            ()->openUrl("https://wallet.vaton.jp/point/point_logs"));
         action("CSVを取り込む",()->pick("text/*",OPEN_CSV));
         action("データ更新（ポイント履歴を自動取得）",
             ()->startActivity(new Intent(this,PayFetchActivity.class)));
@@ -168,8 +170,6 @@ public final class ManagementActivity extends Activity {
         action("収益・損失履歴の編集",this::showHistory);
         action("表示設定・進捗ゲージ",()->startActivity(new Intent(this,SettingsActivity.class)));
         action("クーポン日別の接続設定",this::showCouponDailyConnection);
-        action("えらべるPayのポイント履歴をChromeで開く",
-            ()->openUrl("https://wallet.vaton.jp/point/point_logs"));
         action("バックアップ・復元",this::showBackupMenu);
         if(!BackupCoordinator.get(this).meta.getString("error","").isEmpty() || BackupCoordinator.get(this).meta.getString("tree","").isEmpty()){
             info(BackupCoordinator.get(this).status());
