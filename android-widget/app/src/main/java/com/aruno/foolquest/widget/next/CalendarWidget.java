@@ -138,7 +138,7 @@ public class CalendarWidget extends AppWidgetProvider {
             +totalMeasure.measureText("万")/100*DAILY_TOTAL_UNIT_SCALE;
         // Use the existing total row's space while leaving every other row in place.
         float dailyTotalSize=Math.min(Math.min(width*34/658f,amountWidth/boldWidth),
-            Math.min((rowSpace*1.12f-0.5f)/lineHeight,headerSize/1.20f));
+            Math.min((rowSpace*1.12f-1.25f)/lineHeight,headerSize/1.20f));
         detailSize=Math.min(detailSize,totalSize*0.90f);
         lossSize=Math.min(lossSize,detailSize);
         String summaryLabel=SUMMARY_LABELS[summary];
@@ -302,3 +302,4 @@ public class CalendarWidget extends AppWidgetProvider {
         }
     }
 }
+
