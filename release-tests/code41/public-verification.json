@@ -1,0 +1,72 @@
+{
+  "checkedAt": "2026-11-11T23:19:12.829587+00:00",
+  "version": "0.1.40",
+  "versionCode": 41,
+  "origins": {
+    "cloudflare": {
+      "page": {
+        "url": "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
+        "httpStatus": "200",
+        "passed": true,
+        "bytes": 16126,
+        "sha256": "f01d304d59625a276ac3817fd05fbcb4e85d178582f264a809ece5e6025e0fe0"
+      },
+      "manifest": {
+        "url": "https://the-fool-quest.45kikurage.workers.dev/android-widget/releases/manifest.json",
+        "httpStatus": "200",
+        "passed": true,
+        "bytes": 13664,
+        "sha256": "04c806911451aa5676deb31168168d127b898c8d01a7a1d1f42d4bcd1e7db13e",
+        "version": "0.1.40",
+        "versionCode": 41
+      },
+      "apk": {
+        "url": "https://the-fool-quest.45kikurage.workers.dev/android-widget/releases/aruno-result-0.1.40.apk",
+        "httpStatus": "200",
+        "passed": true,
+        "bytes": 3190018,
+        "sha256": "40b9c4153b370a2da813c69a970a49a3caec8335a8bbab736665963c301456c0"
+      },
+      "previous-apk": {
+        "url": "https://the-fool-quest.45kikurage.workers.dev/android-widget/releases/aruno-result-0.1.39.apk",
+        "httpStatus": "200",
+        "passed": true,
+        "bytes": 3190018,
+        "sha256": "03b40d20c6fc51a4d094fd4ba2a5027269cddaff14c1294723dcc195b89341c5"
+      }
+    },
+    "github-pages": {
+      "page": {
+        "url": "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html",
+        "httpStatus": "200",
+        "passed": true,
+        "bytes": 16126,
+        "sha256": "f01d304d59625a276ac3817fd05fbcb4e85d178582f264a809ece5e6025e0fe0"
+      },
+      "manifest": {
+        "url": "https://45kikurage-rgb.github.io/the-fool-quest/android-widget/releases/manifest.json",
+        "httpStatus": "200",
+        "passed": true,
+        "bytes": 13664,
+        "sha256": "04c806911451aa5676deb31168168d127b898c8d01a7a1d1f42d4bcd1e7db13e",
+        "version": "0.1.40",
+        "versionCode": 41
+      },
+      "apk": {
+        "url": "https://45kikurage-rgb.github.io/the-fool-quest/android-widget/releases/aruno-result-0.1.40.apk",
+        "httpStatus": "200",
+        "passed": true,
+        "bytes": 3190018,
+        "sha256": "40b9c4153b370a2da813c69a970a49a3caec8335a8bbab736665963c301456c0"
+      },
+      "previous-apk": {
+        "url": "https://45kikurage-rgb.github.io/the-fool-quest/android-widget/releases/aruno-result-0.1.39.apk",
+        "httpStatus": "200",
+        "passed": true,
+        "bytes": 3190018,
+        "sha256": "03b40d20c6fc51a4d094fd4ba2a5027269cddaff14c1294723dcc195b89341c5"
+      }
+    }
+  },
+  "passed": true
+}

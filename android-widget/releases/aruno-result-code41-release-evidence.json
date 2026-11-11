@@ -104,7 +104,7 @@
     "年月・カテゴリー・金額は実際の字形の上下余白を補正して中央表示。",
     "既存フォント・日別欄・行高・保存形式・署名を維持。"
   ],
-  "publicationStatus": "PUBLICATION_PENDING",
+  "publicationStatus": "PUBLISHED_VERIFIED",
   "distributionUrls": [
     "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
     "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
@@ -116,5 +116,22 @@
   "physicalDeviceVerified": false,
   "formalOperationConfirmed": false,
   "transferMethod": "Reused retained CI artifact after ZIP digest and APK SHA-256 verification; tested and signed payloads match.",
-  "historicalDataLoss": "code32 incident cause remains undetermined; this release does not establish recovery of previously lost device data."
+  "historicalDataLoss": "code32 incident cause remains undetermined; this release does not establish recovery of previously lost device data.",
+  "publicVerification": {
+    "verifiedAt": "2026-11-11T23:19:12.829587+00:00",
+    "runId": 43118697844,
+    "jobId": 130853294436,
+    "releaseCommit": "ef6b4733b321b31c47a82cda6318f27775414750",
+    "pagesRunId": 43118697389,
+    "cloudflareBuildId": "3aa66840-cedb-432e-9467-3f20ea197387",
+    "cloudflareVersionId": "d6d6a885-594a-4b89-8d9b-cf4a2b26142c",
+    "pageVersionVerified": true,
+    "apkSha256": "40b9c4153b370a2da813c69a970a49a3caec8335a8bbab736665963c301456c0",
+    "origins": [
+      "https://45kikurage-rgb.github.io/the-fool-quest",
+      "https://the-fool-quest.45kikurage.workers.dev"
+    ],
+    "previousCode40Retained": true,
+    "detailedEvidence": "../../../release-tests/code41/public-verification.json"
+  }
 }

@@ -21,16 +21,27 @@
 | backup暗号文 SHA-256 | 38bc420fac1555130c16b89b2ee2700252e7b9e1c3a29b5f8c54b5e71cad673d |
 | 復号情報の管理 | opsの既存GitHub Actions Secret ARUNO_SIGNING_ROOTS_JSON と config/signing-recovery.json。値は非公開・暗号文と別管理 |
 | アクセス方法 | GitHub接続で固定repo/commit/path/blobを確認。権限のあるopsの既存署名runnerだけで復元し、別runnerの両経路検証後に署名 |
-| 署名経路 | ops .github/workflows/aruno-result-code40-existing-signature.yml、projects/github-signing/trial_candidate.py |
-| 最終独立復元試験 | 2026-11-12（日本時間）。run43067714301、primary job130687001586 / backup job130687002261、別runnerで両成功 |
+| 署名経路 | ops .github/workflows/aruno-result-code41-existing-signature.yml、projects/github-signing/trial_candidate.py |
+| 最終独立復元試験 | 2026-11-12（日本時間）。run43112773673、primary job130833016780 / backup job130833016711、別runnerで両成功 |
 | 鍵の置換・新規作成 | なし |
 | 実機確認 | Pixel 10未接続。未確認 |
 
 主/backupは独立repo・別runnerで検証するが、GitHubサービス全体から独立した災害復旧を新たに証明したものではない。外部保管コピーや復号情報の外部UIからの再取得は今回未実施。
 
-最新のAPK・ソースcommit・versionCode・APK SHA-256・証明書・試験run・配布URL・公開後照合は [code40更新記録](releases/aruno-result-code40-release-evidence.json) と [配布manifest](releases/manifest.json) を参照。これらの状態を最優先し、候補作成を公開済みと扱わない。
+最新のAPK・ソースcommit・versionCode・APK SHA-256・証明書・試験run・配布URL・公開後照合は [code41更新記録](releases/aruno-result-code41-release-evidence.json) と [配布manifest](releases/manifest.json) を参照。これらの状態を最優先し、候補作成を公開済みと扱わない。
 
 旧package com.aruno.foolquest.widget の鍵・証明書は別系列。流用・統合・新鍵への置換・アンインストールによる更新回避はしない。新しいチャットも、統括CURRENTとこの台帳・最新のrelease証拠を読み、GitHub接続とCI操作権限を確認して引き継ぐ。Library/利用者PCを通常の鍵取得元として必須にしない。
+
+## code41 上段カテゴリー・7桁金額・上下中央揃え（2026-11-12 日本時間）
+
+- 本番公開済み：0.1.40 / versionCode41 / 3,190,018 bytes。source `ea913218b07167cfd18d3fced9c5ebb0631949a3`。PR #61、公開merge `ef6b4733b321b31c47a82cda6318f27775414750`。
+- Total/Coupon/TikTok、固定7桁円金額欄、その左でカテゴリーを右詰め・位置固定。年月・カテゴリー・金額の見える字形を上下中央揃え。既存フォント・文字高さ・行高・日別表示・保存形式を維持。
+- APK SHA-256 `40b9c4153b370a2da813c69a970a49a3caec8335a8bbab736665963c301456c0`。既存証明書・packageを維持。主/backup独立復元・署名run43112773673成功。検証済み署名APKの同一バイトを使用し再生成なし。
+- Android17 run43112625516 / job130832345968：通常23386、offline2767、再起動2758、backup37＋再起動4成功。試験済みAPKと正式署名APKの署名以外42項目が全バイト一致。
+- code40→41上書きrun43112773673 / job130833720048：39項目・UID・更新前バックアップ・再起動後保持・旧package維持を確認。追加APK上書きrun43117986022 / job130850820952も成功。
+- 両配布先のページ・manifest・code41実APKを直接取得し、HTTP200・公開版・全SHA-256・サイズを照合。前code40 APKも両配布先で全バイト保持。公開照合run43118697844 / job130853294436成功、Pages run43118697389成功、Workers production build `3aa66840-cedb-432e-9467-3f20ea197387`成功。
+- 直接照合時刻：2026-11-11T23:19:12.829587Z（日本時間11月12日08:19）。詳細は release-tests/code41/public-verification.json。Pixel10実機・正式運用開始は未確認。code32消失原因の解明・過去データ復旧を示すものではない。
+- 初回候補run43111892393のCoupon折返しは描画余白8dp確保で修正し、上記最終runで成功。PR preview Workers build失敗後、main production buildと両配布元の検証は成功。
 
 ## code40 カレンダー上段・日別合計更新（2026-11-12 日本時間）
 

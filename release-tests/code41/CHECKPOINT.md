@@ -2,6 +2,16 @@
 
 Updated: 2026-11-12 JST
 
+## COMPLETE — published and verified
+- Version 0.1.40 / code41 publicly available on both origins.
+- PR #61 production merge `ef6b4733b321b31c47a82cda6318f27775414750`.
+- Public verification run43118697844 / job130853294436: success.
+- Pages run43118697389 and Workers production build3aa66840-cedb-432e-9467-3f20ea197387: success.
+- Both pages, manifests, exact code41 APK bytes and retained code40 APK bytes: HTTP200, version/size/SHA-256 passed at 2026-11-11T23:19:12.829587Z. See public-verification.json.
+- Font internal family confirmed as Corporate-Logo-Rounded-Bold-ver3 / コーポレート・ロゴ（ラウンド）ver3 Bold.
+- Manifest, release evidence and signing ledger updated; signed APK reused unchanged.
+- Pixel10 physical-device acceptance is still unconfirmed.
+
 ## Goal and authorization
 Complete the confirmed Aruno-Result code41 changes through production publication. User explicitly authorized production release and requested GitHub checkpoints. Report only completion or a blocker.
 
@@ -19,17 +29,8 @@ Complete the confirmed Aruno-Result code41 changes through production publicatio
 - Workers preview build check failed; production and GitHub Pages must be verified after merge. Previous releases also had preview failures before successful production builds.
 - Pixel10 physical acceptance remains unconfirmed.
 
-## Production merge completed
-- PR #61 merged as `ef6b4733b321b31c47a82cda6318f27775414750`.
-- Public deployment and both-origin byte verification are pending. Do not repeat the merge.
-
 ## Next steps
-1. DONE: merged PR #61 at the exact verified head, retaining signed APK bytes.
-2. DONE: saved production merge SHA above.
-3. Wait for production Pages deployment and public verification workflow; inspect failures if any.
-4. Retrieve both distribution pages, manifests and actual APKs, compare version/bytes/hash and prior code40 retention.
-5. Update manifest, release evidence and SIGNING_UPDATE_CURRENT.md with observed publication results, update this checkpoint to COMPLETE, commit/push GitHub.
-6. Final response only published version, verification results (physical-device limitation) and download-page link.
+No implementation or publication work remains. Respond with published version, checks and download-page URL only. Any later device issue should start from this checkpoint and preserve data/package/signature.
 
 ## URLs
 - https://the-fool-quest.45kikurage.workers.dev/widget-download.html
