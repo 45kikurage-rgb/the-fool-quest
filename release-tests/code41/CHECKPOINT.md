@@ -19,9 +19,13 @@ Complete the confirmed Aruno-Result code41 changes through production publicatio
 - Workers preview build check failed; production and GitHub Pages must be verified after merge. Previous releases also had preview failures before successful production builds.
 - Pixel10 physical acceptance remains unconfirmed.
 
+## Production merge completed
+- PR #61 merged as `ef6b4733b321b31c47a82cda6318f27775414750`.
+- Public deployment and both-origin byte verification are pending. Do not repeat the merge.
+
 ## Next steps
-1. Merge PR #61 at the exact verified head, retaining the signed APK bytes.
-2. Save merge SHA here immediately.
+1. DONE: merged PR #61 at the exact verified head, retaining signed APK bytes.
+2. DONE: saved production merge SHA above.
 3. Wait for production Pages deployment and public verification workflow; inspect failures if any.
 4. Retrieve both distribution pages, manifests and actual APKs, compare version/bytes/hash and prior code40 retention.
 5. Update manifest, release evidence and SIGNING_UPDATE_CURRENT.md with observed publication results, update this checkpoint to COMPLETE, commit/push GitHub.
