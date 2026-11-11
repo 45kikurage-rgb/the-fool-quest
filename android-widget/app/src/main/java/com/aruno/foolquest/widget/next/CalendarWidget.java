@@ -25,7 +25,7 @@ public class CalendarWidget extends AppWidgetProvider {
     };
     private static final float DAILY_TOTAL_UNIT_SCALE=0.43f;
     private static final int DAILY_TOTAL_FLAGS=Paint.ANTI_ALIAS_FLAG|Paint.FAKE_BOLD_TEXT_FLAG|Paint.SUBPIXEL_TEXT_FLAG;
-    private static final String[] SUMMARY_LABELS={"合計","クーポン","TikTok Lite"};
+    private static final String[] SUMMARY_LABELS={"合計","Coupon","TikTokLite"};
     static int[] ids(Context c){
         int[] calendar=ids(c,CalendarWidget.class);
         int[] combined=ids(c,CombinedWidget.class);
@@ -109,20 +109,14 @@ public class CalendarWidget extends AppWidgetProvider {
         float dateSize=Math.min(width*30/658f,(rowSpace*1.08f-1)/lineHeight);
         float lossSize=Math.min(detailSize,Math.min(amountWidth/signedWidth,(rowSpace*0.64f-0.35f)/lineHeight));
         RemoteViews rv=new RemoteViews(c.getPackageName(),R.layout.widget_calendar);
-        String title=month.substring(0,4)+"年"+Integer.parseInt(month.substring(5))+"月";
+        String title=month.substring(0,4)+"年"+Integer.parseInt(month.substring(5))+"月\u3000";
         String[] amounts=new String[SUMMARY_LABELS.length];
-        float widestSummary=0;
         for(int i=0;i<amounts.length;i++){
             amounts[i]=CalendarAmountFormatter.monthNet(data.totals[i],data.totalKnown[i]||data.totals[i]>=0);
-            float pairWidth=measure.measureText(SUMMARY_LABELS[i])+measure.measureText(amounts[i]);
-            widestSummary=Math.max(widestSummary,pairWidth);
         }
-        // Leave room for the layout padding, the label/amount gap, and pixel rounding.
-        // Reserve the widest pair so switching categories does not resize the header.
-        float headerWidth=width-8;
-        float headerSize=Math.min(26f,Math.min(
-            100*(headerWidth*3/7-5)/measure.measureText(title),
-            100*(headerWidth*4/7-8)/(widestSummary*0.8f)));
+        // Keep every header field at the same glyph height. Fit the available
+        // width with one shared horizontal scale, including unusually large sums.
+        float headerSize=Math.min(26f,32f/lineHeight);
         // Preserve the hierarchy even for exceptional large month totals.
         totalSize=Math.min(totalSize,headerSize/1.25f);
         Paint totalMeasure=new Paint(measure);
@@ -134,33 +128,67 @@ public class CalendarWidget extends AppWidgetProvider {
         for(char ch='0';ch<='9';ch++)boldDigit=Math.max(boldDigit,totalMeasure.measureText(String.valueOf(ch))/100);
         float boldWidth=3*boldDigit+totalMeasure.measureText("−.")/100
             +totalMeasure.measureText("万")/100*DAILY_TOTAL_UNIT_SCALE;
-        // Use the existing total row's space while leaving every other row in place.
-        float dailyTotalSize=Math.min(Math.min(width*34/658f,amountWidth/boldWidth),
+        // The three numerical row gaps each donate one physical pixel to the
+        // total row. Convert the recovered glyph height to dp, independently
+        // of display density and the user's system font scale.
+        float dailyDensity=c.getResources().getDisplayMetrics().density;
+        float previousDailyTotalSize=Math.min(Math.min(width*34/658f,amountWidth/boldWidth),
             Math.min((rowSpace*1.12f-1.25f)/lineHeight,headerSize/1.20f));
+        float dailyTotalSize=Math.min(previousDailyTotalSize+3f/(dailyDensity*lineHeight),
+            headerSize/1.20f);
+        // Keep every day's total at one size, including −99.9万. A shared
+        // horizontal scale accommodates the taller digits instead of shrinking
+        // individual negative days. Reserve one physical pixel for hinting.
+        Paint dailyPixelMeasure=new Paint(totalMeasure);
+        dailyPixelMeasure.setTextSize(dailyTotalSize*dailyDensity);
+        float pixelDigit=0;
+        for(char ch='0';ch<='9';ch++)pixelDigit=Math.max(pixelDigit,
+            dailyPixelMeasure.measureText(String.valueOf(ch)));
+        float pixelWidth=3*pixelDigit+dailyPixelMeasure.measureText("−.")
+            +dailyPixelMeasure.measureText("万")*DAILY_TOTAL_UNIT_SCALE;
+        float dailyTotalScale=totalScale.getFloat()*Math.min(1f,
+            Math.max(1f,amountWidth*dailyDensity-1f)/Math.max(pixelWidth,
+                dailyTotalSize*dailyDensity*boldWidth));
+        totalMeasure.setTextScaleX(dailyTotalScale);
         detailSize=Math.min(detailSize,totalSize*0.90f);
         lossSize=Math.min(lossSize,detailSize);
         String summaryLabel=SUMMARY_LABELS[summary];
         String summaryAmount=amounts[summary];
-        // Preserve code38's glyph height. Share one horizontal scale across the
-        // entire header instead of condensing only category/amount to 80%.
-        // Reserve the widest category pair so tapping never changes typography.
         float density=c.getResources().getDisplayMetrics().density;
-        // TextView lays out at the actual pixel size, where font hinting and
-        // rounded view widths differ from measurements made at 100px. Reserve
-        // both views' padding plus rounding space before sharing one scale.
         Paint headerMeasure=new Paint(measure);
         headerMeasure.setTextSize(headerSize*density);
+        // Match the actual pixel padding in widget_calendar.xml: root 4dp on
+        // each side, row 1px, title 3dp, and amount 4dp + 2dp. The six extra
+        // pixels cover rounding and glyph bearings across the three TextViews.
+        float headerWidthPx=Math.round(width*density)-2*Math.round(4*density)-1;
+        int titlePaddingPx=Math.round(3*density);
+        int amountPaddingPx=Math.round(4*density)+Math.round(2*density);
+        float textWidthPx=Math.max(1,headerWidthPx-titlePaddingPx-amountPaddingPx-6);
         float titleWidth=headerMeasure.measureText(title);
-        float widestPair=0;
-        for(int i=0;i<amounts.length;i++)widestPair=Math.max(widestPair,
-            headerMeasure.measureText(SUMMARY_LABELS[i])+headerMeasure.measureText(amounts[i]));
-        float headerScale=Math.min(1f,Math.max(1,(headerWidth-16)*density-6)/(titleWidth+widestPair));
+        float labelWidth=0,amountReserve=0,headerDigit=0;
+        for(char ch='0';ch<='9';ch++)headerDigit=Math.max(headerDigit,
+            headerMeasure.measureText(String.valueOf(ch)));
+        // Seven numerical digits, yen sign and thousands separators. Larger or
+        // negative actual amounts expand the reservation; digits are never cut.
+        amountReserve=7*headerDigit+headerMeasure.measureText("¥,,");
+        for(int i=0;i<amounts.length;i++){
+            labelWidth=Math.max(labelWidth,headerMeasure.measureText(SUMMARY_LABELS[i]));
+            amountReserve=Math.max(amountReserve,headerMeasure.measureText(amounts[i]));
+        }
+        float headerScale=Math.min(1f,textWidthPx/(titleWidth+labelWidth+amountReserve));
+        // Measure again at the applied scale, because font hinting operates at
+        // actual pixels rather than the 100px sizing probe used for daily rows.
+        headerMeasure.setTextScaleX(headerScale);
+        titleWidth=headerMeasure.measureText(title);
+        labelWidth=0;
+        for(String label:SUMMARY_LABELS)labelWidth=Math.max(labelWidth,headerMeasure.measureText(label));
         headerText(rv,R.id.calendar_title,title,headerSize,headerScale);
         headerText(rv,R.id.calendar_summary_label,summaryLabel,headerSize,headerScale);
         headerText(rv,R.id.calendar_summary_amount,summaryAmount,headerSize,headerScale);
-        rv.setInt(R.id.calendar_title,"setWidth",(int)Math.ceil(titleWidth*headerScale+7*density));
-        rv.setInt(R.id.calendar_summary_label,"setWidth",
-            (int)Math.ceil(headerMeasure.measureText(summaryLabel)*headerScale)+2);
+        rv.setInt(R.id.calendar_title,"setWidth",(int)Math.ceil(titleWidth)+titlePaddingPx+2);
+        // Reserve the longest category on every refresh so cycling does not
+        // move or resize the right-aligned amount, including RemoteViews reapply.
+        rv.setInt(R.id.calendar_summary_label,"setWidth",(int)Math.ceil(labelWidth)+2);
         rv.setContentDescription(R.id.calendar_summary,summaryLabel+" "+summaryAmount);
         rv.setOnClickPendingIntent(R.id.calendar_summary,cycle(c,id));
         int days=CalendarRevenueData.daysInMonth(month),offset=CalendarRevenueData.firstWeekday(month);
@@ -237,6 +265,7 @@ public class CalendarWidget extends AppWidgetProvider {
                         ?(data.known[day][1]||data.days[day][1]>=0)
                         :(data.known[day][0]||data.days[day][0]>=0);
                     cell.setInt(R.id.calendar_day_total,"setPaintFlags",DAILY_TOTAL_FLAGS);
+                    cell.setFloat(R.id.calendar_day_total,"setTextScaleX",dailyTotalScale);
                     cell.setTextColor(R.id.calendar_day_total,
                         totalKnown&&total<0&&total!=RevenueMath.UNKNOWN?0xffff9292:0xffffffff);
                     amount(cell,R.id.calendar_day_total,CalendarAmountFormatter.compact(total,totalKnown),

@@ -364,6 +364,7 @@ public class WidgetInstrumentation extends Instrumentation {
             for(float fontScale:new float[]{1f,2f}){
                 android.content.res.Configuration config=new android.content.res.Configuration(c.getResources().getConfiguration());
                 config.fontScale=fontScale;
+                config.densityDpi=480;
                 Context sized=c.createConfigurationContext(config);
                 for(int widthDp:new int[]{280,320,411}){
                     float density=sized.getResources().getDisplayMetrics().density;
@@ -408,17 +409,19 @@ public class WidgetInstrumentation extends Instrumentation {
                             &&orderedRows.getChildAt(2).getId()==R.id.calendar_tiktok_row
                             &&orderedRows.getChildAt(3).getId()==R.id.calendar_loss_row,
                         "the four XML include lines alone set Total/C/T/loss order");
-                    ok(totalRow.getBottom()<=cRow.getTop()
-                            &&cRow.getBottom()<=tRow.getTop()
-                            &&tRow.getBottom()<=lossRow.getTop(),
-                        "display order is Total, earned C, earned T, then red loss");
+                    ok(totalRow.getY()+totalRow.getHeight()-cRow.getY()==1f
+                            &&cRow.getY()+cRow.getHeight()-tRow.getY()==1f
+                            &&tRow.getY()+tRow.getHeight()-lossRow.getY()==1f,
+                        "each daily numeric gap shrinks by exactly one physical pixel");
+                    checkDailyCompaction(host,lastDay,width,height);
                     android.view.View firstDay=firstRow.getChildAt(0);
                     for(int id:new int[]{R.id.calendar_day_total,R.id.calendar_day_coupon,R.id.calendar_day_tiktok}){
                         android.widget.TextView shortValue=firstDay.findViewById(id);
                         android.widget.TextView longValue=lastDay.findViewById(id);
-                        float expectedScale=id==R.id.calendar_day_total?0.94f:1f;
+                        float maximumScale=id==R.id.calendar_day_total?0.94f:1f;
                         ok(shortValue.getTextSize()==longValue.getTextSize()
-                                &&shortValue.getTextScaleX()==expectedScale&&longValue.getTextScaleX()==expectedScale,
+                                &&shortValue.getTextScaleX()==longValue.getTextScaleX()
+                                &&shortValue.getTextScaleX()>0f&&shortValue.getTextScaleX()<=maximumScale,
                             "daily amounts keep a fixed glyph size and width from one to six digits");
                     }
                     android.widget.TextView date=lastDay.findViewById(R.id.calendar_day_number);
@@ -449,7 +452,7 @@ public class WidgetInstrumentation extends Instrumentation {
                     ok(forecast.isClickable()&&forecast.hasOnClickListeners(),"whole forecast cell is tappable");
                     completeCalendarText(lastRow.getChildAt(5),R.id.calendar_control,"カテゴリー\n表示変更");
                     completeCalendarText(lastRow.getChildAt(6),R.id.calendar_control,"年月\n表示変更");
-                    checkCalendarHeader(calendar,"2026年5月","合計","¥9,007,199,254,740,991");
+                    checkCalendarHeader(calendar,"2026年5月\u3000","合計","¥9,007,199,254,740,991");
                 }
             }
             CalendarWidgetState.toggleForecast(c,first);
@@ -478,7 +481,7 @@ public class WidgetInstrumentation extends Instrumentation {
             ok(gauge.getChildCount()==1&&gauge.findViewById(R.id.row_coupon)!=null
                 &&dates.getChildCount()==1&&dates.findViewById(R.id.calendar_week_4)!=null,
                 "combined widget reuses the full gauge and calendar");
-            checkCalendarHeader(dates,"2026年11月","TikTok Lite","¥13,401");
+            checkCalendarHeader(dates,"2026年11月\u3000","TikTokLite","¥13,401");
             android.widget.TextView title=dates.findViewById(R.id.calendar_title);
             ok(title.getTextSize()>=19*density,"typical monthly values use the large header size");
             long now=java.time.Instant.parse("2026-11-03T15:00:00Z").toEpochMilli();
@@ -518,6 +521,119 @@ public class WidgetInstrumentation extends Instrumentation {
                 &&tomorrow.findViewById(R.id.calendar_coupon_row).getVisibility()==android.view.View.INVISIBLE,
                 "future days show their date but no revenue");
         });
+    }
+
+    void measureCalendar(android.view.View host,int width,int height){
+        host.measure(android.view.View.MeasureSpec.makeMeasureSpec(width,android.view.View.MeasureSpec.EXACTLY),
+            android.view.View.MeasureSpec.makeMeasureSpec(height,android.view.View.MeasureSpec.EXACTLY));
+        host.layout(0,0,width,height);
+    }
+
+    void checkDailyCompaction(android.view.View host,android.view.View day,int width,int height){
+        int[] ids={R.id.calendar_day_total,R.id.calendar_coupon_row,R.id.calendar_tiktok_row,R.id.calendar_loss_row};
+        android.widget.LinearLayout.LayoutParams[] compact=new android.widget.LinearLayout.LayoutParams[4];
+        float[] tops=new float[4],translations=new float[4];
+        int[] heights=new int[4];
+        android.view.View date=day.findViewById(R.id.calendar_day_number);
+        int dateTop=date.getTop(),dateHeight=date.getHeight();
+        for(int i=0;i<4;i++){
+            android.view.View row=day.findViewById(ids[i]);
+            tops[i]=row.getY();heights[i]=row.getHeight();translations[i]=row.getTranslationY();
+            compact[i]=new android.widget.LinearLayout.LayoutParams((android.widget.LinearLayout.LayoutParams)row.getLayoutParams());
+            android.widget.LinearLayout.LayoutParams previous=new android.widget.LinearLayout.LayoutParams(compact[i]);
+            previous.height=0;previous.bottomMargin=0;
+            row.setLayoutParams(previous);row.setTranslationY(0f);
+        }
+        measureCalendar(host,width,height);
+        int[] shifts={0,2,1,0};
+        for(int i=0;i<4;i++){
+            android.view.View row=day.findViewById(ids[i]);
+            ok(tops[i]-row.getY()==shifts[i]&&heights[i]-row.getHeight()==(i==0?3:0),
+                "three saved pixels enlarge only the total row; C/T/loss slots keep their heights");
+            row.setLayoutParams(compact[i]);row.setTranslationY(translations[i]);
+        }
+        measureCalendar(host,width,height);
+        ok(date.getTop()==dateTop&&date.getHeight()==dateHeight,"daily compaction preserves the date row");
+        android.widget.TextView previous=null;
+        for(int id:new int[]{R.id.calendar_day_total,R.id.calendar_day_coupon,R.id.calendar_day_tiktok,R.id.calendar_day_loss}){
+            android.widget.TextView value=day.findViewById(id);
+            if(previous!=null){
+                float previousBottom=calendarTextTop(day,previous)+previous.getLayout().getHeight();
+                float nextTop=calendarTextTop(day,value);
+                ok(previousBottom<=nextTop,"compacted numeric line layouts do not overlap");
+            }
+            previous=value;
+        }
+    }
+
+    float calendarTextTop(android.view.View root,android.widget.TextView text){
+        float top=text.getBaseline()-text.getLayout().getLineBaseline(0);
+        for(android.view.View view=text;view!=root;view=(android.view.View)view.getParent())top+=view.getY();
+        return top;
+    }
+
+    void calendarHeaderReapplyChecks()throws Exception {
+        final java.util.List<android.graphics.Bitmap> shots=new java.util.ArrayList<>();
+        final java.util.List<String> names=new java.util.ArrayList<>();
+        long now=java.time.Instant.parse("2026-12-01T00:00:00Z").toEpochMilli();
+        String[] labels={"合計","Coupon","TikTokLite"};
+        runOnMainSync(()->{
+            for(float fontScale:new float[]{1f,2f}){
+                android.content.res.Configuration config=new android.content.res.Configuration(c.getResources().getConfiguration());
+                config.fontScale=fontScale;config.densityDpi=480;
+                Context sized=c.createConfigurationContext(config);
+                float density=sized.getResources().getDisplayMetrics().density;
+                ok(density==3f,"header regression runs at density three");
+                for(int widthDp:new int[]{280,320,411}){
+                    int width=Math.round(widthDp*density),height=Math.round(236*density);
+                    android.widget.FrameLayout host=new android.widget.FrameLayout(sized);
+                    CalendarRevenueData.Month data=new CalendarRevenueData.Month();
+                    data.totals[0]=835677;data.totals[1]=642370;data.totals[2]=193307;
+                    data.days[1][0]=56000;data.days[1][1]=45000;data.days[1][2]=11000;
+                    android.view.View calendar=CalendarWidget.buildViews(sized,13003,"2026-11",0,0,data,now,widthDp,236).apply(sized,host);
+                    host.addView(calendar,new android.widget.FrameLayout.LayoutParams(-1,-1));
+                    int[] originalWidths=null;
+                    float originalSize=0f,originalScale=0f;
+                    for(int sample=0;sample<2;sample++){
+                        if(sample==1)for(int i=0;i<3;i++)data.totals[i]=9999999;
+                        for(int category:new int[]{0,2,1,0}){
+                            CalendarWidget.buildViews(sized,13003,"2026-11",0,category,data,now,widthDp,236).reapply(sized,calendar);
+                            measureCalendar(host,width,height);
+                            String amount=sample==1?"¥9,999,999":new String[]{"¥835,677","¥642,370","¥193,307"}[category];
+                            checkCalendarHeader(calendar,"2026年11月\u3000",labels[category],amount);
+                            android.widget.TextView title=calendar.findViewById(R.id.calendar_title);
+                            android.widget.TextView label=calendar.findViewById(R.id.calendar_summary_label);
+                            android.widget.TextView value=calendar.findViewById(R.id.calendar_summary_amount);
+                            int[] widths={title.getWidth(),label.getWidth(),value.getWidth()};
+                            if(originalWidths==null){originalWidths=widths;originalSize=title.getTextSize();originalScale=title.getTextScaleX();}
+                            else ok(java.util.Arrays.equals(originalWidths,widths)&&originalSize==title.getTextSize()&&originalScale==title.getTextScaleX(),
+                                "reapplying categories and seven-digit amounts keeps stable header geometry and font");
+                            if(widthDp==411&&fontScale==1f&&(category!=0||shots.size()==sample*3)){
+                                android.graphics.Bitmap bitmap=android.graphics.Bitmap.createBitmap(width,height,android.graphics.Bitmap.Config.ARGB_8888);
+                                calendar.draw(new android.graphics.Canvas(bitmap));shots.add(bitmap);
+                                names.add("calendar-header-"+(sample==0?"typical":"seven-digits")+"-"+category);
+                            }
+                        }
+                    }
+                    android.view.View day=((android.view.ViewGroup)calendar.findViewById(R.id.calendar_week_0)).getChildAt(0);
+                    int[] rowIds={R.id.calendar_day_total,R.id.calendar_coupon_row,R.id.calendar_tiktok_row,R.id.calendar_loss_row};
+                    float[] rowTops=new float[4];
+                    int[] rowHeights=new int[4];
+                    for(int i=0;i<4;i++){android.view.View row=day.findViewById(rowIds[i]);rowTops[i]=row.getY();rowHeights[i]=row.getHeight();}
+                    for(int filter:new int[]{CalendarWidgetState.TOTAL,CalendarWidgetState.COUPON,CalendarWidgetState.TIKTOK,CalendarWidgetState.LOSS}){
+                        CalendarWidget.buildViews(sized,13003,"2026-11",filter,0,data,now,widthDp,236).reapply(sized,calendar);
+                        measureCalendar(host,width,height);
+                        day=((android.view.ViewGroup)calendar.findViewById(R.id.calendar_week_0)).getChildAt(0);
+                        for(int i=0;i<4;i++){
+                            android.view.View row=day.findViewById(rowIds[i]);
+                            ok(row.getY()==rowTops[i]&&row.getHeight()==rowHeights[i]&&row.getVisibility()!=android.view.View.GONE,
+                                "hidden categories retain the same daily row slots after reapply");
+                        }
+                    }
+                }
+            }
+        });
+        for(int i=0;i<shots.size();i++){png(shots.get(i),names.get(i));shots.get(i).recycle();}
     }
 
     void forecastInteractionChecks()throws Exception {
@@ -583,6 +699,18 @@ public class WidgetInstrumentation extends Instrumentation {
         ok(title.getTextSize()==label.getTextSize()&&title.getTextSize()==value.getTextSize()
             &&title.getBaseline()==label.getBaseline()&&title.getBaseline()==value.getBaseline(),
             "month and both summary fields share the font size and baseline");
+        for(android.widget.TextView text:new android.widget.TextView[]{title,label,value}){
+            android.text.Layout layout=text.getLayout();
+            int contentHeight=text.getHeight()-text.getPaddingTop()-text.getPaddingBottom();
+            int top=text.getBaseline()-layout.getLineBaseline(0)-text.getPaddingTop();
+            ok((text.getGravity()&android.view.Gravity.VERTICAL_GRAVITY_MASK)==android.view.Gravity.CENTER_VERTICAL
+                    &&Math.abs(2*top+layout.getHeight()-contentHeight)<=1,
+                "each header line is vertically centered in its field");
+        }
+        int available=value.getWidth()-value.getPaddingLeft()-value.getPaddingRight();
+        ok((value.getGravity()&android.view.Gravity.RELATIVE_HORIZONTAL_GRAVITY_MASK)==android.view.Gravity.END
+                &&Math.abs(value.getLayout().getLineRight(0)-available)<=1f,
+            "yen amount ends at the right content edge");
         ok(summary.isClickable()&&summary.hasOnClickListeners()
             &&!label.isClickable()&&!value.isClickable()
             &&label.getLeft()==0&&value.getRight()==summary.getWidth()
@@ -1122,6 +1250,7 @@ public class WidgetInstrumentation extends Instrumentation {
             });
             host.stopListening();runOnMainSync(activity::finish);
             calendarLayoutChecks();
+            calendarHeaderReapplyChecks();
             forecastInteractionChecks();
             couponDailyContractChecks();
             payFetchEntryChecks();
