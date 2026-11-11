@@ -1,5 +1,17 @@
 <resources>
+    <style name="ResultTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:fontFamily">@font/aru_widget_rounded</item>
+        <item name="android:alertDialogTheme">@style/ResultDialogTheme</item>
+    </style>
+    <style name="ResultDialogTheme" parent="@android:style/Theme.Material.Light.Dialog.Alert">
+        <item name="android:fontFamily">@font/aru_widget_rounded</item>
+    </style>
+    <style name="ResultCalendarTheme" parent="@android:style/Theme.Translucent.NoTitleBar">
+        <item name="android:fontFamily">@font/aru_widget_rounded</item>
+        <item name="android:alertDialogTheme">@style/ResultDialogTheme</item>
+    </style>
     <style name="QuietRefresh" parent="@android:style/Theme.Material.Dialog.NoActionBar">
+        <item name="android:fontFamily">@font/aru_widget_rounded</item>
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowElevation">0dp</item>

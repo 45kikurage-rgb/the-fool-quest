@@ -1,20 +1,20 @@
 {
   "applicationId": "com.aruno.foolquest.widget.next",
-  "version": "0.1.37",
-  "versionCode": 38,
+  "version": "0.1.38",
+  "versionCode": 39,
   "minSdk": 26,
   "targetSdk": 35,
-  "size": 335106,
-  "sha256": "bbedbf177e7e3aea68f9ddfce19f0ea12c5a4754c16d0f5e7221a5eaa088d50b",
+  "size": 3190018,
+  "sha256": "d3345cfcfb9888910f77f54a33151820b81d6ff387055006359e45432ceca200",
   "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
   "couponUpdate": "Daily revenue for priced coupons via authenticated Ledger; monthly reader retained",
   "tiktokUpdate": "On-demand current-month point-history CSV fetch in the in-app WebView; manual CSV import and manual revenue entry remain available",
   "changes": [
-    "Daily total uses larger, heavier numerals and a smaller 万; negative totals use red.",
-    "Use the supplied 1024 × 1024 transparent icon artwork with the existing explicit white launcher background.",
-    "Move the Chrome point-history button directly above CSV import."
+    "アプリ内・ウィジェットの文字と数字をコーポレート・ロゴ（ラウンド）Boldに統一。",
+    "年月と上段合計を同じ文字サイズ・基準線・横比率に統一し、既存の文字高さを維持。",
+    "収益・損失・表示設定・日別接続・自動バックアップを保持。"
   ],
-  "file": "aruno-result-0.1.37.apk",
+  "file": "aruno-result-0.1.38.apk",
   "installation": "Update in place without uninstalling. Existing package, signer and data paths are retained. Use the existing backup folder selection to keep automatic independent backup files.",
   "legacy": {
     "applicationId": "com.aruno.foolquest.widget",
@@ -27,14 +27,23 @@
   },
   "previousRelease": {
     "applicationId": "com.aruno.foolquest.widget.next",
-    "version": "0.1.36",
-    "versionCode": 37,
-    "file": "aruno-result-0.1.36.apk",
-    "size": 331010,
-    "sha256": "4140c2d7cd5dc02dfb786edec32fcb2eff5d47e508378c68a3c270cc16e58124",
+    "version": "0.1.37",
+    "versionCode": 38,
+    "file": "aruno-result-0.1.37.apk",
+    "size": 335106,
+    "sha256": "bbedbf177e7e3aea68f9ddfce19f0ea12c5a4754c16d0f5e7221a5eaa088d50b",
     "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730"
   },
   "archives": [
+    {
+      "applicationId": "com.aruno.foolquest.widget.next",
+      "version": "0.1.36",
+      "versionCode": 37,
+      "file": "aruno-result-0.1.36.apk",
+      "size": 331010,
+      "sha256": "4140c2d7cd5dc02dfb786edec32fcb2eff5d47e508378c68a3c270cc16e58124",
+      "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730"
+    },
     {
       "applicationId": "com.aruno.foolquest.widget.next",
       "version": "0.1.35",
@@ -234,26 +243,26 @@
       "file": "fool-quest-widget-0.1.13-original.apk"
     }
   ],
-  "sourceCommit": "e93a236bf77c69689d9c5156fc1f17ba49f5df69",
-  "unsignedSha256": "476e8dc0ce00a0683bee051d21d57c3818684e90bef96fe7b342d5fdf88e694e",
+  "sourceCommit": "52953b9ba2cd235921cafbc35a47d1865310e24d",
+  "unsignedSha256": "3b4ff17bf21f239dda35f906f4787a591684e66fed4f7e7c7361a50b3d47c058",
   "deviceVerified": false,
   "deliveryStatus": "production-update",
   "dailyTargetUpdate": "JST midnight; exact alarm when allowed, inexact fallback otherwise; no network required",
-  "signingRunId": 42708371365,
-  "softwareTestRunId": 42708319758,
+  "signingRunId": 42988482090,
+  "softwareTestRunId": 42987581407,
   "distributionUrls": [
     "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
     "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
   ],
   "lossUpdate": "Manually record, edit and delete separate TikTok Lite and Coupon losses by date; preserve the gross source; net amounts subtract losses once",
   "lossDisplay": "Combined daily losses shown in red below the TikTok row; daily and monthly totals are net of losses",
-  "upgradeTestRunId": 42708371365,
-  "publicationStatus": "VERIFIED_BOTH_ORIGINS",
-  "publicationRequestedAt": "2026-11-09T22:12:17.274817+00:00",
+  "upgradeTestRunId": 42996233873,
+  "publicationStatus": "PENDING_PUBLIC_VERIFICATION",
+  "publicationRequestedAt": "2026-11-11T16:49:53.616675+00:00",
   "displayName": "Aruno-Result",
-  "releaseStatus": "CALENDAR_FORECAST_UPDATE_PHYSICAL_PENDING",
+  "releaseStatus": "TYPOGRAPHY_UPDATE_PHYSICAL_PENDING",
   "updateRecommended": false,
-  "notice": "Daily amounts and month-end forecast display update. Existing revenue/settings data, package and signer retained. Code32 physical data-loss cause and Pixel10 physical acceptance remain unconfirmed.",
+  "notice": "Corporate Logo Rounded Bold typography update. Existing data, package and signer retained. Pixel10 physical acceptance remains unconfirmed.",
   "backup": {
     "format": "aruno-result-backup",
     "formatVersion": 1,
@@ -267,43 +276,39 @@
   },
   "softwareChecks": {
     "android17": {
-      "normal": 8463,
-      "offline": 2759,
-      "reboot": 2750,
-      "run": 42708319758,
-      "job": 129470911332,
+      "normal": 11067,
+      "offline": 2767,
+      "reboot": 2758,
+      "run": 42987581407,
+      "job": 130412347118,
       "signedPayloadMatches": true,
       "matchingPayloadEntries": 42
     },
     "backupAndroid17": {
       "normal": 37,
       "reboot": 4,
-      "run": 42708319758,
-      "job": 129470911332,
+      "run": 42987581407,
+      "job": 130412347118,
       "freshBackupAfterRebootVerified": true
     },
     "officialUpgrade": {
-      "fromCode": 36,
-      "toCode": 37,
+      "fromCode": 38,
+      "toCode": 39,
       "apis": [
         37
       ],
       "fixtureFields": 39,
-      "run": 42708371365,
-      "job": 129471725123,
+      "run": 42996233873,
+      "job": 130440914963,
       "uidPreserved": true,
       "startupSafetySnapshotVerified": true,
       "legacyUnchanged": true,
       "exactPreferencesAfterReboot": true
     }
   },
-  "android17TestRunId": 42708319758,
-  "releaseEvidence": "aruno-result-code37-release-evidence.json",
+  "android17TestRunId": 42987581407,
+  "releaseEvidence": "aruno-result-code39-release-evidence.json",
   "launcherBackground": "#FFFFFF",
   "launcherArtworkUnchanged": true,
-  "launcherIconResource": "@drawable/zz_aruno_launcher_white",
-  "publicationVerifiedAt": "2026-11-09T22:13:58.5438543Z",
-  "publicationVerificationRunId": 42709893084,
-  "publicationVerificationJobId": 129476339195,
-  "publicationCommit": "d4a39e5c9c10867d61573cf39c24875251f2a35e"
+  "launcherIconResource": "@drawable/zz_aruno_launcher_white"
 }

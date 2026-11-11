@@ -119,12 +119,10 @@ public class CalendarWidget extends AppWidgetProvider {
         }
         // Leave room for the layout padding, the label/amount gap, and pixel rounding.
         // Reserve the widest pair so switching categories does not resize the header.
-        TypedValue summaryScale=new TypedValue();
-        c.getResources().getValue(R.dimen.calendar_summary_width_scale,summaryScale,true);
         float headerWidth=width-8;
         float headerSize=Math.min(26f,Math.min(
             100*(headerWidth*3/7-5)/measure.measureText(title),
-            100*(headerWidth*4/7-8)/(widestSummary*summaryScale.getFloat())));
+            100*(headerWidth*4/7-8)/(widestSummary*0.8f)));
         // Preserve the hierarchy even for exceptional large month totals.
         totalSize=Math.min(totalSize,headerSize/1.25f);
         Paint totalMeasure=new Paint(measure);
@@ -143,9 +141,26 @@ public class CalendarWidget extends AppWidgetProvider {
         lossSize=Math.min(lossSize,detailSize);
         String summaryLabel=SUMMARY_LABELS[summary];
         String summaryAmount=amounts[summary];
-        headerText(rv,R.id.calendar_title,title,headerSize);
-        headerText(rv,R.id.calendar_summary_label,summaryLabel,headerSize);
-        headerText(rv,R.id.calendar_summary_amount,summaryAmount,headerSize);
+        // Preserve code38's glyph height. Share one horizontal scale across the
+        // entire header instead of condensing only category/amount to 80%.
+        // Reserve the widest category pair so tapping never changes typography.
+        float density=c.getResources().getDisplayMetrics().density;
+        // TextView lays out at the actual pixel size, where font hinting and
+        // rounded view widths differ from measurements made at 100px. Reserve
+        // both views' padding plus rounding space before sharing one scale.
+        Paint headerMeasure=new Paint(measure);
+        headerMeasure.setTextSize(headerSize*density);
+        float titleWidth=headerMeasure.measureText(title);
+        float widestPair=0;
+        for(int i=0;i<amounts.length;i++)widestPair=Math.max(widestPair,
+            headerMeasure.measureText(SUMMARY_LABELS[i])+headerMeasure.measureText(amounts[i]));
+        float headerScale=Math.min(1f,Math.max(1,(headerWidth-16)*density-6)/(titleWidth+widestPair));
+        headerText(rv,R.id.calendar_title,title,headerSize,headerScale);
+        headerText(rv,R.id.calendar_summary_label,summaryLabel,headerSize,headerScale);
+        headerText(rv,R.id.calendar_summary_amount,summaryAmount,headerSize,headerScale);
+        rv.setInt(R.id.calendar_title,"setWidth",(int)Math.ceil(titleWidth*headerScale+7*density));
+        rv.setInt(R.id.calendar_summary_label,"setWidth",
+            (int)Math.ceil(headerMeasure.measureText(summaryLabel)*headerScale)+2);
         rv.setContentDescription(R.id.calendar_summary,summaryLabel+" "+summaryAmount);
         rv.setOnClickPendingIntent(R.id.calendar_summary,cycle(c,id));
         int days=CalendarRevenueData.daysInMonth(month),offset=CalendarRevenueData.firstWeekday(month);
@@ -240,9 +255,10 @@ public class CalendarWidget extends AppWidgetProvider {
         }
         return rv;
     }
-    private static void headerText(RemoteViews views,int id,String text,float size){
+    private static void headerText(RemoteViews views,int id,String text,float size,float scale){
         views.setTextViewText(id,text);
         views.setTextViewTextSize(id,TypedValue.COMPLEX_UNIT_DIP,size);
+        views.setFloat(id,"setTextScaleX",scale);
     }
     private static void amount(RemoteViews cell,int view,String text,float size,float width,Paint measure){
         amount(cell,view,text,size,width,measure,0.55f);

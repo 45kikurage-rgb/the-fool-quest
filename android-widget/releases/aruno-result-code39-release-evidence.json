@@ -1,0 +1,129 @@
+{
+  "schema": 1,
+  "applicationId": "com.aruno.foolquest.widget.next",
+  "version": "0.1.38",
+  "versionCode": 39,
+  "sourceCommit": "52953b9ba2cd235921cafbc35a47d1865310e24d",
+  "testCommit": "7b15e8a1b2e3f5fdd3c5855223a729c67587f9fc",
+  "apkSha256": "d3345cfcfb9888910f77f54a33151820b81d6ff387055006359e45432ceca200",
+  "apkBytes": 3190018,
+  "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+  "unsignedSha256": "3b4ff17bf21f239dda35f906f4787a591684e66fed4f7e7c7361a50b3d47c058",
+  "signingReceipt": {
+    "apk_sha256": "d3345cfcfb9888910f77f54a33151820b81d6ff387055006359e45432ceca200",
+    "app_id": "foolquest-widget-next",
+    "certificate_sha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+    "device_verified": false,
+    "existing_key": true,
+    "package": "com.aruno.foolquest.widget.next",
+    "production_release": false,
+    "published": false,
+    "run_id": "42988482090",
+    "schema": 1,
+    "source_commit": "52953b9ba2cd235921cafbc35a47d1865310e24d",
+    "source_repository": "45kikurage-rgb/the-fool-quest",
+    "trial_signed": true,
+    "unsigned_sha256": "3b4ff17bf21f239dda35f906f4787a591684e66fed4f7e7c7361a50b3d47c058",
+    "version_code": 39,
+    "version_name": "0.1.38",
+    "workflow_commit": "8f7360ce3c9bb04ac12c3268c4294b92803321f2"
+  },
+  "signingReceiptNote": "Receipt records pre-publication stage; publicationStatus records later public verification.",
+  "independentRestore": {
+    "run": 42988482090,
+    "primaryJob": 130415262191,
+    "backupJob": 130415262275,
+    "primary": "success",
+    "backup": "success",
+    "stageJob": 130415506892
+  },
+  "softwareChecks": {
+    "android17": {
+      "normal": 11067,
+      "offline": 2767,
+      "reboot": 2758,
+      "run": 42987581407,
+      "job": 130412347118,
+      "signedPayloadMatches": true,
+      "matchingPayloadEntries": 42
+    },
+    "backupAndroid17": {
+      "normal": 37,
+      "reboot": 4,
+      "run": 42987581407,
+      "job": 130412347118,
+      "freshBackupAfterRebootVerified": true
+    },
+    "officialUpgrade": {
+      "fromCode": 38,
+      "toCode": 39,
+      "apis": [
+        37
+      ],
+      "fixtureFields": 39,
+      "run": 42996233873,
+      "job": 130440914963,
+      "uidPreserved": true,
+      "startupSafetySnapshotVerified": true,
+      "legacyUnchanged": true,
+      "exactPreferencesAfterReboot": true
+    }
+  },
+  "payloadComparison": {
+    "passed": true,
+    "entries": 42,
+    "testedArtifactId": 13841350748,
+    "signedBlob": "7e4350f010da5fde6e862248395ae0a7688c2d0f"
+  },
+  "officialUpgrade": {
+    "passed": true,
+    "app": "result",
+    "api": 37,
+    "package": "com.aruno.foolquest.widget.next",
+    "version_code": 39,
+    "source_commit": "52953b9ba2cd235921cafbc35a47d1865310e24d",
+    "apk_sha256": "d3345cfcfb9888910f77f54a33151820b81d6ff387055006359e45432ceca200",
+    "certificate_sha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+    "data_preservation": "PASS_DISPOSABLE_EMULATOR",
+    "physical_device_verified": false,
+    "published": false
+  },
+  "startupBackup": {
+    "verified": true,
+    "matchingSnapshots": 1,
+    "recordCount": 6,
+    "credentialsIncluded": false
+  },
+  "reboot": {
+    "passed": true,
+    "exact_widget_preferences_preserved": true
+  },
+  "changes": [
+    "アプリ内・ウィジェットの文字と数字をコーポレート・ロゴ（ラウンド）Boldに統一。",
+    "年月と上段合計を同じ文字サイズ・基準線・横比率に統一し、既存の文字高さを維持。",
+    "収益・損失・表示設定・日別接続・自動バックアップを保持。"
+  ],
+  "publicationStatus": "PENDING_PUBLIC_VERIFICATION",
+  "distributionUrls": [
+    "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
+    "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
+  ],
+  "apkUrls": [
+    "https://the-fool-quest.45kikurage.workers.dev/android-widget/releases/aruno-result-0.1.38.apk",
+    "https://45kikurage-rgb.github.io/the-fool-quest/android-widget/releases/aruno-result-0.1.38.apk"
+  ],
+  "physicalDeviceVerified": false,
+  "formalOperationConfirmed": false,
+  "priorAttempts": [
+    {
+      "run": 42980727978,
+      "result": "Header wrapping test failed; corrected actual-pixel width measurement and reran successfully in run42987581407."
+    },
+    {
+      "run": 42988482090,
+      "job": 130415714539,
+      "result": "Signing and independent restores succeeded; upgrade verification interrupted by ADB transport restart. Retained identical signed APK passed run42996233873 after bounded reconnect handling."
+    }
+  ],
+  "transferMethod": "Retained signed APK transferred through Git as binary, never through conversation Base64 output; source unchanged."
+}

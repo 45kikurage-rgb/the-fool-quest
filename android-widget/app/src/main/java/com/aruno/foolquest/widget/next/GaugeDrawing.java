@@ -23,9 +23,9 @@ final class GaugeDrawing {
         c.drawPath(triangle,p);
     }
 
-    static Paint textPaint() {
+    static Paint textPaint(android.content.Context context) {
         Paint p=new Paint(Paint.ANTI_ALIAS_FLAG);
-        p.setTypeface(Typeface.create("monospace",Typeface.NORMAL));
+        p.setTypeface(context.getResources().getFont(R.font.aru_widget_rounded));
         return p;
     }
 
@@ -42,9 +42,9 @@ final class GaugeDrawing {
         return textBounds(p,text);
     }
 
-    static void lapLabel(Canvas c,long lap,int color,float right,float top,float height) {
+    static void lapLabel(android.content.Context context,Canvas c,long lap,int color,float right,float top,float height) {
         if(lap<2)return;
-        Paint p=textPaint();String text="×"+lap;
+        Paint p=textPaint(context);String text="×"+lap;
         RectF bounds=fitTextHeight(p,text,height);
         float available=GaugePalette.LAP_LABEL_WIDTH_DP-GaugePalette.LAP_LABEL_GAP_DP;
         // Preserve gauge-height glyphs while fitting the legacy 34dp column.

@@ -1,0 +1,308 @@
+"""Verify the previous official successor APK updates to the revised official APK.
+
+Both successor APKs retain the original successor signing identity.
+Never uninstall either app. The legacy v0.1.12 app remains untouched.
+"""
+import datetime
+import hashlib
+import json
+import os
+import pathlib
+import re
+import subprocess
+import time
+import xml.etree.ElementTree as ET
+import uiautomator2 as u2
+
+OLD_PACKAGE = 'com.aruno.foolquest.widget'
+PACKAGE = OLD_PACKAGE + '.next'
+OLD_CERTIFICATE = '18946d320bb61c58aa627abbf2b53ea521b273b218eaec57f7fbc662f375bdb1'
+OLD_APK = pathlib.Path('android-widget/releases/fool-quest-widget-0.1.12.apk')
+RELEASES = pathlib.Path('android-widget/releases')
+MANIFEST = json.loads((RELEASES / 'manifest.json').read_text())
+PREVIOUS = MANIFEST['previousRelease']
+BASE_APK = RELEASES / PREVIOUS['file']
+BASE_SHA256 = PREVIOUS['sha256']
+BASE_SIZE = PREVIOUS['size']
+SUCCESSOR_CERTIFICATE = '8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730'
+NEW_APK = RELEASES / MANIFEST['file']
+OUT = pathlib.Path('android-widget/build/release-upgrade')
+OUT.mkdir(parents=True, exist_ok=True)
+(OUT / 'result.txt').unlink(missing_ok=True)
+
+
+def adb(*args):
+    return subprocess.run(['adb', *args], check=True, text=True,
+                          capture_output=True).stdout
+
+
+def dump_ui(remote_path, required=None):
+    # Android17's standalone uiautomator dump can exit without a file when a live widget
+    # keeps the accessibility tree non-idle. Use the established UI driver to read the
+    # actual hierarchy; never synthesize nodes, restart the app, or dismiss an app ANR.
+    device=u2.connect()
+    device.settings['wait_timeout']=5
+    last=None
+    for attempt in range(20):
+        try:
+            raw=device.dump_hierarchy(compressed=False)
+            tree=ET.fromstring(raw)
+            assert tree.tag=='hierarchy' and list(tree.iter('node'))
+            local=OUT / ('captured-'+pathlib.PurePosixPath(remote_path).name)
+            local.write_text(raw)
+            adb('push',str(local),remote_path)
+            if required and required not in raw:
+                time.sleep(1)
+                continue
+            return
+        except Exception as exc:
+            last=exc
+            time.sleep(.5)
+    raise AssertionError('Actual accessibility hierarchy unavailable') from last
+
+
+def uid(package):
+    output = adb('shell', 'cmd', 'package', 'list', 'packages', '-U', package)
+    match = re.search(r'^package:' + re.escape(package) + r' uid:(\d+)\s*$',
+                      output, re.MULTILINE)
+    assert match, (package, output)
+    return match.group(1)
+
+
+def prefs_path(package):
+    return '/data/user/0/' + package + '/shared_prefs/widget.xml'
+
+
+def prefs(package):
+    root = ET.fromstring(adb('shell', 'cat', prefs_path(package)))
+    return {e.attrib['name']: e.attrib.get('value', e.text or '') for e in root}
+
+
+def check_preserved(package, expected, after_fetch=False):
+    actual = prefs(package)
+    for name, value in expected.items():
+        if after_fetch and name == 'lastFailureAt':
+            assert int(actual[name]) >= int(value)
+        else:
+            assert actual.get(name) == value, (package, name, actual.get(name), value)
+
+
+def write_fixture(package):
+    target = prefs_path(package)
+    adb('shell', 'am', 'force-stop', package)
+    adb('shell', 'mkdir', '-p', str(pathlib.PurePosixPath(target).parent))
+    adb('push', str(fixture_path), target)
+    owner = uid(package)
+    adb('shell', 'chown', '-R', owner + ':' + owner,
+        str(pathlib.PurePosixPath(target).parent))
+    adb('shell', 'chmod', '660', target)
+    adb('shell', 'restorecon', '-RF', '/data/user/0/' + package)
+    check_preserved(package, expected)
+
+
+def verify_apk(apk, package, version, code, certificate):
+    sdk = os.environ.get('ANDROID_BUILD_TOOLS')
+    if not sdk:
+        sdk_root = os.environ.get('ANDROID_HOME') or os.environ.get('ANDROID_SDK_ROOT')
+        assert sdk_root, 'Set ANDROID_BUILD_TOOLS or ANDROID_HOME'
+        sdk = str(pathlib.Path(sdk_root) / 'build-tools' / '35.0.0')
+    signer = subprocess.run(['java', '-jar', str(pathlib.Path(sdk) / 'lib/apksigner.jar'),
+                             'verify', '--verbose', '--print-certs', str(apk)],
+                            check=True, text=True, capture_output=True).stdout
+    digest = re.search(r'Signer #1 certificate SHA-256 digest: ([a-f0-9]+)', signer)
+    assert digest and digest.group(1) == certificate, 'Unexpected signing certificate'
+    badging = subprocess.run([str(pathlib.Path(sdk) / 'aapt'), 'dump', 'badging', str(apk)],
+                             check=True, text=True, capture_output=True).stdout
+    assert f"package: name='{package}' versionCode='{code}' versionName='{version}'" in badging
+    (OUT / (apk.stem + '-signature.txt')).write_text(signer)
+
+
+assert all(apk.is_file() for apk in [OLD_APK, BASE_APK, NEW_APK]), 'Legacy, previous and revised official APKs are required'
+assert hashlib.sha256(BASE_APK.read_bytes()).hexdigest() == BASE_SHA256
+assert BASE_APK.stat().st_size == BASE_SIZE
+assert BASE_APK.read_bytes() != NEW_APK.read_bytes(), 'Upgrade must test two distinct official binaries'
+assert MANIFEST['applicationId'] == PREVIOUS['applicationId'] == PACKAGE
+assert MANIFEST['versionCode'] > PREVIOUS['versionCode'], 'Candidate version must advance'
+assert MANIFEST['certificateSha256'] == PREVIOUS['certificateSha256'] == SUCCESSOR_CERTIFICATE
+assert hashlib.sha256(NEW_APK.read_bytes()).hexdigest() == MANIFEST['sha256']
+assert NEW_APK.stat().st_size == MANIFEST['size']
+verify_apk(OLD_APK, OLD_PACKAGE, '0.1.12', 13, OLD_CERTIFICATE)
+verify_apk(BASE_APK, PACKAGE, PREVIOUS['version'], PREVIOUS['versionCode'], SUCCESSOR_CERTIFICATE)
+verify_apk(NEW_APK, PACKAGE, MANIFEST['version'], MANIFEST['versionCode'], SUCCESSOR_CERTIFICATE)
+assert adb('shell', 'getprop', 'ro.kernel.qemu').strip() == '1', 'Isolated emulator only'
+assert not adb('shell', 'pm', 'list', 'packages', OLD_PACKAGE).strip(), 'Clean emulator required; do not uninstall'
+adb('root')
+adb('wait-for-device')
+adb('shell', 'svc', 'wifi', 'disable')
+adb('shell', 'svc', 'data', 'disable')
+adb('shell', 'cmd', 'connectivity', 'airplane-mode', 'enable')
+assert 'Success' in adb('install', str(OLD_APK))
+old_uid = uid(OLD_PACKAGE)
+month = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).strftime('%Y-%m')
+now = int(time.time() * 1000)
+entries = {
+    'importMonth': ('string', month), 'couponMonth': ('string', month),
+    'tiktok': ('long', '1150000'), 'coupon': ('long', '0'),
+    'goalTotal': ('long', '1000000'), 'goalTiktok': ('long', '1000000'),
+    'goalCoupon': ('long', '600000'), 'importAt': ('long', str(now)),
+    'couponAt': ('long', str(now)), 'text': ('int', '-1'),
+    'background': ('int', '-16777216'), 'colorTotal': ('int', '-195508'),
+    'colorTiktok': ('int', '-44462'), 'colorCoupon': ('int', '-11870592'),
+    'colorPaceAchieved': ('int', '-15654349'),
+    'colorPaceBehind': ('int', '-12298906'),
+    'colorPaceLow': ('int', '-8943463'),
+    'colorSecondLap': ('int', '-5517841'),
+    'paceColors': ('boolean', 'false'), 'opacity': ('int', '83'),
+    'font': ('int', '14'), 'left': ('int', '9'), 'right': ('int', '10'),
+    'top': ('int', '7'), 'bottom': ('int', '8'), 'gap': ('int', '6'),
+    'gauge': ('int', '5'), 'lastFailureCode': ('string', 'OFFLINE'),
+    'lastFailureAt': ('long', str(now - 60000)),
+}
+fixture = ET.Element('map')
+for name, (kind, value) in entries.items():
+    elem = ET.SubElement(fixture, kind, name=name)
+    if kind == 'string':
+        elem.text = value
+    else:
+        elem.set('value', value)
+expected = {name: value for name, (_, value) in entries.items()}
+fixture_path = OUT / 'fixture.xml'
+ET.ElementTree(fixture).write(fixture_path, encoding='utf-8', xml_declaration=True)
+write_fixture(OLD_PACKAGE)
+old_snapshot = prefs(OLD_PACKAGE)
+# Install the actual prior published successor before testing its update.
+assert 'Success' in adb('install', str(BASE_APK))
+new_uid = uid(PACKAGE)
+assert new_uid != old_uid, 'Separate applications must have independent UIDs'
+assert uid(OLD_PACKAGE) == old_uid
+assert prefs(OLD_PACKAGE) == old_snapshot, 'Old settings/cache/history must remain untouched'
+old_info = adb('shell', 'dumpsys', 'package', OLD_PACKAGE)
+assert re.search(r'versionCode=13\b', old_info) and 'versionName=0.1.12' in old_info
+info = adb('shell', 'dumpsys', 'package', PACKAGE)
+assert re.search(rf"versionCode={PREVIOUS['versionCode']}\b", info) and f"versionName={PREVIOUS['version']}" in info
+# Seed the previous official successor with both widget settings and native history.
+first = month + '-01'
+history = {
+    'format': 'the-fool-quest-migration',
+    'version': 1,
+    'months': {month: {'csv': 1149000, 'csvDaily': {first: 1149000},
+                       'csvDailyComplete': True, 'csvCoveredThrough': first}},
+    'manual': [{'id': 'upgrade-check', 'date': first, 'amount': 1000}],
+    'goals': {'tiktok': 1000000, 'coupon': 600000},
+    'losses': [{'id':'retained-t-loss','date':'2026-01-01','category':'tiktok','amount':300},
+               {'id':'retained-c-loss','date':'2026-01-01','category':'coupon','amount':500}],
+}
+for name, kind, value in [
+    ('nativeRevenueV1', 'string', json.dumps(history)),
+    ('calendar.month.42', 'string', month),
+    ('calendar.filter.42', 'int', '2'),
+    ('calendar.summary.42', 'int', '1'),
+    ('calendar.filter.43', 'int', '4'),
+    ('goalMarkerColor', 'int', '-256'),
+    ('goalMarkerWidth', 'int', '3'),
+    ('colorTargetMarker', 'int', '-16711936'),
+    ('gaugeTickDivisor', 'int', '3'),
+    ('myBestCouponDailyCredentialV1', 'string', 'upgrade-credential-fixture-not-a-real-token'),
+]:
+    elem = ET.SubElement(fixture, kind, name=name)
+    if kind == 'string':
+        elem.text = value
+    else:
+        elem.set('value', value)
+    expected[name] = value
+ET.ElementTree(fixture).write(fixture_path, encoding='utf-8', xml_declaration=True)
+write_fixture(PACKAGE)
+before_upgrade = prefs(PACKAGE)
+assert 'Success' in adb('install', '-r', str(NEW_APK))
+assert uid(PACKAGE) == new_uid
+assert f"versionName={MANIFEST['version']}" in adb('shell', 'dumpsys', 'package', PACKAGE)
+assert prefs(PACKAGE) == before_upgrade, 'Successor preferences must survive the revised APK upgrade exactly'
+check_preserved(PACKAGE, expected)
+adb('shell', 'am', 'start', '-W', '-n', PACKAGE + '/.SettingsActivity')
+time.sleep(3)
+dump_ui('/sdcard/upgrade-ui.xml', '表示設定')
+adb('pull', '/sdcard/upgrade-ui.xml', str(OUT / 'upgrade-ui.xml'))
+ui = (OUT / 'upgrade-ui.xml').read_text()
+assert '表示設定' in ui
+assert 'THE FOOL QUESTから連携（通常サイト）' not in ui
+
+assert '115.00%' in ui and '1,150,000' in ui
+# Android exposes the preview's aggregate accessibility description rather than
+# nested lap-label ImageViews. Exact lap rendering is checked by native instrumentation.
+nodes = list(ET.fromstring(ui).iter('node'))
+assert any('Total ¥1,150,000/¥1,000,000 115.00%' in node.attrib.get('content-desc', '')
+           for node in nodes), 'Successor native preview must expose cumulative revenue'
+preview_nodes = [node for node in nodes
+                 if 'Total ¥1,150,000/¥1,000,000 115.00%' in node.attrib.get('content-desc', '')]
+(OUT / 'preview-bounds.json').write_text(json.dumps(
+    [node.attrib for node in preview_nodes], ensure_ascii=False, indent=2))
+(OUT / 'activity-top.txt').write_text(adb('shell', 'dumpsys', 'activity', 'top'))
+with (OUT / 'upgrade-preview.png').open('wb') as screenshot:
+    subprocess.run(['adb', 'exec-out', 'screencap', '-p'], check=True, stdout=screenshot)
+adb('shell', 'am', 'force-stop', PACKAGE)
+check_preserved(PACKAGE, expected, after_fetch=True)
+if MANIFEST['versionCode'] >= 35:
+    backup_dir = '/data/user/0/' + PACKAGE + '/files/result-backups-v1'
+    paths = adb('shell', 'find', backup_dir, '-name', 'aruno-result-safety-*.json').splitlines()
+    assert paths, 'Upgrade must preserve pre-migration history/settings before model initialization'
+    protected = []
+    for backup_path in paths:
+        envelope = json.loads(adb('shell', 'cat', backup_path))
+        body_text = envelope['body']
+        assert hashlib.sha256(body_text.encode()).hexdigest() == envelope['sha256']
+        body = json.loads(body_text)
+        saved = body['preferences']
+        assert 'myBestCouponDailyCredentialV1' not in saved
+        assert body['credentialsIncluded'] is False
+        if 'nativeRevenueV1' in saved and json.loads(saved['nativeRevenueV1']['value']) == history:
+            assert saved['font'] == {'type': 'int', 'value': 14}
+            assert saved['calendar.filter.42'] == {'type': 'int', 'value': 2}
+            protected.append(body)
+    assert protected, 'No validated startup snapshot matches the full previous revenue/settings fixture'
+    (OUT / 'startup-backup-result.json').write_text(json.dumps({'verified': True, 'matchingSnapshots': len(protected), 'recordCount': protected[0]['records'], 'credentialsIncluded': False}, indent=2))
+assert uid(OLD_PACKAGE) == old_uid and prefs(OLD_PACKAGE) == old_snapshot
+# Confirm the new native activity sees the existing history without another import.
+adb('shell', 'am', 'start', '-W', '-n', PACKAGE + '/.ManagementActivity')
+time.sleep(2)
+native = prefs(PACKAGE)
+assert json.loads(native['nativeRevenueV1']) == history, 'Existing CSV, manual entries, or goals changed'
+assert native['tiktok'] == '1150000', 'Widget projection changed unexpectedly'
+assert uid(PACKAGE) == new_uid, 'Successor UID changed'
+dump_ui('/sdcard/target-home.xml', 'Aruno-Result')
+adb('pull', '/sdcard/target-home.xml', str(OUT / 'target-home.xml'))
+home_ui = (OUT / 'target-home.xml').read_text()
+assert 'Aruno-Result' in home_ui
+assert '今日までの目標' in home_ui, 'Daily target amounts missing from upgraded management screen'
+assert home_ui.count('今日までの目標') >= 3, 'Expected Total, TikTok and Coupon target amounts'
+with (OUT / 'target-home.png').open('wb') as screenshot:
+    subprocess.run(['adb', 'exec-out', 'screencap', '-p'], check=True, stdout=screenshot)
+size = re.findall(r'(\d+)x(\d+)', adb('shell', 'wm', 'size'))
+assert size, 'Screen size unavailable'
+width, height = map(int, size[-1])
+setup_ui=home_ui
+for setup_scroll in range(6):
+    if 'クーポン日別の接続設定' in setup_ui:break
+    adb('shell', 'input', 'swipe', str(width//2), str(height*4//5), str(width//2), str(height//4), '400')
+    time.sleep(.5)
+    dump_ui('/sdcard/target-setup.xml')
+    setup_ui=adb('shell', 'cat', '/sdcard/target-setup.xml')
+assert 'クーポン日別の接続設定' in setup_ui, 'Daily connection control is not reachable after six bounded scrolls'
+assert uid(OLD_PACKAGE) == old_uid and prefs(OLD_PACKAGE) == old_snapshot, 'Legacy application modified'
+providers = adb('shell', 'dumpsys', 'appwidget')
+for component in ('RevenueWidget', 'CalendarWidget', 'CombinedWidget'):
+    assert component in providers, 'Launcher provider missing: ' + component
+(OUT / 'result.txt').write_text(
+    f"PASS existing v{PREVIOUS['version']}/code{PREVIOUS['versionCode']} upgraded to "
+    f"Aru-MyBest v{MANIFEST['version']}/code{MANIFEST['versionCode']} "
+    'using adb install -r with unchanged official certificate; two distinct APKs verified; '
+    f'successor UID and all {len(expected)} fixture fields retained exactly after update; '
+    'saved daily CSV, manual entries, and per-widget calendar settings retained; '
+    'legacy v0.1.12/code13 UID and fixture fields remain untouched; '
+    'native preview cumulative revenue 115.00% verified and screenshot recorded; '
+    'native revenue and gauge rendering are separately checked by Android instrumentation. '
+    'No uninstall and no automatic legacy-to-successor migration. '
+    'Physical-device checks remain unverified.\n')
+print((OUT / 'result.txt').read_text())
+
+
+

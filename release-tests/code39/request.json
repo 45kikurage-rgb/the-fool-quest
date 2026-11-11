@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "operation": "trial-sign-existing-apk",
+  "execute": true,
+  "approval_reference": "User requested every Aruno-Result letter and number in Corporate Logo Rounded Bold, retaining text heights and aligning the marked calendar summary with the month/year, explicitly through production; user asked to continue the unfinished update in this chat. Android17 candidate run42987581407 passed. Maintain the existing package, signer, data and backups; verify official code38 to code39 update before publishing.",
+  "mode": "test-artifact-only",
+  "publish": false,
+  "app_id": "foolquest-widget-next",
+  "package": "com.aruno.foolquest.widget.next",
+  "certificate_sha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+  "source_repository": "45kikurage-rgb/the-fool-quest",
+  "source_commit": "52953b9ba2cd235921cafbc35a47d1865310e24d",
+  "unsigned_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "version_code": 39,
+  "version_name": "0.1.38",
+  "min_sdk": 26,
+  "request_id": "aruno-result-code39-typography-20261111"
+}
+

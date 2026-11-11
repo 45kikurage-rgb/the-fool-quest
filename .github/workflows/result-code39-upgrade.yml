@@ -1,0 +1,35 @@
+name: Aruno-Result code39 retained APK upgrade verification
+on:
+  push:
+    branches: [feature/result-code39-typography]
+    paths: ['release-tests/code39/**', '.github/workflows/result-code39-upgrade.yml']
+permissions:
+  contents: read
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: 52953b9ba2cd235921cafbc35a47d1865310e24d
+          path: source
+      - uses: actions/setup-java@v5
+        with: {distribution: temurin, java-version: '17'}
+      - uses: android-actions/setup-android@v3
+        with: {packages: platform-tools, log-accepted-android-sdk-licenses: false}
+      - name: Prepare disposable test runner
+        run: |
+          test "$RUNNER_ENVIRONMENT" = github-hosted
+          sudo rm -rf -- /usr/share/dotnet /usr/local/lib/android/sdk/ndk /usr/local/lib/android/sdk/cmake
+          sdkmanager 'build-tools;35.0.0'
+          python3 -m pip install uiautomator2==3.2.10
+      - name: Verify unchanged signed APK upgrade and reboot
+        run: timeout 900 bash release-tests/code39/run-emulator.sh result 37
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: result-code39-upgrade-recovery
+          path: verification/
+          retention-days: 31

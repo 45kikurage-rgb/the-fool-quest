@@ -56,6 +56,7 @@ public class WidgetInstrumentation extends Instrumentation {
         });
         waitForIdleSync();Thread.sleep(120);
         runOnMainSync(()->{
+            corporateText(tree[0]);
             for(int row=0;row<3;row++)for(int col=0;col<5;col++){
                 android.widget.TextView text=tree[0].findViewById(NativeWidgetViews.TEXT[row][col]);
                 ok(Math.abs(text.getTextSize()-result[0].font*density)<.1,"host density preserves requested native font");
@@ -262,7 +263,7 @@ public class WidgetInstrumentation extends Instrumentation {
         for(int height:new int[]{4,12,48})for(long lap:new long[]{1,2,3,9}){
             android.graphics.Bitmap label=android.graphics.Bitmap.createBitmap(GaugePalette.LAP_LABEL_WIDTH_DP*2,(height+4)*2,android.graphics.Bitmap.Config.ARGB_8888);
             android.graphics.Canvas canvas=new android.graphics.Canvas(label);canvas.scale(2,2);
-            GaugeDrawing.lapLabel(canvas,lap,GaugePalette.SECOND_LIME,GaugePalette.LAP_LABEL_WIDTH_DP,2,height);
+            GaugeDrawing.lapLabel(host,canvas,lap,GaugePalette.SECOND_LIME,GaugePalette.LAP_LABEL_WIDTH_DP,2,height);
             int minY=label.getHeight(),maxY=-1,minX=label.getWidth();
             for(int y=0;y<label.getHeight();y++)for(int x=0;x<label.getWidth();x++)if(android.graphics.Color.alpha(label.getPixel(x,y))>128){minY=Math.min(minY,y);maxY=Math.max(maxY,y);minX=Math.min(minX,x);}
             if(lap==1)ok(maxY==-1,"first lap leaves reserved suffix empty");
@@ -553,6 +554,21 @@ public class WidgetInstrumentation extends Instrumentation {
         RevenueStore.prefs(c).edit().putInt("test.forecastWidget",id).commit();
     }
 
+    void corporateText(android.view.View root){
+        if(root instanceof android.widget.TextView){
+            android.widget.TextView text=(android.widget.TextView)root;
+            Paint expected=new Paint(text.getPaint());
+            expected.setTypeface(c.getResources().getFont(R.font.aru_widget_rounded));
+            String sample="Aruno 0123456789 年月収益合計 −×";
+            ok(Math.abs(expected.measureText(sample)-text.getPaint().measureText(sample))<.1f,
+                "native text uses corporate rounded metrics: "+text.getText());
+        }
+        if(root instanceof android.view.ViewGroup){
+            android.view.ViewGroup group=(android.view.ViewGroup)root;
+            for(int i=0;i<group.getChildCount();i++)corporateText(group.getChildAt(i));
+        }
+    }
+
     void checkCalendarHeader(android.view.View root,String month,String category,String amount){
         completeCalendarText(root,R.id.calendar_title,month);
         completeCalendarText(root,R.id.calendar_summary_label,category);
@@ -561,6 +577,9 @@ public class WidgetInstrumentation extends Instrumentation {
         android.widget.TextView label=root.findViewById(R.id.calendar_summary_label);
         android.widget.TextView value=root.findViewById(R.id.calendar_summary_amount);
         android.view.View summary=root.findViewById(R.id.calendar_summary);
+        corporateText(root);
+        ok(title.getTextScaleX()==label.getTextScaleX()&&title.getTextScaleX()==value.getTextScaleX(),
+            "all header fields share the same horizontal proportions without reducing their height");
         ok(title.getTextSize()==label.getTextSize()&&title.getTextSize()==value.getTextSize()
             &&title.getBaseline()==label.getBaseline()&&title.getBaseline()==value.getBaseline(),
             "month and both summary fields share the font size and baseline");
@@ -776,6 +795,7 @@ public class WidgetInstrumentation extends Instrumentation {
         String[] expectedTargets={RevenueMath.dailyTargetLabel(month,RevenueMath.total(manager.goal("tiktok"),manager.goal("coupon")),targetTime),
             RevenueMath.dailyTargetLabel(month,manager.goal("tiktok"),targetTime),RevenueMath.dailyTargetLabel(month,manager.goal("coupon"),targetTime)};
         runOnMainSync(()->{
+            corporateText(home.getWindow().getDecorView());
             String[] tags={"target-total","target-tiktok","target-coupon"};
             for(int i=0;i<3;i++){
                 android.widget.TextView target=home.getWindow().getDecorView().findViewWithTag(tags[i]);
@@ -792,6 +812,7 @@ public class WidgetInstrumentation extends Instrumentation {
         waitForIdleSync();
         runOnMainSync(()->{
             android.view.View root=home.getWindow().getDecorView();
+            corporateText(root);
             android.widget.LinearLayout headings=historyRow(root,"");
             android.widget.LinearLayout all=historyRow(root,"全期間");
             android.widget.LinearLayout year=historyRow(root,month.substring(0,4)+"年");
@@ -814,6 +835,9 @@ public class WidgetInstrumentation extends Instrumentation {
         Bundle result=new Bundle();
         try{
             c=getTargetContext();output=new File(c.getExternalFilesDir(null),"verification");output.mkdirs();
+            Paint corporate=new Paint();corporate.setTypeface(c.getResources().getFont(R.font.aru_widget_rounded));
+            for(String glyph:new String[]{"−","×","復","旧","履","歴","選","択"})
+                ok(corporate.hasGlyph(glyph),"corporate font contains widget and management glyph: "+glyph);
             gaugeAnnotations();
             dailyTargetChecks();
             if("offline".equals(args.getString("mode"))){
@@ -860,7 +884,7 @@ public class WidgetInstrumentation extends Instrumentation {
             RevenueStore.Import.parse(Uri.parse(link)).save(c);RevenueStore.saveCoupon(c,month,1000000);
             RevenueStore.Data d=RevenueStore.read(c);d.tiktok=1000000;d.coupon=1000000;
             DisplaySettings s=new DisplaySettings();
-            Paint p=new Paint();p.setTypeface(Typeface.create("monospace",Typeface.NORMAL));
+            Paint p=new Paint();p.setTypeface(c.getResources().getFont(R.font.aru_widget_rounded));
             for(int width:new int[]{280,320,360,400,500})for(int height:new int[]{100,110,126,150}){
                 WidgetRenderer.Render r=WidgetRenderer.render(c,d,s,width,height);WidgetLayout l=new WidgetLayout(width,height,s.left,s.right,s.top,s.bottom,s.gap);p.setTextSize(r.font);
                 ok(p.measureText("Coupon")<=l.labelWidth()+.1,"label fits");
