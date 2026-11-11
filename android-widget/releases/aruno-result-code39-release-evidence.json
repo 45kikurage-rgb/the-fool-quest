@@ -123,6 +123,11 @@
       "run": 42988482090,
       "job": 130415714539,
       "result": "Signing and independent restores succeeded; upgrade verification interrupted by ADB transport restart. Retained identical signed APK passed run42996233873 after bounded reconnect handling."
+    },
+    {
+      "run": 43062324188,
+      "job": 130667899165,
+      "result": "Generic Android15 verifier stopped at adb root before APK installation. Bounded root transport readiness added; same APK passed run43062999420."
     }
   ],
   "transferMethod": "Retained signed APK transferred through Git as binary, never through conversation Base64 output; source unchanged.",
@@ -153,5 +158,13 @@
       "previousCode38BytesRetained": true,
       "checkedAt": "2026-11-11T16:52:29.531302+00:00"
     }
-  ]
+  ],
+  "additionalUpgradeAndroid15": {
+    "passed": true,
+    "run": 43062999420,
+    "job": 130670304704,
+    "testCommit": "a291e1ce1ab9b71c80fa1278f6d6f5e0765e9148",
+    "apkUnchanged": true,
+    "physicalDeviceVerified": false
+  }
 }

@@ -105,8 +105,28 @@ verify_apk(BASE_APK, PACKAGE, PREVIOUS['version'], PREVIOUS['versionCode'], SUCC
 verify_apk(NEW_APK, PACKAGE, MANIFEST['version'], MANIFEST['versionCode'], SUCCESSOR_CERTIFICATE)
 assert adb('shell', 'getprop', 'ro.kernel.qemu').strip() == '1', 'Isolated emulator only'
 assert not adb('shell', 'pm', 'list', 'packages', OLD_PACKAGE).strip(), 'Clean emulator required; do not uninstall'
-adb('root')
-adb('wait-for-device')
+# root restarts adbd and may return before the emulator transport is ready.
+# Retry only connection preparation; never skip the APK or preservation checks.
+deadline = time.monotonic() + 90
+last_root = ''
+while time.monotonic() < deadline:
+    try:
+        subprocess.run(['adb', 'wait-for-device'], check=False, timeout=10,
+                       capture_output=True, text=True)
+        root_result = subprocess.run(['adb', 'root'], check=False, timeout=10,
+                                     capture_output=True, text=True)
+        last_root = (root_result.stdout + root_result.stderr).strip()
+        if 'cannot run as root in production builds' in last_root:
+            raise AssertionError('Disposable emulator image does not support root: ' + last_root)
+        time.sleep(1)
+        ready = subprocess.run(['adb', 'shell', 'id', '-u'], check=False,
+                               timeout=10, capture_output=True, text=True)
+        if ready.returncode == 0 and ready.stdout.strip() == '0':
+            break
+    except subprocess.TimeoutExpired:
+        last_root = 'ADB transport readiness timed out'
+else:
+    raise AssertionError('Disposable emulator root ADB unavailable after 90 seconds: ' + last_root)
 adb('shell', 'svc', 'wifi', 'disable')
 adb('shell', 'svc', 'data', 'disable')
 adb('shell', 'cmd', 'connectivity', 'airplane-mode', 'enable')
