@@ -17,11 +17,11 @@
             android:clickable="true" android:focusable="true"
             android:foreground="?android:attr/selectableItemBackground">
             <TextView android:id="@+id/calendar_summary_label" style="@style/CalendarSummaryText"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent" android:gravity="start|center_vertical" android:text="合計"
+                android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="match_parent" android:gravity="end|center_vertical" android:text="Total"
                 android:importantForAccessibility="no" />
             <TextView android:id="@+id/calendar_summary_amount" style="@style/CalendarSummaryText"
-                android:layout_width="0dp" android:layout_weight="1"
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent" android:gravity="end|center_vertical"
                 android:text="—" android:paddingStart="4dp" android:paddingEnd="2dp"
                 android:importantForAccessibility="no" />
