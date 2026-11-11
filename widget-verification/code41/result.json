@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "app": "result",
+  "api": 37,
+  "package": "com.aruno.foolquest.widget.next",
+  "version_code": 41,
+  "source_commit": "ea913218b07167cfd18d3fced9c5ebb0631949a3",
+  "apk_sha256": "40b9c4153b370a2da813c69a970a49a3caec8335a8bbab736665963c301456c0",
+  "certificate_sha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+  "data_preservation": "PASS_DISPOSABLE_EMULATOR",
+  "physical_device_verified": false,
+  "published": false
+}

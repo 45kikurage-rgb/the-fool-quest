@@ -452,7 +452,7 @@ public class WidgetInstrumentation extends Instrumentation {
                     ok(forecast.isClickable()&&forecast.hasOnClickListeners(),"whole forecast cell is tappable");
                     completeCalendarText(lastRow.getChildAt(5),R.id.calendar_control,"カテゴリー\n表示変更");
                     completeCalendarText(lastRow.getChildAt(6),R.id.calendar_control,"年月\n表示変更");
-                    checkCalendarHeader(calendar,"2026年5月\u3000","合計","¥9,007,199,254,740,991");
+                    checkCalendarHeader(calendar,"2026年5月\u3000","Total","¥9,007,199,254,740,991");
                 }
             }
             CalendarWidgetState.toggleForecast(c,first);
@@ -481,7 +481,7 @@ public class WidgetInstrumentation extends Instrumentation {
             ok(gauge.getChildCount()==1&&gauge.findViewById(R.id.row_coupon)!=null
                 &&dates.getChildCount()==1&&dates.findViewById(R.id.calendar_week_4)!=null,
                 "combined widget reuses the full gauge and calendar");
-            checkCalendarHeader(dates,"2026年11月\u3000","TikTokLite","¥13,401");
+            checkCalendarHeader(dates,"2026年11月\u3000","TikTok","¥13,401");
             android.widget.TextView title=dates.findViewById(R.id.calendar_title);
             ok(title.getTextSize()>=19*density,"typical monthly values use the large header size");
             long now=java.time.Instant.parse("2026-11-03T15:00:00Z").toEpochMilli();
@@ -576,7 +576,7 @@ public class WidgetInstrumentation extends Instrumentation {
         final java.util.List<android.graphics.Bitmap> shots=new java.util.ArrayList<>();
         final java.util.List<String> names=new java.util.ArrayList<>();
         long now=java.time.Instant.parse("2026-12-01T00:00:00Z").toEpochMilli();
-        String[] labels={"合計","Coupon","TikTokLite"};
+        String[] labels={"Total","Coupon","TikTok"};
         runOnMainSync(()->{
             for(float fontScale:new float[]{1f,2f}){
                 android.content.res.Configuration config=new android.content.res.Configuration(c.getResources().getConfiguration());
@@ -604,7 +604,8 @@ public class WidgetInstrumentation extends Instrumentation {
                             android.widget.TextView title=calendar.findViewById(R.id.calendar_title);
                             android.widget.TextView label=calendar.findViewById(R.id.calendar_summary_label);
                             android.widget.TextView value=calendar.findViewById(R.id.calendar_summary_amount);
-                            int[] widths={title.getWidth(),label.getWidth(),value.getWidth()};
+                            for(android.widget.TextView field:new android.widget.TextView[]{title,label,value})checkHeaderInkCenter(field);
+                            int[] widths={title.getWidth(),label.getWidth(),value.getWidth(),label.getRight(),value.getLeft()};
                             if(originalWidths==null){originalWidths=widths;originalSize=title.getTextSize();originalScale=title.getTextScaleX();}
                             else ok(java.util.Arrays.equals(originalWidths,widths)&&originalSize==title.getTextSize()&&originalScale==title.getTextScaleX(),
                                 "reapplying categories and seven-digit amounts keeps stable header geometry and font");
@@ -634,6 +635,21 @@ public class WidgetInstrumentation extends Instrumentation {
             }
         });
         for(int i=0;i<shots.size();i++){png(shots.get(i),names.get(i));shots.get(i).recycle();}
+    }
+
+    void checkHeaderInkCenter(android.widget.TextView text){
+        android.graphics.Bitmap bitmap=android.graphics.Bitmap.createBitmap(text.getWidth(),text.getHeight(),android.graphics.Bitmap.Config.ARGB_8888);
+        android.graphics.Canvas canvas=new android.graphics.Canvas(bitmap);
+        canvas.translate(0,text.getTranslationY());
+        text.draw(canvas);
+        int top=bitmap.getHeight(),bottom=-1;
+        for(int y=0;y<bitmap.getHeight();y++)for(int x=0;x<bitmap.getWidth();x++){
+            if(android.graphics.Color.alpha(bitmap.getPixel(x,y))>=128){top=Math.min(top,y);bottom=Math.max(bottom,y);}
+        }
+        bitmap.recycle();
+        ok(bottom>=top&&top>0&&bottom<text.getHeight()-1
+                &&Math.abs(top-(text.getHeight()-1-bottom))<=2,
+            "visible header pixels have equal top/bottom margins: "+text.getText()+" top="+top+" bottom="+(text.getHeight()-1-bottom));
     }
 
     void forecastInteractionChecks()throws Exception {
@@ -696,9 +712,8 @@ public class WidgetInstrumentation extends Instrumentation {
         corporateText(root);
         ok(title.getTextScaleX()==label.getTextScaleX()&&title.getTextScaleX()==value.getTextScaleX(),
             "all header fields share the same horizontal proportions without reducing their height");
-        ok(title.getTextSize()==label.getTextSize()&&title.getTextSize()==value.getTextSize()
-            &&title.getBaseline()==label.getBaseline()&&title.getBaseline()==value.getBaseline(),
-            "month and both summary fields share the font size and baseline");
+        ok(title.getTextSize()==label.getTextSize()&&title.getTextSize()==value.getTextSize(),
+            "month and both summary fields retain the same font size");
         for(android.widget.TextView text:new android.widget.TextView[]{title,label,value}){
             android.text.Layout layout=text.getLayout();
             int contentHeight=text.getHeight()-text.getPaddingTop()-text.getPaddingBottom();
@@ -707,6 +722,10 @@ public class WidgetInstrumentation extends Instrumentation {
                     &&Math.abs(2*top+layout.getHeight()-contentHeight)<=1,
                 "each header line is vertically centered in its field");
         }
+        int labelAvailable=label.getWidth()-label.getPaddingLeft()-label.getPaddingRight();
+        ok((label.getGravity()&android.view.Gravity.RELATIVE_HORIZONTAL_GRAVITY_MASK)==android.view.Gravity.END
+                &&Math.abs(label.getLayout().getLineRight(0)-labelAvailable)<=1f,
+            "category ends at the fixed boundary before the seven-digit amount column");
         int available=value.getWidth()-value.getPaddingLeft()-value.getPaddingRight();
         ok((value.getGravity()&android.view.Gravity.RELATIVE_HORIZONTAL_GRAVITY_MASK)==android.view.Gravity.END
                 &&Math.abs(value.getLayout().getLineRight(0)-available)<=1f,
@@ -724,7 +743,7 @@ public class WidgetInstrumentation extends Instrumentation {
         String[] lines=expected.split("\n",-1);
         ok(expected.contentEquals(text.getText())&&layout!=null&&layout.getLineCount()==lines.length
             &&layout.getHeight()<=text.getHeight()-text.getPaddingTop()-text.getPaddingBottom(),
-            "unclipped calendar text "+expected+" textSize="+text.getTextSize()+" height="+text.getHeight()+" layoutHeight="+(layout==null?-1:layout.getHeight()));
+            "unclipped calendar text "+expected+" textSize="+text.getTextSize()+" height="+text.getHeight()+" width="+text.getWidth()+" measured="+text.getPaint().measureText(expected)+" layoutHeight="+(layout==null?-1:layout.getHeight()));
         int end=0;
         for(int line=0;line<lines.length;line++){
             end+=lines[line].length()+(line<lines.length-1?1:0);

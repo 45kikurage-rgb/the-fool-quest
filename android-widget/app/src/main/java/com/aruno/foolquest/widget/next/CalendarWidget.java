@@ -25,7 +25,7 @@ public class CalendarWidget extends AppWidgetProvider {
     };
     private static final float DAILY_TOTAL_UNIT_SCALE=0.43f;
     private static final int DAILY_TOTAL_FLAGS=Paint.ANTI_ALIAS_FLAG|Paint.FAKE_BOLD_TEXT_FLAG|Paint.SUBPIXEL_TEXT_FLAG;
-    private static final String[] SUMMARY_LABELS={"合計","Coupon","TikTokLite"};
+    private static final String[] SUMMARY_LABELS={"Total","Coupon","TikTok"};
     static int[] ids(Context c){
         int[] calendar=ids(c,CalendarWidget.class);
         int[] combined=ids(c,CombinedWidget.class);
@@ -158,12 +158,13 @@ public class CalendarWidget extends AppWidgetProvider {
         Paint headerMeasure=new Paint(measure);
         headerMeasure.setTextSize(headerSize*density);
         // Match the actual pixel padding in widget_calendar.xml: root 4dp on
-        // each side, row 1px, title 3dp, and amount 4dp + 2dp. The six extra
-        // pixels cover rounding and glyph bearings across the three TextViews.
+        // each side, row 1px, title 3dp, and amount 4dp + 2dp. Reserve 8dp
+        // for TextView shaping/hinting and rounding across all three fields;
+        // the weighted category must not wrap on narrow high-density hosts.
         float headerWidthPx=Math.round(width*density)-2*Math.round(4*density)-1;
         int titlePaddingPx=Math.round(3*density);
         int amountPaddingPx=Math.round(4*density)+Math.round(2*density);
-        float textWidthPx=Math.max(1,headerWidthPx-titlePaddingPx-amountPaddingPx-6);
+        float textWidthPx=Math.max(1,headerWidthPx-titlePaddingPx-amountPaddingPx-Math.round(8*density));
         float titleWidth=headerMeasure.measureText(title);
         float labelWidth=0,amountReserve=0,headerDigit=0;
         for(char ch='0';ch<='9';ch++)headerDigit=Math.max(headerDigit,
@@ -182,13 +183,19 @@ public class CalendarWidget extends AppWidgetProvider {
         titleWidth=headerMeasure.measureText(title);
         labelWidth=0;
         for(String label:SUMMARY_LABELS)labelWidth=Math.max(labelWidth,headerMeasure.measureText(label));
-        headerText(rv,R.id.calendar_title,title,headerSize,headerScale);
-        headerText(rv,R.id.calendar_summary_label,summaryLabel,headerSize,headerScale);
-        headerText(rv,R.id.calendar_summary_amount,summaryAmount,headerSize,headerScale);
+        headerText(rv,R.id.calendar_title,title,headerSize,headerScale,headerMeasure);
+        headerText(rv,R.id.calendar_summary_label,summaryLabel,headerSize,headerScale,headerMeasure);
+        headerText(rv,R.id.calendar_summary_amount,summaryAmount,headerSize,headerScale,headerMeasure);
         rv.setInt(R.id.calendar_title,"setWidth",(int)Math.ceil(titleWidth)+titlePaddingPx+2);
-        // Reserve the longest category on every refresh so cycling does not
-        // move or resize the right-aligned amount, including RemoteViews reapply.
-        rv.setInt(R.id.calendar_summary_label,"setWidth",(int)Math.ceil(labelWidth)+2);
+        // Fix the amount column to seven digits plus yen/separators. The label
+        // fills the remaining width and ends at the same boundary for every
+        // category and every value up to seven digits, including reapply.
+        headerDigit=0;
+        for(char ch='0';ch<='9';ch++)headerDigit=Math.max(headerDigit,
+            headerMeasure.measureText(String.valueOf(ch)));
+        amountReserve=7*headerDigit+headerMeasure.measureText("¥,,");
+        for(String value:amounts)amountReserve=Math.max(amountReserve,headerMeasure.measureText(value));
+        rv.setInt(R.id.calendar_summary_amount,"setWidth",(int)Math.ceil(amountReserve)+amountPaddingPx+2);
         rv.setContentDescription(R.id.calendar_summary,summaryLabel+" "+summaryAmount);
         rv.setOnClickPendingIntent(R.id.calendar_summary,cycle(c,id));
         int days=CalendarRevenueData.daysInMonth(month),offset=CalendarRevenueData.firstWeekday(month);
@@ -284,10 +291,18 @@ public class CalendarWidget extends AppWidgetProvider {
         }
         return rv;
     }
-    private static void headerText(RemoteViews views,int id,String text,float size,float scale){
+    private static void headerText(RemoteViews views,int id,String text,float size,float scale,Paint paint){
         views.setTextViewText(id,text);
         views.setTextViewTextSize(id,TypedValue.COMPLEX_UNIT_DIP,size);
         views.setFloat(id,"setTextScaleX",scale);
+        // CENTER_VERTICAL centers the font line, not the visible glyphs. Japanese
+        // 年/月 and Latin digits have different ink bounds in this same font.
+        // Translate only drawing; keep row heights, hit areas and grid unchanged.
+        android.graphics.Rect ink=new android.graphics.Rect();
+        paint.getTextBounds(text,0,text.length(),ink);
+        Paint.FontMetricsInt metrics=paint.getFontMetricsInt();
+        float opticalOffset=(metrics.ascent+metrics.descent-ink.top-ink.bottom)/2f;
+        views.setFloat(id,"setTranslationY",opticalOffset);
     }
     private static void amount(RemoteViews cell,int view,String text,float size,float width,Paint measure){
         amount(cell,view,text,size,width,measure,0.55f);
