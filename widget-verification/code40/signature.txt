@@ -1,0 +1,17 @@
+Verifies
+Verified using v1 scheme (JAR signing): false
+Verified using v2 scheme (APK Signature Scheme v2): true
+Verified using v3 scheme (APK Signature Scheme v3): true
+Verified using v3.1 scheme (APK Signature Scheme v3.1): false
+Verified using v4 scheme (APK Signature Scheme v4): false
+Verified for SourceStamp: false
+Number of signers: 1
+Signer #1 certificate DN: CN=THE FOOL QUEST Widget Next, OU=ARUNO
+Signer #1 certificate SHA-256 digest: 8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730
+Signer #1 certificate SHA-1 digest: 364e45e180bf06afc0b99e5e6677f988ff632dd2
+Signer #1 certificate MD5 digest: d97603a0815b64f31926394b4e5be31b
+Signer #1 key algorithm: RSA
+Signer #1 key size (bits): 3072
+Signer #1 public key SHA-256 digest: a33e43d151951a48f4ff297efa23cca40cacbe52957f68c8cd29f03565d79401
+Signer #1 public key SHA-1 digest: 83f51bfc9cd1d5b66f8e97ea0bf11ed99ab1e3b2
+Signer #1 public key MD5 digest: 367f7e7bd982c1c1330504e2eab16cbd

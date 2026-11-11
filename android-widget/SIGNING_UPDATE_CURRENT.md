@@ -21,16 +21,26 @@
 | backup暗号文 SHA-256 | 38bc420fac1555130c16b89b2ee2700252e7b9e1c3a29b5f8c54b5e71cad673d |
 | 復号情報の管理 | opsの既存GitHub Actions Secret ARUNO_SIGNING_ROOTS_JSON と config/signing-recovery.json。値は非公開・暗号文と別管理 |
 | アクセス方法 | GitHub接続で固定repo/commit/path/blobを確認。権限のあるopsの既存署名runnerだけで復元し、別runnerの両経路検証後に署名 |
-| 署名経路 | ops .github/workflows/aruno-result-code39-existing-signature.yml、projects/github-signing/trial_candidate.py |
-| 最終独立復元試験 | 2026-11-11（日本時間）。run42988482090、primary job130415262191 / backup job130415262275、別runnerで両成功 |
+| 署名経路 | ops .github/workflows/aruno-result-code40-existing-signature.yml、projects/github-signing/trial_candidate.py |
+| 最終独立復元試験 | 2026-11-12（日本時間）。run43067714301、primary job130687001586 / backup job130687002261、別runnerで両成功 |
 | 鍵の置換・新規作成 | なし |
 | 実機確認 | Pixel 10未接続。未確認 |
 
 主/backupは独立repo・別runnerで検証するが、GitHubサービス全体から独立した災害復旧を新たに証明したものではない。外部保管コピーや復号情報の外部UIからの再取得は今回未実施。
 
-最新のAPK・ソースcommit・versionCode・APK SHA-256・証明書・試験run・配布URL・公開後照合は [code39更新記録](releases/aruno-result-code39-release-evidence.json) と [配布manifest](releases/manifest.json) を参照。これらの状態を最優先し、候補作成を公開済みと扱わない。
+最新のAPK・ソースcommit・versionCode・APK SHA-256・証明書・試験run・配布URL・公開後照合は [code40更新記録](releases/aruno-result-code40-release-evidence.json) と [配布manifest](releases/manifest.json) を参照。これらの状態を最優先し、候補作成を公開済みと扱わない。
 
 旧package com.aruno.foolquest.widget の鍵・証明書は別系列。流用・統合・新鍵への置換・アンインストールによる更新回避はしない。新しいチャットも、統括CURRENTとこの台帳・最新のrelease証拠を読み、GitHub接続とCI操作権限を確認して引き継ぐ。Library/利用者PCを通常の鍵取得元として必須にしない。
+
+## code40 カレンダー上段・日別合計更新（2026-11-12 日本時間）
+
+- 0.1.39 / versionCode40 / 3,190,018 bytes。source `1cbd2592f4ff801aec75900a3dcbe362b12883a5`。
+- 上段の上下中央、年月＋全角スペース＋合計/Coupon/TikTokLite、7桁円右詰め。日別の3間隔を各1px縮め、合計数字を拡大。既存フォント・データ保存形式・署名を保持。
+- APK SHA-256 `03b40d20c6fc51a4d094fd4ba2a5027269cddaff14c1294723dcc195b89341c5`。証明書は上表と一致。主/backup別runner復元と署名run43067714301成功。
+- Android17 run43067036225 / job130684650442：通常23187、offline2767、reboot2758、backup37＋再起動4成功。試験APKと正式署名APKの署名以外42項目が全バイト一致。
+- code39→40上書きrun43067714301 / job130687687514：39項目・UID・更新前バックアップ・再起動後保持・旧package維持に合格。
+- 本番公開後の両origin照合は未完了。Pixel10実機・正式運用開始は未確認。code32消失原因は引き続き未特定。
+- 検証済み署名APKを再利用し、再ビルド・再署名なし。旧APKを保持。会話への巨大Base64出力を避ける。
 
 ## code39 フォント統一・上段表示更新（2026-11-12 日本時間）
 

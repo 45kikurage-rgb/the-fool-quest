@@ -1,0 +1,1 @@
+PASS 2767 native offline checks
