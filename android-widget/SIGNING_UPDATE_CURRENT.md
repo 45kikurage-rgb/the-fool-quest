@@ -1,6 +1,6 @@
 # Aruno-Result 署名・更新台帳 CURRENT
 
-更新日：2026-11-11（日本時間）。秘密の値は記載しない。ソース・試験・配布・実機を分ける。
+更新日：2026-11-12（日本時間）。秘密の値は記載しない。ソース・試験・配布・実機を分ける。
 
 | 項目 | 現行値 |
 |---|---|
@@ -21,16 +21,26 @@
 | backup暗号文 SHA-256 | 38bc420fac1555130c16b89b2ee2700252e7b9e1c3a29b5f8c54b5e71cad673d |
 | 復号情報の管理 | opsの既存GitHub Actions Secret ARUNO_SIGNING_ROOTS_JSON と config/signing-recovery.json。値は非公開・暗号文と別管理 |
 | アクセス方法 | GitHub接続で固定repo/commit/path/blobを確認。権限のあるopsの既存署名runnerだけで復元し、別runnerの両経路検証後に署名 |
-| 署名経路 | ops .github/workflows/aruno-result-code38-existing-signature.yml、projects/github-signing/trial_candidate.py |
-| 最終独立復元試験 | 2026-11-11（日本時間）。run42908246014、primary job130151805643 / backup job130151805489、別runnerで両成功 |
+| 署名経路 | ops .github/workflows/aruno-result-code39-existing-signature.yml、projects/github-signing/trial_candidate.py |
+| 最終独立復元試験 | 2026-11-11（日本時間）。run42988482090、primary job130415262191 / backup job130415262275、別runnerで両成功 |
 | 鍵の置換・新規作成 | なし |
 | 実機確認 | Pixel 10未接続。未確認 |
 
 主/backupは独立repo・別runnerで検証するが、GitHubサービス全体から独立した災害復旧を新たに証明したものではない。外部保管コピーや復号情報の外部UIからの再取得は今回未実施。
 
-最新のAPK・ソースcommit・versionCode・APK SHA-256・証明書・試験run・配布URL・公開後照合は [code38更新記録](releases/aruno-result-code38-release-evidence.json) と [配布manifest](releases/manifest.json) を参照。これらの状態を最優先し、候補作成を公開済みと扱わない。
+最新のAPK・ソースcommit・versionCode・APK SHA-256・証明書・試験run・配布URL・公開後照合は [code39更新記録](releases/aruno-result-code39-release-evidence.json) と [配布manifest](releases/manifest.json) を参照。これらの状態を最優先し、候補作成を公開済みと扱わない。
 
 旧package com.aruno.foolquest.widget の鍵・証明書は別系列。流用・統合・新鍵への置換・アンインストールによる更新回避はしない。新しいチャットも、統括CURRENTとこの台帳・最新のrelease証拠を読み、GitHub接続とCI操作権限を確認して引き継ぐ。Library/利用者PCを通常の鍵取得元として必須にしない。
+
+## code39 フォント統一・上段表示更新（2026-11-12 日本時間）
+
+- 0.1.38 / versionCode39 / 3,190,018 bytes。source `52953b9ba2cd235921cafbc35a47d1865310e24d`。
+- コーポレート・ロゴ（ラウンド）Boldの日本語を含む完全フォントをアプリ・ウィジェットへ適用。年月・上段合計の文字サイズ・基準線・横比率を統一し、既存高さを維持。
+- APK SHA-256 `d3345cfcfb9888910f77f54a33151820b81d6ff387055006359e45432ceca200`。証明書・packageは上表と同一。主/backup別runner復元と署名run42988482090のstageまで成功。
+- Android17 run42987581407 / job130412347118：通常11067、offline2767、reboot2758、backup37、backup再起動4成功。試験済みAPKと正式署名APKの署名以外42項目が全バイト一致。
+- 正式code38→39上書きrun42996233873 / job130440914963：39項目・UID・更新前スナップショット・再起動後保持・旧package維持を確認。以前のADB切断を試験側の再接続待ちで解消。APKは再生成していない。
+- 本番公開・公開後照合：実行待ち。Pixel10実機・正式運用は未確認。最新状態はcode39更新記録を参照。
+- 引き継ぎ時はGit clone/checkoutまたはartifactファイル転送でAPKを取得し、ハッシュと短い結果だけを会話に返す。Base64全文を会話へ出力しない。既存の署名済みバイトを再利用。
 
 ## code38 日別合計・アイコン・CSV導線（2026-11-11 日本時間）
 
