@@ -144,13 +144,23 @@ public class CalendarWidget extends AppWidgetProvider {
         // Preserve code38's glyph height. Share one horizontal scale across the
         // entire header instead of condensing only category/amount to 80%.
         // Reserve the widest category pair so tapping never changes typography.
-        float titleWidth=measure.measureText(title)*headerSize/100f;
-        float headerScale=Math.min(1f,(headerWidth-12)/(titleWidth+widestSummary*headerSize/100f));
+        float density=c.getResources().getDisplayMetrics().density;
+        // TextView lays out at the actual pixel size, where font hinting and
+        // rounded view widths differ from measurements made at 100px. Reserve
+        // both views' padding plus rounding space before sharing one scale.
+        Paint headerMeasure=new Paint(measure);
+        headerMeasure.setTextSize(headerSize*density);
+        float titleWidth=headerMeasure.measureText(title);
+        float widestPair=0;
+        for(int i=0;i<amounts.length;i++)widestPair=Math.max(widestPair,
+            headerMeasure.measureText(SUMMARY_LABELS[i])+headerMeasure.measureText(amounts[i]));
+        float headerScale=Math.min(1f,Math.max(1,(headerWidth-16)*density-6)/(titleWidth+widestPair));
         headerText(rv,R.id.calendar_title,title,headerSize,headerScale);
         headerText(rv,R.id.calendar_summary_label,summaryLabel,headerSize,headerScale);
         headerText(rv,R.id.calendar_summary_amount,summaryAmount,headerSize,headerScale);
-        float density=c.getResources().getDisplayMetrics().density;
-        rv.setInt(R.id.calendar_title,"setWidth",(int)Math.ceil((titleWidth*headerScale+7)*density));
+        rv.setInt(R.id.calendar_title,"setWidth",(int)Math.ceil(titleWidth*headerScale+7*density));
+        rv.setInt(R.id.calendar_summary_label,"setWidth",
+            (int)Math.ceil(headerMeasure.measureText(summaryLabel)*headerScale)+2);
         rv.setContentDescription(R.id.calendar_summary,summaryLabel+" "+summaryAmount);
         rv.setOnClickPendingIntent(R.id.calendar_summary,cycle(c,id));
         int days=CalendarRevenueData.daysInMonth(month),offset=CalendarRevenueData.firstWeekday(month);
