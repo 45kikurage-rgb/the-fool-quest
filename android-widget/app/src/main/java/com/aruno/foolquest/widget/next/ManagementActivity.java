@@ -114,6 +114,7 @@ public final class ManagementActivity extends Activity {
         key.setSingleLine(true);
         key.setImportantForAutofill(android.view.View.IMPORTANT_FOR_AUTOFILL_NO);
         key.setInputType(android.text.InputType.TYPE_CLASS_TEXT|android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        key.setTypeface(getResources().getFont(R.font.aru_widget_rounded));
         LinearLayout form=new LinearLayout(this);form.setOrientation(LinearLayout.VERTICAL);
         form.setPadding(dp(20),0,dp(20),0);
         Button help=new Button(this);help.setText("専用キーの確認ページを開く");help.setAllCaps(false);
@@ -360,7 +361,7 @@ public final class ManagementActivity extends Activity {
         cell.setSingleLine(true);
         cell.setGravity((position==0?Gravity.START:Gravity.END)|Gravity.CENTER_VERTICAL);
         cell.setPadding(dp(position==0?4:2),dp(3),dp(position==0?1:3),dp(3));
-        if(header||strong)cell.setTypeface(null,android.graphics.Typeface.BOLD);
+        if(header||strong)cell.setTypeface(getResources().getFont(R.font.aru_widget_rounded));
         cell.setAutoSizeTextTypeUniformWithConfiguration(9,header?12:13,1,TypedValue.COMPLEX_UNIT_SP);
         android.graphics.drawable.GradientDrawable border=new android.graphics.drawable.GradientDrawable();
         border.setColor(0xff090909);

@@ -1,4 +1,5 @@
-Aru Widget Rounded Bold is a character subset of Corporate-Logo-Rounded-Bold-ver3 by LOGOTYPE.JP.
+Corporate-Logo-Rounded-Bold-ver3 by LOGOTYPE.JP.
+The full font is embedded to cover application text and avoid fallback glyphs.
 Source: https://logotype.jp/font-corpmaru.html
 Copyright 2014-2020 Adobe (https://www.adobe.com/), with Reserved Font Name Source.
 

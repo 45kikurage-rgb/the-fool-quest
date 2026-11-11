@@ -19,7 +19,7 @@ final class WidgetRenderer {
         w=Math.max(120,Math.min(900,w)); h=Math.max(65,Math.min(600,h));
         // Render at twice dp resolution for crisp text, with a bounded RemoteViews payload.
         Render result=new Render();
-        Paint p=new Paint(Paint.ANTI_ALIAS_FLAG); p.setTypeface(Typeface.create("monospace",Typeface.NORMAL));
+        Paint p=new Paint(Paint.ANTI_ALIAS_FLAG); p.setTypeface(context.getResources().getFont(R.font.aru_widget_rounded));
         WidgetLayout l=new WidgetLayout(w,h,s.left,s.right,s.top,s.bottom,s.gap);
         long[] values=data.values(),goals=data.goals(); String[] current=new String[3],targets=new String[3],percents=new String[3];
         float font=s.font;
@@ -88,7 +88,7 @@ final class WidgetRenderer {
             if(i==0)GaugeDrawing.targetMarker(c,l.left,gy,trackWidth,gauge,
                 RevenueMath.targetProgress(data.month,goals[i],now),s.targetMarkerColor);
             if(lap>=2){
-                GaugeDrawing.lapLabel(c,lap,layered?active:GaugePalette.PACE_UNKNOWN,l.right,gy,gauge);
+                GaugeDrawing.lapLabel(context,c,lap,layered?active:GaugePalette.PACE_UNKNOWN,l.right,gy,gauge);
             }
         }
         if(l.footerHeight>0){

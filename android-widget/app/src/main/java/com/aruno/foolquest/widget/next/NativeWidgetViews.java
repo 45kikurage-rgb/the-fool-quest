@@ -96,7 +96,7 @@ final class NativeWidgetViews {
             String suffix=lap>=2?"×"+lap:"";
             Bitmap label=bitmap(c,GaugePalette.LAP_LABEL_WIDTH_DP,gauge+2*GaugePalette.MARKER_OVERHANG_DP);
             Canvas labelCanvas=dpCanvas(c,label);
-            GaugeDrawing.lapLabel(labelCanvas,lap,layered?current:GaugePalette.PACE_UNKNOWN,
+            GaugeDrawing.lapLabel(c,labelCanvas,lap,layered?current:GaugePalette.PACE_UNKNOWN,
                 GaugePalette.LAP_LABEL_WIDTH_DP,GaugePalette.MARKER_OVERHANG_DP,gauge);
             bar.setImageViewBitmap(R.id.lap_label,label);
             bar.setContentDescription(R.id.lap_label,suffix);

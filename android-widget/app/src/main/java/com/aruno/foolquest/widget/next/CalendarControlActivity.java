@@ -41,13 +41,13 @@ public final class CalendarControlActivity extends Activity {
         detail+="\n損失合計  "+CalendarAmountFormatter.dailyLoss(data.dailyLosses[day])
             +"\n  TikTok Lite  "+CalendarAmountFormatter.dailyLoss(data.losses[day][0])
             +"\n  クーポン  "+CalendarAmountFormatter.dailyLoss(data.losses[day][1]);
-        new AlertDialog.Builder(this,android.R.style.Theme_Material_Light_Dialog_Alert)
+        new AlertDialog.Builder(this,R.style.ResultDialogTheme)
             .setTitle(normalized).setMessage(detail).setPositiveButton("閉じる",(d,w)->finish())
             .setOnCancelListener(d->finish()).show();
     }
     private void showFilters(){
         final String[] entries={"4種類表示","合計のみ","クーポンのみ","TikTok Liteのみ","損失のみ"};
-        new AlertDialog.Builder(this,android.R.style.Theme_Material_Light_Dialog_Alert).setTitle("日別の表示").setSingleChoiceItems(
+        new AlertDialog.Builder(this,R.style.ResultDialogTheme).setTitle("日別の表示").setSingleChoiceItems(
             entries,CalendarWidgetState.filter(this,widgetId),(dialog,which)->{
                 CalendarWidgetState.filter(this,widgetId,which);
                 CalendarWidget.renderOne(this,widgetId);
@@ -68,7 +68,7 @@ public final class CalendarControlActivity extends Activity {
         LinearLayout row=new LinearLayout(this);row.setGravity(Gravity.CENTER);
         row.setPadding(16,8,16,8);row.addView(year,new LinearLayout.LayoutParams(0,-2,1));
         row.addView(monthPicker,new LinearLayout.LayoutParams(0,-2,1));
-        new AlertDialog.Builder(this,android.R.style.Theme_Material_Light_Dialog_Alert).setTitle("表示する年月").setView(row)
+        new AlertDialog.Builder(this,R.style.ResultDialogTheme).setTitle("表示する年月").setView(row)
             .setPositiveButton("選択月を表示",(dialog,which)->{
                 String selected=String.format(Locale.US,"%04d-%02d",year.getValue(),monthPicker.getValue());
                 if(selected.equals(RevenueMath.month(System.currentTimeMillis())))
