@@ -743,7 +743,7 @@ public class WidgetInstrumentation extends Instrumentation {
         String[] lines=expected.split("\n",-1);
         ok(expected.contentEquals(text.getText())&&layout!=null&&layout.getLineCount()==lines.length
             &&layout.getHeight()<=text.getHeight()-text.getPaddingTop()-text.getPaddingBottom(),
-            "unclipped calendar text "+expected+" textSize="+text.getTextSize()+" height="+text.getHeight()+" layoutHeight="+(layout==null?-1:layout.getHeight()));
+            "unclipped calendar text "+expected+" textSize="+text.getTextSize()+" height="+text.getHeight()+" width="+text.getWidth()+" measured="+text.getPaint().measureText(expected)+" layoutHeight="+(layout==null?-1:layout.getHeight()));
         int end=0;
         for(int line=0;line<lines.length;line++){
             end+=lines[line].length()+(line<lines.length-1?1:0);

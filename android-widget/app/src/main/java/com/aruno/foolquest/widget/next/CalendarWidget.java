@@ -158,12 +158,13 @@ public class CalendarWidget extends AppWidgetProvider {
         Paint headerMeasure=new Paint(measure);
         headerMeasure.setTextSize(headerSize*density);
         // Match the actual pixel padding in widget_calendar.xml: root 4dp on
-        // each side, row 1px, title 3dp, and amount 4dp + 2dp. The six extra
-        // pixels cover rounding and glyph bearings across the three TextViews.
+        // each side, row 1px, title 3dp, and amount 4dp + 2dp. Reserve 8dp
+        // for TextView shaping/hinting and rounding across all three fields;
+        // the weighted category must not wrap on narrow high-density hosts.
         float headerWidthPx=Math.round(width*density)-2*Math.round(4*density)-1;
         int titlePaddingPx=Math.round(3*density);
         int amountPaddingPx=Math.round(4*density)+Math.round(2*density);
-        float textWidthPx=Math.max(1,headerWidthPx-titlePaddingPx-amountPaddingPx-6);
+        float textWidthPx=Math.max(1,headerWidthPx-titlePaddingPx-amountPaddingPx-Math.round(8*density));
         float titleWidth=headerMeasure.measureText(title);
         float labelWidth=0,amountReserve=0,headerDigit=0;
         for(char ch='0';ch<='9';ch++)headerDigit=Math.max(headerDigit,
