@@ -103,7 +103,7 @@
     "年月と上段合計を同じ文字サイズ・基準線・横比率に統一し、既存の文字高さを維持。",
     "収益・損失・表示設定・日別接続・自動バックアップを保持。"
   ],
-  "publicationStatus": "PENDING_PUBLIC_VERIFICATION",
+  "publicationStatus": "VERIFIED_BOTH_ORIGINS",
   "distributionUrls": [
     "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
     "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
@@ -125,5 +125,33 @@
       "result": "Signing and independent restores succeeded; upgrade verification interrupted by ADB transport restart. Retained identical signed APK passed run42996233873 after bounded reconnect handling."
     }
   ],
-  "transferMethod": "Retained signed APK transferred through Git as binary, never through conversation Base64 output; source unchanged."
+  "transferMethod": "Retained signed APK transferred through Git as binary, never through conversation Base64 output; source unchanged.",
+  "publicationCommit": "aa7c4c927ac39b09a2970c878125d01bd0be5ce1",
+  "publicationVerifiedAt": "2026-11-11T16:52:29.531302+00:00",
+  "publicationVerificationRunId": 43062389949,
+  "publicationVerificationJobId": 130668136235,
+  "publicVerification": [
+    {
+      "origin": "https://the-fool-quest.45kikurage.workers.dev",
+      "passed": true,
+      "versionCode": 39,
+      "apkSha256": "d3345cfcfb9888910f77f54a33151820b81d6ff387055006359e45432ceca200",
+      "apkBytes": 3190018,
+      "apkUrl": "https://the-fool-quest.45kikurage.workers.dev/android-widget/releases/aruno-result-0.1.38.apk",
+      "pageAndManifestMatch": true,
+      "previousCode38BytesRetained": true,
+      "checkedAt": "2026-11-11T16:52:01.060952+00:00"
+    },
+    {
+      "origin": "https://45kikurage-rgb.github.io/the-fool-quest",
+      "passed": true,
+      "versionCode": 39,
+      "apkSha256": "d3345cfcfb9888910f77f54a33151820b81d6ff387055006359e45432ceca200",
+      "apkBytes": 3190018,
+      "apkUrl": "https://45kikurage-rgb.github.io/the-fool-quest/android-widget/releases/aruno-result-0.1.38.apk",
+      "pageAndManifestMatch": true,
+      "previousCode38BytesRetained": true,
+      "checkedAt": "2026-11-11T16:52:29.531302+00:00"
+    }
+  ]
 }
