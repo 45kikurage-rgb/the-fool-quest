@@ -267,7 +267,7 @@
   "lossUpdate": "Manually record, edit and delete separate TikTok Lite and Coupon losses by date; preserve the gross source; net amounts subtract losses once",
   "lossDisplay": "Combined daily losses shown in red below the TikTok row; daily and monthly totals are net of losses",
   "upgradeTestRunId": 43067714301,
-  "publicationStatus": "PENDING_POST_DEPLOY_VERIFICATION",
+  "publicationStatus": "PUBLISHED_VERIFIED",
   "publicationRequestedAt": "2026-11-11T17:57:29.626333+00:00",
   "displayName": "Aruno-Result",
   "releaseStatus": "CALENDAR_UPDATE_PHYSICAL_PENDING",
@@ -320,5 +320,18 @@
   "releaseEvidence": "aruno-result-code40-release-evidence.json",
   "launcherBackground": "#FFFFFF",
   "launcherArtworkUnchanged": true,
-  "launcherIconResource": "@drawable/zz_aruno_launcher_white"
+  "launcherIconResource": "@drawable/zz_aruno_launcher_white",
+  "publicVerification": {
+    "verifiedAt": "2026-11-11T18:04:58.3763822Z",
+    "runId": 43074203056,
+    "jobId": 130709656978,
+    "releaseCommit": "78ef9f1eb713f964c0c3b05e77f528801446b561",
+    "pagesRunId": 43074202181,
+    "pageVersionVerified": true,
+    "apkSha256": "03b40d20c6fc51a4d094fd4ba2a5027269cddaff14c1294723dcc195b89341c5",
+    "origins": [
+      "https://45kikurage-rgb.github.io/the-fool-quest",
+      "https://the-fool-quest.45kikurage.workers.dev"
+    ]
+  }
 }

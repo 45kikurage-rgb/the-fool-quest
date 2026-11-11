@@ -104,7 +104,7 @@
     "日別数値間隔をそれぞれ1px縮め、合計数字を拡大。C・T・損失の行と非表示時の位置を保持。",
     "ゲージを含むコーポレート・ロゴ（ラウンド）Bold、既存署名・保存データ・自動バックアップを維持。"
   ],
-  "publicationStatus": "PENDING_POST_DEPLOY_VERIFICATION",
+  "publicationStatus": "PUBLISHED_VERIFIED",
   "distributionUrls": [
     "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
     "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
@@ -116,5 +116,18 @@
   "physicalDeviceVerified": false,
   "formalOperationConfirmed": false,
   "transferMethod": "Reused retained CI artifact after ZIP digest and APK SHA-256 comparison; no APK Base64 output into conversation.",
-  "historicalDataLoss": "code32 incident cause remains undetermined; this release does not establish recovery of previously lost device data."
+  "historicalDataLoss": "code32 incident cause remains undetermined; this release does not establish recovery of previously lost device data.",
+  "publicVerification": {
+    "verifiedAt": "2026-11-11T18:04:58.3763822Z",
+    "runId": 43074203056,
+    "jobId": 130709656978,
+    "releaseCommit": "78ef9f1eb713f964c0c3b05e77f528801446b561",
+    "pagesRunId": 43074202181,
+    "pageVersionVerified": true,
+    "apkSha256": "03b40d20c6fc51a4d094fd4ba2a5027269cddaff14c1294723dcc195b89341c5",
+    "origins": [
+      "https://45kikurage-rgb.github.io/the-fool-quest",
+      "https://the-fool-quest.45kikurage.workers.dev"
+    ]
+  }
 }
