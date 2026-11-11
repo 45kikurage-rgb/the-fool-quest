@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "applicationId": "com.aruno.foolquest.widget.next",
+  "version": "0.1.39",
+  "versionCode": 40,
+  "sourceCommit": "1cbd2592f4ff801aec75900a3dcbe362b12883a5",
+  "testCommit": "1cbd2592f4ff801aec75900a3dcbe362b12883a5",
+  "apkSha256": "03b40d20c6fc51a4d094fd4ba2a5027269cddaff14c1294723dcc195b89341c5",
+  "apkBytes": 3190018,
+  "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+  "unsignedSha256": "6d3c2461a2ad1a9f2b77e12a749b886bf5525078665d2ce7bb5358dc5cca8f28",
+  "signingReceipt": {
+    "apk_sha256": "03b40d20c6fc51a4d094fd4ba2a5027269cddaff14c1294723dcc195b89341c5",
+    "app_id": "foolquest-widget-next",
+    "certificate_sha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+    "device_verified": false,
+    "existing_key": true,
+    "package": "com.aruno.foolquest.widget.next",
+    "production_release": false,
+    "published": false,
+    "run_id": "43067714301",
+    "schema": 1,
+    "source_commit": "1cbd2592f4ff801aec75900a3dcbe362b12883a5",
+    "source_repository": "45kikurage-rgb/the-fool-quest",
+    "trial_signed": true,
+    "unsigned_sha256": "6d3c2461a2ad1a9f2b77e12a749b886bf5525078665d2ce7bb5358dc5cca8f28",
+    "version_code": 40,
+    "version_name": "0.1.39",
+    "workflow_commit": "5751dd3e154de74995aae08114ca98997cde5ffe"
+  },
+  "signingReceiptNote": "Receipt records pre-publication stage; publicationStatus records later public verification.",
+  "independentRestore": {
+    "run": 43067714301,
+    "primaryJob": 130687001586,
+    "backupJob": 130687002261,
+    "primary": "success",
+    "backup": "success",
+    "stageJob": 130687329704
+  },
+  "softwareChecks": {
+    "android17": {
+      "normal": 23187,
+      "offline": 2767,
+      "reboot": 2758,
+      "run": 43067036225,
+      "job": 130684650442,
+      "signedPayloadMatches": true,
+      "matchingPayloadEntries": 42
+    },
+    "backupAndroid17": {
+      "normal": 37,
+      "reboot": 4,
+      "run": 43067036225,
+      "job": 130684650442,
+      "freshBackupAfterRebootVerified": true
+    },
+    "officialUpgrade": {
+      "fromCode": 39,
+      "toCode": 40,
+      "apis": [
+        37
+      ],
+      "fixtureFields": 39,
+      "run": 43067714301,
+      "job": 130687687514,
+      "uidPreserved": true,
+      "startupSafetySnapshotVerified": true,
+      "legacyUnchanged": true,
+      "exactPreferencesAfterReboot": true
+    }
+  },
+  "payloadComparison": {
+    "passed": true,
+    "entries": 42,
+    "testedArtifactId": 13877031040,
+    "signedArtifactId": 13875709174
+  },
+  "officialUpgrade": {
+    "passed": true,
+    "app": "result",
+    "api": 37,
+    "package": "com.aruno.foolquest.widget.next",
+    "version_code": 40,
+    "source_commit": "1cbd2592f4ff801aec75900a3dcbe362b12883a5",
+    "apk_sha256": "03b40d20c6fc51a4d094fd4ba2a5027269cddaff14c1294723dcc195b89341c5",
+    "certificate_sha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+    "data_preservation": "PASS_DISPOSABLE_EMULATOR",
+    "physical_device_verified": false,
+    "published": false
+  },
+  "startupBackup": {
+    "verified": true,
+    "matchingSnapshots": 1,
+    "recordCount": 6,
+    "credentialsIncluded": false
+  },
+  "reboot": {
+    "passed": true,
+    "exact_widget_preferences_preserved": true
+  },
+  "changes": [
+    "カレンダー上段を上下中央に統一。年月＋全角スペース＋合計／Coupon／TikTokLiteを表示。",
+    "上段金額は7桁の円表記を右詰めにし、カテゴリー切替でも位置・高さを固定。",
+    "日別数値間隔をそれぞれ1px縮め、合計数字を拡大。C・T・損失の行と非表示時の位置を保持。",
+    "ゲージを含むコーポレート・ロゴ（ラウンド）Bold、既存署名・保存データ・自動バックアップを維持。"
+  ],
+  "publicationStatus": "PENDING_POST_DEPLOY_VERIFICATION",
+  "distributionUrls": [
+    "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
+    "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
+  ],
+  "apkUrls": [
+    "https://the-fool-quest.45kikurage.workers.dev/android-widget/releases/aruno-result-0.1.39.apk",
+    "https://45kikurage-rgb.github.io/the-fool-quest/android-widget/releases/aruno-result-0.1.39.apk"
+  ],
+  "physicalDeviceVerified": false,
+  "formalOperationConfirmed": false,
+  "transferMethod": "Reused retained CI artifact after ZIP digest and APK SHA-256 comparison; no APK Base64 output into conversation.",
+  "historicalDataLoss": "code32 incident cause remains undetermined; this release does not establish recovery of previously lost device data."
+}
