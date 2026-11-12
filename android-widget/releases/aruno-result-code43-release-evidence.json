@@ -91,7 +91,7 @@
     "カレンダーの「月末予想」の見出しで4文字目が表示されない不具合を修正。見出し専用の文字サイズ（日付数字より3px小さいサイズ）を導入し、横幅の計算も同じサイズに統一。",
     "金額・日付・その他の表示、設定、保存形式、署名、端末内データはcode42から変更なし。"
   ],
-  "publicationStatus": "PENDING_PUBLICATION",
+  "publicationStatus": "PUBLISHED_VERIFIED",
   "distributionUrls": [
     "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
     "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
@@ -103,5 +103,23 @@
   "physicalDeviceVerified": false,
   "formalOperationConfirmed": false,
   "transferMethod": "Signed candidate artifact of ops run 43285649920 downloaded and verified locally (bytes, SHA-256, apksigner certificate, aapt2 badging) before registration; tested and signed payloads match.",
-  "historicalDataLoss": "code32 incident cause remains undetermined; this release does not establish recovery of previously lost device data."
+  "historicalDataLoss": "code32 incident cause remains undetermined; this release does not establish recovery of previously lost device data.",
+  "publicVerification": {
+    "verifiedAt": "2026-11-12T22:21:15+00:00",
+    "releaseCommit": "93ff077a892fece9227cf63bc7b272b26a503dd0",
+    "pageVersionVerified": true,
+    "apkSha256": "0a9f25626442a1dfdea2226766274e5013f25df7cbeec6e5f9c0a57672cf31b8",
+    "apkBytes": 3198455,
+    "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+    "package": "com.aruno.foolquest.widget.next",
+    "versionCode": 43,
+    "versionName": "0.1.42",
+    "origins": [
+      "https://45kikurage-rgb.github.io/the-fool-quest",
+      "https://the-fool-quest.45kikurage.workers.dev"
+    ],
+    "previousCode42Retained": true,
+    "verificationMethod": "Manual HTTP retrieval from both public origins; SHA-256 and size compared, apksigner certificate and aapt2 badging checked on both downloaded APK copies.",
+    "detailedEvidence": "../../../release-tests/code43/public-verification.json"
+  }
 }
