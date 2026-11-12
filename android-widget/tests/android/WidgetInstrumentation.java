@@ -405,13 +405,14 @@ public class WidgetInstrumentation extends Instrumentation {
         ok(fromUi.calendarHeaderMonthAlign==0&&fromUi.calendarHeaderCategoryAlign==1&&fromUi.calendarHeaderAmountAlign==2,"all three user-selected positions save through actual SettingsActivity");
         runOnMainSync(settingsPage::finish);new DisplaySettings().save(RevenueStore.prefs(c));
         executor().submit(()->{}).get(30,TimeUnit.SECONDS);
+        final Activity rapidHost=startActivitySync(new Intent(c,SettingsActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
         // Actual host update/reapply and PendingIntent delivery, for both widget types.
         AppWidgetManager manager=AppWidgetManager.getInstance(c);AppWidgetHost host=new AppWidgetHost(c,4242);host.startListening();
         for(Class<?> provider:new Class<?>[]{CalendarWidget.class,CombinedWidget.class}){
             int id=host.allocateAppWidgetId();ok(manager.bindAppWidgetIdIfAllowed(id,new ComponentName(c,provider)),"bind code42 partial-update host");
             Bundle sizes=new Bundle();sizes.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,360);sizes.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,460);
             java.util.ArrayList<android.util.SizeF> variants=new java.util.ArrayList<>();variants.add(new android.util.SizeF(360,460));variants.add(new android.util.SizeF(400,460));sizes.putParcelableArrayList(AppWidgetManager.OPTION_APPWIDGET_SIZES,variants);manager.updateAppWidgetOptions(id,sizes);
-            final AppWidgetHostView[] view={null};runOnMainSync(()->{view[0]=host.createView(c,id,manager.getAppWidgetInfo(id));nativeFixture.setContentView(view[0]);CalendarWidget.renderOne(c,id);});waitForIdleSync();Thread.sleep(200);
+            final AppWidgetHostView[] view={null};runOnMainSync(()->{view[0]=host.createView(c,id,manager.getAppWidgetInfo(id));rapidHost.setContentView(view[0]);CalendarWidget.renderOne(c,id);});waitForIdleSync();Thread.sleep(200);
             final android.view.View[] firstDay={null};runOnMainSync(()->firstDay[0]=((android.view.ViewGroup)view[0].findViewById(R.id.calendar_week_0)).getChildAt(0));
             ok(firstDay[0]!=null,"full host contains daily grid");int full=CalendarWidget.fullRenderCount,partial=CalendarWidget.partialRenderCount;
             for(int tap=0;tap<17;tap++)runOnMainSync(()->view[0].findViewById(R.id.calendar_summary).performClick());
@@ -426,7 +427,7 @@ public class WidgetInstrumentation extends Instrumentation {
             ok(RevenueStore.prefs(c).getInt("calendar.summary."+id,-1)==(17*2)%3,"latest rapid category state reaches the existing durable backup boundary");
             host.deleteAppWidgetId(id);
         }
-        host.stopListening();
+        host.stopListening();runOnMainSync(rapidHost::finish);
         DisplaySettings keep=DisplaySettings.load(RevenueStore.prefs(c));keep.calendarHeaderMonthAlign=0;keep.calendarHeaderCategoryAlign=1;keep.calendarHeaderAmountAlign=2;keep.save(RevenueStore.prefs(c));
         DisplaySettings restored=DisplaySettings.load(RevenueStore.prefs(c));ok(restored.calendarHeaderMonthAlign==0&&restored.calendarHeaderCategoryAlign==1&&restored.calendarHeaderAmountAlign==2,"independent header preferences survive load/save");
         new DisplaySettings().save(RevenueStore.prefs(c));

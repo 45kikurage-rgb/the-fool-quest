@@ -101,6 +101,19 @@ public final class BackupInstrumentation extends Instrumentation {
             ok(!blank&&current().equals(good),"empty reset rejected before normal data changes");
             boolean corrupt=false;try{b.restore(restore.replace("sha256\":\"","sha256\":\"bad"),current());}catch(Exception expected){corrupt=true;}
             ok(corrupt&&current().equals(good),"corrupt SHA is refused without changing live data");
+            // A damaged unsent journal must remain available for review while valid successors export.
+            drained();
+            File damagedJournal=new File(b.directory,"aruno-result-change-1000000000001-00000000-0000-0000-0000-000000000042.json");
+            String damagedJson=new JSONObject(restore).put("sha256",new String(new char[64]).replace('\0','0')).toString();
+            synchronized(BackupCoordinator.LOCK){BackupCoordinator.write(damagedJournal,damagedJson);b.capture("safety",true);b.flush();}
+            ok(damagedJournal.isFile()&&damagedJson.equals(BackupCoordinator.read(damagedJournal))&&!new File(damagedJournal+".sent").exists(),"damaged original stays byte-identical and unsent");
+            ok(b.meta.getInt("checksumMismatchCount",0)==1&&b.status().contains("SHA-256不一致で端末に保持したファイル：1件"),"damaged journal produces a persistent visible count");
+            java.lang.reflect.Method unsent=BackupCoordinator.class.getDeclaredMethod("unsent");unsent.setAccessible(true);
+            ok(Boolean.FALSE.equals(unsent.invoke(b)),"only damaged journal does not cause retry spin");
+            Map<String,Uri> exported=new BackupFiles(c,Uri.parse(b.meta.getString("tree",""))).documents();
+            ok(!exported.containsKey(damagedJournal.getName()),"damaged journal is never exported as a valid backup");
+            boolean successorSent=false;for(File f:b.local())if(!f.equals(damagedJournal)&&new File(f+".sent").exists()&&BackupFormat.parse(BackupCoordinator.read(f)).getLong("savedAt")>1000000000001L)successorSent=true;
+            ok(successorSent&&current().equals(good),"new valid journal exports after damaged predecessor without altering live data");
             // Stale in-memory owners must not overwrite each other's confirmed changes.
             RevenueManager first=new RevenueManager(c),second=new RevenueManager(c);
             first.addManual(month+"-03",11);second.addManual(month+"-03",13);
