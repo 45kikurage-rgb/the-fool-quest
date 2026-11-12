@@ -12,3 +12,6 @@ Performance: tiny private noncredential summary cache, no monthly revenue parse/
 Tests include3densities, all modes/categories/full strings/pixel positions, exact raster font delta vs41 test-only renderer, forecast slots, loss columns, settings UI save, typed backup/reboot. Await revision7 CI and visual inspection. Failed candidates1-6 were not signed or published.
 
 Next gate: final Android17 normal/offline/reboot/backup success; pin exactsource into prepared ops42 signer route derived from41; independent existing-key restores, sign, compare exact tested/signed payload entries, signed41->42 preservation of42fixture fields/UID/startup backup/reboot. Publish same signed APK viaPR62, retain old APKs, verify both distribution origins. Pixel10 physical acceptance unconfirmed. No APK/base64 or huge logs in chat.
+
+## Revision8 test fixture correction
+Native run43152121848/job130963509595 passed the three header modes/category pixel tests at160dpi and reached forecast checks. Assertion compared first-week and last-week row slots; equal weighted week heights can differ1px from integer allocation. Compare forecast with DAY29 in the SAME week, so both cells have identical parent dimensions. No production change; source app remains revision7. Re-run full native gate before signing/publication. Prior artifact13914855389 retained.

@@ -365,6 +365,7 @@ public class WidgetInstrumentation extends Instrumentation {
                 new DisplaySettings().save(RevenueStore.prefs(c));
                 CalendarWidget.buildViews(sized,13042,"2026-11",0,0,data,now,411,400).reapply(sized,tree);measureCalendar(host,width,height);
                 day=((android.view.ViewGroup)tree.findViewById(R.id.calendar_week_0)).getChildAt(0);
+                day=((android.view.ViewGroup)tree.findViewById(R.id.calendar_week_4)).getChildAt(0);
                 android.view.View forecast=tree.findViewById(R.id.calendar_forecast);
                 int[] dayIds={R.id.calendar_day_number,R.id.calendar_day_total,R.id.calendar_day_coupon,R.id.calendar_day_tiktok};
                 int[] forecastIds={R.id.calendar_forecast_title,R.id.calendar_forecast_total,R.id.calendar_forecast_coupon,R.id.calendar_forecast_tiktok};
