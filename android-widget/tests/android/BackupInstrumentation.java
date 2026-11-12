@@ -77,7 +77,14 @@ public final class BackupInstrumentation extends Instrumentation {
                 .putString("couponRevenueDailyV2",new JSONObject().put(month,new JSONObject().put("total",888).put("sum",888).put("days",new JSONObject().put(month+"-01",888))).toString()).apply();
             m.updateLoss(lossId,month+"-02","tiktok",99);m.deleteLoss(lossId);
             settings.font=18;settings.save(RevenueStore.prefs(c));
-            b.restore(restore,current());m=new RevenueManager(c);
+            synchronized(BackupCoordinator.LOCK){
+                CalendarWidgetState.cycleSummary(c,12345);
+                ok(CalendarWidgetState.summary(c,12345)==2,"pending category is immediately visible before durable flush");
+                b.restore(restore,current());
+            }
+            Thread.sleep(100);
+            ok(CalendarWidgetState.summary(c,12345)==0&&!b.raw.contains("calendar.summary.12345"),"restore cancels delayed category changes instead of overwriting restored configuration");
+            m=new RevenueManager(c);
             ok(m.lossTotal(month,"tiktok")==80&&m.lossTotal(month,"coupon")==50,"restore recovers edited/deleted category losses");
             ok(DisplaySettings.load(RevenueStore.prefs(c)).font==37&&DisplaySettings.load(RevenueStore.prefs(c)).gap==8,"restore recovers typed display settings");
             DisplaySettings restoredHeader=DisplaySettings.load(RevenueStore.prefs(c));ok(restoredHeader.calendarHeaderMonthAlign==0&&restoredHeader.calendarHeaderCategoryAlign==1&&restoredHeader.calendarHeaderAmountAlign==2,"backup restores independent header positions");

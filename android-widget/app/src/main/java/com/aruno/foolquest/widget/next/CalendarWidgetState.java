@@ -72,8 +72,13 @@ final class CalendarWidgetState {
     }
     static void cycleSummary(Context c,int id){cycleSummary(c,id,null);}
     static void cycleSummary(Context c,int id,android.content.BroadcastReceiver.PendingResult result){
+        // Obtain the coordinator before SUMMARY_LOCK. Workers/restore use
+        // BackupCoordinator.LOCK -> SUMMARY_LOCK, so never invert that order.
+        SharedPreferences stored=prefs(c);
         synchronized(SUMMARY_LOCK){
-            pending.put(id,(summary(c,id)+2)%3);saveContext=c.getApplicationContext();
+            Integer queued=pending.get(id);int value=queued==null?stored.getInt("calendar.summary."+id,0):queued;
+            if(value<0||value>2)value=0;
+            pending.put(id,(value+2)%3);saveContext=c.getApplicationContext();
             if(result!=null)broadcasts.add(result);
             main.removeCallbacks(flush);main.postDelayed(flush,16);
         }
