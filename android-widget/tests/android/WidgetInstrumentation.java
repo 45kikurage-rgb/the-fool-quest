@@ -308,6 +308,14 @@ public class WidgetInstrumentation extends Instrumentation {
         return null;
     }
 
+    int digitInkHeight(android.widget.TextView text){
+        Paint paint=new Paint(text.getPaint());paint.setColor(android.graphics.Color.WHITE);
+        Paint.FontMetricsInt metrics=paint.getFontMetricsInt();int width=(int)Math.ceil(paint.measureText("0123456789"))+8,height=metrics.bottom-metrics.top+8;
+        android.graphics.Bitmap image=android.graphics.Bitmap.createBitmap(width,height,android.graphics.Bitmap.Config.ARGB_8888);
+        new android.graphics.Canvas(image).drawText("0123456789",4,4-metrics.top,paint);int top=height,bottom=-1;
+        for(int y=0;y<height;y++)for(int x=0;x<width;x++)if(android.graphics.Color.alpha(image.getPixel(x,y))>=160){top=Math.min(top,y);bottom=Math.max(bottom,y);}
+        image.recycle();return bottom-top+1;
+    }
     void code42Checks()throws Exception {
         final java.util.List<android.graphics.Bitmap> screenshots=new java.util.ArrayList<>();
         runOnMainSync(()->{
@@ -331,8 +339,8 @@ public class WidgetInstrumentation extends Instrumentation {
                 for(int id:new int[]{R.id.calendar_day_total,R.id.calendar_day_coupon,R.id.calendar_day_tiktok,R.id.calendar_day_loss}){
                     android.widget.TextView current=day.findViewById(id),old=oldDay.findViewById(id);
                     android.graphics.Rect bounds=new android.graphics.Rect();Paint paint=new Paint(current.getPaint());paint.setTextSize(100);paint.getTextBounds("0123456789",0,10,bounds);
-                    float delta=(current.getTextSize()-old.getTextSize())*bounds.height()/100f;
-                    ok(Math.abs(delta-(id==R.id.calendar_day_total?6f:-2f))<.15f,"code41 visible digit height delta at dpi"+dpi+" id"+id+" is "+delta);
+                    float delta=digitInkHeight(current)-digitInkHeight(old);
+                    ok(Math.abs(delta-(id==R.id.calendar_day_total?6f:-2f))<=1f,"code41 visible digit height delta at dpi"+dpi+" id"+id+" is "+delta);
                 }
                 for(int position=0;position<3;position++){
                     DisplaySettings settings=new DisplaySettings();settings.calendarHeaderMonthAlign=position;settings.calendarHeaderCategoryAlign=(position+1)%3;settings.calendarHeaderAmountAlign=(position+2)%3;settings.save(RevenueStore.prefs(c));
@@ -348,6 +356,7 @@ public class WidgetInstrumentation extends Instrumentation {
                                 int color=image.getPixel(x,y);if(android.graphics.Color.red(color)>180&&android.graphics.Color.green(color)>180&&android.graphics.Color.blue(color)>180){inkTop=Math.min(inkTop,y);inkBottom=Math.max(inkBottom,y);}
                             }
                             int selected=(position+i)%3;int above=inkTop-top,below=top+field.getHeight()-1-inkBottom;
+                            if(!(inkBottom>=inkTop&&(selected==0?above<=2:selected==1?below<=2:Math.abs(above-below)<=2)))try{png(image,"failed-header-"+dpi+"-"+i+"-"+selected);}catch(Exception ex){throw new RuntimeException(ex);}
                             ok(inkBottom>=inkTop&&(selected==0?above<=2:selected==1?below<=2:Math.abs(above-below)<=2),"parent-drawn header glyph alignment dpi"+dpi+" field"+i+" mode"+selected+" above"+above+" below"+below);
                         }
                         if(dpi==480&&category==0)screenshots.add(image);else image.recycle();
@@ -395,14 +404,14 @@ public class WidgetInstrumentation extends Instrumentation {
             Bundle sizes=new Bundle();sizes.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,360);sizes.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,460);
             java.util.ArrayList<android.util.SizeF> variants=new java.util.ArrayList<>();variants.add(new android.util.SizeF(360,460));variants.add(new android.util.SizeF(400,460));sizes.putParcelableArrayList(AppWidgetManager.OPTION_APPWIDGET_SIZES,variants);manager.updateAppWidgetOptions(id,sizes);
             final AppWidgetHostView[] view={null};runOnMainSync(()->{view[0]=host.createView(c,id,manager.getAppWidgetInfo(id));nativeFixture.setContentView(view[0]);CalendarWidget.renderOne(c,id);});waitForIdleSync();Thread.sleep(200);
-            final android.view.View[] firstDay={null};runOnMainSync(()->firstDay[0]=view[0].findViewById(R.id.calendar_week_0));
+            final android.view.View[] firstDay={null};runOnMainSync(()->firstDay[0]=((android.view.ViewGroup)view[0].findViewById(R.id.calendar_week_0)).getChildAt(0));
             ok(firstDay[0]!=null,"full host contains daily grid");int full=CalendarWidget.fullRenderCount,partial=CalendarWidget.partialRenderCount;
             for(int tap=0;tap<17;tap++)runOnMainSync(()->view[0].findViewById(R.id.calendar_summary).performClick());
             for(int n=0;n<100&&CalendarWidget.partialRenderCount<partial+17;n++){waitForIdleSync();Thread.sleep(30);}
             ok(CalendarWidget.fullRenderCount==full&&CalendarWidget.partialRenderCount==partial+17,"17 rapid taps use header-only updates, no calendar/gauge rebuild");
             ok(CalendarWidgetState.summary(c,id)==(17*2)%3,"rapid taps retain exact category order");
             waitForIdleSync();Thread.sleep(100);runOnMainSync(()->{
-                ok(view[0].findViewById(R.id.calendar_week_0)==firstDay[0],"daily view objects survive partial host updates");
+                ok(((android.view.ViewGroup)view[0].findViewById(R.id.calendar_week_0)).getChildAt(0)==firstDay[0],"daily view objects survive partial host updates");
                 ok("Coupon".contentEquals(((android.widget.TextView)view[0].findViewById(R.id.calendar_summary_label)).getText()),"actual host displays final rapid-tap category");
             });
             host.deleteAppWidgetId(id);

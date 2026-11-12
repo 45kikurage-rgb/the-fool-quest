@@ -85,6 +85,10 @@ public class CalendarWidget extends AppWidgetProvider {
         fullRenderCount++;
 
     }
+    static void addStable(RemoteViews parent,int holder,RemoteViews child,int stableId){
+        if(android.os.Build.VERSION.SDK_INT>=31)parent.addStableView(holder,child,stableId);
+        else parent.addView(holder,child);
+    }
     static int fullRenderCount,partialRenderCount;
     private static android.content.SharedPreferences headerCache(Context c){return c.getSharedPreferences("calendar_header_cache_v42",Context.MODE_PRIVATE);}
     private static void rememberHeader(Context c,int id,String month,CalendarRevenueData.Month data){
@@ -220,7 +224,7 @@ public class CalendarWidget extends AppWidgetProvider {
                         ?"月末予想 合計 "+projected[0]+" クーポン "+projected[1]+" TikTok "+projected[2]+"。タップで非表示"
                         :"月末予想。タップで表示");
                     forecast.setOnClickPendingIntent(R.id.calendar_forecast,action(c,id,FORECAST));
-                    rv.addView(WEEKS[week],forecast);
+                    addStable(rv,WEEKS[week],forecast,column);
                     continue;
                 }
                 if(week==WEEKS.length-1&&column>=5){
@@ -229,7 +233,7 @@ public class CalendarWidget extends AppWidgetProvider {
                     button.setTextViewText(R.id.calendar_control,changeMonth?"年月\n表示変更":"カテゴリー\n表示変更");
                     button.setOnClickPendingIntent(R.id.calendar_control,
                         control(c,id,changeMonth?CalendarControlActivity.MONTH:CalendarControlActivity.FILTER));
-                    rv.addView(WEEKS[week],button);
+                    addStable(rv,WEEKS[week],button,column);
                     continue;
                 }
                 int day=week*7+column+1;
@@ -287,7 +291,7 @@ public class CalendarWidget extends AppWidgetProvider {
                         cell.setOnClickPendingIntent(R.id.calendar_day_root,control(c,id,CalendarControlActivity.DAY,date));
                     }
                 }
-                rv.addView(WEEKS[week],cell);
+                addStable(rv,WEEKS[week],cell,column);
             }
         }
         return rv;
@@ -353,25 +357,44 @@ public class CalendarWidget extends AppWidgetProvider {
         views.setFloat(id,"setTextScaleX",scale);
         int vertical=position==0?android.view.Gravity.TOP:position==1?android.view.Gravity.BOTTOM:android.view.Gravity.CENTER_VERTICAL;
         views.setInt(id,"setGravity",(id==R.id.calendar_title?android.view.Gravity.START:android.view.Gravity.END)|vertical);
-        // TextView's measured line includes this font's leading. Paint metrics
-        // alone do not predict its baseline. Measure the same native text line,
-        // then align visible ink in the fixed 34dp field (also on launcher reapply).
+        // Native glyph raster bounds, rather than font/line boxes, define the
+        // selected edge/center. Cache these tiny measurements; no bitmap is sent
+        // in a partial RemoteViews update or retained in the system widget cache.
+        String key=position+":"+Float.floatToIntBits(paint.getTextSize())+":"+Float.floatToIntBits(scale)+":"+c.getResources().getDisplayMetrics().densityDpi+":"+text;
+        Float cached=headerOffsets.get(key);
+        if(cached!=null){views.setFloat(id,"setTranslationY",cached);return;}
         android.widget.TextView probe=new android.widget.TextView(c);
         probe.setTypeface(paint.getTypeface());probe.setIncludeFontPadding(false);
         if(android.os.Build.VERSION.SDK_INT>=28)probe.setFallbackLineSpacing(false);
         probe.setElegantTextHeight(false);probe.setMaxLines(1);probe.setPadding(0,0,0,0);
+        probe.setTextColor(android.graphics.Color.WHITE);probe.setBackgroundColor(android.graphics.Color.TRANSPARENT);
         probe.setTextSize(TypedValue.COMPLEX_UNIT_PX,paint.getTextSize());probe.setTextScaleX(scale);
         probe.setGravity(android.view.Gravity.START|vertical);probe.setText(text);
         int height=Math.round(34*c.getResources().getDisplayMetrics().density);
-        probe.measure(View.MeasureSpec.makeMeasureSpec(10000,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(height,View.MeasureSpec.EXACTLY));
-        probe.layout(0,0,10000,height);
-        android.graphics.Rect ink=new android.graphics.Rect();probe.getPaint().getTextBounds(text,0,text.length(),ink);
-        float targetTop=position==0?0:position==1?height-ink.height():(height-ink.height())/2f;
-        views.setFloat(id,"setTranslationY",targetTop-probe.getBaseline()-ink.top);
+        int width=Math.max(1,(int)Math.ceil(paint.measureText(text))+4);
+        probe.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(height,View.MeasureSpec.EXACTLY));
+        probe.layout(0,0,width,height);
+        android.graphics.Bitmap raster=android.graphics.Bitmap.createBitmap(width,height,android.graphics.Bitmap.Config.ARGB_8888);
+        probe.draw(new android.graphics.Canvas(raster));
+        int top=height,bottom=-1;
+        for(int y=0;y<height;y++)for(int x=0;x<width;x++)if(android.graphics.Color.alpha(raster.getPixel(x,y))>=160){top=Math.min(top,y);bottom=Math.max(bottom,y);}
+        raster.recycle();
+        float offset=0;
+        if(bottom>=top){float inkHeight=bottom-top+1;offset=(position==0?0:position==1?height-inkHeight:(height-inkHeight)/2f)-top;}
+        headerOffsets.put(key,offset);views.setFloat(id,"setTranslationY",offset);
     }
+    private static final android.util.LruCache<String,Float> headerOffsets=new android.util.LruCache<>(96);
+    private static final float[] digitRatios=new float[2];
     private static float glyphRatio(Paint paint){
-        android.graphics.Rect ink=new android.graphics.Rect();paint.getTextBounds("0123456789",0,10,ink);
-        return Math.max(.1f,ink.height()/paint.getTextSize());
+        int key=paint.isFakeBoldText()?1:0;if(digitRatios[key]>0)return digitRatios[key];
+        Paint.FontMetricsInt metrics=paint.getFontMetricsInt();
+        int width=(int)Math.ceil(paint.measureText("0123456789"))+8,height=metrics.bottom-metrics.top+8;
+        android.graphics.Bitmap raster=android.graphics.Bitmap.createBitmap(width,height,android.graphics.Bitmap.Config.ARGB_8888);
+        Paint visible=new Paint(paint);visible.setColor(android.graphics.Color.WHITE);
+        new android.graphics.Canvas(raster).drawText("0123456789",4,4-metrics.top,visible);
+        int top=height,bottom=-1;
+        for(int y=0;y<height;y++)for(int x=0;x<width;x++)if(android.graphics.Color.alpha(raster.getPixel(x,y))>=160){top=Math.min(top,y);bottom=Math.max(bottom,y);}
+        raster.recycle();return digitRatios[key]=Math.max(.1f,(bottom-top+1)/paint.getTextSize());
     }
     private static void amount(RemoteViews cell,int view,String text,float size,float width,Paint measure){
         amount(cell,view,text,size,width,measure,0.55f);
