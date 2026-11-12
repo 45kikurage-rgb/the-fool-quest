@@ -354,6 +354,8 @@ public class CalendarWidget extends AppWidgetProvider {
         rv.setOnClickPendingIntent(R.id.calendar_summary,cycle(c,id));
     }
     private static void headerText(Context c,RemoteViews views,int id,String text,float size,float scale,Paint paint,int position){
+        views.setBoolean(id,"setSingleLine",false);
+        views.setInt(id,"setLines",1);
         views.setTextViewText(id,text);
         views.setTextViewTextSize(id,TypedValue.COMPLEX_UNIT_DIP,size);
         views.setFloat(id,"setTextScaleX",scale);
@@ -370,7 +372,7 @@ public class CalendarWidget extends AppWidgetProvider {
         android.widget.TextView probe=(android.widget.TextView)probeViews.apply(c,null);
         probe.setTypeface(paint.getTypeface());probe.setIncludeFontPadding(false);
         if(android.os.Build.VERSION.SDK_INT>=28)probe.setFallbackLineSpacing(false);
-        probe.setElegantTextHeight(false);probe.setSingleLine(true);probe.setHorizontallyScrolling(false);probe.setEllipsize(android.text.TextUtils.TruncateAt.END);probe.setMaxLines(1);probe.setPadding(0,0,0,0);
+        probe.setElegantTextHeight(false);probe.setSingleLine(false);probe.setHorizontallyScrolling(false);probe.setEllipsize(android.text.TextUtils.TruncateAt.END);probe.setLines(1);probe.setPadding(0,0,0,0);
         probe.setTextColor(android.graphics.Color.WHITE);probe.setBackgroundColor(android.graphics.Color.TRANSPARENT);
         probe.setTextSize(TypedValue.COMPLEX_UNIT_PX,paint.getTextSize());probe.setTextScaleX(scale);
         probe.setGravity(android.view.Gravity.START|vertical);probe.setText(text);
