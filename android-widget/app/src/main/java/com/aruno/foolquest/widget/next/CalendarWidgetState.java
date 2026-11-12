@@ -75,7 +75,7 @@ final class CalendarWidgetState {
         synchronized(SUMMARY_LOCK){
             pending.put(id,(summary(c,id)+2)%3);saveContext=c.getApplicationContext();
             if(result!=null)broadcasts.add(result);
-            main.removeCallbacks(flush);main.postDelayed(flush,200);
+            main.removeCallbacks(flush);main.postDelayed(flush,16);
         }
     }
     static boolean forecastVisible(Context c,int id){

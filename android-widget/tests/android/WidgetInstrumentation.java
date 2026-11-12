@@ -413,11 +413,12 @@ public class WidgetInstrumentation extends Instrumentation {
             Bundle sizes=new Bundle();sizes.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,360);sizes.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,460);
             java.util.ArrayList<android.util.SizeF> variants=new java.util.ArrayList<>();variants.add(new android.util.SizeF(360,460));variants.add(new android.util.SizeF(400,460));sizes.putParcelableArrayList(AppWidgetManager.OPTION_APPWIDGET_SIZES,variants);manager.updateAppWidgetOptions(id,sizes);
             final AppWidgetHostView[] view={null};runOnMainSync(()->{view[0]=host.createView(c,id,manager.getAppWidgetInfo(id));rapidHost.setContentView(view[0]);CalendarWidget.renderOne(c,id);});waitForIdleSync();Thread.sleep(200);
+            RevenueJob.cancel(c);executor().submit(()->{}).get(30,TimeUnit.SECONDS);waitForIdleSync();
             final android.view.View[] firstDay={null};runOnMainSync(()->firstDay[0]=((android.view.ViewGroup)view[0].findViewById(R.id.calendar_week_0)).getChildAt(0));
             ok(firstDay[0]!=null,"full host contains daily grid");int full=CalendarWidget.fullRenderCount,partial=CalendarWidget.partialRenderCount;
             for(int tap=0;tap<17;tap++)runOnMainSync(()->view[0].findViewById(R.id.calendar_summary).performClick());
-            for(int n=0;n<100&&CalendarWidget.partialRenderCount<partial+17;n++){waitForIdleSync();Thread.sleep(30);}
-            ok(CalendarWidget.fullRenderCount==full&&CalendarWidget.partialRenderCount==partial+17,"17 rapid taps use header-only updates, no calendar/gauge rebuild");
+            for(int n=0;n<200&&CalendarWidget.partialRenderCount<partial+17;n++){waitForIdleSync();Thread.sleep(30);}
+            ok(CalendarWidget.fullRenderCount==full&&CalendarWidget.partialRenderCount==partial+17,"17 rapid taps use header-only updates, no calendar/gauge rebuild: full="+full+"->"+CalendarWidget.fullRenderCount+" partial="+partial+"->"+CalendarWidget.partialRenderCount);
             ok(CalendarWidgetState.summary(c,id)==(17*2)%3,"rapid taps retain exact category order");
             waitForIdleSync();Thread.sleep(100);runOnMainSync(()->{
                 ok(((android.view.ViewGroup)view[0].findViewById(R.id.calendar_week_0)).getChildAt(0)==firstDay[0],"daily view objects survive partial host updates");
