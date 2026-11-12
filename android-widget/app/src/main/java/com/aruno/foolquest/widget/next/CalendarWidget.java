@@ -59,7 +59,16 @@ public class CalendarWidget extends AppWidgetProvider {
         return PendingIntent.getBroadcast(c,6000+id,intent,
             PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
     }
-    static synchronized void renderOne(Context c,int id){
+    private static final android.os.Handler renderer=new android.os.Handler(android.os.Looper.getMainLooper());
+    static void renderOne(Context c,int id){
+        // Revenue mutations can call us while holding BackupCoordinator.LOCK.
+        // Queue background renders without waiting: the main looper serializes
+        // full/partial updates and never introduces a renderer -> backup lock cycle.
+        if(android.os.Looper.myLooper()!=android.os.Looper.getMainLooper()){
+            Context app=c.getApplicationContext();
+            renderer.post(()->{try{renderOne(app,id);}catch(RuntimeException failed){android.util.Log.w("AruMyBest","Calendar refresh failed after saving data");}});
+            return;
+        }
         AppWidgetManager manager=AppWidgetManager.getInstance(c);
         AppWidgetProviderInfo info=manager.getAppWidgetInfo(id);
         if(info==null)return;
@@ -99,7 +108,7 @@ public class CalendarWidget extends AppWidgetProvider {
             cache.put("totals",totals).put("known",known);headerCache(c).edit().putString(String.valueOf(id),cache.toString()).apply();
         }catch(org.json.JSONException impossible){throw new IllegalStateException(impossible);}
     }
-    static synchronized boolean renderSummaryOnly(Context c,int id){
+    static boolean renderSummaryOnly(Context c,int id){
         try{
             org.json.JSONObject cache=new org.json.JSONObject(headerCache(c).getString(String.valueOf(id),""));
             String month=CalendarWidgetState.month(c,id);

@@ -414,6 +414,12 @@ public class WidgetInstrumentation extends Instrumentation {
             java.util.ArrayList<android.util.SizeF> variants=new java.util.ArrayList<>();variants.add(new android.util.SizeF(360,460));variants.add(new android.util.SizeF(400,460));sizes.putParcelableArrayList(AppWidgetManager.OPTION_APPWIDGET_SIZES,variants);manager.updateAppWidgetOptions(id,sizes);
             final AppWidgetHostView[] view={null};runOnMainSync(()->{view[0]=host.createView(c,id,manager.getAppWidgetInfo(id));rapidHost.setContentView(view[0]);CalendarWidget.renderOne(c,id);});waitForIdleSync();Thread.sleep(200);
             RevenueJob.cancel(c);executor().submit(()->{}).get(30,TimeUnit.SECONDS);waitForIdleSync();
+            // A financial writer may request a render while the main receiver is reading it.
+            CountDownLatch financialLock=new CountDownLatch(1),mainRender=new CountDownLatch(1),writerDone=new CountDownLatch(1);
+            Thread writer=new Thread(()->{try{synchronized(BackupCoordinator.LOCK){financialLock.countDown();mainRender.await();Thread.sleep(50);CalendarWidget.renderOne(c,id);}}catch(InterruptedException interrupted){Thread.currentThread().interrupt();}finally{writerDone.countDown();}},"calendar-lock-order-fixture");writer.start();
+            ok(financialLock.await(3,TimeUnit.SECONDS),"financial owner obtains backup lock");
+            runOnMainSync(()->{mainRender.countDown();CalendarWidget.renderOne(c,id);});
+            ok(writerDone.await(3,TimeUnit.SECONDS),"background render never waits for a renderer lock while holding financial lock");waitForIdleSync();
             final android.view.View[] firstDay={null};runOnMainSync(()->firstDay[0]=((android.view.ViewGroup)view[0].findViewById(R.id.calendar_week_0)).getChildAt(0));
             ok(firstDay[0]!=null,"full host contains daily grid");int full=CalendarWidget.fullRenderCount,partial=CalendarWidget.partialRenderCount;
             for(int tap=0;tap<17;tap++)runOnMainSync(()->view[0].findViewById(R.id.calendar_summary).performClick());
