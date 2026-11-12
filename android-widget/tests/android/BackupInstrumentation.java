@@ -66,7 +66,7 @@ public final class BackupInstrumentation extends Instrumentation {
             ok(manualSaved,"manual addition automatically creates readable backup");
             m.addLoss(month+"-01","tiktok",80);m.addLoss(month+"-01","coupon",50);
             String lossId=m.losses().getJSONObject(m.losses().length()-2).getString("id");
-            DisplaySettings settings=DisplaySettings.load(RevenueStore.prefs(c));settings.font=37;settings.gap=8;settings.save(RevenueStore.prefs(c));
+            DisplaySettings settings=DisplaySettings.load(RevenueStore.prefs(c));settings.font=37;settings.gap=8;settings.calendarHeaderMonthAlign=0;settings.calendarHeaderCategoryAlign=1;settings.calendarHeaderAmountAlign=2;settings.save(RevenueStore.prefs(c));
             CalendarWidgetState.month(c,12345,month);CalendarWidgetState.filter(c,12345,3);
             RevenueManager.archiveCoupon(c,"2026-09",777);
             JSONObject oldDaily=new JSONObject().put("2026-09",new JSONObject().put("total",777).put("sum",777).put("days",new JSONObject().put("2026-09-01",777)));
@@ -80,6 +80,7 @@ public final class BackupInstrumentation extends Instrumentation {
             b.restore(restore,current());m=new RevenueManager(c);
             ok(m.lossTotal(month,"tiktok")==80&&m.lossTotal(month,"coupon")==50,"restore recovers edited/deleted category losses");
             ok(DisplaySettings.load(RevenueStore.prefs(c)).font==37&&DisplaySettings.load(RevenueStore.prefs(c)).gap==8,"restore recovers typed display settings");
+            DisplaySettings restoredHeader=DisplaySettings.load(RevenueStore.prefs(c));ok(restoredHeader.calendarHeaderMonthAlign==0&&restoredHeader.calendarHeaderCategoryAlign==1&&restoredHeader.calendarHeaderAmountAlign==2,"backup restores independent header positions");
             ok(CalendarWidgetState.filter(c,12345)==3,"restore recovers widget configuration");
             ok(m.couponHistory().getLong("2026-09")==777&&m.couponHistory().getLong(month)==888,"restore fills missing historical Coupon months without replacing current projection");
             JSONObject combinedDaily=new JSONObject(RevenueStore.prefs(c).getString("couponRevenueDailyV2","{}"));

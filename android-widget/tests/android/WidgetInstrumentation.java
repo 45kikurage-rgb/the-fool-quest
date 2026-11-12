@@ -374,6 +374,20 @@ public class WidgetInstrumentation extends Instrumentation {
             new DisplaySettings().save(RevenueStore.prefs(c));
         });
         for(int i=0;i<screenshots.size();i++){png(screenshots.get(i),"code42-alignment-and-rows-"+i);screenshots.get(i).recycle();}
+        Activity settingsPage=startActivitySync(new Intent(c,SettingsActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        waitForIdleSync();
+        runOnMainSync(()->{
+            String[] tags={"calendar-header-month","calendar-header-category","calendar-header-amount"};
+            for(int i=0;i<3;i++){
+                android.widget.Spinner select=settingsPage.getWindow().getDecorView().findViewWithTag(tags[i]);
+                ok(select!=null&&select.getCount()==3&&"上".equals(select.getItemAtPosition(0))&&"下".equals(select.getItemAtPosition(1))&&"中央".equals(select.getItemAtPosition(2)),"independent three-choice header setting is available");
+                select.setSelection(i);
+            }
+        });waitForIdleSync();Thread.sleep(100);
+        runOnMainSync(()->button(settingsPage.getWindow().getDecorView(),"設定を保存").performClick());waitForIdleSync();
+        DisplaySettings fromUi=DisplaySettings.load(RevenueStore.prefs(c));
+        ok(fromUi.calendarHeaderMonthAlign==0&&fromUi.calendarHeaderCategoryAlign==1&&fromUi.calendarHeaderAmountAlign==2,"all three user-selected positions save through actual SettingsActivity");
+        runOnMainSync(settingsPage::finish);new DisplaySettings().save(RevenueStore.prefs(c));
         // Actual host update/reapply and PendingIntent delivery, for both widget types.
         AppWidgetManager manager=AppWidgetManager.getInstance(c);AppWidgetHost host=new AppWidgetHost(c,4242);host.startListening();
         for(Class<?> provider:new Class<?>[]{CalendarWidget.class,CombinedWidget.class}){
@@ -1108,6 +1122,8 @@ public class WidgetInstrumentation extends Instrumentation {
                 result.putString("stream","PASS "+checks+" native offline checks");finish(ActivityResult.OK,result);return;
             }
             if("reboot".equals(args.getString("mode"))){
+                DisplaySettings headerPositions=DisplaySettings.load(RevenueStore.prefs(c));
+                ok(headerPositions.calendarHeaderMonthAlign==0&&headerPositions.calendarHeaderCategoryAlign==1&&headerPositions.calendarHeaderAmountAlign==2,"three header positions survive real reboot");
                 int forecastId=RevenueStore.prefs(c).getInt("test.forecastWidget",-1);
                 ok(forecastId>0&&!CalendarWidgetState.forecastVisible(c,forecastId),"forecast hidden state survives process and device restart");
                 RevenueStore.Data cached=RevenueStore.read(c);ok(cached.coupon>=0&&cached.couponAt>0,"reboot saved data");
@@ -1367,6 +1383,7 @@ public class WidgetInstrumentation extends Instrumentation {
             couponDailyContractChecks();
             payFetchEntryChecks();
             nativeRevenueChecks();
+            DisplaySettings persistedHeader=DisplaySettings.load(RevenueStore.prefs(c));persistedHeader.calendarHeaderMonthAlign=0;persistedHeader.calendarHeaderCategoryAlign=1;persistedHeader.calendarHeaderAmountAlign=2;persistedHeader.save(RevenueStore.prefs(c));
             result.putString("stream","PASS "+checks+" native Android checks; Coupon "+live.coupon+"; screenshots "+output);
             finish(ActivityResult.OK,result);
         }catch(Throwable e){result.putString("stream","FAIL "+checks+" "+android.util.Log.getStackTraceString(e));finish(ActivityResult.FAIL,result);}

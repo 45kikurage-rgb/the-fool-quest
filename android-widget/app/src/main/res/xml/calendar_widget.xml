@@ -5,6 +5,6 @@
     android:minResizeWidth="280dp" android:minResizeHeight="236dp"
     android:resizeMode="horizontal|vertical" android:updatePeriodMillis="0"
     android:previewImage="@drawable/calendar_preview"
-    android:initialLayout="@layout/widget_calendar"
+    android:initialLayout="@layout/widget_calendar_v42"
     android:widgetCategory="home_screen"
     android:description="@string/calendar_widget_description" />

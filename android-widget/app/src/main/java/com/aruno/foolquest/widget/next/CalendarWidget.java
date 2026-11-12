@@ -331,9 +331,9 @@ public class CalendarWidget extends AppWidgetProvider {
         titleWidth=headerMeasure.measureText(title);
         labelWidth=0;
         for(String label:SUMMARY_LABELS)labelWidth=Math.max(labelWidth,headerMeasure.measureText(label));
-        headerText(rv,R.id.calendar_title,title,headerSize,headerScale,headerMeasure,positions.calendarHeaderMonthAlign);
-        headerText(rv,R.id.calendar_summary_label,summaryLabel,headerSize,headerScale,headerMeasure,positions.calendarHeaderCategoryAlign);
-        headerText(rv,R.id.calendar_summary_amount,summaryAmount,headerSize,headerScale,headerMeasure,positions.calendarHeaderAmountAlign);
+        headerText(c,rv,R.id.calendar_title,title,headerSize,headerScale,headerMeasure,positions.calendarHeaderMonthAlign);
+        headerText(c,rv,R.id.calendar_summary_label,summaryLabel,headerSize,headerScale,headerMeasure,positions.calendarHeaderCategoryAlign);
+        headerText(c,rv,R.id.calendar_summary_amount,summaryAmount,headerSize,headerScale,headerMeasure,positions.calendarHeaderAmountAlign);
         rv.setInt(R.id.calendar_title,"setWidth",(int)Math.ceil(titleWidth)+titlePaddingPx+2);
         // Fix the amount column to seven digits plus yen/separators. The label
         // fills the remaining width and ends at the same boundary for every
@@ -347,17 +347,27 @@ public class CalendarWidget extends AppWidgetProvider {
         rv.setContentDescription(R.id.calendar_summary,summaryLabel+" "+summaryAmount);
         rv.setOnClickPendingIntent(R.id.calendar_summary,cycle(c,id));
     }
-    private static void headerText(RemoteViews views,int id,String text,float size,float scale,Paint paint,int position){
+    private static void headerText(Context c,RemoteViews views,int id,String text,float size,float scale,Paint paint,int position){
         views.setTextViewText(id,text);
         views.setTextViewTextSize(id,TypedValue.COMPLEX_UNIT_DIP,size);
         views.setFloat(id,"setTextScaleX",scale);
-        android.graphics.Rect ink=new android.graphics.Rect();paint.getTextBounds(text,0,text.length(),ink);
-        Paint.FontMetricsInt metrics=paint.getFontMetricsInt();
         int vertical=position==0?android.view.Gravity.TOP:position==1?android.view.Gravity.BOTTOM:android.view.Gravity.CENTER_VERTICAL;
         views.setInt(id,"setGravity",(id==R.id.calendar_title?android.view.Gravity.START:android.view.Gravity.END)|vertical);
-        float offset=position==0?metrics.ascent-ink.top:position==1?metrics.descent-ink.bottom:
-            (metrics.ascent+metrics.descent-ink.top-ink.bottom)/2f;
-        views.setFloat(id,"setTranslationY",offset);
+        // TextView's measured line includes this font's leading. Paint metrics
+        // alone do not predict its baseline. Measure the same native text line,
+        // then align visible ink in the fixed 34dp field (also on launcher reapply).
+        android.widget.TextView probe=new android.widget.TextView(c);
+        probe.setTypeface(paint.getTypeface());probe.setIncludeFontPadding(false);
+        if(android.os.Build.VERSION.SDK_INT>=28)probe.setFallbackLineSpacing(false);
+        probe.setElegantTextHeight(false);probe.setMaxLines(1);probe.setPadding(0,0,0,0);
+        probe.setTextSize(TypedValue.COMPLEX_UNIT_PX,paint.getTextSize());probe.setTextScaleX(scale);
+        probe.setGravity(android.view.Gravity.START|vertical);probe.setText(text);
+        int height=Math.round(34*c.getResources().getDisplayMetrics().density);
+        probe.measure(View.MeasureSpec.makeMeasureSpec(10000,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(height,View.MeasureSpec.EXACTLY));
+        probe.layout(0,0,10000,height);
+        android.graphics.Rect ink=new android.graphics.Rect();probe.getPaint().getTextBounds(text,0,text.length(),ink);
+        float targetTop=position==0?0:position==1?height-ink.height():(height-ink.height())/2f;
+        views.setFloat(id,"setTranslationY",targetTop-probe.getBaseline()-ink.top);
     }
     private static float glyphRatio(Paint paint){
         android.graphics.Rect ink=new android.graphics.Rect();paint.getTextBounds("0123456789",0,10,ink);
