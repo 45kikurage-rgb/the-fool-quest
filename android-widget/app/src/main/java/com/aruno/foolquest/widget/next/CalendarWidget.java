@@ -382,8 +382,8 @@ public class CalendarWidget extends AppWidgetProvider {
         probe.layout(0,0,width,height);
         android.graphics.Bitmap raster=android.graphics.Bitmap.createBitmap(width,height,android.graphics.Bitmap.Config.ARGB_8888);
         probe.draw(new android.graphics.Canvas(raster));
-        int top=height,bottom=-1;
-        for(int y=0;y<height;y++)for(int x=0;x<width;x++)if(android.graphics.Color.alpha(raster.getPixel(x,y))>=160){top=Math.min(top,y);bottom=Math.max(bottom,y);}
+        int top=height,bottom=-1;int[] pixels=new int[width*height];raster.getPixels(pixels,0,width,0,0,width,height);
+        for(int y=0;y<height;y++)for(int x=0;x<width;x++)if((pixels[y*width+x]>>>24)>=160){top=Math.min(top,y);bottom=Math.max(bottom,y);}
         raster.recycle();
         float offset=0;
         if(bottom>=top){float inkHeight=bottom-top+1;offset=(position==0?0:position==1?height-inkHeight:(height-inkHeight)/2f)-top;}
@@ -398,8 +398,8 @@ public class CalendarWidget extends AppWidgetProvider {
         android.graphics.Bitmap raster=android.graphics.Bitmap.createBitmap(width,height,android.graphics.Bitmap.Config.ARGB_8888);
         Paint visible=new Paint(paint);visible.setColor(android.graphics.Color.WHITE);
         new android.graphics.Canvas(raster).drawText("0123456789",4,4-metrics.top,visible);
-        int top=height,bottom=-1;
-        for(int y=0;y<height;y++)for(int x=0;x<width;x++)if(android.graphics.Color.alpha(raster.getPixel(x,y))>=160){top=Math.min(top,y);bottom=Math.max(bottom,y);}
+        int top=height,bottom=-1;int[] pixels=new int[width*height];raster.getPixels(pixels,0,width,0,0,width,height);
+        for(int y=0;y<height;y++)for(int x=0;x<width;x++)if((pixels[y*width+x]>>>24)>=160){top=Math.min(top,y);bottom=Math.max(bottom,y);}
         raster.recycle();return digitRatios[key]=Math.max(.1f,(bottom-top+1)/paint.getTextSize());
     }
     private static void amount(RemoteViews cell,int view,String text,float size,float width,Paint measure){
@@ -424,7 +424,7 @@ public class CalendarWidget extends AppWidgetProvider {
             int id=intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,AppWidgetManager.INVALID_APPWIDGET_ID);
             if(CalendarWidgetState.exists(c,id)){
                 if(FORECAST.equals(intent.getAction()))CalendarWidgetState.toggleForecast(c,id);
-                else CalendarWidgetState.cycleSummary(c,id);
+                else CalendarWidgetState.cycleSummary(c,id,goAsync());
                 if(FORECAST.equals(intent.getAction())||!renderSummaryOnly(c,id))renderOne(c,id);
             }
             return;

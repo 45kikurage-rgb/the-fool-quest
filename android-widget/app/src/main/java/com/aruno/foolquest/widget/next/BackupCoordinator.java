@@ -216,6 +216,7 @@ final class BackupCoordinator {
             if(!BackupPreferences.replace(raw,merged)||!merged.equals(raw.getAll())){
                 BackupPreferences.replace(raw,before);throw new IOException("復旧内容を保存できませんでした。復旧前ファイルは保持しています");
             }
+            CalendarWidgetState.discardPendingSummaries();
             meta.edit().putInt("lastNonemptyRecords",BackupFormat.records(BackupFormat.select(merged))).commit();
             try{capture("safety",true);}catch(Exception e){failure(e);}
         }

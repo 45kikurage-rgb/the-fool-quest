@@ -313,12 +313,13 @@ public class WidgetInstrumentation extends Instrumentation {
         Paint.FontMetricsInt metrics=paint.getFontMetricsInt();int width=(int)Math.ceil(paint.measureText("0123456789"))+8,height=metrics.bottom-metrics.top+8;
         android.graphics.Bitmap image=android.graphics.Bitmap.createBitmap(width,height,android.graphics.Bitmap.Config.ARGB_8888);
         new android.graphics.Canvas(image).drawText("0123456789",4,4-metrics.top,paint);int top=height,bottom=-1;
-        for(int y=0;y<height;y++)for(int x=0;x<width;x++)if(android.graphics.Color.alpha(image.getPixel(x,y))>=160){top=Math.min(top,y);bottom=Math.max(bottom,y);}
+        int[] pixels=new int[width*height];image.getPixels(pixels,0,width,0,0,width,height);
+        for(int y=0;y<height;y++)for(int x=0;x<width;x++)if((pixels[y*width+x]>>>24)>=160){top=Math.min(top,y);bottom=Math.max(bottom,y);}
         image.recycle();return bottom-top+1;
     }
     void code42Checks()throws Exception {
         final java.util.List<android.graphics.Bitmap> screenshots=new java.util.ArrayList<>();
-        runOnMainSync(()->{
+        {
             DisplaySettings saved=DisplaySettings.load(RevenueStore.prefs(c));
             ok(saved.calendarHeaderMonthAlign==2&&saved.calendarHeaderCategoryAlign==2&&saved.calendarHeaderAmountAlign==2,"all header positions default to actual glyph center");
             CalendarRevenueData.Month data=new CalendarRevenueData.Month();
@@ -327,6 +328,7 @@ public class WidgetInstrumentation extends Instrumentation {
             data.days[2][0]=-56000;data.known[2][0]=true;data.days[2][1]=53000;data.days[2][2]=1000;data.dailyLosses[2]=110000;
             long now=java.time.Instant.parse("2026-12-01T00:00:00Z").toEpochMilli();
             for(int dpi:new int[]{160,320,480}){
+              runOnMainSync(()->{
                 android.content.res.Configuration cfg=new android.content.res.Configuration(c.getResources().getConfiguration());cfg.densityDpi=dpi;
                 Context sized=c.createConfigurationContext(cfg);float density=sized.getResources().getDisplayMetrics().density;
                 android.widget.FrameLayout host=new android.widget.FrameLayout(sized);
@@ -343,17 +345,19 @@ public class WidgetInstrumentation extends Instrumentation {
                     ok(Math.abs(delta-(id==R.id.calendar_day_total?6f:-2f))<=1f,"code41 visible digit height delta at dpi"+dpi+" id"+id+" is "+delta);
                 }
                 for(int position=0;position<3;position++){
-                    DisplaySettings settings=new DisplaySettings();settings.calendarHeaderMonthAlign=position;settings.calendarHeaderCategoryAlign=(position+1)%3;settings.calendarHeaderAmountAlign=(position+2)%3;settings.save(RevenueStore.prefs(c));
+                    DisplaySettings settings=new DisplaySettings();settings.calendarHeaderMonthAlign=position;settings.calendarHeaderCategoryAlign=(position+1)%3;settings.calendarHeaderAmountAlign=(position+2)%3;
+                    ((BackupPreferences)RevenueStore.prefs(c)).raw.edit().putInt("calendarHeaderMonthAlign",position).putInt("calendarHeaderCategoryAlign",(position+1)%3).putInt("calendarHeaderAmountAlign",(position+2)%3).commit();
                     for(int category=0;category<3;category++){
                         CalendarWidget.buildViews(sized,13042,"2026-11",0,category,data,now,411,400).reapply(sized,tree);measureCalendar(host,width,height);
                         android.graphics.Bitmap image=android.graphics.Bitmap.createBitmap(width,height,android.graphics.Bitmap.Config.ARGB_8888);tree.draw(new android.graphics.Canvas(image));
+                        int[] pixels=new int[width*height];image.getPixels(pixels,0,width,0,0,width,height);
                         int[] ids={R.id.calendar_title,R.id.calendar_summary_label,R.id.calendar_summary_amount};
                         for(int i=0;i<3;i++){
                             android.view.View field=tree.findViewById(ids[i]);int left=0,top=0;
                             for(android.view.View v=field;v!=tree;v=(android.view.View)v.getParent()){left+=v.getLeft();top+=v.getTop();}
                             int inkTop=top+field.getHeight(),inkBottom=-1;
                             for(int y=top;y<top+field.getHeight();y++)for(int x=left;x<left+field.getWidth();x++){
-                                int color=image.getPixel(x,y);if(android.graphics.Color.red(color)>180&&android.graphics.Color.green(color)>180&&android.graphics.Color.blue(color)>180){inkTop=Math.min(inkTop,y);inkBottom=Math.max(inkBottom,y);}
+                                int color=pixels[y*width+x];if(android.graphics.Color.red(color)>180&&android.graphics.Color.green(color)>180&&android.graphics.Color.blue(color)>180){inkTop=Math.min(inkTop,y);inkBottom=Math.max(inkBottom,y);}
                             }
                             int selected=(position+i)%3;int above=inkTop-top,below=top+field.getHeight()-1-inkBottom;
                             if(!(inkBottom>=inkTop&&(selected==0?above<=2:selected==1?below<=2:Math.abs(above-below)<=2)))try{png(image,"failed-header-"+dpi+"-"+i+"-"+selected);}catch(Exception ex){throw new RuntimeException(ex);}
@@ -362,7 +366,7 @@ public class WidgetInstrumentation extends Instrumentation {
                         if(dpi==480&&category==0)screenshots.add(image);else image.recycle();
                     }
                 }
-                new DisplaySettings().save(RevenueStore.prefs(c));
+                ((BackupPreferences)RevenueStore.prefs(c)).raw.edit().putInt("calendarHeaderMonthAlign",2).putInt("calendarHeaderCategoryAlign",2).putInt("calendarHeaderAmountAlign",2).commit();
                 CalendarWidget.buildViews(sized,13042,"2026-11",0,0,data,now,411,400).reapply(sized,tree);measureCalendar(host,width,height);
                 day=((android.view.ViewGroup)tree.findViewById(R.id.calendar_week_0)).getChildAt(0);
                 day=((android.view.ViewGroup)tree.findViewById(R.id.calendar_week_4)).getChildAt(0);
@@ -380,9 +384,11 @@ public class WidgetInstrumentation extends Instrumentation {
                 android.widget.TextView lossLabel=lossDay.findViewById(R.id.calendar_loss_label),lossValue=lossDay.findViewById(R.id.calendar_day_loss);
                 ok(lossLabel.getRight()<=lossValue.getLeft()&&lossLabel.getCurrentTextColor()==0xffff6464&&lossValue.getCurrentTextColor()==0xffff6464,"loss label and negative value are separate fixed red columns");
                 if(dpi==480){android.graphics.Bitmap image=android.graphics.Bitmap.createBitmap(width,height,android.graphics.Bitmap.Config.ARGB_8888);tree.draw(new android.graphics.Canvas(image));screenshots.add(image);}
+              });
+              waitForIdleSync();
             }
             new DisplaySettings().save(RevenueStore.prefs(c));
-        });
+        }
         for(int i=0;i<screenshots.size();i++){png(screenshots.get(i),"code42-alignment-and-rows-"+i);screenshots.get(i).recycle();}
         Activity settingsPage=startActivitySync(new Intent(c,SettingsActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
         waitForIdleSync();
@@ -398,6 +404,7 @@ public class WidgetInstrumentation extends Instrumentation {
         DisplaySettings fromUi=DisplaySettings.load(RevenueStore.prefs(c));
         ok(fromUi.calendarHeaderMonthAlign==0&&fromUi.calendarHeaderCategoryAlign==1&&fromUi.calendarHeaderAmountAlign==2,"all three user-selected positions save through actual SettingsActivity");
         runOnMainSync(settingsPage::finish);new DisplaySettings().save(RevenueStore.prefs(c));
+        executor().submit(()->{}).get(30,TimeUnit.SECONDS);
         // Actual host update/reapply and PendingIntent delivery, for both widget types.
         AppWidgetManager manager=AppWidgetManager.getInstance(c);AppWidgetHost host=new AppWidgetHost(c,4242);host.startListening();
         for(Class<?> provider:new Class<?>[]{CalendarWidget.class,CombinedWidget.class}){
@@ -415,6 +422,8 @@ public class WidgetInstrumentation extends Instrumentation {
                 ok(((android.view.ViewGroup)view[0].findViewById(R.id.calendar_week_0)).getChildAt(0)==firstDay[0],"daily view objects survive partial host updates");
                 ok("Coupon".contentEquals(((android.widget.TextView)view[0].findViewById(R.id.calendar_summary_label)).getText()),"actual host displays final rapid-tap category");
             });
+            for(int n=0;n<100&&RevenueStore.prefs(c).getInt("calendar.summary."+id,-1)!=(17*2)%3;n++)Thread.sleep(50);
+            ok(RevenueStore.prefs(c).getInt("calendar.summary."+id,-1)==(17*2)%3,"latest rapid category state reaches the existing durable backup boundary");
             host.deleteAppWidgetId(id);
         }
         host.stopListening();
@@ -648,7 +657,8 @@ public class WidgetInstrumentation extends Instrumentation {
     android.graphics.Rect visibleInk(android.widget.TextView text){
         android.graphics.Bitmap image=android.graphics.Bitmap.createBitmap(Math.max(1,text.getWidth()),Math.max(1,text.getHeight()),android.graphics.Bitmap.Config.ARGB_8888);
         text.draw(new android.graphics.Canvas(image));int top=image.getHeight(),bottom=-1;
-        for(int y=0;y<image.getHeight();y++)for(int x=0;x<image.getWidth();x++)if(android.graphics.Color.alpha(image.getPixel(x,y))>=160){top=Math.min(top,y);bottom=Math.max(bottom,y);}
+        int[] pixels=new int[image.getWidth()*image.getHeight()];image.getPixels(pixels,0,image.getWidth(),0,0,image.getWidth(),image.getHeight());
+        for(int y=0;y<image.getHeight();y++)for(int x=0;x<image.getWidth();x++)if((pixels[y*image.getWidth()+x]>>>24)>=160){top=Math.min(top,y);bottom=Math.max(bottom,y);}
         image.recycle();return new android.graphics.Rect(0,top,0,bottom+1);
     }
     void checkDailyCompaction(android.view.View host,android.view.View day,int width,int height){
