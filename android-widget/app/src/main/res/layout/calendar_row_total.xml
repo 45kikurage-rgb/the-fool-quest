@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Keep the weighted measurement unchanged: +3px height and -3px margin
-     cancel even during LinearLayout's first measuring pass. C/T translations
-     place the three visible numerical gaps exactly one physical pixel closer. -->
+<!-- Six physical pixels move from the three detail-row margins to Total.
+     Existing total compaction remains 3px; all weighted first-pass sizes stay balanced. -->
 <TextView xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/calendar_day_total" style="@style/CalendarDailyAmount"
         android:layout_width="match_parent" android:layout_height="9px" android:layout_weight="1.12"
         android:layout_marginBottom="-3px"
