@@ -375,7 +375,11 @@ public class WidgetInstrumentation extends Instrumentation {
                 int[] forecastIds={R.id.calendar_forecast_title,R.id.calendar_forecast_total,R.id.calendar_forecast_coupon,R.id.calendar_forecast_tiktok};
                 for(int i=0;i<4;i++){
                     android.widget.TextView a=day.findViewById(dayIds[i]),b=forecast.findViewById(forecastIds[i]);
-                    ok(a.getTextSize()==b.getTextSize(),"forecast shares daily glyph size row"+i);
+                    // Code43 spec (Pixel 10 device check): the forecast title is
+                    // drawn 3 smaller than the day number so all four glyphs
+                    // fit its cell. Amount rows still share the daily size.
+                    if(i==0)ok(Math.abs((a.getTextSize()-b.getTextSize())-3f*density)<=0.02f*density+0.001f,"forecast title is daily glyph size minus 3 row0");
+                    else ok(a.getTextSize()==b.getTextSize(),"forecast shares daily glyph size row"+i);
                     float ya=0,yb=0;for(android.view.View v=a;v!=day;v=(android.view.View)v.getParent())ya+=v.getY();for(android.view.View v=b;v!=forecast;v=(android.view.View)v.getParent())yb+=v.getY();
                     ok(Math.abs(ya-yb)<=1&&a.getHeight()==b.getHeight(),"forecast shares daily row slot"+i);
                 }

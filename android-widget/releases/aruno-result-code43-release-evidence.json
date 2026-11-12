@@ -1,0 +1,107 @@
+{
+  "schema": 1,
+  "applicationId": "com.aruno.foolquest.widget.next",
+  "version": "0.1.42",
+  "versionCode": 43,
+  "sourceCommit": "11c661eb845d049277629a48def2ba5736f0b1c6",
+  "testCommit": "11c661eb845d049277629a48def2ba5736f0b1c6",
+  "apkSha256": "0a9f25626442a1dfdea2226766274e5013f25df7cbeec6e5f9c0a57672cf31b8",
+  "apkBytes": 3198455,
+  "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+  "unsignedSha256": "3e9a1c4f291f7ea60daec26ce8b5fa4bef2ef334a985297c2c18cfa03e9f29ff",
+  "signingReceipt": {
+    "apk_sha256": "0a9f25626442a1dfdea2226766274e5013f25df7cbeec6e5f9c0a57672cf31b8",
+    "app_id": "foolquest-widget-next",
+    "certificate_sha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+    "device_verified": false,
+    "existing_key": true,
+    "package": "com.aruno.foolquest.widget.next",
+    "production_release": false,
+    "published": false,
+    "run_id": "43285649920",
+    "schema": 1,
+    "source_commit": "11c661eb845d049277629a48def2ba5736f0b1c6",
+    "source_repository": "45kikurage-rgb/the-fool-quest",
+    "trial_signed": true,
+    "unsigned_sha256": "3e9a1c4f291f7ea60daec26ce8b5fa4bef2ef334a985297c2c18cfa03e9f29ff",
+    "version_code": 43,
+    "version_name": "0.1.42",
+    "workflow_commit": "42748622d6322bc75bfe7605ad138272edf897b6"
+  },
+  "signingReceiptNote": "Receipt records pre-publication stage; publicationStatus records later public verification.",
+  "softwareChecks": {
+    "android17": {
+      "normal": 25302,
+      "offline": 2767,
+      "reboot": 2759,
+      "run": 43277843525,
+      "job": 131390923817,
+      "signedPayloadMatches": true,
+      "matchingPayloadEntries": 45
+    },
+    "backupAndroid17": {
+      "normal": 46,
+      "reboot": 4,
+      "run": 43277843525,
+      "job": 131390923817
+    },
+    "officialUpgrade": {
+      "fromCode": 42,
+      "toCode": 43,
+      "apis": [
+        37
+      ],
+      "fixtureFields": 42,
+      "run": 43285649920,
+      "job": 131419068604,
+      "uidPreserved": true
+    }
+  },
+  "payloadComparison": {
+    "passed": true,
+    "entries": 45,
+    "verifiedBy": "Stage job of ops run 43285649920 asserted exact equality of all non-signature ZIP entries between the natively tested unsigned APK and the signed APK; signed APK payload entry count (45) and SHA-256 re-verified locally."
+  },
+  "officialUpgrade": {
+    "passed": true,
+    "app": "result",
+    "api": 37,
+    "package": "com.aruno.foolquest.widget.next",
+    "version_code": 43,
+    "source_commit": "11c661eb845d049277629a48def2ba5736f0b1c6",
+    "apk_sha256": "0a9f25626442a1dfdea2226766274e5013f25df7cbeec6e5f9c0a57672cf31b8",
+    "certificate_sha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+    "data_preservation": "PASS_DISPOSABLE_EMULATOR",
+    "physical_device_verified": false,
+    "published": false
+  },
+  "reboot": {
+    "passed": true,
+    "exact_widget_preferences_preserved": true
+  },
+  "independentRestore": {
+    "run": 43285649920,
+    "primaryJob": 131418236318,
+    "backupJob": 131418235791,
+    "primary": "success",
+    "backup": "success",
+    "stageJob": 131418654974
+  },
+  "changes": [
+    "カレンダーの「月末予想」の見出しで4文字目が表示されない不具合を修正。見出し専用の文字サイズ（日付数字より3px小さいサイズ）を導入し、横幅の計算も同じサイズに統一。",
+    "金額・日付・その他の表示、設定、保存形式、署名、端末内データはcode42から変更なし。"
+  ],
+  "publicationStatus": "PENDING_PUBLICATION",
+  "distributionUrls": [
+    "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
+    "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
+  ],
+  "apkUrls": [
+    "https://the-fool-quest.45kikurage.workers.dev/android-widget/releases/aruno-result-0.1.42.apk",
+    "https://45kikurage-rgb.github.io/the-fool-quest/android-widget/releases/aruno-result-0.1.42.apk"
+  ],
+  "physicalDeviceVerified": false,
+  "formalOperationConfirmed": false,
+  "transferMethod": "Signed candidate artifact of ops run 43285649920 downloaded and verified locally (bytes, SHA-256, apksigner certificate, aapt2 badging) before registration; tested and signed payloads match.",
+  "historicalDataLoss": "code32 incident cause remains undetermined; this release does not establish recovery of previously lost device data."
+}
