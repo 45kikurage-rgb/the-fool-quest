@@ -139,11 +139,9 @@ final class BackupCoordinator {
     }
     String status(){
         String folder=meta.getString("folderLabel","");long at=meta.getLong("lastSuccess",0);
-        int damaged=meta.getInt("checksumMismatchCount",0);
         return "保存先："+(folder.isEmpty()?"未選択（独立ファイル保存は未開始）":folder)
             +"\n最終成功："+(at==0?"未完了":RevenueMath.date("yyyy-MM-dd HH:mm:ss",at))
             +"\n保存件数："+meta.getInt("lastRecords",0)+"／正常性："+(at==0?"未確認":"保存後SHA-256照合済み")
-            +(damaged==0?"":"\nSHA-256不一致で端末に保持したファイル："+damaged+"件")
             +(meta.getString("error","").isEmpty()?"":"\n要確認："+meta.getString("error",""));
     }
     void select(Uri tree,int flags)throws Exception {
@@ -164,10 +162,7 @@ final class BackupCoordinator {
     private boolean unsent()throws Exception {
         if(meta.getString("tree","").isEmpty())return false;
         for(File f:local())if(!new File(directory,f.getName()+".sent").exists()){
-            try {
-                JSONObject b=BackupFormat.parse(read(f));
-                if(b.getInt("records")>0||meta.getInt("lastNonemptyRecords",0)==0)return true;
-            }catch(BackupFormat.ChecksumMismatch damaged){/* Keep the local file for review. */}
+            JSONObject b=BackupFormat.parse(read(f));if(b.getInt("records")>0||meta.getInt("lastNonemptyRecords",0)==0)return true;
         }return false;
     }
     void retry(){synchronized(LOCK){if(scheduled)return;scheduled=true;}
@@ -182,17 +177,9 @@ final class BackupCoordinator {
         BackupFiles files=new BackupFiles(context,Uri.parse(value));
         Map<String,Uri> docs=files.documents();List<File> pending;
         synchronized(LOCK){pending=local();}Collections.reverse(pending);
-        int damaged=0;
         for(File local:pending){
             if(new File(directory,local.getName()+".sent").exists())continue;
-            String json=read(local);
-            JSONObject b;
-            try {b=BackupFormat.parse(json);}
-            catch(BackupFormat.ChecksumMismatch mismatch){
-                damaged++;
-                // Keep the original and leave it unsent. A newer valid backup can still be copied.
-                continue;
-            }
+            String json=read(local);JSONObject b=BackupFormat.parse(json);
             if(b.getInt("records")==0&&meta.getInt("lastNonemptyRecords",0)>0)continue;
             Uri present=docs.get(local.getName());
             if(present==null)files.append(local.getName(),json);
@@ -200,7 +187,6 @@ final class BackupCoordinator {
             write(new File(directory,local.getName()+".sent"),"ok");
             meta.edit().putLong("lastSuccess",Math.max(b.getLong("savedAt"),meta.getLong("lastSuccess",0))).putInt("lastRecords",b.getInt("records")).remove("error").commit();lastToast="";
         }
-        meta.edit().putInt("checksumMismatchCount",damaged).commit();
         files.prune();synchronized(LOCK){pruneLocal();}
     }
     void restore(String json,String expectedCurrent)throws Exception {

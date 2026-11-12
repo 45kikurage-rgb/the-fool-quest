@@ -110,13 +110,10 @@ final class BackupFormat {
         String json=new JSONObject().put("body",body).put("sha256",sha(body)).toString();
         if(json.getBytes(StandardCharsets.UTF_8).length>LIMIT)throw new IllegalArgumentException("バックアップが4MBを超えています");return json;
     }
-    static final class ChecksumMismatch extends IllegalArgumentException {
-        ChecksumMismatch(){super("バックアップのSHA-256が一致しません");}
-    }
     static JSONObject parse(String json)throws Exception {
         if(json.getBytes(StandardCharsets.UTF_8).length>LIMIT)throw new IllegalArgumentException("バックアップが大きすぎます");
         JSONObject envelope=new JSONObject(json);String raw=envelope.getString("body");
-        if(!sha(raw).equals(envelope.getString("sha256")))throw new ChecksumMismatch();
+        if(!sha(raw).equals(envelope.getString("sha256")))throw new IllegalArgumentException("バックアップのSHA-256が一致しません");
         JSONObject b=new JSONObject(raw);
         if(!FORMAT.equals(b.getString("format"))||b.getInt("version")!=1||!PACKAGE.equals(b.getString("package"))||b.getLong("savedAt")<=0||b.getBoolean("credentialsIncluded"))throw new IllegalArgumentException("未対応のバックアップです");
         String kind=b.getString("kind");if(!Arrays.asList("change","daily","safety").contains(kind))throw new IllegalArgumentException("保存種別が不正です");
