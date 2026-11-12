@@ -66,7 +66,7 @@ public final class BackupInstrumentation extends Instrumentation {
             ok(manualSaved,"manual addition automatically creates readable backup");
             m.addLoss(month+"-01","tiktok",80);m.addLoss(month+"-01","coupon",50);
             String lossId=m.losses().getJSONObject(m.losses().length()-2).getString("id");
-            DisplaySettings settings=DisplaySettings.load(RevenueStore.prefs(c));settings.font=37;settings.gap=8;settings.save(RevenueStore.prefs(c));
+            DisplaySettings settings=DisplaySettings.load(RevenueStore.prefs(c));settings.font=37;settings.gap=8;settings.calendarHeaderMonthAlign=0;settings.calendarHeaderCategoryAlign=1;settings.calendarHeaderAmountAlign=2;settings.save(RevenueStore.prefs(c));
             CalendarWidgetState.month(c,12345,month);CalendarWidgetState.filter(c,12345,3);
             RevenueManager.archiveCoupon(c,"2026-09",777);
             JSONObject oldDaily=new JSONObject().put("2026-09",new JSONObject().put("total",777).put("sum",777).put("days",new JSONObject().put("2026-09-01",777)));
@@ -77,9 +77,17 @@ public final class BackupInstrumentation extends Instrumentation {
                 .putString("couponRevenueDailyV2",new JSONObject().put(month,new JSONObject().put("total",888).put("sum",888).put("days",new JSONObject().put(month+"-01",888))).toString()).apply();
             m.updateLoss(lossId,month+"-02","tiktok",99);m.deleteLoss(lossId);
             settings.font=18;settings.save(RevenueStore.prefs(c));
-            b.restore(restore,current());m=new RevenueManager(c);
+            synchronized(BackupCoordinator.LOCK){
+                CalendarWidgetState.cycleSummary(c,12345);
+                ok(CalendarWidgetState.summary(c,12345)==2,"pending category is immediately visible before durable flush");
+                b.restore(restore,current());
+            }
+            Thread.sleep(100);
+            ok(CalendarWidgetState.summary(c,12345)==0&&!b.raw.contains("calendar.summary.12345"),"restore cancels delayed category changes instead of overwriting restored configuration");
+            m=new RevenueManager(c);
             ok(m.lossTotal(month,"tiktok")==80&&m.lossTotal(month,"coupon")==50,"restore recovers edited/deleted category losses");
             ok(DisplaySettings.load(RevenueStore.prefs(c)).font==37&&DisplaySettings.load(RevenueStore.prefs(c)).gap==8,"restore recovers typed display settings");
+            DisplaySettings restoredHeader=DisplaySettings.load(RevenueStore.prefs(c));ok(restoredHeader.calendarHeaderMonthAlign==0&&restoredHeader.calendarHeaderCategoryAlign==1&&restoredHeader.calendarHeaderAmountAlign==2,"backup restores independent header positions");
             ok(CalendarWidgetState.filter(c,12345)==3,"restore recovers widget configuration");
             ok(m.couponHistory().getLong("2026-09")==777&&m.couponHistory().getLong(month)==888,"restore fills missing historical Coupon months without replacing current projection");
             JSONObject combinedDaily=new JSONObject(RevenueStore.prefs(c).getString("couponRevenueDailyV2","{}"));
@@ -100,6 +108,19 @@ public final class BackupInstrumentation extends Instrumentation {
             ok(!blank&&current().equals(good),"empty reset rejected before normal data changes");
             boolean corrupt=false;try{b.restore(restore.replace("sha256\":\"","sha256\":\"bad"),current());}catch(Exception expected){corrupt=true;}
             ok(corrupt&&current().equals(good),"corrupt SHA is refused without changing live data");
+            // A damaged unsent journal must remain available for review while valid successors export.
+            drained();
+            File damagedJournal=new File(b.directory,"aruno-result-change-1000000000001-00000000-0000-0000-0000-000000000042.json");
+            String damagedJson=new JSONObject(restore).put("sha256",new String(new char[64]).replace('\0','0')).toString();
+            synchronized(BackupCoordinator.LOCK){BackupCoordinator.write(damagedJournal,damagedJson);b.capture("safety",true);b.flush();}
+            ok(damagedJournal.isFile()&&damagedJson.equals(BackupCoordinator.read(damagedJournal))&&!new File(damagedJournal+".sent").exists(),"damaged original stays byte-identical and unsent");
+            ok(b.meta.getInt("checksumMismatchCount",0)==1&&b.status().contains("SHA-256不一致で端末に保持したファイル：1件"),"damaged journal produces a persistent visible count");
+            java.lang.reflect.Method unsent=BackupCoordinator.class.getDeclaredMethod("unsent");unsent.setAccessible(true);
+            ok(Boolean.FALSE.equals(unsent.invoke(b)),"only damaged journal does not cause retry spin");
+            Map<String,Uri> exported=new BackupFiles(c,Uri.parse(b.meta.getString("tree",""))).documents();
+            ok(!exported.containsKey(damagedJournal.getName()),"damaged journal is never exported as a valid backup");
+            boolean successorSent=false;for(File f:b.local())if(!f.equals(damagedJournal)&&new File(f+".sent").exists()&&BackupFormat.parse(BackupCoordinator.read(f)).getLong("savedAt")>1000000000001L)successorSent=true;
+            ok(successorSent&&current().equals(good),"new valid journal exports after damaged predecessor without altering live data");
             // Stale in-memory owners must not overwrite each other's confirmed changes.
             RevenueManager first=new RevenueManager(c),second=new RevenueManager(c);
             first.addManual(month+"-03",11);second.addManual(month+"-03",13);

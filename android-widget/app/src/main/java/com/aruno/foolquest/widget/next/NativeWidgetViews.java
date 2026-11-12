@@ -100,7 +100,7 @@ final class NativeWidgetViews {
                 GaugePalette.LAP_LABEL_WIDTH_DP,GaugePalette.MARKER_OVERHANG_DP,gauge);
             bar.setImageViewBitmap(R.id.lap_label,label);
             bar.setContentDescription(R.id.lap_label,suffix);
-            rv.removeAllViews(HOLDER[i]);rv.addView(HOLDER[i],bar);
+            rv.removeAllViews(HOLDER[i]);CalendarWidget.addStable(rv,HOLDER[i],bar,0);
         }
         rv.setTextViewText(R.id.widget_footer,status);rv.setTextColor(R.id.widget_footer,s.text);
         rv.setViewVisibility(R.id.widget_footer,showStatus?View.VISIBLE:View.GONE);

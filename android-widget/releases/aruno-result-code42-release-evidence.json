@@ -1,0 +1,110 @@
+{
+  "schema": 1,
+  "applicationId": "com.aruno.foolquest.widget.next",
+  "version": "0.1.41",
+  "versionCode": 42,
+  "sourceCommit": "1258136a25541ccab8b9985e131f6d2039216988",
+  "testCommit": "1258136a25541ccab8b9985e131f6d2039216988",
+  "apkSha256": "0ee00fce4980345944aeae40a6f6957c52ec5603950fff1ee849b97daca80693",
+  "apkBytes": 3198455,
+  "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+  "unsignedSha256": "1423a68bc9e50bcccbd44b32c8886f4611715fbec76641a68248b0bc8028d052",
+  "signingReceipt": {
+    "apk_sha256": "0ee00fce4980345944aeae40a6f6957c52ec5603950fff1ee849b97daca80693",
+    "app_id": "foolquest-widget-next",
+    "certificate_sha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+    "device_verified": false,
+    "existing_key": true,
+    "package": "com.aruno.foolquest.widget.next",
+    "production_release": false,
+    "published": false,
+    "run_id": "43162859456",
+    "schema": 1,
+    "source_commit": "1258136a25541ccab8b9985e131f6d2039216988",
+    "source_repository": "45kikurage-rgb/the-fool-quest",
+    "trial_signed": true,
+    "unsigned_sha256": "1423a68bc9e50bcccbd44b32c8886f4611715fbec76641a68248b0bc8028d052",
+    "version_code": 42,
+    "version_name": "0.1.41",
+    "workflow_commit": "5713811fa50d52c8e4d7707fbf22f51ad9bd5a2b"
+  },
+  "signingReceiptNote": "Receipt records pre-publication stage; publicationStatus records later public verification.",
+  "softwareChecks": {
+    "android17": {
+      "normal": 25302,
+      "offline": 2767,
+      "reboot": 2759,
+      "run": 43161953553,
+      "job": 130995038236,
+      "signedPayloadMatches": true,
+      "matchingPayloadEntries": 45
+    },
+    "backupAndroid17": {
+      "normal": 46,
+      "reboot": 4,
+      "run": 43161953553,
+      "job": 130995038236
+    },
+    "officialUpgrade": {
+      "fromCode": 41,
+      "toCode": 42,
+      "apis": [
+        37
+      ],
+      "fixtureFields": 42,
+      "run": 43162859456,
+      "job": 130998303001,
+      "uidPreserved": true
+    }
+  },
+  "payloadComparison": {
+    "passed": true,
+    "entries": 45,
+    "testedArtifactId": 13918143473,
+    "signedArtifactId": 13918044161
+  },
+  "officialUpgrade": {
+    "passed": true,
+    "app": "result",
+    "api": 37,
+    "package": "com.aruno.foolquest.widget.next",
+    "version_code": 42,
+    "source_commit": "1258136a25541ccab8b9985e131f6d2039216988",
+    "apk_sha256": "0ee00fce4980345944aeae40a6f6957c52ec5603950fff1ee849b97daca80693",
+    "certificate_sha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+    "data_preservation": "PASS_DISPOSABLE_EMULATOR",
+    "physical_device_verified": false,
+    "published": false
+  },
+  "reboot": {
+    "passed": true,
+    "exact_widget_preferences_preserved": true
+  },
+  "independentRestore": {
+    "run": 43162859456,
+    "primaryJob": 130997869161,
+    "backupJob": 130997869439,
+    "primary": "success",
+    "backup": "success",
+    "stageJob": 130998062199
+  },
+  "changes": [
+    "カレンダー上段の表示位置を上／見える中央／下から選べる設定を追加し、位置ごとに保存。既定は中央。",
+    "合計を拡大し、Coupon／TikTok／損失の各行を調整。損失ラベルと日別予測の表示を改善。",
+    "破損したバックアップ記録を保持したまま、正常な後続バックアップの保存を可能にし、破損件数を表示。破損データの復元は引き続き拒否。",
+    "既存フォント・日別欄・保存形式・署名・端末内データを維持。"
+  ],
+  "publicationStatus": "PENDING_PUBLICATION",
+  "distributionUrls": [
+    "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
+    "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
+  ],
+  "apkUrls": [
+    "https://the-fool-quest.45kikurage.workers.dev/android-widget/releases/aruno-result-0.1.41.apk",
+    "https://45kikurage-rgb.github.io/the-fool-quest/android-widget/releases/aruno-result-0.1.41.apk"
+  ],
+  "physicalDeviceVerified": false,
+  "formalOperationConfirmed": false,
+  "transferMethod": "Reused retained CI artifact after ZIP digest and APK SHA-256 verification; tested and signed payloads match.",
+  "historicalDataLoss": "code32 incident cause remains undetermined; this release does not establish recovery of previously lost device data."
+}

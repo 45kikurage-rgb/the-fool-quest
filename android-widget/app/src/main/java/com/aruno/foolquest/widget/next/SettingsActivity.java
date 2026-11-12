@@ -89,6 +89,11 @@ public final class SettingsActivity extends Activity {
             if(m.isRequestPinAppWidgetSupported())m.requestPinAppWidget(new ComponentName(this,RevenueWidget.class),null,null);
             else message("ホーム画面を長押しして「ウィジェット」から追加してください。");
         });
+        body.addView(text("カレンダー上段の縦位置",18));
+        body.addView(text("文字の見える上端・下端・中央を、枠の同じ位置に揃えます。初期値は中央です。",13));
+        headerAlignment("年月", "calendar-header-month",settings.calendarHeaderMonthAlign,v->settings.calendarHeaderMonthAlign=v);
+        headerAlignment("カテゴリー", "calendar-header-category",settings.calendarHeaderCategoryAlign,v->settings.calendarHeaderCategoryAlign=v);
+        headerAlignment("金額", "calendar-header-amount",settings.calendarHeaderAmountAlign,v->settings.calendarHeaderAmountAlign=v);
         body.addView(text("色とレイアウト",18));
         button("黒背景／白背景を反転",()->{
             boolean dark=Color.red(settings.background)+Color.green(settings.background)+Color.blue(settings.background)<384;
@@ -136,6 +141,19 @@ public final class SettingsActivity extends Activity {
         button("表示設定を初期化",()->new AlertDialog.Builder(this).setMessage("表示設定を初期値に戻します。収益データは保持します。保存でホーム画面へ反映します。")
             .setNegativeButton("キャンセル",null).setPositiveButton("初期化",(d,w)->{settings=new DisplaySettings();build();markDirty();}).show());
         updatePreview();
+    }
+    private void headerAlignment(String label,String tag,int current,Change change){
+        body.addView(text(label,13));
+        android.widget.Spinner select=new android.widget.Spinner(this);select.setTag(tag);
+        select.setAdapter(new android.widget.ArrayAdapter<String>(this,android.R.layout.simple_spinner_dropdown_item,new String[]{"上","下","中央"}));
+        select.setSelection(current);body.addView(select,new LinearLayout.LayoutParams(-1,-2));
+        select.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener(){
+            private int selected=current;
+            public void onItemSelected(android.widget.AdapterView<?> p,View v,int position,long id){
+                if(position!=selected){selected=position;change.set(position);markDirty();}
+            }
+            public void onNothingSelected(android.widget.AdapterView<?> p){}
+        });
     }
     private void markDirty(){if(saveState!=null)saveState.setText("未保存の変更があります。上の「保存」で反映");}
     private interface Change{void set(int value);}

@@ -13,6 +13,7 @@ final class BackupFormat {
     static final Set<String> INTS=new HashSet<>(Arrays.asList(
         "text","background","colorTotal","colorTiktok","colorCoupon","colorTargetLine","targetLineWidth",
         "colorTargetMarker","gaugeTickDivisor","colorPaceAchieved","colorPaceBehind","colorPaceLow","colorSecondLap",
+        "calendarHeaderMonthAlign","calendarHeaderCategoryAlign","calendarHeaderAmountAlign",
         "opacity","font","left","right","top","bottom","gap","gauge","textGap"));
     static final Set<String> LONGS=new HashSet<>(Arrays.asList("goalTotal","goalTiktok","goalCoupon","tiktok","coupon","importAt","couponAt"));
     static final Set<String> STRINGS=new HashSet<>(Arrays.asList("nativeRevenueV1","couponRevenueMonthlyV1","couponRevenueDailyV2","importMonth","couponMonth"));
@@ -55,6 +56,9 @@ final class BackupFormat {
                 else value=Long.valueOf(l);
             }
             out.put(k,value);
+        }
+        for(String key:Arrays.asList("calendarHeaderMonthAlign","calendarHeaderCategoryAlign","calendarHeaderAmountAlign")){
+            Object value=out.get(key);if(value!=null&&((Integer)value<0||(Integer)value>2))throw new IllegalArgumentException("上段の表示位置が不正です");
         }
         Object nativeData=out.get("nativeRevenueV1");
         if(nativeData!=null)RevenueManager.validate(new JSONObject((String)nativeData));
@@ -110,10 +114,13 @@ final class BackupFormat {
         String json=new JSONObject().put("body",body).put("sha256",sha(body)).toString();
         if(json.getBytes(StandardCharsets.UTF_8).length>LIMIT)throw new IllegalArgumentException("バックアップが4MBを超えています");return json;
     }
+    static final class ChecksumMismatch extends IllegalArgumentException {
+        ChecksumMismatch(){super("バックアップのSHA-256が一致しません");}
+    }
     static JSONObject parse(String json)throws Exception {
         if(json.getBytes(StandardCharsets.UTF_8).length>LIMIT)throw new IllegalArgumentException("バックアップが大きすぎます");
         JSONObject envelope=new JSONObject(json);String raw=envelope.getString("body");
-        if(!sha(raw).equals(envelope.getString("sha256")))throw new IllegalArgumentException("バックアップのSHA-256が一致しません");
+        if(!sha(raw).equals(envelope.getString("sha256")))throw new ChecksumMismatch();
         JSONObject b=new JSONObject(raw);
         if(!FORMAT.equals(b.getString("format"))||b.getInt("version")!=1||!PACKAGE.equals(b.getString("package"))||b.getLong("savedAt")<=0||b.getBoolean("credentialsIncluded"))throw new IllegalArgumentException("未対応のバックアップです");
         String kind=b.getString("kind");if(!Arrays.asList("change","daily","safety").contains(kind))throw new IllegalArgumentException("保存種別が不正です");

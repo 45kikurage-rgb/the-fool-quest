@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/calendar_root"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="#151515"
+    android:padding="4dp" android:paddingTop="0dp" android:layoutDirection="ltr">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="38dp"
+        android:orientation="horizontal" android:gravity="center_vertical" android:baselineAligned="false"
+        android:paddingLeft="1px">
+        <TextView android:id="@+id/calendar_title" style="@style/CalendarHeaderText"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent" android:gravity="start|center_vertical"
+            android:text="2026年11月　" android:paddingStart="3dp" />
+        <LinearLayout android:id="@+id/calendar_summary" android:layout_width="0dp"
+            android:layout_weight="1" android:layout_height="match_parent"
+            android:orientation="horizontal" android:gravity="center_vertical" android:baselineAligned="false"
+            android:clickable="true" android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackground">
+            <TextView android:id="@+id/calendar_summary_label" style="@style/CalendarSummaryText"
+                android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="match_parent" android:gravity="end|center_vertical" android:text="Total"
+                android:importantForAccessibility="no" />
+            <TextView android:id="@+id/calendar_summary_amount" style="@style/CalendarSummaryText"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent" android:gravity="end|center_vertical"
+                android:text="—" android:paddingStart="4dp" android:paddingEnd="2dp"
+                android:importantForAccessibility="no" />
+        </LinearLayout>
+    </LinearLayout>
+    <LinearLayout android:id="@+id/calendar_grid"
+        android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+        android:orientation="vertical" android:background="#E0E0E0"
+        android:paddingTop="1px" android:paddingLeft="1px">
+        <LinearLayout android:id="@+id/calendar_week_0" style="@style/CalendarRow" />
+        <LinearLayout android:id="@+id/calendar_week_1" style="@style/CalendarRow" />
+        <LinearLayout android:id="@+id/calendar_week_2" style="@style/CalendarRow" />
+        <LinearLayout android:id="@+id/calendar_week_3" style="@style/CalendarRow" />
+        <LinearLayout android:id="@+id/calendar_week_4" style="@style/CalendarRow" />
+    </LinearLayout>
+</LinearLayout>
