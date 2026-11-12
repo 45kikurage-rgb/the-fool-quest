@@ -11,19 +11,19 @@
         android:layout_height="0dp" android:layout_weight="3.82" android:orientation="vertical">
         <TextView android:id="@+id/calendar_forecast_total" style="@style/CalendarDailyAmount"
             android:layout_width="match_parent" android:layout_height="9px" android:layout_weight="1.12"
-            android:layout_marginBottom="-9px" />
-        <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="0.90"
+            android:layout_marginBottom="-3px" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="0.90" android:layout_marginBottom="-2px"
             android:translationY="2px" android:orientation="horizontal">
             <TextView android:id="@+id/calendar_forecast_c_label" style="@style/CalendarCategory" android:text="C" android:textColor="#63E09E" />
             <TextView android:id="@+id/calendar_forecast_coupon" style="@style/CalendarDailyAmount" android:layout_width="0dp"
                 android:layout_weight="1" android:layout_height="match_parent" android:textColor="#63E09E" />
         </LinearLayout>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="0.90"
+        <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="0.90" android:layout_marginBottom="-2px"
             android:translationY="1px" android:orientation="horizontal">
             <TextView android:id="@+id/calendar_forecast_t_label" style="@style/CalendarCategory" android:text="T" android:textColor="#7FBAFF" />
             <TextView android:id="@+id/calendar_forecast_tiktok" style="@style/CalendarDailyAmount" android:layout_width="0dp"
                 android:layout_weight="1" android:layout_height="match_parent" android:textColor="#7FBAFF" />
         </LinearLayout>
-        <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="0.90" />
+        <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="0.90" android:layout_marginBottom="-2px" />
     </LinearLayout>
 </LinearLayout>

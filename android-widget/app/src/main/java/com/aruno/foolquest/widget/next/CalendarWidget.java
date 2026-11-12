@@ -316,7 +316,7 @@ public class CalendarWidget extends AppWidgetProvider {
         float headerWidthPx=Math.round(width*density)-2*Math.round(4*density)-1;
         int titlePaddingPx=Math.round(3*density);
         int amountPaddingPx=Math.round(4*density)+Math.round(2*density);
-        float textWidthPx=Math.max(1,headerWidthPx-titlePaddingPx-amountPaddingPx-Math.round(8*density));
+        float textWidthPx=Math.max(1,headerWidthPx-titlePaddingPx-amountPaddingPx-Math.round(16*density));
         float titleWidth=headerMeasure.measureText(title);
         float labelWidth=0,amountReserve=0,headerDigit=0;
         for(char ch='0';ch<='9';ch++)headerDigit=Math.max(headerDigit,
@@ -368,7 +368,7 @@ public class CalendarWidget extends AppWidgetProvider {
         android.widget.TextView probe=(android.widget.TextView)probeViews.apply(c,null);
         probe.setTypeface(paint.getTypeface());probe.setIncludeFontPadding(false);
         if(android.os.Build.VERSION.SDK_INT>=28)probe.setFallbackLineSpacing(false);
-        probe.setElegantTextHeight(false);probe.setMaxLines(1);probe.setPadding(0,0,0,0);
+        probe.setElegantTextHeight(false);probe.setSingleLine(true);probe.setMaxLines(1);probe.setPadding(0,0,0,0);
         probe.setTextColor(android.graphics.Color.WHITE);probe.setBackgroundColor(android.graphics.Color.TRANSPARENT);
         probe.setTextSize(TypedValue.COMPLEX_UNIT_PX,paint.getTextSize());probe.setTextScaleX(scale);
         probe.setGravity(android.view.Gravity.START|vertical);probe.setText(text);

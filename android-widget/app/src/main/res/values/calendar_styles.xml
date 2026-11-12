@@ -27,6 +27,8 @@
         <item name="android:autoSizeStepGranularity">0.5dp</item>
     </style>
     <style name="CalendarHeaderText" parent="CalendarDailyText">
+        <item name="android:singleLine">true</item>
+        <item name="android:scrollHorizontally">true</item>
         <item name="android:textSize">20dp</item>
     </style>
     <style name="CalendarSummaryText" parent="CalendarHeaderText">

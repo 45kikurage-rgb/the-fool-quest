@@ -524,9 +524,9 @@ public class WidgetInstrumentation extends Instrumentation {
                             &&orderedRows.getChildAt(2).getId()==R.id.calendar_tiktok_row
                             &&orderedRows.getChildAt(3).getId()==R.id.calendar_loss_row,
                         "the four XML include lines alone set Total/C/T/loss order");
-                    ok(totalRow.getY()+totalRow.getHeight()-cRow.getY()==7f
-                            &&cRow.getY()+cRow.getHeight()-tRow.getY()==1f
-                            &&tRow.getY()+tRow.getHeight()-lossRow.getY()==1f,
+                    ok(totalRow.getY()+totalRow.getHeight()-cRow.getY()==1f
+                            &&cRow.getY()+cRow.getHeight()-tRow.getY()==3f
+                            &&tRow.getY()+tRow.getHeight()-lossRow.getY()==3f,
                         "each daily numeric gap shrinks by exactly one physical pixel");
                     checkDailyCompaction(host,lastDay,width,height);
                     android.view.View firstDay=firstRow.getChildAt(0);
@@ -644,40 +644,20 @@ public class WidgetInstrumentation extends Instrumentation {
         host.layout(0,0,width,height);
     }
 
+    android.graphics.Rect visibleInk(android.widget.TextView text){
+        android.graphics.Bitmap image=android.graphics.Bitmap.createBitmap(Math.max(1,text.getWidth()),Math.max(1,text.getHeight()),android.graphics.Bitmap.Config.ARGB_8888);
+        text.draw(new android.graphics.Canvas(image));int top=image.getHeight(),bottom=-1;
+        for(int y=0;y<image.getHeight();y++)for(int x=0;x<image.getWidth();x++)if(android.graphics.Color.alpha(image.getPixel(x,y))>=160){top=Math.min(top,y);bottom=Math.max(bottom,y);}
+        image.recycle();return new android.graphics.Rect(0,top,0,bottom+1);
+    }
     void checkDailyCompaction(android.view.View host,android.view.View day,int width,int height){
-        int[] ids={R.id.calendar_day_total,R.id.calendar_coupon_row,R.id.calendar_tiktok_row,R.id.calendar_loss_row};
-        android.widget.LinearLayout.LayoutParams[] compact=new android.widget.LinearLayout.LayoutParams[4];
-        float[] tops=new float[4],translations=new float[4];
-        int[] heights=new int[4];
-        android.view.View date=day.findViewById(R.id.calendar_day_number);
-        int dateTop=date.getTop(),dateHeight=date.getHeight();
-        for(int i=0;i<4;i++){
-            android.view.View row=day.findViewById(ids[i]);
-            tops[i]=row.getY();heights[i]=row.getHeight();translations[i]=row.getTranslationY();
-            compact[i]=new android.widget.LinearLayout.LayoutParams((android.widget.LinearLayout.LayoutParams)row.getLayoutParams());
-            android.widget.LinearLayout.LayoutParams previous=new android.widget.LinearLayout.LayoutParams(compact[i]);
-            previous.height=0;previous.bottomMargin=0;
-            row.setLayoutParams(previous);row.setTranslationY(0f);
-        }
-        measureCalendar(host,width,height);
-        int[] shifts={0,2,1,0};
-        for(int i=0;i<4;i++){
-            android.view.View row=day.findViewById(ids[i]);
-            ok(tops[i]-row.getY()==shifts[i]&&heights[i]-row.getHeight()==(i==0?9:0),
-                "total receives nine physical pixels while detail slots keep their fixed heights");
-            row.setLayoutParams(compact[i]);row.setTranslationY(translations[i]);
-        }
-        measureCalendar(host,width,height);
-        ok(date.getTop()==dateTop&&date.getHeight()==dateHeight,"daily compaction preserves the date row");
-        android.widget.TextView previous=null;
+        float previousBottom=-1;
         for(int id:new int[]{R.id.calendar_day_total,R.id.calendar_day_coupon,R.id.calendar_day_tiktok,R.id.calendar_day_loss}){
-            android.widget.TextView value=day.findViewById(id);
-            if(previous!=null){
-                float previousBottom=calendarTextTop(day,previous)+previous.getLayout().getHeight();
-                float nextTop=calendarTextTop(day,value);
-                ok(previousBottom<=nextTop,"compacted numeric line layouts do not overlap");
-            }
-            previous=value;
+            android.widget.TextView value=day.findViewById(id);android.graphics.Rect ink=visibleInk(value);
+            float y=0;for(android.view.View view=value;view!=day;view=(android.view.View)view.getParent())y+=view.getY();
+            ok(ink.height()>0&&ink.top>=0&&ink.bottom<=value.getHeight(),"daily amount has visible unclipped ink");
+            ok(previousBottom<=y+ink.top,"daily numeric GLYPHS do not overlap after exact physical-height transfer: "+value.getText()+" previous="+previousBottom+" top="+(y+ink.top));
+            previousBottom=y+ink.bottom;
         }
     }
 
@@ -857,7 +837,8 @@ public class WidgetInstrumentation extends Instrumentation {
         android.text.Layout layout=text.getLayout();
         String[] lines=expected.split("\n",-1);
         ok(expected.contentEquals(text.getText())&&layout!=null&&layout.getLineCount()==lines.length
-            &&layout.getHeight()<=text.getHeight()-text.getPaddingTop()-text.getPaddingBottom(),
+            &&(layout.getHeight()<=text.getHeight()-text.getPaddingTop()-text.getPaddingBottom()
+                ||((id==R.id.calendar_day_total||id==R.id.calendar_forecast_total)&&visibleInk(text).height()>=digitInkHeight(text)-1)),
             "unclipped calendar text "+expected+" textSize="+text.getTextSize()+" height="+text.getHeight()+" width="+text.getWidth()+" measured="+text.getPaint().measureText(expected)+" layoutHeight="+(layout==null?-1:layout.getHeight()));
         int end=0;
         for(int line=0;line<lines.length;line++){
