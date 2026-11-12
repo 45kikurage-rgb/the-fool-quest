@@ -30,3 +30,6 @@ Integrated native run43159500905/job130987081010 passed all three densities/alig
 
 ## Revision12 lock-order correction
 Review found cycleSummary called summary() while holding SUMMARY_LOCK; the fallback obtains BackupCoordinator.get(), which takes LOCK. Worker/restore use LOCK->SUMMARY_LOCK, so this could invert lock order with a pending financial save. Obtain the existing preferences handle BEFORE taking SUMMARY_LOCK, then read either queued or current durable integer inside it without reacquiring coordinator. Existing worker transaction and goAsync remain. Added deterministic native restore-under-LOCK test: queued category appears immediately, restore clears it, delayed flush cannot overwrite restored configuration. Revision11 superseded before signing.
+
+## Revision13 forecast diagnostic (no app change)
+Revision12 run43160692075/job130990981918 passed the34 rapid PendingIntent taps across both real widget hosts, exact full/partial counts, durable category persistence, child identity, subsequent layout/header gates; reached forecast interaction. Device reported CALENDAR_FORECAST broadcast ANR after10sec. Add a test-only3sec watchdog capturing app thread stacks to pinpoint the blocking owner before Android kills the process. No weakening/skipping of checks; no signing/publication. App payload remains revision12.

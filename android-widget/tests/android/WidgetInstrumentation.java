@@ -761,6 +761,11 @@ public class WidgetInstrumentation extends Instrumentation {
     }
 
     void forecastInteractionChecks()throws Exception {
+        final java.util.concurrent.atomic.AtomicBoolean done=new java.util.concurrent.atomic.AtomicBoolean();
+        Thread diagnostic=new Thread(()->{try{Thread.sleep(3000);if(!done.get())for(java.util.Map.Entry<Thread,StackTraceElement[]> entry:Thread.getAllStackTraces().entrySet()){
+            android.util.Log.e("ARUNO_FORECAST_DIAG","THREAD "+entry.getKey().getName()+" "+entry.getKey().getState());
+            for(StackTraceElement frame:entry.getValue())android.util.Log.e("ARUNO_FORECAST_DIAG"," at "+frame);
+        }}catch(InterruptedException expected){}},"forecast-fixture-watchdog");diagnostic.setDaemon(true);diagnostic.start();
         AppWidgetHost host=new AppWidgetHost(c,1337);
         AppWidgetManager manager=AppWidgetManager.getInstance(c);
         int id=host.allocateAppWidgetId();
@@ -791,7 +796,7 @@ public class WidgetInstrumentation extends Instrumentation {
             for(int wait=0;wait<40&&CalendarWidgetState.forecastVisible(c,id)==(tap%2==0);wait++)Thread.sleep(50);
             ok(CalendarWidgetState.forecastVisible(c,id)!=(tap%2==0),"production PendingIntent changes persisted forecast state");
         }
-        RevenueStore.prefs(c).edit().putInt("test.forecastWidget",id).commit();
+        RevenueStore.prefs(c).edit().putInt("test.forecastWidget",id).commit();done.set(true);diagnostic.interrupt();
     }
 
     void corporateText(android.view.View root){
