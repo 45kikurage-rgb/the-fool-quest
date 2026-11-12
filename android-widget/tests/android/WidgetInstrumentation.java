@@ -357,7 +357,7 @@ public class WidgetInstrumentation extends Instrumentation {
                             }
                             int selected=(position+i)%3;int above=inkTop-top,below=top+field.getHeight()-1-inkBottom;
                             if(!(inkBottom>=inkTop&&(selected==0?above<=2:selected==1?below<=2:Math.abs(above-below)<=2)))try{png(image,"failed-header-"+dpi+"-"+i+"-"+selected);}catch(Exception ex){throw new RuntimeException(ex);}
-                            ok(inkBottom>=inkTop&&(selected==0?above<=2:selected==1?below<=2:Math.abs(above-below)<=2),"parent-drawn header glyph alignment dpi"+dpi+" field"+i+" mode"+selected+" above"+above+" below"+below);
+                            ok(inkBottom>=inkTop&&(selected==0?above<=2:selected==1?below<=2:Math.abs(above-below)<=2),"parent-drawn header glyph alignment dpi"+dpi+" field"+i+" mode"+selected+" above"+above+" below"+below+" translation="+field.getTranslationY()+" baseline="+((android.widget.TextView)field).getBaseline()+" lines="+((android.widget.TextView)field).getLayout().getLineCount()+" layoutH="+((android.widget.TextView)field).getLayout().getHeight()+" fieldH="+field.getHeight());
                         }
                         if(dpi==480&&category==0)screenshots.add(image);else image.recycle();
                     }

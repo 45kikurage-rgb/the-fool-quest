@@ -59,7 +59,7 @@ public class CalendarWidget extends AppWidgetProvider {
         return PendingIntent.getBroadcast(c,6000+id,intent,
             PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
     }
-    static void renderOne(Context c,int id){
+    static synchronized void renderOne(Context c,int id){
         AppWidgetManager manager=AppWidgetManager.getInstance(c);
         AppWidgetProviderInfo info=manager.getAppWidgetInfo(id);
         if(info==null)return;
@@ -99,7 +99,7 @@ public class CalendarWidget extends AppWidgetProvider {
             cache.put("totals",totals).put("known",known);headerCache(c).edit().putString(String.valueOf(id),cache.toString()).apply();
         }catch(org.json.JSONException impossible){throw new IllegalStateException(impossible);}
     }
-    static boolean renderSummaryOnly(Context c,int id){
+    static synchronized boolean renderSummaryOnly(Context c,int id){
         try{
             org.json.JSONObject cache=new org.json.JSONObject(headerCache(c).getString(String.valueOf(id),""));
             String month=CalendarWidgetState.month(c,id);
@@ -363,14 +363,16 @@ public class CalendarWidget extends AppWidgetProvider {
         String key=position+":"+Float.floatToIntBits(paint.getTextSize())+":"+Float.floatToIntBits(scale)+":"+c.getResources().getDisplayMetrics().densityDpi+":"+text;
         Float cached=headerOffsets.get(key);
         if(cached!=null){views.setFloat(id,"setTranslationY",cached);return;}
-        android.widget.TextView probe=new android.widget.TextView(c);
+        RemoteViews probeViews=new RemoteViews(c.getPackageName(),R.layout.header_alignment_probe42);
+        probeViews.setTextViewText(R.id.calendar_alignment_probe,text);
+        android.widget.TextView probe=(android.widget.TextView)probeViews.apply(c,null);
         probe.setTypeface(paint.getTypeface());probe.setIncludeFontPadding(false);
         if(android.os.Build.VERSION.SDK_INT>=28)probe.setFallbackLineSpacing(false);
         probe.setElegantTextHeight(false);probe.setMaxLines(1);probe.setPadding(0,0,0,0);
         probe.setTextColor(android.graphics.Color.WHITE);probe.setBackgroundColor(android.graphics.Color.TRANSPARENT);
         probe.setTextSize(TypedValue.COMPLEX_UNIT_PX,paint.getTextSize());probe.setTextScaleX(scale);
         probe.setGravity(android.view.Gravity.START|vertical);probe.setText(text);
-        int height=Math.round(34*c.getResources().getDisplayMetrics().density);
+        int height=Math.round(38*c.getResources().getDisplayMetrics().density);
         int width=Math.max(1,(int)Math.ceil(paint.measureText(text))+4);
         probe.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(height,View.MeasureSpec.EXACTLY));
         probe.layout(0,0,width,height);

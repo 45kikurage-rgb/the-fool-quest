@@ -66,7 +66,7 @@ jobs:
           adb start-server
           "$ANDROID_HOME/emulator/emulator" -avd result17 -no-window -gpu software -memory 4096 -cores 4 -partition-size 8192 -no-snapshot -noaudio -no-boot-anim -no-metrics -camera-back none -camera-front none > "$OUT/emulator.txt" 2>&1 &
           emulator_pid=$!
-          trap 'timeout 10 adb logcat -d -v time > "$OUT/logcat.txt" 2>&1 || true; kill "$emulator_pid" 2>/dev/null || true' EXIT
+          trap 'timeout 10 adb logcat -d -v time > "$OUT/logcat.txt" 2>&1 || true; timeout 30 adb pull /sdcard/Android/data/com.aruno.foolquest.widget.next/files/verification "$OUT/" >/dev/null 2>&1 || true; kill "$emulator_pid" 2>/dev/null || true' EXIT
           booted=false
           deadline=$((SECONDS+300))
           while (( SECONDS < deadline )); do
