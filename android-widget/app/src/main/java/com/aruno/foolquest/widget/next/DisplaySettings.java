@@ -12,8 +12,12 @@ public final class DisplaySettings {
     boolean paceColors = true;
     int paceAchieved = GaugePalette.FIRST_GREEN, paceBehind = GaugePalette.PACE_BEHIND, paceLow = GaugePalette.PACE_LOW, secondLap = GaugePalette.SECOND_LIME;
     int opacity = 100, font = 32, left = 17, right = 6, top = 0, bottom = 0, gap = 0, gauge = 20, textGap = 7;
+    int calendarHeaderMonthAlign=2, calendarHeaderCategoryAlign=2, calendarHeaderAmountAlign=2;
     static DisplaySettings load(SharedPreferences p) {
         DisplaySettings s = new DisplaySettings();
+        s.calendarHeaderMonthAlign=p.getInt("calendarHeaderMonthAlign",2);
+        s.calendarHeaderCategoryAlign=p.getInt("calendarHeaderCategoryAlign",2);
+        s.calendarHeaderAmountAlign=p.getInt("calendarHeaderAmountAlign",2);
         s.targetMarkerColor=p.getInt("colorTargetMarker",s.targetMarkerColor);
         s.tickDivisor=p.getInt("gaugeTickDivisor",s.tickDivisor);
         s.targetLineColor=p.getInt("colorTargetLine",s.targetLineColor);
@@ -44,15 +48,21 @@ public final class DisplaySettings {
         }
     }
     void clamp() {
+        calendarHeaderMonthAlign=alignment(calendarHeaderMonthAlign);
+        calendarHeaderCategoryAlign=alignment(calendarHeaderCategoryAlign);
+        calendarHeaderAmountAlign=alignment(calendarHeaderAmountAlign);
         if(tickDivisor!=3&&tickDivisor!=4&&tickDivisor!=5)tickDivisor=5;
         targetLineWidth=bound(targetLineWidth,1,8);
         opacity=bound(opacity,0,100); font=bound(font,6,64);
         left=bound(left,0,128); right=bound(right,0,128); top=bound(top,0,128); bottom=bound(bottom,0,128);
         gap=bound(gap,0,96); gauge=bound(gauge,1,48); textGap=bound(textGap,0,48);
     }
+    private static int alignment(int v){return v>=0&&v<=2?v:2;}
     private static int bound(int v,int a,int b){ return Math.max(a,Math.min(b,v)); }
     void save(SharedPreferences p) {
-        clamp(); p.edit().putBoolean("paceColors",paceColors).putInt("text",text).putInt("background",background).putInt("colorTotal",total)
+        clamp(); p.edit().putInt("calendarHeaderMonthAlign",calendarHeaderMonthAlign)
+            .putInt("calendarHeaderCategoryAlign",calendarHeaderCategoryAlign)
+            .putInt("calendarHeaderAmountAlign",calendarHeaderAmountAlign).putBoolean("paceColors",paceColors).putInt("text",text).putInt("background",background).putInt("colorTotal",total)
             .putInt("colorTargetMarker",targetMarkerColor).putInt("gaugeTickDivisor",tickDivisor)
             .putInt("colorTargetLine",targetLineColor).putInt("targetLineWidth",targetLineWidth)
             .putInt("colorTiktok",tiktok).putInt("colorCoupon",coupon).putInt("opacity",opacity).putInt("font",font)

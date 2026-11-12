@@ -16,6 +16,8 @@
     </style>
     <style name="CalendarText">
         <item name="android:includeFontPadding">false</item>
+        <item name="android:fallbackLineSpacing">false</item>
+        <item name="android:elegantTextHeight">false</item>
         <item name="android:fontFamily">@font/aru_widget_rounded</item>
         <item name="android:textColor">#FFFFFF</item>
         <item name="android:maxLines">1</item>

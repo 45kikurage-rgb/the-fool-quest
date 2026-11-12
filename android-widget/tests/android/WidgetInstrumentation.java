@@ -307,6 +307,98 @@ public class WidgetInstrumentation extends Instrumentation {
         }
         return null;
     }
+
+    void code42Checks()throws Exception {
+        final java.util.List<android.graphics.Bitmap> screenshots=new java.util.ArrayList<>();
+        runOnMainSync(()->{
+            DisplaySettings saved=DisplaySettings.load(RevenueStore.prefs(c));
+            ok(saved.calendarHeaderMonthAlign==2&&saved.calendarHeaderCategoryAlign==2&&saved.calendarHeaderAmountAlign==2,"all header positions default to actual glyph center");
+            CalendarRevenueData.Month data=new CalendarRevenueData.Month();
+            data.totals[0]=845626;data.totals[1]=646090;data.totals[2]=199536;
+            data.days[1][0]=56000;data.days[1][1]=45000;data.days[1][2]=11000;
+            data.days[2][0]=-56000;data.known[2][0]=true;data.days[2][1]=53000;data.days[2][2]=1000;data.dailyLosses[2]=110000;
+            long now=java.time.Instant.parse("2026-12-01T00:00:00Z").toEpochMilli();
+            for(int dpi:new int[]{160,320,480}){
+                android.content.res.Configuration cfg=new android.content.res.Configuration(c.getResources().getConfiguration());cfg.densityDpi=dpi;
+                Context sized=c.createConfigurationContext(cfg);float density=sized.getResources().getDisplayMetrics().density;
+                android.widget.FrameLayout host=new android.widget.FrameLayout(sized);
+                android.view.View tree=CalendarWidget.buildViews(sized,13042,"2026-11",0,0,data,now,411,400).apply(sized,host);
+                host.addView(tree,new android.widget.FrameLayout.LayoutParams(-1,-1));
+                int width=Math.round(411*density),height=Math.round(400*density);
+                android.view.View baseline=Code41CalendarReference.buildViews(sized,13042,"2026-11",0,0,data,now,411,400).apply(sized,null);
+                android.view.View day=((android.view.ViewGroup)tree.findViewById(R.id.calendar_week_0)).getChildAt(0);
+                android.view.View oldDay=((android.view.ViewGroup)baseline.findViewById(R.id.calendar_week_0)).getChildAt(0);
+                for(int id:new int[]{R.id.calendar_day_total,R.id.calendar_day_coupon,R.id.calendar_day_tiktok,R.id.calendar_day_loss}){
+                    android.widget.TextView current=day.findViewById(id),old=oldDay.findViewById(id);
+                    android.graphics.Rect bounds=new android.graphics.Rect();Paint paint=new Paint(current.getPaint());paint.setTextSize(100);paint.getTextBounds("0123456789",0,10,bounds);
+                    float delta=(current.getTextSize()-old.getTextSize())*bounds.height()/100f;
+                    ok(Math.abs(delta-(id==R.id.calendar_day_total?6f:-2f))<.15f,"code41 visible digit height delta at dpi"+dpi+" id"+id+" is "+delta);
+                }
+                for(int position=0;position<3;position++){
+                    DisplaySettings settings=new DisplaySettings();settings.calendarHeaderMonthAlign=position;settings.calendarHeaderCategoryAlign=(position+1)%3;settings.calendarHeaderAmountAlign=(position+2)%3;settings.save(RevenueStore.prefs(c));
+                    for(int category=0;category<3;category++){
+                        CalendarWidget.buildViews(sized,13042,"2026-11",0,category,data,now,411,400).reapply(sized,tree);measureCalendar(host,width,height);
+                        android.graphics.Bitmap image=android.graphics.Bitmap.createBitmap(width,height,android.graphics.Bitmap.Config.ARGB_8888);tree.draw(new android.graphics.Canvas(image));
+                        int[] ids={R.id.calendar_title,R.id.calendar_summary_label,R.id.calendar_summary_amount};
+                        for(int i=0;i<3;i++){
+                            android.view.View field=tree.findViewById(ids[i]);int left=0,top=0;
+                            for(android.view.View v=field;v!=tree;v=(android.view.View)v.getParent()){left+=v.getLeft();top+=v.getTop();}
+                            int inkTop=top+field.getHeight(),inkBottom=-1;
+                            for(int y=top;y<top+field.getHeight();y++)for(int x=left;x<left+field.getWidth();x++){
+                                int color=image.getPixel(x,y);if(android.graphics.Color.red(color)>180&&android.graphics.Color.green(color)>180&&android.graphics.Color.blue(color)>180){inkTop=Math.min(inkTop,y);inkBottom=Math.max(inkBottom,y);}
+                            }
+                            int selected=(position+i)%3;int above=inkTop-top,below=top+field.getHeight()-1-inkBottom;
+                            ok(inkBottom>=inkTop&&(selected==0?above<=2:selected==1?below<=2:Math.abs(above-below)<=2),"parent-drawn header glyph alignment dpi"+dpi+" field"+i+" mode"+selected+" above"+above+" below"+below);
+                        }
+                        if(dpi==480&&category==0)screenshots.add(image);else image.recycle();
+                    }
+                }
+                new DisplaySettings().save(RevenueStore.prefs(c));
+                CalendarWidget.buildViews(sized,13042,"2026-11",0,0,data,now,411,400).reapply(sized,tree);measureCalendar(host,width,height);
+                day=((android.view.ViewGroup)tree.findViewById(R.id.calendar_week_0)).getChildAt(0);
+                android.view.View forecast=tree.findViewById(R.id.calendar_forecast);
+                int[] dayIds={R.id.calendar_day_number,R.id.calendar_day_total,R.id.calendar_day_coupon,R.id.calendar_day_tiktok};
+                int[] forecastIds={R.id.calendar_forecast_title,R.id.calendar_forecast_total,R.id.calendar_forecast_coupon,R.id.calendar_forecast_tiktok};
+                for(int i=0;i<4;i++){
+                    android.widget.TextView a=day.findViewById(dayIds[i]),b=forecast.findViewById(forecastIds[i]);
+                    ok(a.getTextSize()==b.getTextSize(),"forecast shares daily glyph size row"+i);
+                    float ya=0,yb=0;for(android.view.View v=a;v!=day;v=(android.view.View)v.getParent())ya+=v.getY();for(android.view.View v=b;v!=forecast;v=(android.view.View)v.getParent())yb+=v.getY();
+                    ok(Math.abs(ya-yb)<=1&&a.getHeight()==b.getHeight(),"forecast shares daily row slot"+i);
+                }
+                android.view.View lossDay=((android.view.ViewGroup)tree.findViewById(R.id.calendar_week_0)).getChildAt(1);
+                completeCalendarText(lossDay,R.id.calendar_loss_label,"損失");completeCalendarText(lossDay,R.id.calendar_day_loss,"−11.0万");
+                android.widget.TextView lossLabel=lossDay.findViewById(R.id.calendar_loss_label),lossValue=lossDay.findViewById(R.id.calendar_day_loss);
+                ok(lossLabel.getRight()<=lossValue.getLeft()&&lossLabel.getCurrentTextColor()==0xffff6464&&lossValue.getCurrentTextColor()==0xffff6464,"loss label and negative value are separate fixed red columns");
+                if(dpi==480){android.graphics.Bitmap image=android.graphics.Bitmap.createBitmap(width,height,android.graphics.Bitmap.Config.ARGB_8888);tree.draw(new android.graphics.Canvas(image));screenshots.add(image);}
+            }
+            new DisplaySettings().save(RevenueStore.prefs(c));
+        });
+        for(int i=0;i<screenshots.size();i++){png(screenshots.get(i),"code42-alignment-and-rows-"+i);screenshots.get(i).recycle();}
+        // Actual host update/reapply and PendingIntent delivery, for both widget types.
+        AppWidgetManager manager=AppWidgetManager.getInstance(c);AppWidgetHost host=new AppWidgetHost(c,4242);host.startListening();
+        for(Class<?> provider:new Class<?>[]{CalendarWidget.class,CombinedWidget.class}){
+            int id=host.allocateAppWidgetId();ok(manager.bindAppWidgetIdIfAllowed(id,new ComponentName(c,provider)),"bind code42 partial-update host");
+            Bundle sizes=new Bundle();sizes.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,360);sizes.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,460);
+            java.util.ArrayList<android.util.SizeF> variants=new java.util.ArrayList<>();variants.add(new android.util.SizeF(360,460));variants.add(new android.util.SizeF(400,460));sizes.putParcelableArrayList(AppWidgetManager.OPTION_APPWIDGET_SIZES,variants);manager.updateAppWidgetOptions(id,sizes);
+            final AppWidgetHostView[] view={null};runOnMainSync(()->{view[0]=host.createView(c,id,manager.getAppWidgetInfo(id));nativeFixture.setContentView(view[0]);CalendarWidget.renderOne(c,id);});waitForIdleSync();Thread.sleep(200);
+            final android.view.View[] firstDay={null};runOnMainSync(()->firstDay[0]=view[0].findViewById(R.id.calendar_week_0));
+            ok(firstDay[0]!=null,"full host contains daily grid");int full=CalendarWidget.fullRenderCount,partial=CalendarWidget.partialRenderCount;
+            for(int tap=0;tap<17;tap++)runOnMainSync(()->view[0].findViewById(R.id.calendar_summary).performClick());
+            for(int n=0;n<100&&CalendarWidget.partialRenderCount<partial+17;n++){waitForIdleSync();Thread.sleep(30);}
+            ok(CalendarWidget.fullRenderCount==full&&CalendarWidget.partialRenderCount==partial+17,"17 rapid taps use header-only updates, no calendar/gauge rebuild");
+            ok(CalendarWidgetState.summary(c,id)==(17*2)%3,"rapid taps retain exact category order");
+            waitForIdleSync();Thread.sleep(100);runOnMainSync(()->{
+                ok(view[0].findViewById(R.id.calendar_week_0)==firstDay[0],"daily view objects survive partial host updates");
+                ok("Coupon".contentEquals(((android.widget.TextView)view[0].findViewById(R.id.calendar_summary_label)).getText()),"actual host displays final rapid-tap category");
+            });
+            host.deleteAppWidgetId(id);
+        }
+        host.stopListening();
+        DisplaySettings keep=DisplaySettings.load(RevenueStore.prefs(c));keep.calendarHeaderMonthAlign=0;keep.calendarHeaderCategoryAlign=1;keep.calendarHeaderAmountAlign=2;keep.save(RevenueStore.prefs(c));
+        DisplaySettings restored=DisplaySettings.load(RevenueStore.prefs(c));ok(restored.calendarHeaderMonthAlign==0&&restored.calendarHeaderCategoryAlign==1&&restored.calendarHeaderAmountAlign==2,"independent header preferences survive load/save");
+        new DisplaySettings().save(RevenueStore.prefs(c));
+    }
+
     void calendarLayoutChecks() {
         ok(c.getApplicationInfo().icon==R.drawable.zz_aruno_launcher_white &&
             c.getDrawable(R.drawable.zz_aruno_launcher_white) instanceof android.graphics.drawable.LayerDrawable &&
@@ -409,7 +501,7 @@ public class WidgetInstrumentation extends Instrumentation {
                             &&orderedRows.getChildAt(2).getId()==R.id.calendar_tiktok_row
                             &&orderedRows.getChildAt(3).getId()==R.id.calendar_loss_row,
                         "the four XML include lines alone set Total/C/T/loss order");
-                    ok(totalRow.getY()+totalRow.getHeight()-cRow.getY()==1f
+                    ok(totalRow.getY()+totalRow.getHeight()-cRow.getY()==7f
                             &&cRow.getY()+cRow.getHeight()-tRow.getY()==1f
                             &&tRow.getY()+tRow.getHeight()-lossRow.getY()==1f,
                         "each daily numeric gap shrinks by exactly one physical pixel");
@@ -548,8 +640,8 @@ public class WidgetInstrumentation extends Instrumentation {
         int[] shifts={0,2,1,0};
         for(int i=0;i<4;i++){
             android.view.View row=day.findViewById(ids[i]);
-            ok(tops[i]-row.getY()==shifts[i]&&heights[i]-row.getHeight()==(i==0?3:0),
-                "three saved pixels enlarge only the total row; C/T/loss slots keep their heights");
+            ok(tops[i]-row.getY()==shifts[i]&&heights[i]-row.getHeight()==(i==0?9:0),
+                "total receives nine physical pixels while detail slots keep their fixed heights");
             row.setLayoutParams(compact[i]);row.setTranslationY(translations[i]);
         }
         measureCalendar(host,width,height);
@@ -1268,6 +1360,7 @@ public class WidgetInstrumentation extends Instrumentation {
                 ok(view[0].findViewById(R.id.coupon_gauge_holder).getHeight()>0,"real host resize retains the third gauge");
             });
             host.stopListening();runOnMainSync(activity::finish);
+            code42Checks();
             calendarLayoutChecks();
             calendarHeaderReapplyChecks();
             forecastInteractionChecks();

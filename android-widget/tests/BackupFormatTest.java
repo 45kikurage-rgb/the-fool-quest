@@ -14,9 +14,11 @@ public final class BackupFormatTest {
             .put("goals",new JSONObject().put("tiktok",123000).put("coupon",456000));
         Map<String,Object> p=new HashMap<>();p.put("nativeRevenueV1",nativeData.toString());p.put("font",37);p.put("goalTotal",579000L);
         p.put("calendar.forecastHidden.3",1);p.put("calendar.filter.3",2);p.put("paceColors",true);p.put("myBestCouponDailyCredentialV1","secret-value");p.put("password","not-for-backup");
+        p.put("calendarHeaderMonthAlign",0);p.put("calendarHeaderCategoryAlign",1);p.put("calendarHeaderAmountAlign",2);
         String json=BackupFormat.create(p,"change",1794096000000L,35);
         JSONObject parsed=BackupFormat.parse(json);Map<String,Object> out=BackupFormat.decode(parsed.getJSONObject("preferences"));
         ok(!json.contains("secret-value")&&!json.contains("not-for-backup"),"credential values excluded");
+        ok(out.get("calendarHeaderMonthAlign").equals(0)&&out.get("calendarHeaderCategoryAlign").equals(1)&&out.get("calendarHeaderAmountAlign").equals(2),"three independent header positions roundtrip");
         ok(out.get("font") instanceof Integer&&out.get("goalTotal") instanceof Long,"integer versus long types preserved");
         ok(out.get("calendar.forecastHidden.3").equals(1),"forecast visibility preserved");
         ok(out.get("paceColors") instanceof Boolean,"boolean preserved");
