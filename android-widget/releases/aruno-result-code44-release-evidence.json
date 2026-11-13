@@ -1,0 +1,104 @@
+{
+  "schema": 1,
+  "applicationId": "com.aruno.foolquest.widget.next",
+  "version": "0.1.43",
+  "versionCode": 44,
+  "sourceCommit": "3d39876762a418840b9da069900d77138dea472b",
+  "testCommit": "3d39876762a418840b9da069900d77138dea472b",
+  "apkSha256": "547414ec22e315d0d530a628507de8bf2143ab96fd2f5fa86afd282032284fac",
+  "apkBytes": 3198455,
+  "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+  "unsignedSha256": "a9ba340fe0219cd370dc70a28146dbbf7642abac8f6045c89f0850d509125d9b",
+  "signingReceipt": {
+    "apk_sha256": "547414ec22e315d0d530a628507de8bf2143ab96fd2f5fa86afd282032284fac",
+    "app_id": "foolquest-widget-next",
+    "certificate_sha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+    "device_verified": false,
+    "existing_key": true,
+    "package": "com.aruno.foolquest.widget.next",
+    "production_release": false,
+    "published": false,
+    "run_id": "43343534505",
+    "schema": 1,
+    "source_commit": "3d39876762a418840b9da069900d77138dea472b",
+    "source_repository": "45kikurage-rgb/the-fool-quest",
+    "trial_signed": true,
+    "unsigned_sha256": "a9ba340fe0219cd370dc70a28146dbbf7642abac8f6045c89f0850d509125d9b",
+    "version_code": 44,
+    "version_name": "0.1.43",
+    "workflow_commit": "18ffa785f468e4977d9e548aff24934e77b72b03"
+  },
+  "signingReceiptNote": "Receipt records pre-publication stage; publicationStatus records later public verification.",
+  "softwareChecks": {
+    "android17": {
+      "normal": 25312,
+      "offline": 2767,
+      "reboot": 2759,
+      "run": 43340880716,
+      "job": 131608575465,
+      "signedPayloadMatches": true,
+      "matchingPayloadEntries": 45
+    },
+    "backupAndroid17": {
+      "normal": 46,
+      "reboot": 4,
+      "run": 43340880716,
+      "job": 131608575465
+    },
+    "officialUpgrade": {
+      "fromCode": 43,
+      "toCode": 44,
+      "apis": [
+        37
+      ],
+      "fixtureFields": 42,
+      "run": 43343534505,
+      "uidPreserved": true
+    }
+  },
+  "payloadComparison": {
+    "passed": true,
+    "entries": 45,
+    "verifiedBy": "Stage job of ops run 43343534505 asserted exact equality of all non-signature ZIP entries between the natively tested unsigned APK and the signed APK; signed APK payload entry count (45) and SHA-256 re-verified locally."
+  },
+  "officialUpgrade": {
+    "passed": true,
+    "app": "result",
+    "api": 37,
+    "package": "com.aruno.foolquest.widget.next",
+    "version_code": 44,
+    "source_commit": "3d39876762a418840b9da069900d77138dea472b",
+    "apk_sha256": "547414ec22e315d0d530a628507de8bf2143ab96fd2f5fa86afd282032284fac",
+    "certificate_sha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+    "data_preservation": "PASS_DISPOSABLE_EMULATOR",
+    "physical_device_verified": false,
+    "published": false
+  },
+  "reboot": {
+    "passed": true,
+    "exact_widget_preferences_preserved": true
+  },
+  "independentRestore": {
+    "run": 43343534505,
+    "primary": "success",
+    "backup": "success",
+    "note": "Upgrade job succeeded on attempt 3; attempts 1-2 failed on disposable-emulator infrastructure (adb reboot client timeout; accessibility hierarchy unavailable), not on app assertions. Attempt 1 had already printed the upgrade PASS line before its reboot-step timeout."
+  },
+  "changes": [
+    "カレンダーの「月末予想」の見出しで4文字目が表示されない不具合を根本修正。code43の文字サイズ縮小が実機では効かなかった（横幅フィットが描画幅を金額の予算幅へそろえるため）ことを受け、見出しの大きさを「余裕4dpを差し引いた横幅に収まる大きさ」で決める方式に変更し、予備の横圧縮も同じ余裕付き予算で計算。検証に実機相当の高さ（520dp）のケースを追加。",
+    "金額・日付・その他の表示、設定、保存形式、署名、端末内データはcode43から変更なし。"
+  ],
+  "publicationStatus": "PENDING_PUBLICATION",
+  "distributionUrls": [
+    "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
+    "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
+  ],
+  "apkUrls": [
+    "https://the-fool-quest.45kikurage.workers.dev/android-widget/releases/aruno-result-0.1.43.apk",
+    "https://45kikurage-rgb.github.io/the-fool-quest/android-widget/releases/aruno-result-0.1.43.apk"
+  ],
+  "physicalDeviceVerified": false,
+  "formalOperationConfirmed": false,
+  "transferMethod": "Signed candidate artifact of ops run 43343534505 downloaded and verified locally (bytes, SHA-256, apksigner certificate, aapt2 badging) before registration; tested and signed payloads match.",
+  "historicalDataLoss": "code32 incident cause remains undetermined; this release does not establish recovery of previously lost device data."
+}

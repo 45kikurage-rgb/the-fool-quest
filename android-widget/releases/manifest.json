@@ -1,19 +1,19 @@
 {
   "applicationId": "com.aruno.foolquest.widget.next",
-  "version": "0.1.42",
-  "versionCode": 43,
+  "version": "0.1.43",
+  "versionCode": 44,
   "minSdk": 26,
   "targetSdk": 35,
   "size": 3198455,
-  "sha256": "0a9f25626442a1dfdea2226766274e5013f25df7cbeec6e5f9c0a57672cf31b8",
+  "sha256": "547414ec22e315d0d530a628507de8bf2143ab96fd2f5fa86afd282032284fac",
   "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
   "couponUpdate": "Daily revenue for priced coupons via authenticated Ledger; monthly reader retained",
   "tiktokUpdate": "On-demand current-month point-history CSV fetch in the in-app WebView; manual CSV import and manual revenue entry remain available",
   "changes": [
-    "カレンダーの「月末予想」の見出しで4文字目が表示されない不具合を修正。見出し専用の文字サイズ（日付数字より3px小さいサイズ）を導入し、横幅の計算も同じサイズに統一。",
-    "金額・日付・その他の表示、設定、保存形式、署名、端末内データはcode42から変更なし。"
+    "カレンダーの「月末予想」の見出しで4文字目が表示されない不具合を根本修正。code43の文字サイズ縮小が実機では効かなかった（横幅フィットが描画幅を金額の予算幅へそろえるため）ことを受け、見出しの大きさを「余裕4dpを差し引いた横幅に収まる大きさ」で決める方式に変更し、予備の横圧縮も同じ余裕付き予算で計算。検証に実機相当の高さ（520dp）のケースを追加。",
+    "金額・日付・その他の表示、設定、保存形式、署名、端末内データはcode43から変更なし。"
   ],
-  "file": "aruno-result-0.1.42.apk",
+  "file": "aruno-result-0.1.43.apk",
   "installation": "Update in place without uninstalling. Existing package, signer and data paths are retained. Use the existing backup folder selection to keep automatic independent backup files.",
   "legacy": {
     "applicationId": "com.aruno.foolquest.widget",
@@ -26,11 +26,11 @@
   },
   "previousRelease": {
     "applicationId": "com.aruno.foolquest.widget.next",
-    "version": "0.1.41",
-    "versionCode": 42,
-    "file": "aruno-result-0.1.41.apk",
+    "version": "0.1.42",
+    "versionCode": 43,
+    "file": "aruno-result-0.1.42.apk",
     "size": 3198455,
-    "sha256": "0ee00fce4980345944aeae40a6f6957c52ec5603950fff1ee849b97daca80693",
+    "sha256": "0a9f25626442a1dfdea2226766274e5013f25df7cbeec6e5f9c0a57672cf31b8",
     "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730"
   },
   "archives": [
@@ -278,25 +278,25 @@
       "file": "fool-quest-widget-0.1.13-original.apk"
     }
   ],
-  "sourceCommit": "11c661eb845d049277629a48def2ba5736f0b1c6",
-  "unsignedSha256": "3e9a1c4f291f7ea60daec26ce8b5fa4bef2ef334a985297c2c18cfa03e9f29ff",
+  "sourceCommit": "3d39876762a418840b9da069900d77138dea472b",
+  "unsignedSha256": "a9ba340fe0219cd370dc70a28146dbbf7642abac8f6045c89f0850d509125d9b",
   "deviceVerified": false,
   "deliveryStatus": "production-update",
   "dailyTargetUpdate": "JST midnight; exact alarm when allowed, inexact fallback otherwise; no network required",
-  "signingRunId": 43285649920,
-  "softwareTestRunId": 43277843525,
+  "signingRunId": 43343534505,
+  "softwareTestRunId": 43340880716,
   "distributionUrls": [
     "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
     "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
   ],
   "lossUpdate": "Manually record, edit and delete separate TikTok Lite and Coupon losses by date; preserve the gross source; net amounts subtract losses once",
   "lossDisplay": "Combined daily losses shown in red below the TikTok row; daily and monthly totals are net of losses",
-  "upgradeTestRunId": 43285649920,
-  "publicationStatus": "PUBLISHED_VERIFIED",
+  "upgradeTestRunId": 43343534505,
+  "publicationStatus": "PENDING_PUBLICATION",
   "displayName": "Aruno-Result",
-  "releaseStatus": "FORECAST_TITLE_FIX_PHYSICAL_PENDING",
+  "releaseStatus": "FORECAST_TITLE_RESERVE_FIX_PHYSICAL_PENDING",
   "updateRecommended": false,
-  "notice": "Month-end forecast title fix: the forecast heading now uses a dedicated glyph size 3px smaller than the daily numerals so all four characters render; official code42 to code43 upgrade preserved UID and 42 fixture fields on the Android 17 emulator. Pixel 10 physical acceptance of the fix remains unconfirmed.",
+  "notice": "Month-end forecast title root fix: the code43 size cut did not change the rendered title on the Pixel 10 because the width fit normalized the title to the amount budget; the title size is now chosen from the budget minus a 4dp reserve, with the backstop horizontal scale computed against the same reserved budget. New instrumentation at device height reproduced the defect (title 41.31px vs reserved-fit 33.77px at dpi 420) and passes with the fix. Official code43 to code44 upgrade preserved UID and 42 fixture fields on the Android 17 emulator. Pixel 10 physical acceptance of the fix remains unconfirmed.",
   "backup": {
     "format": "aruno-result-backup",
     "formatVersion": 1,
@@ -310,53 +310,34 @@
   },
   "softwareChecks": {
     "android17": {
-      "normal": 25302,
+      "normal": 25312,
       "offline": 2767,
       "reboot": 2759,
-      "run": 43277843525,
-      "job": 131390923817,
+      "run": 43340880716,
+      "job": 131608575465,
       "signedPayloadMatches": true,
       "matchingPayloadEntries": 45
     },
     "backupAndroid17": {
       "normal": 46,
       "reboot": 4,
-      "run": 43277843525,
-      "job": 131390923817
+      "run": 43340880716,
+      "job": 131608575465
     },
     "officialUpgrade": {
-      "fromCode": 42,
-      "toCode": 43,
+      "fromCode": 43,
+      "toCode": 44,
       "apis": [
         37
       ],
       "fixtureFields": 42,
-      "run": 43285649920,
-      "job": 131419068604,
+      "run": 43343534505,
       "uidPreserved": true
     }
   },
-  "android17TestRunId": 43277843525,
-  "releaseEvidence": "aruno-result-code43-release-evidence.json",
+  "android17TestRunId": 43340880716,
+  "releaseEvidence": "aruno-result-code44-release-evidence.json",
   "launcherBackground": "#FFFFFF",
   "launcherArtworkUnchanged": true,
-  "launcherIconResource": "@drawable/zz_aruno_launcher_white",
-  "publicVerification": {
-    "verifiedAt": "2026-11-12T22:21:15+00:00",
-    "releaseCommit": "93ff077a892fece9227cf63bc7b272b26a503dd0",
-    "pageVersionVerified": true,
-    "apkSha256": "0a9f25626442a1dfdea2226766274e5013f25df7cbeec6e5f9c0a57672cf31b8",
-    "apkBytes": 3198455,
-    "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
-    "package": "com.aruno.foolquest.widget.next",
-    "versionCode": 43,
-    "versionName": "0.1.42",
-    "origins": [
-      "https://45kikurage-rgb.github.io/the-fool-quest",
-      "https://the-fool-quest.45kikurage.workers.dev"
-    ],
-    "previousCode42Retained": true,
-    "verificationMethod": "Manual HTTP retrieval from both public origins; SHA-256 and size compared, apksigner certificate and aapt2 badging checked on both downloaded APK copies.",
-    "detailedEvidence": "../../../release-tests/code43/public-verification.json"
-  }
+  "launcherIconResource": "@drawable/zz_aruno_launcher_white"
 }
