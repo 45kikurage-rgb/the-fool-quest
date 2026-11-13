@@ -592,6 +592,43 @@ public class WidgetInstrumentation extends Instrumentation {
                     checkCalendarHeader(calendar,"2026年5月\u3000","Total","¥9,007,199,254,740,991");
                 }
             }
+            // Code44 spec (Pixel 10 device check, code42/code43): at the
+            // minimum height 236 the date size collapses and the forecast
+            // title never nears its fit boundary, so the loop above cannot
+            // see the device failure. Render at the device-like height 520
+            // and require the title to keep a 4dp reserve in its budget.
+            for(int tallDpi:new int[]{420,480}){
+                android.content.res.Configuration tallConfig=new android.content.res.Configuration(c.getResources().getConfiguration());
+                tallConfig.densityDpi=tallDpi;
+                Context tallContext=c.createConfigurationContext(tallConfig);
+                float tallDensity=tallContext.getResources().getDisplayMetrics().density;
+                    android.widget.FrameLayout tallHost=new android.widget.FrameLayout(tallContext);
+                    android.view.View tallCalendar=CalendarWidget.buildViews(tallContext,first,"2026-11",0,0,data,
+                        java.time.Instant.parse("2026-11-09T00:00:00Z").toEpochMilli(),411,520).apply(tallContext,tallHost);
+                    tallHost.addView(tallCalendar,new android.widget.FrameLayout.LayoutParams(-1,-1));
+                    int tallWidth=Math.round(411*tallDensity),tallHeight=Math.round(520*tallDensity);
+                    tallHost.measure(android.view.View.MeasureSpec.makeMeasureSpec(tallWidth,android.view.View.MeasureSpec.EXACTLY),
+                        android.view.View.MeasureSpec.makeMeasureSpec(tallHeight,android.view.View.MeasureSpec.EXACTLY));
+                    tallHost.layout(0,0,tallWidth,tallHeight);
+                    android.view.ViewGroup tallGrid=tallCalendar.findViewById(R.id.calendar_grid);
+                    android.view.ViewGroup tallLast=(android.view.ViewGroup)tallGrid.getChildAt(4);
+                    android.view.View tallForecast=tallLast.getChildAt(4);
+                    completeCalendarText(tallForecast,R.id.calendar_forecast_title,"\u6708\u672b\u4e88\u60f3");
+                    android.widget.TextView tallTitle=tallForecast.findViewById(R.id.calendar_forecast_title);
+                    android.widget.TextView tallDate=tallLast.getChildAt(0).findViewById(R.id.calendar_day_number);
+                    float tallAmountBudget=Math.max(6f,(411-8)/7f-5);
+                    android.graphics.Paint tallProbe=new android.graphics.Paint(tallTitle.getPaint());
+                    tallProbe.setTextScaleX(1f);
+                    float tallRatio=tallProbe.measureText("\u6708\u672b\u4e88\u60f3")/tallProbe.getTextSize();
+                    float tallFitGlyph=(tallAmountBudget-4f)*tallDensity/tallRatio;
+                    float tallExpected=Math.min(tallDate.getTextSize()-3f*tallDensity,tallFitGlyph);
+                    ok(Math.abs(tallTitle.getTextSize()-tallExpected)<=1.01f,
+                        "forecast title keeps a 4dp reserve at device height dpi="+tallDpi
+                        +" title="+tallTitle.getTextSize()+" expected="+tallExpected+" date="+tallDate.getTextSize());
+                    ok(tallTitle.getLayout().getLineWidth(0)<=(tallAmountBudget-4f)*tallDensity+1f,
+                        "forecast title line stays inside the reserved budget dpi="+tallDpi
+                        +" line="+tallTitle.getLayout().getLineWidth(0)+" budget="+((tallAmountBudget-4f)*tallDensity));
+            }
             CalendarWidgetState.toggleForecast(c,first);
             android.view.View hidden=CalendarWidget.buildViews(c,first,"2026-11",0,0,data,
                 java.time.Instant.parse("2026-11-09T00:00:00Z").toEpochMilli()).apply(c,new android.widget.FrameLayout(c));
@@ -796,7 +833,7 @@ public class WidgetInstrumentation extends Instrumentation {
                 android.view.View forecast=tree[0].findViewById(R.id.calendar_forecast);
                 ok(forecast.findViewById(R.id.calendar_forecast_title).getVisibility()==android.view.View.VISIBLE,"forecast title always remains");
                 ok((forecast.findViewById(R.id.calendar_forecast_values).getVisibility()==android.view.View.VISIBLE)==(n%2==0),"tap toggles every amount and C/T label together");
-                if(n==0){completeCalendarText(forecast,R.id.calendar_forecast_total,"218万");completeCalendarText(forecast,R.id.calendar_forecast_coupon,"163万");completeCalendarText(forecast,R.id.calendar_forecast_tiktok,"54万");}
+                if(n==0){completeCalendarText(forecast,R.id.calendar_forecast_title,"月末予想");completeCalendarText(forecast,R.id.calendar_forecast_total,"218万");completeCalendarText(forecast,R.id.calendar_forecast_coupon,"163万");completeCalendarText(forecast,R.id.calendar_forecast_tiktok,"54万");}
             });
             android.graphics.Bitmap bitmap=android.graphics.Bitmap.createBitmap(tree[0].getWidth(),tree[0].getHeight(),android.graphics.Bitmap.Config.ARGB_8888);
             runOnMainSync(()->tree[0].draw(new android.graphics.Canvas(bitmap)));
