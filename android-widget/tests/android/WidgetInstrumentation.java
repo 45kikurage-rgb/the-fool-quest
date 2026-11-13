@@ -578,7 +578,9 @@ public class WidgetInstrumentation extends Instrumentation {
                         "daily total uses an emphasized, consistent size and weight");
                     android.text.Spanned styledTotal=(android.text.Spanned)total.getText();
                     android.text.style.RelativeSizeSpan[] units=styledTotal.getSpans(0,styledTotal.length(),android.text.style.RelativeSizeSpan.class);
-                    ok(units.length==1&&units[0].getSizeChange()==0.43f
+                    // The expected span mirrors DAILY_TOTAL_UNIT_SCALE in
+                    // CalendarWidget (0.35 since code45, user decision 2026-11-14).
+                    ok(units.length==1&&units[0].getSizeChange()==0.35f
                             &&styledTotal.getSpanStart(units[0])==styledTotal.length()-1,
                         "only the daily total unit uses the small suffix size");
                     ok(coupon.getCurrentTextColor()==0xff63e09e

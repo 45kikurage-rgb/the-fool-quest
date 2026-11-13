@@ -55,7 +55,13 @@ their 0.55x unit scale.
   run 43516136698 SUCCESS in 5m36s — native 25314, offline 2767, reboot 2759,
   backup 46 + 4, all PASS (code44 native was 25312; +2 net from the new
   assertions).
-- The 0.35x unit-scale change is a follow-up commit on the same branch; its
-  gate result, signing and publication are appended below as they complete.
+- The 0.35x unit-scale change (4f9e313) failed the gate twice (runs
+  43517974664 attempts 1-2) with a silent instrumentation crash. The job log
+  held no error; the downloaded result artifact's logcat showed the cause:
+  AssertionError "only the daily total unit uses the small suffix size" at
+  WidgetInstrumentation.java:581 — the span-size assertion still expected
+  the old 0.43f. The code42 ink-height delta checks had already passed with
+  0.35 before that point. Fix: the assertion now expects 0.35f, mirroring
+  DAILY_TOTAL_UNIT_SCALE. Gate re-run on the fix commit is appended below.
   Pixel 10 physical acceptance will remain UNCONFIRMED until the user
   checks the device.
