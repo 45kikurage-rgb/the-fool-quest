@@ -602,7 +602,6 @@ public class WidgetInstrumentation extends Instrumentation {
                 tallConfig.densityDpi=tallDpi;
                 Context tallContext=c.createConfigurationContext(tallConfig);
                 float tallDensity=tallContext.getResources().getDisplayMetrics().density;
-                runOnMainSync(()->{
                     android.widget.FrameLayout tallHost=new android.widget.FrameLayout(tallContext);
                     android.view.View tallCalendar=CalendarWidget.buildViews(tallContext,first,"2026-11",0,0,data,
                         java.time.Instant.parse("2026-11-09T00:00:00Z").toEpochMilli(),411,520).apply(tallContext,tallHost);
@@ -629,7 +628,6 @@ public class WidgetInstrumentation extends Instrumentation {
                     ok(tallTitle.getLayout().getLineWidth(0)<=(tallAmountBudget-4f)*tallDensity+1f,
                         "forecast title line stays inside the reserved budget dpi="+tallDpi
                         +" line="+tallTitle.getLayout().getLineWidth(0)+" budget="+((tallAmountBudget-4f)*tallDensity));
-                });
             }
             CalendarWidgetState.toggleForecast(c,first);
             android.view.View hidden=CalendarWidget.buildViews(c,first,"2026-11",0,0,data,
