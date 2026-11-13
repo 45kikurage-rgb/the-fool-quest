@@ -214,12 +214,20 @@ public class CalendarWidget extends AppWidgetProvider {
                     RemoteViews forecast=new RemoteViews(c.getPackageName(),R.layout.calendar_forecast);
                     int elapsed=month.compareTo(current)<0?days:month.equals(current)?today:0;
                     forecast.setTextViewText(R.id.calendar_forecast_title,"月末予想");
-                    // Device check (Pixel 10, code42): the title's last glyph
-                    // went missing at the day-number size. Draw the title 3
-                    // units smaller so all four characters fit the cell.
-                    float forecastTitleSize=Math.max(1f,dateSize-3f);
+                    // Device check (Pixel 10, code42/code43): the title's
+                    // last glyph went missing. Fitting exactly to the amount
+                    // budget left only about 0.6dp of margin, and while the
+                    // fit binds, the rendered width is normalized to the
+                    // budget whatever the glyph size, so shrinking the size
+                    // alone (code43) changed nothing on the device. Reserve
+                    // 4dp of the budget and pick the glyph size itself to
+                    // fit the reserved budget; keep the horizontal scale as
+                    // a backstop against the same reserved budget.
+                    float forecastBudget=Math.max(1f,amountWidth-4f);
+                    float forecastFitSize=forecastBudget*100f/measure.measureText("月末予想");
+                    float forecastTitleSize=Math.max(1f,Math.min(dateSize-3f,forecastFitSize));
                     forecast.setTextViewTextSize(R.id.calendar_forecast_title,TypedValue.COMPLEX_UNIT_DIP,forecastTitleSize);
-                    forecast.setFloat(R.id.calendar_forecast_title,"setTextScaleX",Math.min(1f,100*amountWidth/(forecastTitleSize*measure.measureText("月末予想"))));
+                    forecast.setFloat(R.id.calendar_forecast_title,"setTextScaleX",Math.min(1f,100*forecastBudget/(forecastTitleSize*measure.measureText("月末予想"))));
                     forecast.setInt(R.id.calendar_forecast_total,"setPaintFlags",DAILY_TOTAL_FLAGS);
                     forecast.setFloat(R.id.calendar_forecast_total,"setTextScaleX",dailyTotalScale);
                     forecast.setTextColor(R.id.calendar_forecast_total,data.totalKnown[0]&&data.totals[0]<0?0xffff9292:0xffffffff);
