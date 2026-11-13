@@ -310,6 +310,10 @@ public class WidgetInstrumentation extends Instrumentation {
 
     int digitInkHeight(android.widget.TextView text){
         Paint paint=new Paint(text.getPaint());paint.setColor(android.graphics.Color.WHITE);
+        // This probe measures digit glyph height only. Since code45 the daily
+        // total carries an underline, which is decoration below the baseline
+        // and must not count as digit ink on either side of the comparison.
+        paint.setFlags(paint.getFlags()&~Paint.UNDERLINE_TEXT_FLAG);
         Paint.FontMetricsInt metrics=paint.getFontMetricsInt();int width=(int)Math.ceil(paint.measureText("0123456789"))+8,height=metrics.bottom-metrics.top+8;
         android.graphics.Bitmap image=android.graphics.Bitmap.createBitmap(width,height,android.graphics.Bitmap.Config.ARGB_8888);
         new android.graphics.Canvas(image).drawText("0123456789",4,4-metrics.top,paint);int top=height,bottom=-1;
@@ -688,8 +692,16 @@ public class WidgetInstrumentation extends Instrumentation {
             android.view.View provisional=CalendarWidget.buildViews(c,first,"2026-11",0,0,couponOnly,now).apply(c,host);
             android.view.View provisionalToday=((android.view.ViewGroup)provisional.findViewById(R.id.calendar_week_0)).getChildAt(3);
             ok("1.2万".contentEquals(((android.widget.TextView)provisionalToday.findViewById(R.id.calendar_day_total)).getText())
-                &&provisionalToday.findViewById(R.id.calendar_tiktok_row).getVisibility()==android.view.View.INVISIBLE,
-                "unknown today TikTok stays hidden without inventing zero revenue");
+                &&provisionalToday.findViewById(R.id.calendar_tiktok_row).getVisibility()==android.view.View.VISIBLE
+                &&"0.0万".contentEquals(((android.widget.TextView)provisionalToday.findViewById(R.id.calendar_day_tiktok)).getText()),
+                "unknown today TikTok displays 0.0万 until its data arrives (user decision 2026-11-14)");
+            android.view.View pastBlank=firstRow.getChildAt(0);
+            ok("0.0万".contentEquals(((android.widget.TextView)pastBlank.findViewById(R.id.calendar_day_total)).getText())
+                &&"0.0万".contentEquals(((android.widget.TextView)pastBlank.findViewById(R.id.calendar_day_coupon)).getText())
+                &&"0.0万".contentEquals(((android.widget.TextView)pastBlank.findViewById(R.id.calendar_day_tiktok)).getText()),
+                "past days without data display 0.0万 for total, coupon and TikTok (user decision 2026-11-14)");
+            ok((((android.widget.TextView)today.findViewById(R.id.calendar_day_total)).getPaint().getFlags()&Paint.UNDERLINE_TEXT_FLAG)!=0,
+                "daily total carries the thin underline (user-selected mock 4)");
             android.view.View tomorrow=firstRow.getChildAt(4);
             ok(tomorrow.findViewById(R.id.calendar_day_total).getVisibility()==android.view.View.INVISIBLE
                 &&tomorrow.findViewById(R.id.calendar_coupon_row).getVisibility()==android.view.View.INVISIBLE,

@@ -13,6 +13,13 @@ public final class CalendarAmountFormatter {
         return (value.signum()<0?"−":"")+value.abs().toPlainString()+"万";
     }
     public static String compactLoss(long yen){return yen<=0?"":compact(-yen,true);}
+    /** Day-cell display only (user decision 2026-11-14): an unknown amount in a
+        past or today cell renders as 0.0万 instead of a dash or 未取得. Stored
+        data is never changed by this; unknown stays unknown for month totals,
+        forecasts and the exact-yen detail view. */
+    public static String compactOrZero(long yen,boolean known) {
+        return !known||yen==RevenueMath.UNKNOWN?"0.0万":compact(yen,true);
+    }
     /** Forecast in whole man-yen; integer arithmetic avoids rounding before projection. */
     public static String forecast(long yen,boolean known,int elapsed,int days){
         if(!known||yen==RevenueMath.UNKNOWN||elapsed<1||elapsed>days)return "—";
