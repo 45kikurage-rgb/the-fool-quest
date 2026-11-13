@@ -88,7 +88,7 @@
     "カレンダーの「月末予想」の見出しで4文字目が表示されない不具合を根本修正。code43の文字サイズ縮小が実機では効かなかった（横幅フィットが描画幅を金額の予算幅へそろえるため）ことを受け、見出しの大きさを「余裕4dpを差し引いた横幅に収まる大きさ」で決める方式に変更し、予備の横圧縮も同じ余裕付き予算で計算。検証に実機相当の高さ（520dp）のケースを追加。",
     "金額・日付・その他の表示、設定、保存形式、署名、端末内データはcode43から変更なし。"
   ],
-  "publicationStatus": "PENDING_PUBLICATION",
+  "publicationStatus": "PUBLISHED_VERIFIED",
   "distributionUrls": [
     "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
     "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
@@ -100,5 +100,23 @@
   "physicalDeviceVerified": false,
   "formalOperationConfirmed": false,
   "transferMethod": "Signed candidate artifact of ops run 43343534505 downloaded and verified locally (bytes, SHA-256, apksigner certificate, aapt2 badging) before registration; tested and signed payloads match.",
-  "historicalDataLoss": "code32 incident cause remains undetermined; this release does not establish recovery of previously lost device data."
+  "historicalDataLoss": "code32 incident cause remains undetermined; this release does not establish recovery of previously lost device data.",
+  "publicVerification": {
+    "verifiedAt": "2026-11-13T02:03:55+00:00",
+    "releaseCommit": "16bfea7ff9ec51801822c50435b4ac7cb1aa1426",
+    "pageVersionVerified": true,
+    "apkSha256": "547414ec22e315d0d530a628507de8bf2143ab96fd2f5fa86afd282032284fac",
+    "apkBytes": 3198455,
+    "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+    "package": "com.aruno.foolquest.widget.next",
+    "versionCode": 44,
+    "versionName": "0.1.43",
+    "origins": [
+      "https://45kikurage-rgb.github.io/the-fool-quest",
+      "https://the-fool-quest.45kikurage.workers.dev"
+    ],
+    "previousCode43Retained": true,
+    "verificationMethod": "Manual HTTP retrieval from both public origins; SHA-256 and size compared, apksigner certificate and aapt2 badging checked on both downloaded APK copies.",
+    "detailedEvidence": "../../../release-tests/code44/public-verification.json"
+  }
 }
