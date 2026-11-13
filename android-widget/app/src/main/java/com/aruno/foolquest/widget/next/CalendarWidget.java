@@ -23,7 +23,9 @@ public class CalendarWidget extends AppWidgetProvider {
         R.id.calendar_week_0,R.id.calendar_week_1,R.id.calendar_week_2,
         R.id.calendar_week_3,R.id.calendar_week_4
     };
-    private static final float DAILY_TOTAL_UNIT_SCALE=0.43f;
+    // User decision 2026-11-14: the daily total's 万 is drawn at 0.35x so the
+    // digits carry the row (was 0.43x through code44).
+    private static final float DAILY_TOTAL_UNIT_SCALE=0.35f;
     // The underline separates the daily total from its C/T detail rows
     // (user-selected design "mock 4", 2026-11-14).
     private static final int DAILY_TOTAL_FLAGS=Paint.ANTI_ALIAS_FLAG|Paint.FAKE_BOLD_TEXT_FLAG|Paint.SUBPIXEL_TEXT_FLAG|Paint.UNDERLINE_TEXT_FLAG;

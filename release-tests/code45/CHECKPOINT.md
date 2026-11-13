@@ -16,12 +16,14 @@ through production publication.
    stay blank. The user accepted that a genuinely-zero day and a
    not-yet-imported day become indistinguishable in the day cells.
 
-## Finding: plan 1 was already shipped
-The 万 in the daily total is already drawn at 0.43x via
+## Finding: plan 1 was already shipped — then retuned to 0.35x
+The 万 in the daily total was already drawn at 0.43x via
 DAILY_TOTAL_UNIT_SCALE (RelativeSizeSpan in amount()), smaller than the
-0.55x used in the mockups. The code45 delta is therefore only the underline
-plus the zero-display rule; the unit scale is intentionally left unchanged
-(raising it to the mockup's 0.55 would make 万 larger than today).
+0.55x used in the mockups, so the first code45 commit changed only the
+underline and the zero-display rule. The user then asked for the unit scale
+itself to become 0.35x (2026-11-14); DAILY_TOTAL_UNIT_SCALE is now 0.35f,
+which also frees width budget for the digits. The C/T detail rows keep
+their 0.55x unit scale.
 
 ## Source changes (branch fix/daily-total-underline-zero-display, from main 6f1d688)
 - CalendarWidget.java: DAILY_TOTAL_FLAGS gains Paint.UNDERLINE_TEXT_FLAG
@@ -49,5 +51,11 @@ plus the zero-display rule; the unit scale is intentionally left unchanged
   deltas keep their meaning.
 
 ## Gates / signing / publication
-Pending. To be appended as they complete. Pixel 10 physical acceptance will
-remain UNCONFIRMED until the user checks the device.
+- Native gate at d027df5 (underline + zero display, unit scale still 0.43):
+  run 43516136698 SUCCESS in 5m36s — native 25314, offline 2767, reboot 2759,
+  backup 46 + 4, all PASS (code44 native was 25312; +2 net from the new
+  assertions).
+- The 0.35x unit-scale change is a follow-up commit on the same branch; its
+  gate result, signing and publication are appended below as they complete.
+  Pixel 10 physical acceptance will remain UNCONFIRMED until the user
+  checks the device.
