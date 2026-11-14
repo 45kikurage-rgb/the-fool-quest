@@ -583,7 +583,11 @@ public class WidgetInstrumentation extends Instrumentation {
                             &&orderedRows.getChildAt(1).getId()==R.id.calendar_coupon_row
                             &&orderedRows.getChildAt(2).getId()==R.id.calendar_tiktok_row,
                         "the three XML include lines alone set Total/C/T order");
-                    ok(totalRow.getY()+totalRow.getHeight()-cRow.getY()==1f
+                    // The total view is translated up by half its hanging
+                    // unit line (code46 digits centering), so its slot gap
+                    // is the physical 1px plus that translation.
+                    ok(Math.abs(totalRow.getY()+totalRow.getHeight()-cRow.getY()-(1f+totalRow.getTranslationY()))<=0.01f
+                            &&totalRow.getTranslationY()<0f
                             &&cRow.getY()+cRow.getHeight()-tRow.getY()==3f,
                         "each daily numeric gap shrinks by exactly one physical pixel");
                     ok(Math.abs((tRow.getY()+tRow.getHeight())-orderedRows.getHeight())<=3f,
