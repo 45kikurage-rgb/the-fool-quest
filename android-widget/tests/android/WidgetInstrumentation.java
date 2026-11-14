@@ -590,7 +590,7 @@ public class WidgetInstrumentation extends Instrumentation {
                         "TikTok row sits at the bottom of the amount rows");
                     android.view.View lossBlock=lastDay.findViewById(R.id.calendar_loss_block);
                     ok(lossBlock.getVisibility()==android.view.View.VISIBLE
-                            &&lossBlock.getParent().getId()==R.id.calendar_day_top,
+                            &&((android.view.View)lossBlock.getParent()).getId()==R.id.calendar_day_top,
                         "loss block rides in the date band instead of a bottom row");
                     checkDailyCompaction(host,lastDay,width,height);
                     android.view.View firstDay=firstRow.getChildAt(0);
