@@ -79,5 +79,19 @@ their 0.55x unit scale.
 - Publication registration (manifest publicationStatus
   PENDING_PUBLICATION), merge and post-publication verification are
   appended below as they complete.
+- Registration commits on the PR branch: 05bb1ec (manifest, evidence,
+  download page, this checkpoint) and 9b1c801 (signed APK via web UI
+  upload). PR #65 merged to main as
+  9c9c7e22a875a13f7ff14756a50957ba4bac5a73 — code45 is published.
+- Post-publication live verification 2026-11-14T01:25:05Z: both origins
+  (Workers and GitHub Pages) serve the code45 page, an identical
+  manifest (0.1.44 / 45) and the signed APK (3,198,455 bytes, SHA-256
+  d2c5ba1b..., certificate and badging verified on the downloaded
+  copies); the code44 APK remains available on both.
+  release-tests/code45/public-verification.json records the detail, and
+  manifest/evidence publicationStatus is finalized to
+  PUBLISHED_VERIFIED in the finalization commit on main.
+- Remaining: Pixel 10 physical acceptance by the user (underline,
+  0.35x unit, 0.0\u4e07 days, forecast-title regression check).
   Pixel 10 physical acceptance will remain UNCONFIRMED until the user
   checks the device.

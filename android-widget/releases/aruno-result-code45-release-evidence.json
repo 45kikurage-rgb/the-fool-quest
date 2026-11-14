@@ -89,7 +89,7 @@
     "当日（日本時間0時以降）と過去の収支なし日は、合計・クーポン・TikTokの金額を空白・「—」・「未取得」ではなく「0.0万」で表示。未来日は空白のまま。保存データ・当月収益・月末予想・タップで開く実額表示は従来どおりで、「0.0万」は表示だけの置き換え。",
     "設定・保存形式・署名・端末内データはcode44から変更なし。「月末予想」見出しの修正（code44）も維持。"
   ],
-  "publicationStatus": "PENDING_PUBLICATION",
+  "publicationStatus": "PUBLISHED_VERIFIED",
   "distributionUrls": [
     "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
     "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
@@ -101,5 +101,23 @@
   "physicalDeviceVerified": false,
   "formalOperationConfirmed": false,
   "transferMethod": "Signed candidate artifact of ops run 43527159429 downloaded and verified locally (bytes, SHA-256, keytool certificate, aapt2 badging) before registration; tested and signed payloads match.",
-  "historicalDataLoss": "code32 incident cause remains undetermined; this release does not establish recovery of previously lost device data."
+  "historicalDataLoss": "code32 incident cause remains undetermined; this release does not establish recovery of previously lost device data.",
+  "publicVerification": {
+    "verifiedAt": "2026-11-14T01:25:05+00:00",
+    "releaseCommit": "9c9c7e22a875a13f7ff14756a50957ba4bac5a73",
+    "pageVersionVerified": true,
+    "apkSha256": "d2c5ba1b8ea03245d1dbeb5cb31a0d0962cd25ad05de105a09d387d7e6687a2f",
+    "apkBytes": 3198455,
+    "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+    "package": "com.aruno.foolquest.widget.next",
+    "versionCode": 45,
+    "versionName": "0.1.44",
+    "origins": [
+      "https://45kikurage-rgb.github.io/the-fool-quest",
+      "https://the-fool-quest.45kikurage.workers.dev"
+    ],
+    "previousCode44Retained": true,
+    "verificationMethod": "Manual HTTP retrieval from both public origins; SHA-256 and size compared, keytool certificate and aapt2 badging checked on the downloaded APK copies.",
+    "detailedEvidence": "../../../release-tests/code45/public-verification.json"
+  }
 }

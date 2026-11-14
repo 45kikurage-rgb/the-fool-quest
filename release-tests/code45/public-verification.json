@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "release": "Aruno-Result 0.1.44 / code45",
+  "verifiedAt": "2026-11-14T01:25:05+00:00",
+  "releaseCommit": "9c9c7e22a875a13f7ff14756a50957ba4bac5a73",
+  "mergePullRequest": 65,
+  "pinnedSourceCommit": "a829af50a5f1874d976219b16624c48abcd1f1b2",
+  "apkSha256": "d2c5ba1b8ea03245d1dbeb5cb31a0d0962cd25ad05de105a09d387d7e6687a2f",
+  "apkBytes": 3198455,
+  "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+  "package": "com.aruno.foolquest.widget.next",
+  "versionCode": 45,
+  "versionName": "0.1.44",
+  "origins": [
+    {
+      "origin": "https://the-fool-quest.45kikurage.workers.dev",
+      "downloadPage": "HTTP 200, shows v0.1.44 / code 45",
+      "manifest": "HTTP 200, version 0.1.44 / versionCode 45, identical to the GitHub Pages copy",
+      "apk": "HTTP 200, 3198455 bytes, SHA-256 match, certificate and badging verified on the downloaded copy",
+      "previousCode44Apk": "HTTP 200, SHA-256 547414ec22e315d0d530a628507de8bf2143ab96fd2f5fa86afd282032284fac retained"
+    },
+    {
+      "origin": "https://45kikurage-rgb.github.io/the-fool-quest",
+      "downloadPage": "HTTP 200, shows v0.1.44 / code 45",
+      "manifest": "HTTP 200, version 0.1.44 / versionCode 45, identical to the Workers copy",
+      "apk": "HTTP 200, 3198455 bytes, SHA-256 match, certificate and badging verified on the downloaded copy",
+      "previousCode44Apk": "HTTP 200, SHA-256 547414ec22e315d0d530a628507de8bf2143ab96fd2f5fa86afd282032284fac retained"
+    }
+  ],
+  "physicalDeviceVerified": false,
+  "note": "Pixel 10 physical acceptance of the underline, 0.35x unit and 0.0万 display (plus the code44 forecast-title regression check) remains unconfirmed; emulator evidence is not physical-device verification."
+}
