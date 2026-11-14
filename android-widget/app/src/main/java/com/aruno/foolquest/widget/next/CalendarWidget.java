@@ -23,8 +23,12 @@ public class CalendarWidget extends AppWidgetProvider {
         R.id.calendar_week_0,R.id.calendar_week_1,R.id.calendar_week_2,
         R.id.calendar_week_3,R.id.calendar_week_4
     };
-    private static final float DAILY_TOTAL_UNIT_SCALE=0.43f;
-    private static final int DAILY_TOTAL_FLAGS=Paint.ANTI_ALIAS_FLAG|Paint.FAKE_BOLD_TEXT_FLAG|Paint.SUBPIXEL_TEXT_FLAG;
+    // User decision 2026-11-14: the daily total's 万 is drawn at 0.35x so the
+    // digits carry the row (was 0.43x through code44).
+    private static final float DAILY_TOTAL_UNIT_SCALE=0.35f;
+    // The underline separates the daily total from its C/T detail rows
+    // (user-selected design "mock 4", 2026-11-14).
+    private static final int DAILY_TOTAL_FLAGS=Paint.ANTI_ALIAS_FLAG|Paint.FAKE_BOLD_TEXT_FLAG|Paint.SUBPIXEL_TEXT_FLAG|Paint.UNDERLINE_TEXT_FLAG;
     private static final String[] SUMMARY_LABELS={"Total","Coupon","TikTok"};
     static int[] ids(Context c){
         int[] calendar=ids(c,CalendarWidget.class);
@@ -277,9 +281,12 @@ public class CalendarWidget extends AppWidgetProvider {
                     isToday?0xff304154:valid?0xff202020:0xff121212);
                 boolean showCoupon=isPast||isToday;
                 // A verified CSV can already contain today's TikTok earnings.
-                // Do not hide those confirmed values until tomorrow.
                 boolean todayTikTokKnown=isToday&&(data.known[day][2]||data.days[day][2]>=0);
-                boolean showTikTok=isPast||todayTikTokKnown;
+                // User decision 2026-11-14: past and today cells always show
+                // all three amounts. An amount whose data has not arrived yet
+                // displays as 0.0万 (see compactOrZero); the stored data still
+                // records it as unknown, never as a fabricated zero.
+                boolean showTikTok=isPast||isToday;
                 cell.setViewVisibility(R.id.calendar_day_total,showCoupon&&(filter==0||filter==1)?View.VISIBLE:View.INVISIBLE);
                 cell.setViewVisibility(R.id.calendar_coupon_row,showCoupon&&(filter==0||filter==2)?View.VISIBLE:View.INVISIBLE);
                 cell.setViewVisibility(R.id.calendar_tiktok_row,showTikTok&&(filter==0||filter==3)?View.VISIBLE:View.INVISIBLE);
@@ -290,8 +297,10 @@ public class CalendarWidget extends AppWidgetProvider {
                 if(showLoss)amount(cell,R.id.calendar_day_loss,
                     CalendarAmountFormatter.compactLoss(data.dailyLosses[day]),lossSize,lossAmountWidth,lossMeasure);
                 if(showCoupon){
-                    // Until today's dated TikTok data is available, retain the
-                    // existing coupon-only provisional amount without inventing data.
+                    // Until today's dated TikTok data is available, the total
+                    // stays the coupon-only provisional amount; a component
+                    // with no data yet displays as 0.0万 (user decision
+                    // 2026-11-14, display layer only).
                     boolean provisional=isToday&&!todayTikTokKnown&&!data.known[day][0];
                     long total=provisional?data.days[day][1]:data.days[day][0];
                     boolean totalKnown=provisional
@@ -301,11 +310,11 @@ public class CalendarWidget extends AppWidgetProvider {
                     cell.setFloat(R.id.calendar_day_total,"setTextScaleX",dailyTotalScale);
                     cell.setTextColor(R.id.calendar_day_total,
                         totalKnown&&total<0&&total!=RevenueMath.UNKNOWN?0xffff9292:0xffffffff);
-                    amount(cell,R.id.calendar_day_total,CalendarAmountFormatter.compact(total,totalKnown),
+                    amount(cell,R.id.calendar_day_total,CalendarAmountFormatter.compactOrZero(total,totalKnown),
                         dailyTotalSize,amountWidth,totalMeasure,DAILY_TOTAL_UNIT_SCALE);
-                    amount(cell,R.id.calendar_day_coupon,CalendarAmountFormatter.compact(data.days[day][1],(data.known[day][1]||data.days[day][1]>=0)),detailSize,detailWidth,measure);
+                    amount(cell,R.id.calendar_day_coupon,CalendarAmountFormatter.compactOrZero(data.days[day][1],(data.known[day][1]||data.days[day][1]>=0)),detailSize,detailWidth,measure);
                     if(showTikTok)amount(cell,R.id.calendar_day_tiktok,
-                        !(data.known[day][2]||data.days[day][2]>=0)?"未取得":CalendarAmountFormatter.compact(data.days[day][2],true),detailSize,detailWidth,measure);
+                        CalendarAmountFormatter.compactOrZero(data.days[day][2],(data.known[day][2]||data.days[day][2]>=0)),detailSize,detailWidth,measure);
                     // Rounded amounts always offer the original exact yen values on tap.
                     {
                         String date=month+(day<10?"-0":"-")+day;

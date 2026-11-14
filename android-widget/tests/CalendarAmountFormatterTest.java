@@ -37,6 +37,12 @@ public class CalendarAmountFormatterTest {
         eq(CalendarAmountFormatter.compact(-54290,true),"−5.4万");
         eq(CalendarAmountFormatter.compactLoss(110000),"−11.0万");
         eq(CalendarAmountFormatter.compact(0,false),"—");
+        eq(CalendarAmountFormatter.compactOrZero(0,false),"0.0万");
+        eq(CalendarAmountFormatter.compactOrZero(-1,false),"0.0万");
+        eq(CalendarAmountFormatter.compactOrZero(RevenueMath.UNKNOWN,true),"0.0万");
+        eq(CalendarAmountFormatter.compactOrZero(0,true),"0.0万");
+        eq(CalendarAmountFormatter.compactOrZero(57250,true),"5.7万");
+        eq(CalendarAmountFormatter.compactOrZero(-54290,true),"−5.4万");
         eq(CalendarAmountFormatter.forecast(654152,true,9,30),"218万");
         eq(CalendarAmountFormatter.forecast(491050,true,9,30),"163万");
         eq(CalendarAmountFormatter.forecast(163102,true,9,30),"54万");
