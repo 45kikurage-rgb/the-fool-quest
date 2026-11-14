@@ -346,7 +346,21 @@ public class WidgetInstrumentation extends Instrumentation {
                     android.widget.TextView current=day.findViewById(id),old=oldDay.findViewById(id);
                     android.graphics.Rect bounds=new android.graphics.Rect();Paint paint=new Paint(current.getPaint());paint.setTextSize(100);paint.getTextBounds("0123456789",0,10,bounds);
                     float delta=digitInkHeight(current)-digitInkHeight(old);
-                    ok(Math.abs(delta-(id==R.id.calendar_day_total?6f:-2f))<=1f,"code41 visible digit height delta at dpi"+dpi+" id"+id+" is "+delta);
+                    if(id==R.id.calendar_day_total){
+                        // Code46 contract (user decisions 2026-11-14): the
+                        // total's digits grow past the code41 reference —
+                        // the unit moved below the digits, the minus was
+                        // reduced, and the old loss row's height went to
+                        // the total. The code42-era fixed +6 delta no
+                        // longer describes the design.
+                        ok(delta>0f&&current.getTextSize()>old.getTextSize(),"code46 total digits grow beyond code41 at dpi"+dpi+" delta is "+delta);
+                    }else if(id==R.id.calendar_day_loss){
+                        // The corner loss is a compact flag inside the date
+                        // band, deliberately smaller than the old full row.
+                        ok(delta<0f&&digitInkHeight(current)>0,"code46 corner loss is compact but visible at dpi"+dpi+" delta is "+delta);
+                    }else{
+                        ok(Math.abs(delta-(-2f))<=1f,"code41 visible digit height delta at dpi"+dpi+" id"+id+" is "+delta);
+                    }
                 }
                 for(int position=0;position<3;position++){
                     DisplaySettings settings=new DisplaySettings();settings.calendarHeaderMonthAlign=position;settings.calendarHeaderCategoryAlign=(position+1)%3;settings.calendarHeaderAmountAlign=(position+2)%3;
@@ -390,7 +404,17 @@ public class WidgetInstrumentation extends Instrumentation {
                 android.view.View lossDay=((android.view.ViewGroup)tree.findViewById(R.id.calendar_week_0)).getChildAt(1);
                 completeCalendarText(lossDay,R.id.calendar_loss_label,"損失");completeCalendarText(lossDay,R.id.calendar_day_loss,"−11.0万");
                 android.widget.TextView lossLabel=lossDay.findViewById(R.id.calendar_loss_label),lossValue=lossDay.findViewById(R.id.calendar_day_loss);
-                ok(lossLabel.getRight()<=lossValue.getLeft()&&lossLabel.getCurrentTextColor()==0xffff6464&&lossValue.getCurrentTextColor()==0xffff6464,"loss label and negative value are separate fixed red columns");
+                // Code46: the loss is a two-line block in the top-right
+                // corner of the date band: label above the amount, both
+                // right-aligned and red.
+                ok(lossLabel.getBottom()<=lossValue.getTop()&&Math.abs(lossLabel.getRight()-lossValue.getRight())<=1
+                    &&lossLabel.getCurrentTextColor()==0xffff6464&&lossValue.getCurrentTextColor()==0xffff6464,
+                    "loss label sits above its amount, right-aligned in the corner, both red");
+                android.view.View lossBlock=lossDay.findViewById(R.id.calendar_loss_block);
+                android.view.View lossDate=lossDay.findViewById(R.id.calendar_day_number);
+                ok(lossBlock.getVisibility()==android.view.View.VISIBLE&&lossBlock.getTop()==lossDate.getTop()
+                    &&lossDate.getRight()<=lossBlock.getLeft()+1,
+                    "loss block shares the date band at the top of the cell");
                 if(dpi==480){android.graphics.Bitmap image=android.graphics.Bitmap.createBitmap(width,height,android.graphics.Bitmap.Config.ARGB_8888);tree.draw(new android.graphics.Canvas(image));screenshots.add(image);}
               });
               waitForIdleSync();
@@ -522,8 +546,19 @@ public class WidgetInstrumentation extends Instrumentation {
                     android.view.ViewGroup firstRow=(android.view.ViewGroup)grid.getChildAt(0);
                     completeCalendarText(firstRow.getChildAt(0),R.id.calendar_day_number,"1");
                     android.view.View negativeDay=firstRow.getChildAt(1);
-                    completeCalendarText(negativeDay,R.id.calendar_day_total,"−99.9万");
+                    completeCalendarText(negativeDay,R.id.calendar_day_total,"−99.9\n万");
                     android.widget.TextView negative=negativeDay.findViewById(R.id.calendar_day_total);
+                    android.text.Spanned styledNegative=(android.text.Spanned)negative.getText();
+                    boolean signSpan=false,unitSpan=false;
+                    for(android.text.style.RelativeSizeSpan span:styledNegative.getSpans(0,styledNegative.length(),android.text.style.RelativeSizeSpan.class)){
+                        if(span.getSizeChange()==0.55f&&styledNegative.getSpanStart(span)==0)signSpan=true;
+                        if(span.getSizeChange()==0.35f&&styledNegative.getSpanStart(span)==styledNegative.length()-1)unitSpan=true;
+                    }
+                    ok(signSpan&&unitSpan,"negative total reduces its minus and hangs its unit below the digits");
+                    android.text.style.UnderlineSpan[] negUnder=styledNegative.getSpans(0,styledNegative.length(),android.text.style.UnderlineSpan.class);
+                    ok(negUnder.length==1&&styledNegative.getSpanStart(negUnder[0])==0
+                            &&styledNegative.getSpanEnd(negUnder[0])==styledNegative.length()-2,
+                        "total underline covers the digits only, not the hanging unit");
                     android.widget.TextView missing=firstRow.getChildAt(2).findViewById(R.id.calendar_day_total);
                     ok(negative.getCurrentTextColor()==0xffff9292&&missing.getCurrentTextColor()==0xffffffff,
                         "negative totals use red and unknown totals retain white");
@@ -531,29 +566,36 @@ public class WidgetInstrumentation extends Instrumentation {
                     ok(lastRow.getChildCount()==7,"calendar keeps seven columns");
                     android.view.View lastDay=lastRow.getChildAt(2);
                     completeCalendarText(lastDay,R.id.calendar_day_number,"31");
-                    completeCalendarText(lastDay,R.id.calendar_day_total,"99.9万");
+                    completeCalendarText(lastDay,R.id.calendar_day_total,"99.9\n万");
                     completeCalendarText(lastDay,R.id.calendar_coupon_label,"C");
                     completeCalendarText(lastDay,R.id.calendar_day_coupon,"35.0万");
                     completeCalendarText(lastDay,R.id.calendar_tiktok_label,"T");
                     completeCalendarText(lastDay,R.id.calendar_day_tiktok,"64.9万");
                     completeCalendarText(lastDay,R.id.calendar_day_loss,"−0.2万");
                     android.widget.TextView loss=lastDay.findViewById(R.id.calendar_day_loss);
-                    ok(loss.getCurrentTextColor()==0xffff6464,"loss appears red below TikTok Lite");
+                    ok(loss.getCurrentTextColor()==0xffff6464,"loss appears red in the top-right corner");
                     android.view.View tRow=lastDay.findViewById(R.id.calendar_tiktok_row);
                     android.view.View cRow=lastDay.findViewById(R.id.calendar_coupon_row);
-                    android.view.View lossRow=lastDay.findViewById(R.id.calendar_loss_row);
                     android.view.View totalRow=lastDay.findViewById(R.id.calendar_day_total);
                     android.view.ViewGroup orderedRows=lastDay.findViewById(R.id.calendar_amount_rows);
-                    ok(orderedRows.getChildCount()==4
+                    ok(orderedRows.getChildCount()==3
                             &&orderedRows.getChildAt(0).getId()==R.id.calendar_day_total
                             &&orderedRows.getChildAt(1).getId()==R.id.calendar_coupon_row
-                            &&orderedRows.getChildAt(2).getId()==R.id.calendar_tiktok_row
-                            &&orderedRows.getChildAt(3).getId()==R.id.calendar_loss_row,
-                        "the four XML include lines alone set Total/C/T/loss order");
-                    ok(totalRow.getY()+totalRow.getHeight()-cRow.getY()==1f
-                            &&cRow.getY()+cRow.getHeight()-tRow.getY()==3f
-                            &&tRow.getY()+tRow.getHeight()-lossRow.getY()==3f,
+                            &&orderedRows.getChildAt(2).getId()==R.id.calendar_tiktok_row,
+                        "the three XML include lines alone set Total/C/T order");
+                    // The total view is translated up by half its hanging
+                    // unit line (code46 digits centering), so its slot gap
+                    // is the physical 1px plus that translation.
+                    ok(Math.abs(totalRow.getY()+totalRow.getHeight()-cRow.getY()-(1f+totalRow.getTranslationY()))<=0.01f
+                            &&totalRow.getTranslationY()<0f
+                            &&cRow.getY()+cRow.getHeight()-tRow.getY()==3f,
                         "each daily numeric gap shrinks by exactly one physical pixel");
+                    ok(Math.abs((tRow.getY()+tRow.getHeight())-orderedRows.getHeight())<=3f,
+                        "TikTok row sits at the bottom of the amount rows");
+                    android.view.View lossBlock=lastDay.findViewById(R.id.calendar_loss_block);
+                    ok(lossBlock.getVisibility()==android.view.View.VISIBLE
+                            &&((android.view.View)lossBlock.getParent()).getId()==R.id.calendar_day_top,
+                        "loss block rides in the date band instead of a bottom row");
                     checkDailyCompaction(host,lastDay,width,height);
                     android.view.View firstDay=firstRow.getChildAt(0);
                     for(int id:new int[]{R.id.calendar_day_total,R.id.calendar_day_coupon,R.id.calendar_day_tiktok}){
@@ -674,7 +716,7 @@ public class WidgetInstrumentation extends Instrumentation {
             android.view.View calendar=CalendarWidget.buildViews(c,first,"2026-11",0,0,current,now).apply(c,host);
             android.view.ViewGroup firstRow=calendar.findViewById(R.id.calendar_week_0);
             android.view.View today=firstRow.getChildAt(3);
-            ok("5.7万".contentEquals(((android.widget.TextView)today.findViewById(R.id.calendar_day_total)).getText())
+            ok("5.7\n万".contentEquals(((android.widget.TextView)today.findViewById(R.id.calendar_day_total)).getText())
                 &&today.findViewById(R.id.calendar_coupon_row).getVisibility()==android.view.View.VISIBLE
                 &&today.findViewById(R.id.calendar_tiktok_row).getVisibility()==android.view.View.VISIBLE
                 &&"4.6万".contentEquals(((android.widget.TextView)today.findViewById(R.id.calendar_day_tiktok)).getText())
@@ -684,26 +726,27 @@ public class WidgetInstrumentation extends Instrumentation {
             for(int filter:new int[]{CalendarWidgetState.ALL,CalendarWidgetState.TOTAL,CalendarWidgetState.COUPON,CalendarWidgetState.TIKTOK,CalendarWidgetState.LOSS}){
                 android.view.View filtered=CalendarWidget.buildViews(c,first,"2026-11",filter,0,current,now).apply(c,host);
                 android.view.View day=((android.view.ViewGroup)filtered.findViewById(R.id.calendar_week_0)).getChildAt(3);
-                int[] rowIds={R.id.calendar_day_total,R.id.calendar_coupon_row,R.id.calendar_tiktok_row,R.id.calendar_loss_row};
+                int[] rowIds={R.id.calendar_day_total,R.id.calendar_coupon_row,R.id.calendar_tiktok_row,R.id.calendar_loss_block};
                 for(int row=0;row<4;row++)ok((day.findViewById(rowIds[row]).getVisibility()==android.view.View.VISIBLE)==(filter==0||filter==row+1),
                     "each of five filters displays only its requested rows, including loss");
-                ok("5.7万".contentEquals(((android.widget.TextView)day.findViewById(R.id.calendar_day_total)).getText()),"filtering never changes loss-adjusted total");
+                ok("5.7\n万".contentEquals(((android.widget.TextView)day.findViewById(R.id.calendar_day_total)).getText()),"filtering never changes loss-adjusted total");
             }
             CalendarRevenueData.Month couponOnly=new CalendarRevenueData.Month();
             couponOnly.days[4][1]=12345;
             android.view.View provisional=CalendarWidget.buildViews(c,first,"2026-11",0,0,couponOnly,now).apply(c,host);
             android.view.View provisionalToday=((android.view.ViewGroup)provisional.findViewById(R.id.calendar_week_0)).getChildAt(3);
-            ok("1.2万".contentEquals(((android.widget.TextView)provisionalToday.findViewById(R.id.calendar_day_total)).getText())
+            ok("1.2\n万".contentEquals(((android.widget.TextView)provisionalToday.findViewById(R.id.calendar_day_total)).getText())
                 &&provisionalToday.findViewById(R.id.calendar_tiktok_row).getVisibility()==android.view.View.VISIBLE
                 &&"0.0万".contentEquals(((android.widget.TextView)provisionalToday.findViewById(R.id.calendar_day_tiktok)).getText()),
                 "unknown today TikTok displays 0.0万 until its data arrives (user decision 2026-11-14)");
             android.view.View pastBlank=firstRow.getChildAt(0);
-            ok("0.0万".contentEquals(((android.widget.TextView)pastBlank.findViewById(R.id.calendar_day_total)).getText())
+            ok("0.0\n万".contentEquals(((android.widget.TextView)pastBlank.findViewById(R.id.calendar_day_total)).getText())
                 &&"0.0万".contentEquals(((android.widget.TextView)pastBlank.findViewById(R.id.calendar_day_coupon)).getText())
                 &&"0.0万".contentEquals(((android.widget.TextView)pastBlank.findViewById(R.id.calendar_day_tiktok)).getText()),
                 "past days without data display 0.0万 for total, coupon and TikTok (user decision 2026-11-14)");
-            ok((((android.widget.TextView)today.findViewById(R.id.calendar_day_total)).getPaint().getFlags()&Paint.UNDERLINE_TEXT_FLAG)!=0,
-                "daily total carries the thin underline (user-selected mock 4)");
+            android.text.Spanned todayTotal=(android.text.Spanned)((android.widget.TextView)today.findViewById(R.id.calendar_day_total)).getText();
+            ok(todayTotal.getSpans(0,todayTotal.length(),android.text.style.UnderlineSpan.class).length==1,
+                "daily total carries the thin underline over its digits (user-selected mock 4)");
             android.view.View tomorrow=firstRow.getChildAt(4);
             ok(tomorrow.findViewById(R.id.calendar_day_total).getVisibility()==android.view.View.INVISIBLE
                 &&tomorrow.findViewById(R.id.calendar_coupon_row).getVisibility()==android.view.View.INVISIBLE,
@@ -726,12 +769,23 @@ public class WidgetInstrumentation extends Instrumentation {
     }
     void checkDailyCompaction(android.view.View host,android.view.View day,int width,int height){
         float previousBottom=-1;
-        for(int id:new int[]{R.id.calendar_day_total,R.id.calendar_day_coupon,R.id.calendar_day_tiktok,R.id.calendar_day_loss}){
+        for(int id:new int[]{R.id.calendar_day_total,R.id.calendar_day_coupon,R.id.calendar_day_tiktok}){
             android.widget.TextView value=day.findViewById(id);android.graphics.Rect ink=visibleInk(value);
             float y=0;for(android.view.View view=value;view!=day;view=(android.view.View)view.getParent())y+=view.getY();
             ok(ink.height()>0&&ink.top>=0&&ink.bottom<=value.getHeight(),"daily amount has visible unclipped ink");
             ok(previousBottom<=y+ink.top,"daily numeric GLYPHS do not overlap after exact physical-height transfer: "+value.getText()+" previous="+previousBottom+" top="+(y+ink.top));
             previousBottom=y+ink.bottom;
+        }
+        // The corner loss keeps its ink inside the date band, clear of the
+        // amount rows below it.
+        android.widget.TextView loss=day.findViewById(R.id.calendar_day_loss);
+        if(loss.getVisibility()==android.view.View.VISIBLE){
+            android.graphics.Rect ink=visibleInk(loss);
+            float y=0;for(android.view.View view=loss;view!=day;view=(android.view.View)view.getParent())y+=view.getY();
+            android.view.View rows=day.findViewById(R.id.calendar_amount_rows);
+            float rowsTop=0;for(android.view.View view=rows;view!=day;view=(android.view.View)view.getParent())rowsTop+=view.getY();
+            ok(ink.height()>0&&ink.bottom<=loss.getHeight(),"corner loss has visible unclipped ink");
+            ok(y+ink.bottom<=rowsTop+1,"corner loss ink stays inside the date band");
         }
     }
 
@@ -786,7 +840,7 @@ public class WidgetInstrumentation extends Instrumentation {
                         }
                     }
                     android.view.View day=((android.view.ViewGroup)calendar.findViewById(R.id.calendar_week_0)).getChildAt(0);
-                    int[] rowIds={R.id.calendar_day_total,R.id.calendar_coupon_row,R.id.calendar_tiktok_row,R.id.calendar_loss_row};
+                    int[] rowIds={R.id.calendar_day_total,R.id.calendar_coupon_row,R.id.calendar_tiktok_row,R.id.calendar_loss_block};
                     float[] rowTops=new float[4];
                     int[] rowHeights=new int[4];
                     for(int i=0;i<4;i++){android.view.View row=day.findViewById(rowIds[i]);rowTops[i]=row.getY();rowHeights[i]=row.getHeight();}
@@ -847,7 +901,7 @@ public class WidgetInstrumentation extends Instrumentation {
                 android.view.View forecast=tree[0].findViewById(R.id.calendar_forecast);
                 ok(forecast.findViewById(R.id.calendar_forecast_title).getVisibility()==android.view.View.VISIBLE,"forecast title always remains");
                 ok((forecast.findViewById(R.id.calendar_forecast_values).getVisibility()==android.view.View.VISIBLE)==(n%2==0),"tap toggles every amount and C/T label together");
-                if(n==0){completeCalendarText(forecast,R.id.calendar_forecast_title,"月末予想");completeCalendarText(forecast,R.id.calendar_forecast_total,"218万");completeCalendarText(forecast,R.id.calendar_forecast_coupon,"163万");completeCalendarText(forecast,R.id.calendar_forecast_tiktok,"54万");}
+                if(n==0){completeCalendarText(forecast,R.id.calendar_forecast_title,"月末予想");completeCalendarText(forecast,R.id.calendar_forecast_total,"218\n万");completeCalendarText(forecast,R.id.calendar_forecast_coupon,"163万");completeCalendarText(forecast,R.id.calendar_forecast_tiktok,"54万");}
             });
             android.graphics.Bitmap bitmap=android.graphics.Bitmap.createBitmap(tree[0].getWidth(),tree[0].getHeight(),android.graphics.Bitmap.Config.ARGB_8888);
             runOnMainSync(()->tree[0].draw(new android.graphics.Canvas(bitmap)));
