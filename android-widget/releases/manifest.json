@@ -293,7 +293,7 @@
   "lossUpdate": "Manually record, edit and delete separate TikTok Lite and Coupon losses by date; preserve the gross source; net amounts subtract losses once",
   "lossDisplay": "Combined daily losses shown in red at the top-right of the date band on two lines (label over amount), on loss days only; daily and monthly totals are net of losses",
   "upgradeTestRunId": "43559299427",
-  "publicationStatus": "PENDING_PUBLICATION",
+  "publicationStatus": "PUBLISHED_VERIFIED",
   "displayName": "Aruno-Result",
   "releaseStatus": "DAILY_TOTAL_TWO_LINE_AND_LOSS_TOP_RIGHT_PHYSICAL_PENDING",
   "updateRecommended": false,
@@ -340,5 +340,23 @@
   "releaseEvidence": "aruno-result-code46-release-evidence.json",
   "launcherBackground": "#FFFFFF",
   "launcherArtworkUnchanged": true,
-  "launcherIconResource": "@drawable/zz_aruno_launcher_white"
+  "launcherIconResource": "@drawable/zz_aruno_launcher_white",
+  "publicVerification": {
+    "verifiedAt": "2026-11-14T06:24:19+00:00",
+    "releaseCommit": "b18c1b1ac6fc6475a5372dd1c7825f868b5be0c9",
+    "pageVersionVerified": true,
+    "apkSha256": "506c00de1d6c0b57688e1718c132c711981539ea55ed6628b0ed03b372e593dd",
+    "apkBytes": 3198455,
+    "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+    "package": "com.aruno.foolquest.widget.next",
+    "versionCode": 46,
+    "versionName": "0.1.45",
+    "origins": [
+      "https://45kikurage-rgb.github.io/the-fool-quest",
+      "https://the-fool-quest.45kikurage.workers.dev"
+    ],
+    "previousCode45Retained": true,
+    "verificationMethod": "Manual HTTP retrieval from both public origins; SHA-256 and size compared on the downloaded APK copies; certificate identity established by the existing-signature ops run 43559299427 trial result.",
+    "detailedEvidence": "../../../release-tests/code46/public-verification.json"
+  }
 }
