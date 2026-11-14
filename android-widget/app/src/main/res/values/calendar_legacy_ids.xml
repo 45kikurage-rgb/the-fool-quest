@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Kept only so the frozen code41 reference renderer in the
+         verification suite still compiles: it addresses the loss row
+         that code46 replaced with the calendar_loss_block corner block.
+         No product layout defines or uses this id any more. -->
+    <item name="calendar_loss_row" type="id"/>
+</resources>

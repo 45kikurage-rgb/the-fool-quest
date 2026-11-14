@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Six physical pixels move from the three detail-row margins to Total.
-     Existing total compaction remains 3px; all weighted first-pass sizes stay balanced. -->
+<!-- The total takes the height the loss row used until code45 (weight
+     1.12 -> 2.02), so C/T sit at the bottom of the cell. The total text
+     is two lines: the digits, centered in this band, with the unit
+     hanging below them at the right (the binding shifts the block up by
+     half the unit line so the digits are what centers). Six physical
+     pixels move from the three detail-row margins to Total; existing
+     total compaction remains 3px. -->
 <TextView xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/calendar_day_total" style="@style/CalendarDailyAmount"
-        android:layout_width="match_parent" android:layout_height="9px" android:layout_weight="1.12"
-        android:layout_marginBottom="-3px"
+        android:layout_width="match_parent" android:layout_height="9px" android:layout_weight="2.02"
+        android:layout_marginBottom="-3px" android:maxLines="2"
         android:textScaleX="@dimen/calendar_daily_total_width_scale" />
