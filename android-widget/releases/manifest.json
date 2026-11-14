@@ -1,20 +1,20 @@
 {
   "applicationId": "com.aruno.foolquest.widget.next",
-  "version": "0.1.44",
-  "versionCode": 45,
+  "version": "0.1.45",
+  "versionCode": 46,
   "minSdk": 26,
   "targetSdk": 35,
   "size": 3198455,
-  "sha256": "d2c5ba1b8ea03245d1dbeb5cb31a0d0962cd25ad05de105a09d387d7e6687a2f",
+  "sha256": "506c00de1d6c0b57688e1718c132c711981539ea55ed6628b0ed03b372e593dd",
   "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
   "couponUpdate": "Daily revenue for priced coupons via authenticated Ledger; monthly reader retained",
   "tiktokUpdate": "On-demand current-month point-history CSV fetch in the in-app WebView; manual CSV import and manual revenue entry remain available",
   "changes": [
-    "カレンダーの1日の合計に細い下線を追加し、合計の「万」の大きさを数字の0.35倍に変更（従来は0.43倍）。数字自体の大きさは従来どおり。内訳（C・T）の「万」は従来どおり0.55倍。",
-    "当日（日本時間0時以降）と過去の収支なし日は、合計・クーポン・TikTokの金額を空白・「—」・「未取得」ではなく「0.0万」で表示。未来日は空白のまま。保存データ・当月収益・月末予想・タップで開く実額表示は従来どおりで、「0.0万」は表示だけの置き換え。",
-    "設定・保存形式・署名・端末内データはcode44から変更なし。「月末予想」見出しの修正（code44）も維持。"
+    "日セルの損失表示を最下段の行から日付の右上へ移し、「損失」と金額（例：-10.5万）の2段で赤色表示に変更しました（損失がある日だけ表示）。空いた高さは合計に割り当て、合計の数字を大きくしました。",
+    "合計は数字を縦の中央に配置し、「万」は数字の下に右寄せで0.35倍表示。下線は数字部分だけに付け、合計のマイナス記号は0.55倍に縮小しました。内訳（C・T）は下寄せに変更しました。",
+    "月末予想セルも日セルと同じ2行合計に統一し、C・Tの位置が揃うようにしました。設定・保存形式・署名・端末内データはcode45から変更なし。code45の表示仕様（収支なし日の「0.0万」表示など）も維持しています。"
   ],
-  "file": "aruno-result-0.1.44.apk",
+  "file": "aruno-result-0.1.45.apk",
   "installation": "Update in place without uninstalling. Existing package, signer and data paths are retained. Use the existing backup folder selection to keep automatic independent backup files.",
   "legacy": {
     "applicationId": "com.aruno.foolquest.widget",
@@ -27,11 +27,11 @@
   },
   "previousRelease": {
     "applicationId": "com.aruno.foolquest.widget.next",
-    "version": "0.1.43",
-    "versionCode": 44,
-    "file": "aruno-result-0.1.43.apk",
+    "version": "0.1.44",
+    "versionCode": 45,
+    "file": "aruno-result-0.1.44.apk",
     "size": 3198455,
-    "sha256": "547414ec22e315d0d530a628507de8bf2143ab96fd2f5fa86afd282032284fac",
+    "sha256": "d2c5ba1b8ea03245d1dbeb5cb31a0d0962cd25ad05de105a09d387d7e6687a2f",
     "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730"
   },
   "archives": [
@@ -279,25 +279,25 @@
       "file": "fool-quest-widget-0.1.13-original.apk"
     }
   ],
-  "sourceCommit": "a829af50a5f1874d976219b16624c48abcd1f1b2",
-  "unsignedSha256": "5d42ea46c86b6574b63dfb63fc33dfd9fa5bb102399c9b2ae64a878f8738bcb0",
+  "sourceCommit": "5bd8d7662683abcafeac6961f5ec93d7860b5430",
+  "unsignedSha256": "0a92d4aac2e13eaf3a4cf8548da74940c761b89e4cd37604d3072708bde38544",
   "deviceVerified": false,
   "deliveryStatus": "production-update",
   "dailyTargetUpdate": "JST midnight; exact alarm when allowed, inexact fallback otherwise; no network required",
-  "signingRunId": "43527159429",
-  "softwareTestRunId": "43523621212",
+  "signingRunId": "43559299427",
+  "softwareTestRunId": "43557810535",
   "distributionUrls": [
     "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
     "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
   ],
   "lossUpdate": "Manually record, edit and delete separate TikTok Lite and Coupon losses by date; preserve the gross source; net amounts subtract losses once",
-  "lossDisplay": "Combined daily losses shown in red below the TikTok row; daily and monthly totals are net of losses",
-  "upgradeTestRunId": "43527159429",
-  "publicationStatus": "PUBLISHED_VERIFIED",
+  "lossDisplay": "Combined daily losses shown in red at the top-right of the date band on two lines (label over amount), on loss days only; daily and monthly totals are net of losses",
+  "upgradeTestRunId": "43559299427",
+  "publicationStatus": "PENDING_PUBLICATION",
   "displayName": "Aruno-Result",
-  "releaseStatus": "DAILY_TOTAL_UNDERLINE_AND_ZERO_DISPLAY_PHYSICAL_PENDING",
+  "releaseStatus": "DAILY_TOTAL_TWO_LINE_AND_LOSS_TOP_RIGHT_PHYSICAL_PENDING",
   "updateRecommended": false,
-  "notice": "Daily total readability update (user-approved mock 4): the daily total gains a thin underline and its ten-thousand suffix now renders at 0.35x of the digit size (was 0.43x); breakdown rows keep 0.55x. Days without revenue - today before data arrives and past no-data days - now display 0.0万 for the total, coupon and TikTok amounts instead of blanks, dashes or 'not fetched'; future days stay blank. Display-only change: stored data, monthly totals, the month-end forecast and tap-detail amounts are unchanged. Official code44 to code45 upgrade preserved UID and fixture fields on the Android 17 emulator. Pixel 10 physical acceptance is pending.",
+  "notice": "Daily cell layout update (user-approved): the combined daily loss moves from the bottom row to the top-right of the date band, shown in red on two lines (label over amount, loss days only); the freed height goes to the total. The total's digits are vertically centred and larger; the ten-thousand suffix now sits right-aligned below the digits at 0.35x, the underline covers the digits only, and the minus sign renders at 0.55x. Coupon/TikTok rows are bottom-aligned, and the month-end forecast cell uses the same two-line total so its C/T rows align with day cells. Display-only change: stored data, settings, monthly totals and tap-detail amounts are unchanged; the code45 zero-display behaviour is retained. Official code45 to code46 upgrade preserved UID and 42 fixture fields on the Android 17 emulator. Pixel 10 physical acceptance is pending.",
   "backup": {
     "format": "aruno-result-backup",
     "formatVersion": 1,
@@ -311,52 +311,34 @@
   },
   "softwareChecks": {
     "android17": {
-      "normal": 25314,
+      "normal": 25354,
       "offline": 2767,
       "reboot": 2759,
-      "run": 43523621212,
-      "job": 132223839462,
+      "run": 43557810535,
+      "job": 132336468471,
       "signedPayloadMatches": true,
       "matchingPayloadEntries": 45
     },
     "backupAndroid17": {
       "normal": 46,
       "reboot": 4,
-      "run": 43523621212,
-      "job": 132223839462
+      "run": 43557810535,
+      "job": 132336468471
     },
     "officialUpgrade": {
-      "fromCode": 44,
-      "toCode": 45,
+      "fromCode": 45,
+      "toCode": 46,
       "apis": [
         37
       ],
       "fixtureFields": 42,
-      "run": 43527159429,
+      "run": 43559299427,
       "uidPreserved": true
     }
   },
-  "android17TestRunId": "43523621212",
-  "releaseEvidence": "aruno-result-code45-release-evidence.json",
+  "android17TestRunId": "43557810535",
+  "releaseEvidence": "aruno-result-code46-release-evidence.json",
   "launcherBackground": "#FFFFFF",
   "launcherArtworkUnchanged": true,
-  "launcherIconResource": "@drawable/zz_aruno_launcher_white",
-  "publicVerification": {
-    "verifiedAt": "2026-11-14T01:25:05+00:00",
-    "releaseCommit": "9c9c7e22a875a13f7ff14756a50957ba4bac5a73",
-    "pageVersionVerified": true,
-    "apkSha256": "d2c5ba1b8ea03245d1dbeb5cb31a0d0962cd25ad05de105a09d387d7e6687a2f",
-    "apkBytes": 3198455,
-    "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
-    "package": "com.aruno.foolquest.widget.next",
-    "versionCode": 45,
-    "versionName": "0.1.44",
-    "origins": [
-      "https://45kikurage-rgb.github.io/the-fool-quest",
-      "https://the-fool-quest.45kikurage.workers.dev"
-    ],
-    "previousCode44Retained": true,
-    "verificationMethod": "Manual HTTP retrieval from both public origins; SHA-256 and size compared, keytool certificate and aapt2 badging checked on the downloaded APK copies.",
-    "detailedEvidence": "../../../release-tests/code45/public-verification.json"
-  }
+  "launcherIconResource": "@drawable/zz_aruno_launcher_white"
 }

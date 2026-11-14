@@ -1,0 +1,105 @@
+{
+  "schema": 1,
+  "applicationId": "com.aruno.foolquest.widget.next",
+  "version": "0.1.45",
+  "versionCode": 46,
+  "sourceCommit": "5bd8d7662683abcafeac6961f5ec93d7860b5430",
+  "testCommit": "5bd8d7662683abcafeac6961f5ec93d7860b5430",
+  "apkSha256": "506c00de1d6c0b57688e1718c132c711981539ea55ed6628b0ed03b372e593dd",
+  "apkBytes": 3198455,
+  "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+  "unsignedSha256": "0a92d4aac2e13eaf3a4cf8548da74940c761b89e4cd37604d3072708bde38544",
+  "signingReceipt": {
+    "apk_sha256": "506c00de1d6c0b57688e1718c132c711981539ea55ed6628b0ed03b372e593dd",
+    "app_id": "foolquest-widget-next",
+    "certificate_sha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+    "device_verified": false,
+    "existing_key": true,
+    "package": "com.aruno.foolquest.widget.next",
+    "production_release": false,
+    "published": false,
+    "run_id": "43559299427",
+    "schema": 1,
+    "source_commit": "5bd8d7662683abcafeac6961f5ec93d7860b5430",
+    "source_repository": "45kikurage-rgb/the-fool-quest",
+    "trial_signed": true,
+    "unsigned_sha256": "0a92d4aac2e13eaf3a4cf8548da74940c761b89e4cd37604d3072708bde38544",
+    "version_code": 46,
+    "version_name": "0.1.45",
+    "workflow_commit": "6869efacd3dd7247d526251b7ecf44ba2e27712a"
+  },
+  "signingReceiptNote": "Receipt records pre-publication stage; publicationStatus records later public verification.",
+  "softwareChecks": {
+    "android17": {
+      "normal": 25354,
+      "offline": 2767,
+      "reboot": 2759,
+      "run": 43557810535,
+      "job": 132336468471,
+      "signedPayloadMatches": true,
+      "matchingPayloadEntries": 45
+    },
+    "backupAndroid17": {
+      "normal": 46,
+      "reboot": 4,
+      "run": 43557810535,
+      "job": 132336468471
+    },
+    "officialUpgrade": {
+      "fromCode": 45,
+      "toCode": 46,
+      "apis": [
+        37
+      ],
+      "fixtureFields": 42,
+      "run": 43559299427,
+      "uidPreserved": true
+    }
+  },
+  "payloadComparison": {
+    "passed": true,
+    "entries": 45,
+    "verifiedBy": "Stage job of ops run 43559299427 asserted exact equality of all non-signature ZIP entries between the natively tested unsigned APK and the signed APK; re-verified locally: all 45 payload entries of the signed APK (48 ZIP entries total) are byte-identical to the unsigned APK, whose SHA-256 is 0a92d4aac2e13eaf3a4cf8548da74940c761b89e4cd37604d3072708bde38544."
+  },
+  "officialUpgrade": {
+    "passed": true,
+    "app": "result",
+    "api": 37,
+    "package": "com.aruno.foolquest.widget.next",
+    "version_code": 46,
+    "source_commit": "5bd8d7662683abcafeac6961f5ec93d7860b5430",
+    "apk_sha256": "506c00de1d6c0b57688e1718c132c711981539ea55ed6628b0ed03b372e593dd",
+    "certificate_sha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+    "data_preservation": "PASS_DISPOSABLE_EMULATOR",
+    "physical_device_verified": false,
+    "published": false
+  },
+  "reboot": {
+    "passed": true,
+    "exact_widget_preferences_preserved": true
+  },
+  "independentRestore": {
+    "run": 43559299427,
+    "primary": "success",
+    "backup": "success",
+    "note": "Signing run 43559299427 succeeded on the first attempt; all jobs (restore primary/backup, unsigned, stage, upgrade-android17) passed. The PR verification gate (run 43557810535, commit 5bd8d76) passed on attempt 2: attempt 1 failed only the rapid-tap counting assertion (full renders 12->13 inside the counting window while all 17 partial updates landed; the tap and partial-update code is untouched by this change). Earlier gate attempts on this PR fixed two test-side defects (a ViewParent.getId compile error and a gap assertion that ignored the total view's new centering translation); see release-tests/code46/CHECKPOINT.md."
+  },
+  "changes": [
+    "日セルの損失表示を最下段の行から日付の右上へ移し、「損失」と金額（例：-10.5万）の2段で赤色表示に変更しました（損失がある日だけ表示）。空いた高さは合計に割り当て、合計の数字を大きくしました。",
+    "合計は数字を縦の中央に配置し、「万」は数字の下に右寄せで0.35倍表示。下線は数字部分だけに付け、合計のマイナス記号は0.55倍に縮小しました。内訳（C・T）は下寄せに変更しました。",
+    "月末予想セルも日セルと同じ2行合計に統一し、C・Tの位置が揃うようにしました。設定・保存形式・署名・端末内データはcode45から変更なし。code45の表示仕様（収支なし日の「0.0万」表示など）も維持しています。"
+  ],
+  "publicationStatus": "PENDING_PUBLICATION",
+  "distributionUrls": [
+    "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
+    "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
+  ],
+  "apkUrls": [
+    "https://the-fool-quest.45kikurage.workers.dev/android-widget/releases/aruno-result-0.1.45.apk",
+    "https://45kikurage-rgb.github.io/the-fool-quest/android-widget/releases/aruno-result-0.1.45.apk"
+  ],
+  "physicalDeviceVerified": false,
+  "formalOperationConfirmed": false,
+  "transferMethod": "Signed candidate artifact of ops run 43559299427 downloaded and verified locally (3,198,455 bytes, SHA-256) before registration; tested and signed payloads match (45 of 45 entries byte-identical, re-verified locally).",
+  "historicalDataLoss": "code32 incident cause remains undetermined; this release does not establish recovery of previously lost device data."
+}
