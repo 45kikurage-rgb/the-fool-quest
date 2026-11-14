@@ -73,3 +73,45 @@ production publication.
 
 ## Gates / signing / publication
 - (appended as they complete)
+- Gate history on PR #66 (branch fix/total-unit-below-loss-corner):
+  run 43556616838 (#243, commit a8647b6) failed to compile the test
+  package: WidgetInstrumentation used ViewParent.getId() (no such
+  method) in the new loss-block assertion. Fixed by casting to View
+  (commit cd0e8fa).
+  Run 43556822012 (#244, cd0e8fa) crashed silently in the native suite;
+  the artifact logcat showed AssertionError "each daily numeric gap
+  shrinks by exactly one physical pixel" — the kept code45 gap
+  assertion did not account for the total view's new centering
+  translationY (getY() includes it). The assertion now expects
+  1px + translation and requires the translation to be negative
+  (commit 5bd8d76).
+  Run 43557810535 (#245, 5bd8d76) attempt 1 failed at check 9098,
+  "17 rapid taps use header-only updates": full=12->13, partial
+  17->34 — every tap's partial update happened; one extra full render
+  from outside the tap path landed inside the counting window. The
+  tap/receiver/partial-update code is untouched by this change.
+  Attempt 2 (re-run of failed jobs, same commit) PASSED end to end:
+  native 25354 (code45: 25314; +40 from the new assertions), offline
+  2767, reboot 2759, backup 46 + 4. The attempt-1 failure is recorded
+  as a counting-window race, not a product defect.
+- Signing is pinned to commit 5bd8d7662683abcafeac6961f5ec93d7860b5430.
+- Existing-signature ops run 43559299427 (aruno-platform-ops commits
+  e9b6031 workflow, 6b34399 projects, 6869efa request) succeeded on
+  the first attempt: restore primary/backup, unsigned, stage and
+  upgrade-android17 all passed. Stage asserted the signed payload
+  matches the natively tested unsigned payload.
+  Trial result: version 0.1.45 / code 46, package
+  com.aruno.foolquest.widget.next, source_commit 5bd8d76 (pinned),
+  signed APK 3,198,455 bytes, SHA-256
+  506c00de1d6c0b57688e1718c132c711981539ea55ed6628b0ed03b372e593dd,
+  certificate SHA-256
+  8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730
+  (existing key). Unsigned APK SHA-256
+  0a92d4aac2e13eaf3a4cf8548da74940c761b89e4cd37604d3072708bde38544.
+  Local re-verification: the downloaded signed APK hashes to the
+  trial value, and all 45 payload entries (of 48 ZIP entries) are
+  byte-identical to the unsigned APK.
+  Official code45 -> code46 upgrade on the disposable Android 17
+  emulator preserved the UID and all 42 fixture fields (saved CSV,
+  manual entries, per-widget calendar settings); legacy code13
+  untouched.
