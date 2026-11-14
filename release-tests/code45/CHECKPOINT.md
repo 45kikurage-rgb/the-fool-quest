@@ -62,6 +62,22 @@ their 0.55x unit scale.
   WidgetInstrumentation.java:581 — the span-size assertion still expected
   the old 0.43f. The code42 ink-height delta checks had already passed with
   0.35 before that point. Fix: the assertion now expects 0.35f, mirroring
-  DAILY_TOTAL_UNIT_SCALE. Gate re-run on the fix commit is appended below.
+  DAILY_TOTAL_UNIT_SCALE. Gate re-run on the fix commit a829af5 passed in
+  run 43523621212 (native 25314, offline 2767, reboot 2759, backup 46+4).
+- Signing: the first ops run (43525224097) failed before building on a
+  stale version_code assertion (44) left in the newly adapted code45
+  workflow; the workflow was fixed (ops commit 54c5bf5) and the request
+  re-issued. Ops run 43527159429 then succeeded end to end, including the
+  official code44 -> code45 upgrade job (UID and 42 fixture fields
+  preserved, disposable Android 17 emulator, first attempt).
+- Signed APK verified locally: 3,198,455 bytes, SHA-256
+  d2c5ba1b8ea03245d1dbeb5cb31a0d0962cd25ad05de105a09d387d7e6687a2f,
+  existing signer certificate 8495f4b4..., versionCode 45 / 0.1.44
+  (keytool + aapt2). Unsigned build SHA-256
+  5d42ea46c86b6574b63dfb63fc33dfd9fa5bb102399c9b2ae64a878f8738bcb0;
+  stage job asserted all 45 payload entries match the tested build.
+- Publication registration (manifest publicationStatus
+  PENDING_PUBLICATION), merge and post-publication verification are
+  appended below as they complete.
   Pixel 10 physical acceptance will remain UNCONFIRMED until the user
   checks the device.
