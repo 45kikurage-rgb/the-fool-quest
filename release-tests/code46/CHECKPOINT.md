@@ -115,3 +115,20 @@ production publication.
   emulator preserved the UID and all 42 fixture fields (saved CSV,
   manual entries, per-widget calendar settings); legacy code13
   untouched.
+- Registration on the PR branch was done through the GitHub web UI
+  (the connector write-approval route timed out twice): commits
+  22784ae (manifest, evidence, signed APK), b9a0663 (download page),
+  3543ffa (this checkpoint). PR body was finalized before merging.
+- PR #66 merged to main on 2026-11-14 (merge commit
+  b18c1b1ac6fc6475a5372dd1c7825f868b5be0c9). Public verification
+  followed immediately: both origins (Workers and GitHub Pages)
+  serve the v0.1.45 / code 46 page and manifest, and the APK from
+  both hashes to 506c00de...593dd at 3,198,455 bytes; the code45
+  APK remains available. Manifest and evidence were then set to
+  PUBLISHED_VERIFIED with release-tests/code46/public-verification.json
+  as the detailed record.
+- Remaining: Pixel 10 physical acceptance by the user (total digits
+  centred and larger, unit below-right, underline on digits only,
+  C/T bottom-aligned, two-line red loss at the top-right on loss
+  days, forecast cell in the same shape, month-end forecast label
+  intact).
