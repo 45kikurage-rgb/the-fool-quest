@@ -18,7 +18,7 @@
                 android:layout_gravity="center_vertical" android:orientation="vertical" android:gravity="end">
                 <TextView android:id="@+id/calendar_forecast_total" style="@style/CalendarDailyAmount"
                     android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:maxLines="1" android:singleLine="true" android:textScaleX="@dimen/calendar_daily_total_width_scale" />
+                    android:maxLines="1" android:textScaleX="@dimen/calendar_daily_total_width_scale" />
                 <TextView android:id="@+id/calendar_total_rule" style="@style/CalendarDailyText"
                     android:layout_width="wrap_content" android:layout_height="1px"
                     android:includeFontPadding="false" android:importantForAccessibility="no"
