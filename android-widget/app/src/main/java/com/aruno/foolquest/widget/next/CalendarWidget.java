@@ -479,8 +479,8 @@ public class CalendarWidget extends AppWidgetProvider {
         raster.recycle();return digitRatios[key]=Math.max(.1f,(bottom-top+1)/paint.getTextSize());
     }
     // Keep digits, their uniform rule and the small unit in separate native
-    // views. RelativeSizeSpan is needed only for the reduced minus; a single
-    // physical-pixel rule avoids font-size-dependent underline runs.
+    // views. The single physical-pixel rule overlays the visible digit bottom;
+    // it never reserves a row or inherits the reduced minus font metrics.
     private static float totalDigitsAdvance(Paint measure,String text){
         return android.text.Layout.getDesiredWidth(totalDigits(text),new android.text.TextPaint(measure));
     }
@@ -516,6 +516,32 @@ public class CalendarWidget extends AppWidgetProvider {
         actual.setTextSize(fitted*density);
         cell.setInt(R.id.calendar_total_rule,"setWidth",Math.max(1,
             (int)Math.ceil(android.text.Layout.getDesiredWidth(spannable,actual))));
+        Paint.FontMetricsInt digitMetrics=actual.getFontMetricsInt();
+        int digitHeight=digitMetrics.descent-digitMetrics.ascent;
+        Paint unitPaint=new Paint(actual);unitPaint.setTextSize(fitted*density*DAILY_TOTAL_UNIT_SCALE);
+        Paint.FontMetricsInt unitMetrics=unitPaint.getFontMetricsInt();
+        // Freeze code47's native stack height before moving it exactly one
+        // physical pixel up. Removing the rule row must not re-center the
+        // digits down by a rounded half pixel. Its freed pixel is now bottom
+        // clearance for the unit, whose native row also starts one pixel earlier.
+        cell.setInt(R.id.calendar_total_stack,"setMinimumHeight",
+            digitHeight+unitMetrics.descent-unitMetrics.ascent+1);
+        cell.setFloat(R.id.calendar_total_rule,"setTranslationY",
+            totalDigitInkBottom(actual,digitMetrics)-(digitHeight-1));
+    }
+    private static int totalDigitInkBottom(Paint paint,Paint.FontMetricsInt metrics){
+        // Rasterize at the applied size/scale: font descent includes blank
+        // space and is not the visible bottom the user wants the line on.
+        int width=Math.max(1,(int)Math.ceil(paint.measureText("0123456789."))+4);
+        int height=Math.max(1,metrics.descent-metrics.ascent);
+        android.graphics.Bitmap raster=android.graphics.Bitmap.createBitmap(width,height,android.graphics.Bitmap.Config.ARGB_8888);
+        Paint probe=new Paint(paint);probe.setColor(android.graphics.Color.WHITE);
+        new android.graphics.Canvas(raster).drawText("0123456789.",2,-metrics.ascent,probe);
+        int[] pixels=new int[width*height];raster.getPixels(pixels,0,width,0,0,width,height);
+        int bottom=-1;
+        for(int y=0;y<height;y++)for(int x=0;x<width;x++)
+            if((pixels[y*width+x]>>>24)>=160)bottom=Math.max(bottom,y);
+        raster.recycle();return Math.max(0,bottom);
     }
     private static void amount(RemoteViews cell,int view,String text,float size,float width,Paint measure){
         amount(cell,view,text,size,width,measure,0.55f);
