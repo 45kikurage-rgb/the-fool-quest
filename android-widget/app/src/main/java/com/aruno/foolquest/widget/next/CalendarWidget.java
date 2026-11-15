@@ -479,7 +479,6 @@ public class CalendarWidget extends AppWidgetProvider {
         if(digits.startsWith("−"))spannable.setSpan(
             new android.text.style.RelativeSizeSpan(DAILY_TOTAL_SIGN_SCALE),0,1,
             android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        float measured=totalDigitsAdvance(measure,text);
         float fitted=size;
         cell.setTextViewText(view,spannable);
         cell.setTextViewTextSize(view,TypedValue.COMPLEX_UNIT_DIP,fitted);
@@ -491,9 +490,13 @@ public class CalendarWidget extends AppWidgetProvider {
         cell.setTextColor(view,color);
         cell.setTextColor(R.id.calendar_total_unit,color);
         cell.setInt(R.id.calendar_total_rule,"setBackgroundColor",color);
-        // Paint was measured at 100px. Convert the styled first-line advance
-        // to physical pixels, independent of the system font scale.
-        cell.setInt(R.id.calendar_total_rule,"setWidth",Math.max(1,(int)Math.ceil(fitted*density*measured/100f)));
+        // Match TextView's actual styled shaping, including small-size font
+        // hinting and the reduced minus. Scaling a 100px probe is not exact
+        // enough for a one-pixel underline on small/low-density hosts.
+        android.text.TextPaint actual=new android.text.TextPaint(measure);
+        actual.setTextSize(fitted*density);
+        cell.setInt(R.id.calendar_total_rule,"setWidth",Math.max(1,
+            (int)Math.ceil(android.text.Layout.getDesiredWidth(spannable,actual))));
     }
     private static void amount(RemoteViews cell,int view,String text,float size,float width,Paint measure){
         amount(cell,view,text,size,width,measure,0.55f);

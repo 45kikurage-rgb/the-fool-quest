@@ -993,7 +993,10 @@ public class WidgetInstrumentation extends Instrumentation {
             "both native TextView layouts fit; no total-text clipping exception");
         ok(rule.getHeight()==1&&rule.getWidth()>0&&Math.abs(relativeLeft(rule,slot)+rule.getWidth()-slot.getWidth())<=1
                 &&Math.abs(rule.getWidth()-digits.getLayout().getLineWidth(0))<=2.01f,
-            "one physical pixel rule spans the measured minus/digits advance at one baseline, not a one-pixel stub");
+            "one physical pixel rule spans the measured minus/digits advance at one baseline, not a one-pixel stub"
+                +" text="+digits.getText()+" size="+digits.getTextSize()+" scale="+digits.getTextScaleX()
+                +" rule="+rule.getWidth()+"x"+rule.getHeight()+" line="+digits.getLayout().getLineWidth(0)
+                +" right="+(relativeLeft(rule,slot)+rule.getWidth())+" slot="+slot.getWidth());
         android.graphics.Bitmap line=android.graphics.Bitmap.createBitmap(rule.getWidth(),1,android.graphics.Bitmap.Config.ARGB_8888);
         rule.draw(new android.graphics.Canvas(line));
         int color=digits.getCurrentTextColor();
