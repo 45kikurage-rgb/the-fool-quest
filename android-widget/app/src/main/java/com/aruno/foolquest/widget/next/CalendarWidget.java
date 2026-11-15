@@ -196,10 +196,11 @@ public class CalendarWidget extends AppWidgetProvider {
         float dailyTotalSize=Math.min(previousDailyTotalSize+3f/(dailyDensity*lineHeight),
             headerSize/1.20f);
         dailyTotalSize+=6f/(dailyDensity*glyphRatio(totalMeasure));
-        // Reserve the independent 1px rule and integer rounding for both
-        // TextView line boxes before fitting their combined natural height.
+        // Preserve code46's numerical size. The existing weighted slot's
+        // 9px base also leaves room for the separate 1px rule and native
+        // line rounding; no extra font shrink is needed after splitting.
         dailyTotalSize=Math.min(dailyTotalSize,
-            (rowSpace*2.02f-1.25f-3f/dailyDensity)/(lineHeight*(1f+DAILY_TOTAL_UNIT_SCALE)));
+            (rowSpace*2.02f-1.25f)/(lineHeight*(1f+DAILY_TOTAL_UNIT_SCALE)));
         // Keep every day's total at one size, including −99.9 (the unit
         // hangs below and takes no width here). A shared horizontal scale
         // accommodates the taller digits instead of shrinking individual
