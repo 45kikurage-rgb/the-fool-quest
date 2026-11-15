@@ -227,6 +227,21 @@ public class CalendarWidget extends AppWidgetProvider {
         float dailyTotalScale=totalScale.getFloat()*Math.min(1f,
             Math.max(1f,amountWidth*dailyDensity-1f)/Math.max(pixelWidth,
                 dailyTotalSize*dailyDensity*boldWidth));
+        // Recheck at the applied scale: native hinting/relative spans do not
+        // scale exactly from either the 100px probe or the unscaled glyphs.
+        // One shared fit keeps every day's numerical font size unchanged.
+        float totalBudget=Math.max(1f,(float)Math.floor(amountWidth*dailyDensity)-2f);
+        for(int attempt=0;attempt<8;attempt++){
+            dailyPixelMeasure.setTextScaleX(dailyTotalScale);
+            float widest=totalDigitsAdvance(dailyPixelMeasure,"−99.9万");
+            for(int day=1;day<data.days.length;day++){
+                String value=CalendarAmountFormatter.compactOrZero(data.days[day][0],data.known[day][0]||data.days[day][0]>=0);
+                widest=Math.max(widest,totalDigitsAdvance(dailyPixelMeasure,value));
+            }
+            widest=Math.max(widest,totalDigitsAdvance(dailyPixelMeasure,forecastTotal));
+            if(widest<=totalBudget)break;
+            dailyTotalScale*=Math.min(.99f,totalBudget/widest);
+        }
         totalMeasure.setTextScaleX(dailyTotalScale);
         detailSize=Math.min(detailSize,totalSize*0.90f);
         lossSize=Math.min(lossSize,detailSize);
@@ -467,19 +482,22 @@ public class CalendarWidget extends AppWidgetProvider {
     // views. RelativeSizeSpan is needed only for the reduced minus; a single
     // physical-pixel rule avoids font-size-dependent underline runs.
     private static float totalDigitsAdvance(Paint measure,String text){
+        return android.text.Layout.getDesiredWidth(totalDigits(text),new android.text.TextPaint(measure));
+    }
+    private static android.text.SpannableString totalDigits(String text){
         int unit=text.indexOf('万');if(unit<0)unit=text.indexOf('億');
         String digits=unit<0?text:text.substring(0,unit);
-        float width=measure.measureText(digits);
-        return digits.startsWith("−")?width-measure.measureText("−")*(1f-DAILY_TOTAL_SIGN_SCALE):width;
+        android.text.SpannableString styled=new android.text.SpannableString(digits);
+        if(digits.startsWith("−"))styled.setSpan(
+            new android.text.style.RelativeSizeSpan(DAILY_TOTAL_SIGN_SCALE),0,1,
+            android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        return styled;
     }
     private static void totalAmount(RemoteViews cell,int view,String text,float size,float width,Paint measure,float density,int color){
         int unit=text.indexOf('万');
         if(unit<0)unit=text.indexOf('億');
         String digits=unit<0?text:text.substring(0,unit);
-        android.text.SpannableString spannable=new android.text.SpannableString(digits);
-        if(digits.startsWith("−"))spannable.setSpan(
-            new android.text.style.RelativeSizeSpan(DAILY_TOTAL_SIGN_SCALE),0,1,
-            android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        android.text.SpannableString spannable=totalDigits(text);
         float fitted=size;
         cell.setTextViewText(view,spannable);
         cell.setTextViewTextSize(view,TypedValue.COMPLEX_UNIT_DIP,fitted);
