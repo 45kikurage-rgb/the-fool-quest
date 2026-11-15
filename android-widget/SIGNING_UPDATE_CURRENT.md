@@ -37,7 +37,7 @@
 - source `d8ac5a3c05fba5ef044d9e913843731c000ee42d` / v0.1.46 / code47 / 3,202,551 bytes。
 - APK SHA-256 `a862d0dd77672048270f8631c2360d333c231de8f8e0cbc7f46b76a6a8f7ecdb`。既存package・証明書を保持。
 - Android17 run43703619901、署名・独立主/backup復元・正式code46→47上書きrun43704249663は全成功。42項目・UID・再起動後保持を確認。署名を除く45項目は試験済みAPKと全バイト一致。
-- 公開と公開URL再取得照合は進行中。Pixel10実機と正式運用開始は未確認。
+- 本番公開・両配布元のHTTP200、code47、APKの全SHA-256・サイズ・既存署名との同一バイト、前code46保持を確認。公開commit a47a354b07da44335b31f3303681ac69a9bdface、公開照合run43760053802、Pages run43760052999成功。Cloudflare production build85c61018-fd8b-45bd-922f-7bc04516d727成功。Pixel10実機と正式運用開始は未確認。
 
 ## code41 上段カテゴリー・7桁金額・上下中央揃え（2026-11-12 日本時間）
 

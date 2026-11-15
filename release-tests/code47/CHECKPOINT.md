@@ -57,3 +57,7 @@ The historical code32 data-loss cause remains undetermined.
 Source `d8ac5a3c05fba5ef044d9e913843731c000ee42d`. Android17 run43703619901/job132779875073 passed: normal68358, offline2767, reboot2759, backup54, backup-reboot4;81 native display geometries. Existing signer primary/backup restoration and stage/official upgrade run43704249663 passed, preserving42 fields and UID. Signed APK SHA-256 `a862d0dd77672048270f8631c2360d333c231de8f8e0cbc7f46b76a6a8f7ecdb`, 3202551 bytes;45 non-signature entries match the tested APK.
 
 Browser file selection stalled twice; exact hash-verified artifact is registered through Git transfer. No rebuild, re-signing, new key, uninstall or data clearing. Publication pending public verification. Physical Pixel10 remains unconfirmed.
+
+## Publication complete
+
+PR67 merged as a47a354b07da44335b31f3303681ac69a9bdface. Pages43760052999 and public verification43760053802 succeeded; Cloudflare production build85c61018-fd8b-45bd-922f-7bc04516d727 succeeded. Both origins were independently retrieved using ordinary curl and matched the signed APK, page and manifest; previous code46 bytes were retained. See public-verification.json. No new build or signing run was needed. Pixel10 physical acceptance remains unconfirmed.
