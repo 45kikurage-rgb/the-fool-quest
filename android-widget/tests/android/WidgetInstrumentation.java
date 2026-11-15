@@ -353,7 +353,13 @@ public class WidgetInstrumentation extends Instrumentation {
                         // reduced, and the old loss row's height went to
                         // the total. The code42-era fixed +6 delta no
                         // longer describes the design.
-                        ok(delta>0f&&current.getTextSize()>old.getTextSize(),"code46 total digits grow beyond code41 at dpi"+dpi+" delta is "+delta);
+                        // At 160dpi the explicit unit/rule reserve leaves a
+                        // +0.14px font-size gain, which can rasterize to the
+                        // same integer ink height. Never accept smaller text;
+                        // device-like densities must still gain visible pixels.
+                        ok((dpi==160?delta>=0f:delta>0f)&&current.getTextSize()>old.getTextSize(),
+                            "total digits retain/grow beyond code41 at dpi"+dpi+" ink delta="+delta
+                            +" textSize="+current.getTextSize()+" old="+old.getTextSize());
                     }else if(id==R.id.calendar_day_loss){
                         // The corner loss is a compact flag inside the date
                         // band, deliberately smaller than the old full row.
