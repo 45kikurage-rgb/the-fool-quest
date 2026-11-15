@@ -1,20 +1,22 @@
 {
   "applicationId": "com.aruno.foolquest.widget.next",
-  "version": "0.1.45",
-  "versionCode": 46,
+  "version": "0.1.46",
+  "versionCode": 47,
   "minSdk": 26,
   "targetSdk": 35,
-  "size": 3198455,
-  "sha256": "506c00de1d6c0b57688e1718c132c711981539ea55ed6628b0ed03b372e593dd",
+  "size": 3202551,
+  "sha256": "a862d0dd77672048270f8631c2360d333c231de8f8e0cbc7f46b76a6a8f7ecdb",
   "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
   "couponUpdate": "Daily revenue for priced coupons via authenticated Ledger; monthly reader retained",
   "tiktokUpdate": "On-demand current-month point-history CSV fetch in the in-app WebView; manual CSV import and manual revenue entry remain available",
   "changes": [
-    "日セルの損失表示を最下段の行から日付の右上へ移し、「損失」と金額（例：-10.5万）の2段で赤色表示に変更しました（損失がある日だけ表示）。空いた高さは合計に割り当て、合計の数字を大きくしました。",
-    "合計は数字を縦の中央に配置し、「万」は数字の下に右寄せで0.35倍表示。下線は数字部分だけに付け、合計のマイナス記号は0.55倍に縮小しました。内訳（C・T）は下寄せに変更しました。",
-    "月末予想セルも日セルと同じ2行合計に統一し、C・Tの位置が揃うようにしました。設定・保存形式・署名・端末内データはcode45から変更なし。code45の表示仕様（収支なし日の「0.0万」表示など）も維持しています。"
+    "合計の「万」の下端見切れと、縮小マイナス・数字の下線ずれを修正。",
+    "破損データを認証情報なしで隔離保全して復旧し、壊れた保存待ちファイル後も正常なバックアップ保存を継続。",
+    "アプリ内管理開始後の旧サイトsnapshot競合を防止し、CSV・手動追加・損失・目標・明示的JSON移行を維持。",
+    "ゲージ描画を直列化し、更新状態と完了通知を描画失敗から保護。日別連携の成否を月次と別表示。",
+    "損失専用月の上限検証と、日別詳細での正確な損失円額表示。"
   ],
-  "file": "aruno-result-0.1.45.apk",
+  "file": "aruno-result-0.1.46.apk",
   "installation": "Update in place without uninstalling. Existing package, signer and data paths are retained. Use the existing backup folder selection to keep automatic independent backup files.",
   "legacy": {
     "applicationId": "com.aruno.foolquest.widget",
@@ -27,14 +29,23 @@
   },
   "previousRelease": {
     "applicationId": "com.aruno.foolquest.widget.next",
-    "version": "0.1.44",
-    "versionCode": 45,
-    "file": "aruno-result-0.1.44.apk",
+    "version": "0.1.45",
+    "versionCode": 46,
+    "file": "aruno-result-0.1.45.apk",
     "size": 3198455,
-    "sha256": "d2c5ba1b8ea03245d1dbeb5cb31a0d0962cd25ad05de105a09d387d7e6687a2f",
+    "sha256": "506c00de1d6c0b57688e1718c132c711981539ea55ed6628b0ed03b372e593dd",
     "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730"
   },
   "archives": [
+    {
+      "applicationId": "com.aruno.foolquest.widget.next",
+      "version": "0.1.44",
+      "versionCode": 45,
+      "file": "aruno-result-0.1.44.apk",
+      "size": 3198455,
+      "sha256": "d2c5ba1b8ea03245d1dbeb5cb31a0d0962cd25ad05de105a09d387d7e6687a2f",
+      "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730"
+    },
     {
       "applicationId": "com.aruno.foolquest.widget.next",
       "version": "0.1.40",
@@ -279,25 +290,25 @@
       "file": "fool-quest-widget-0.1.13-original.apk"
     }
   ],
-  "sourceCommit": "5bd8d7662683abcafeac6961f5ec93d7860b5430",
-  "unsignedSha256": "0a92d4aac2e13eaf3a4cf8548da74940c761b89e4cd37604d3072708bde38544",
+  "sourceCommit": "d8ac5a3c05fba5ef044d9e913843731c000ee42d",
+  "unsignedSha256": "6616aa3995b3a21ae354dc02f5fe45aa6db850f162027e323efd692fc8b9c0d4",
   "deviceVerified": false,
   "deliveryStatus": "production-update",
   "dailyTargetUpdate": "JST midnight; exact alarm when allowed, inexact fallback otherwise; no network required",
-  "signingRunId": "43559299427",
-  "softwareTestRunId": "43557810535",
+  "signingRunId": "43704249663",
+  "softwareTestRunId": "43703619901",
   "distributionUrls": [
     "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
     "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
   ],
   "lossUpdate": "Manually record, edit and delete separate TikTok Lite and Coupon losses by date; preserve the gross source; net amounts subtract losses once",
   "lossDisplay": "Combined daily losses shown in red at the top-right of the date band on two lines (label over amount), on loss days only; daily and monthly totals are net of losses",
-  "upgradeTestRunId": "43559299427",
-  "publicationStatus": "PUBLISHED_VERIFIED",
+  "upgradeTestRunId": "43704249663",
+  "publicationStatus": "PUBLISHING_PENDING_VERIFICATION",
   "displayName": "Aruno-Result",
-  "releaseStatus": "DAILY_TOTAL_TWO_LINE_AND_LOSS_TOP_RIGHT_PHYSICAL_PENDING",
+  "releaseStatus": "RECOVERY_TOTAL_UNIT_AND_REFRESH_PHYSICAL_PENDING",
   "updateRecommended": false,
-  "notice": "Daily cell layout update (user-approved): the combined daily loss moves from the bottom row to the top-right of the date band, shown in red on two lines (label over amount, loss days only); the freed height goes to the total. The total's digits are vertically centred and larger; the ten-thousand suffix now sits right-aligned below the digits at 0.35x, the underline covers the digits only, and the minus sign renders at 0.55x. Coupon/TikTok rows are bottom-aligned, and the month-end forecast cell uses the same two-line total so its C/T rows align with day cells. Display-only change: stored data, settings, monthly totals and tap-detail amounts are unchanged; the code45 zero-display behaviour is retained. Official code45 to code46 upgrade preserved UID and 42 fixture fields on the Android 17 emulator. Pixel 10 physical acceptance is pending.",
+  "notice": "Recovery, backup continuation, calendar unit and underline, native data ownership and refresh reliability fixed. Physical device acceptance remains unconfirmed.",
   "backup": {
     "format": "aruno-result-backup",
     "formatVersion": 1,
@@ -310,53 +321,50 @@
     "serverWrites": false
   },
   "softwareChecks": {
-    "android17": {
-      "normal": 25354,
+    "nativeAndroid17": {
+      "run": 43703619901,
+      "job": 132779875073,
+      "normal": 68358,
       "offline": 2767,
       "reboot": 2759,
-      "run": 43557810535,
-      "job": 132336468471,
-      "signedPayloadMatches": true,
-      "matchingPayloadEntries": 45
+      "backup": 54,
+      "backupReboot": 4
     },
-    "backupAndroid17": {
-      "normal": 46,
-      "reboot": 4,
-      "run": 43557810535,
-      "job": 132336468471
+    "nativeVisualMatrix": {
+      "geometries": 81,
+      "applyAndReapply": true,
+      "unitParentPixels": "PASS",
+      "continuousRule": "PASS",
+      "physicalDevice": false
     },
     "officialUpgrade": {
-      "fromCode": 45,
-      "toCode": 46,
-      "apis": [
-        37
-      ],
+      "run": 43704249663,
+      "job": 132782124247,
+      "fromCode": 46,
+      "toCode": 47,
+      "api": 37,
       "fixtureFields": 42,
-      "run": 43559299427,
-      "uidPreserved": true
+      "uidPreserved": true,
+      "reboot": "PASS",
+      "dataPreservation": "PASS_DISPOSABLE_EMULATOR"
+    },
+    "independentRestore": {
+      "run": 43704249663,
+      "primaryJob": 132781816587,
+      "backupJob": 132781816545,
+      "primary": "success",
+      "backup": "success"
+    },
+    "signedPayloadMatches": {
+      "passed": true,
+      "nonSignatureEntries": 45,
+      "testedUnsignedSha256": "9e72e3f6d64cba51c88a7299fd2f329589933b5300fe525854ef35bd8cf2cf1a",
+      "signingBuildUnsignedSha256": "6616aa3995b3a21ae354dc02f5fe45aa6db850f162027e323efd692fc8b9c0d4"
     }
   },
-  "android17TestRunId": "43557810535",
-  "releaseEvidence": "aruno-result-code46-release-evidence.json",
+  "android17TestRunId": "43703619901",
+  "releaseEvidence": "aruno-result-code47-release-evidence.json",
   "launcherBackground": "#FFFFFF",
   "launcherArtworkUnchanged": true,
-  "launcherIconResource": "@drawable/zz_aruno_launcher_white",
-  "publicVerification": {
-    "verifiedAt": "2026-11-14T06:24:19+00:00",
-    "releaseCommit": "b18c1b1ac6fc6475a5372dd1c7825f868b5be0c9",
-    "pageVersionVerified": true,
-    "apkSha256": "506c00de1d6c0b57688e1718c132c711981539ea55ed6628b0ed03b372e593dd",
-    "apkBytes": 3198455,
-    "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
-    "package": "com.aruno.foolquest.widget.next",
-    "versionCode": 46,
-    "versionName": "0.1.45",
-    "origins": [
-      "https://45kikurage-rgb.github.io/the-fool-quest",
-      "https://the-fool-quest.45kikurage.workers.dev"
-    ],
-    "previousCode45Retained": true,
-    "verificationMethod": "Manual HTTP retrieval from both public origins; SHA-256 and size compared on the downloaded APK copies; certificate identity established by the existing-signature ops run 43559299427 trial result.",
-    "detailedEvidence": "../../../release-tests/code46/public-verification.json"
-  }
+  "launcherIconResource": "@drawable/zz_aruno_launcher_white"
 }

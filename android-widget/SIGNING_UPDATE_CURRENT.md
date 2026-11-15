@@ -1,6 +1,6 @@
 # Aruno-Result 署名・更新台帳 CURRENT
 
-更新日：2026-11-12（日本時間）。秘密の値は記載しない。ソース・試験・配布・実機を分ける。
+更新日：2026-11-16（日本時間）。秘密の値は記載しない。ソース・試験・配布・実機を分ける。
 
 | 項目 | 現行値 |
 |---|---|
@@ -21,16 +21,23 @@
 | backup暗号文 SHA-256 | 38bc420fac1555130c16b89b2ee2700252e7b9e1c3a29b5f8c54b5e71cad673d |
 | 復号情報の管理 | opsの既存GitHub Actions Secret ARUNO_SIGNING_ROOTS_JSON と config/signing-recovery.json。値は非公開・暗号文と別管理 |
 | アクセス方法 | GitHub接続で固定repo/commit/path/blobを確認。権限のあるopsの既存署名runnerだけで復元し、別runnerの両経路検証後に署名 |
-| 署名経路 | ops .github/workflows/aruno-result-code41-existing-signature.yml、projects/github-signing/trial_candidate.py |
-| 最終独立復元試験 | 2026-11-12（日本時間）。run43112773673、primary job130833016780 / backup job130833016711、別runnerで両成功 |
+| 署名経路 | ops .github/workflows/aruno-result-code47-existing-signature.yml、projects/github-signing/trial_candidate.py |
+| 最終独立復元試験 | 2026-11-15（日本時間）。run43704249663、primary job132781816587 / backup job132781816545、別runnerで両成功 |
 | 鍵の置換・新規作成 | なし |
 | 実機確認 | Pixel 10未接続。未確認 |
 
 主/backupは独立repo・別runnerで検証するが、GitHubサービス全体から独立した災害復旧を新たに証明したものではない。外部保管コピーや復号情報の外部UIからの再取得は今回未実施。
 
-最新のAPK・ソースcommit・versionCode・APK SHA-256・証明書・試験run・配布URL・公開後照合は [code41更新記録](releases/aruno-result-code41-release-evidence.json) と [配布manifest](releases/manifest.json) を参照。これらの状態を最優先し、候補作成を公開済みと扱わない。
+最新のAPK・ソースcommit・versionCode・APK SHA-256・証明書・試験run・配布URL・公開後照合は [code47更新記録](releases/aruno-result-code47-release-evidence.json) と [配布manifest](releases/manifest.json) を参照。これらの状態を最優先し、候補作成を公開済みと扱わない。
 
 旧package com.aruno.foolquest.widget の鍵・証明書は別系列。流用・統合・新鍵への置換・アンインストールによる更新回避はしない。新しいチャットも、統括CURRENTとこの台帳・最新のrelease証拠を読み、GitHub接続とCI操作権限を確認して引き継ぐ。Library/利用者PCを通常の鍵取得元として必須にしない。
+
+## code47 復旧・表示・更新の修正
+
+- source `d8ac5a3c05fba5ef044d9e913843731c000ee42d` / v0.1.46 / code47 / 3,202,551 bytes。
+- APK SHA-256 `a862d0dd77672048270f8631c2360d333c231de8f8e0cbc7f46b76a6a8f7ecdb`。既存package・証明書を保持。
+- Android17 run43703619901、署名・独立主/backup復元・正式code46→47上書きrun43704249663は全成功。42項目・UID・再起動後保持を確認。署名を除く45項目は試験済みAPKと全バイト一致。
+- 公開と公開URL再取得照合は進行中。Pixel10実機と正式運用開始は未確認。
 
 ## code41 上段カテゴリー・7桁金額・上下中央揃え（2026-11-12 日本時間）
 
