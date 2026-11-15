@@ -28,3 +28,13 @@ Only Android17/API37 is an execution target. Pixel10 physical acceptance is
 separate and unconfirmed. Do not rebuild or re-sign a validated artifact for
 transfer; use hash-verified Git blob transfer without giant conversation output.
 Do not mark publication commits skip-ci when Workers must deploy their contents.
+
+## Candidate 1 failure and correction
+
+Run43764178091 compiled and passed local checks, but native geometry rejected a
+one-pixel rule offset on a small daily-total view (digitsTop1, inkBottom8,
+ruleTop9). This was a real assertion failure, not a runner outage. Font metric
+baseline approximation was replaced with the same styled native TextView's
+measurement and rasterized current text. The 81-geometry matrix now also
+checks an integer forecast111万 whose digit bottoms differ from decimal totals.
+No signing request or public APK was produced for the rejected candidate.

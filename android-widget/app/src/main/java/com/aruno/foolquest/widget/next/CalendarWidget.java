@@ -283,7 +283,7 @@ public class CalendarWidget extends AppWidgetProvider {
                     String[] projected=new String[3];
                     for(int i=0;i<3;i++){
                         projected[i]=CalendarAmountFormatter.forecast(data.totals[i],data.totalKnown[i]||data.totals[i]>=0,elapsed,days);
-                        if(i==0)totalAmount(forecast,values[i],projected[i],dailyTotalSize,amountWidth,totalMeasure,dailyDensity,forecastColor);
+                        if(i==0)totalAmount(c,forecast,values[i],projected[i],dailyTotalSize,amountWidth,totalMeasure,dailyDensity,forecastColor);
                         else amount(forecast,values[i],projected[i],detailSize,detailWidth,measure);
                     }
                     forecast.setTextViewTextSize(R.id.calendar_forecast_c_label,TypedValue.COMPLEX_UNIT_DIP,detailSize);
@@ -356,7 +356,7 @@ public class CalendarWidget extends AppWidgetProvider {
                     cell.setInt(R.id.calendar_day_total,"setPaintFlags",DAILY_TOTAL_FLAGS);
                     cell.setFloat(R.id.calendar_day_total,"setTextScaleX",dailyTotalScale);
                     int totalColor=totalKnown&&total<0&&total!=RevenueMath.UNKNOWN?0xffff9292:0xffffffff;
-                    totalAmount(cell,R.id.calendar_day_total,CalendarAmountFormatter.compactOrZero(total,totalKnown),
+                    totalAmount(c,cell,R.id.calendar_day_total,CalendarAmountFormatter.compactOrZero(total,totalKnown),
                         dailyTotalSize,amountWidth,totalMeasure,dailyDensity,totalColor);
                     amount(cell,R.id.calendar_day_coupon,CalendarAmountFormatter.compactOrZero(data.days[day][1],(data.known[day][1]||data.days[day][1]>=0)),detailSize,detailWidth,measure);
                     if(showTikTok)amount(cell,R.id.calendar_day_tiktok,
@@ -493,7 +493,7 @@ public class CalendarWidget extends AppWidgetProvider {
             android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         return styled;
     }
-    private static void totalAmount(RemoteViews cell,int view,String text,float size,float width,Paint measure,float density,int color){
+    private static void totalAmount(Context c,RemoteViews cell,int view,String text,float size,float width,Paint measure,float density,int color){
         int unit=text.indexOf('万');
         if(unit<0)unit=text.indexOf('億');
         String digits=unit<0?text:text.substring(0,unit);
@@ -516,27 +516,35 @@ public class CalendarWidget extends AppWidgetProvider {
         actual.setTextSize(fitted*density);
         cell.setInt(R.id.calendar_total_rule,"setWidth",Math.max(1,
             (int)Math.ceil(android.text.Layout.getDesiredWidth(spannable,actual))));
-        Paint.FontMetricsInt digitMetrics=actual.getFontMetricsInt();
-        int digitHeight=digitMetrics.descent-digitMetrics.ascent;
+        android.widget.TextView digitProbe=totalProbe(c,spannable,actual);
         Paint unitPaint=new Paint(actual);unitPaint.setTextSize(fitted*density*DAILY_TOTAL_UNIT_SCALE);
-        Paint.FontMetricsInt unitMetrics=unitPaint.getFontMetricsInt();
+        unitPaint.setTextScaleX(1f);
+        android.widget.TextView unitProbe=totalProbe(c,unit<0?"":text.substring(unit,unit+1),unitPaint);
         // Freeze code47's native stack height before moving it exactly one
-        // physical pixel up. Removing the rule row must not re-center the
-        // digits down by a rounded half pixel. Its freed pixel is now bottom
-        // clearance for the unit, whose native row also starts one pixel earlier.
+        // physical pixel up. Use native TextView measurement, including its
+        // baseline rounding, rather than approximating it from font metrics.
+        int digitHeight=digitProbe.getMeasuredHeight();
         cell.setInt(R.id.calendar_total_stack,"setMinimumHeight",
-            digitHeight+unitMetrics.descent-unitMetrics.ascent+1);
+            digitHeight+unitProbe.getMeasuredHeight()+1);
         cell.setFloat(R.id.calendar_total_rule,"setTranslationY",
-            totalDigitInkBottom(actual,digitMetrics)-(digitHeight-1));
+            totalDigitInkBottom(digitProbe)-(digitHeight-1));
     }
-    private static int totalDigitInkBottom(Paint paint,Paint.FontMetricsInt metrics){
-        // Rasterize at the applied size/scale: font descent includes blank
-        // space and is not the visible bottom the user wants the line on.
-        int width=Math.max(1,(int)Math.ceil(paint.measureText("0123456789."))+4);
-        int height=Math.max(1,metrics.descent-metrics.ascent);
+    private static android.widget.TextView totalProbe(Context c,CharSequence text,Paint paint){
+        android.widget.TextView probe=new android.widget.TextView(c,null,0,R.style.CalendarDailyAmount);
+        probe.setText(text);probe.setTextSize(TypedValue.COMPLEX_UNIT_PX,paint.getTextSize());
+        probe.setTextScaleX(paint.getTextScaleX());probe.setPaintFlags(paint.getFlags());
+        probe.setTextColor(android.graphics.Color.WHITE);
+        int unconstrained=View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED);
+        probe.measure(unconstrained,unconstrained);
+        probe.layout(0,0,probe.getMeasuredWidth(),probe.getMeasuredHeight());return probe;
+    }
+    private static int totalDigitInkBottom(android.widget.TextView probe){
+        // The same styled native view as the widget includes hinting, reduced
+        // minus shaping and baseline rounding. Font ascent/descent alone can
+        // place this decorative line one pixel too low on small hosts.
+        int width=Math.max(1,probe.getWidth()),height=Math.max(1,probe.getHeight());
         android.graphics.Bitmap raster=android.graphics.Bitmap.createBitmap(width,height,android.graphics.Bitmap.Config.ARGB_8888);
-        Paint probe=new Paint(paint);probe.setColor(android.graphics.Color.WHITE);
-        new android.graphics.Canvas(raster).drawText("0123456789.",2,-metrics.ascent,probe);
+        probe.draw(new android.graphics.Canvas(raster));
         int[] pixels=new int[width*height];raster.getPixels(pixels,0,width,0,0,width,height);
         int bottom=-1;
         for(int y=0;y<height;y++)for(int x=0;x<width;x++)

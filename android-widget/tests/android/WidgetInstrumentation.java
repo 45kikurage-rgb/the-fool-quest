@@ -994,7 +994,7 @@ public class WidgetInstrumentation extends Instrumentation {
             "digits and entire unit remain unclipped native rows: slot="+slot.getHeight()+" digit="+digits.getHeight()+" unit="+unit.getHeight());
         ok(digitsInk.height()>0&&digitsTop+digitsInk.top>=0&&ruleTop==digitsTop+digitsInk.bottom-1,
             "the one-pixel rule overlays the actual digits' bottom ink pixel instead of reserving a row below them"
-                +" digitsTop="+digitsTop+" digitsInk="+digitsInk+" ruleTop="+ruleTop);
+                +" text="+digits.getText()+" digitsTop="+digitsTop+" digitsInk="+digitsInk+" ruleTop="+ruleTop+" size="+digits.getTextSize());
         // Code47 centered three separate rows: digits, a one-pixel rule,
         // then the unit. Keep that native reference height even though the
         // rule is now decoration, so removing a row cannot silently recenter
@@ -1073,6 +1073,9 @@ public class WidgetInstrumentation extends Instrumentation {
         long now=java.time.Instant.parse("2026-12-01T00:00:00Z").toEpochMilli();
         runOnMainSync(()->{
             for(int dpi:new int[]{160,420,480})for(int widthDp:new int[]{280,320,411})for(int heightDp:new int[]{236,400,520}){
+                // Integer-only forecast digits have a different bottom ink
+                // edge from daily decimal amounts in the corporate font.
+                values.totals[0]=dpi==420?1110000:-654152;
                 android.content.res.Configuration cfg=new android.content.res.Configuration(c.getResources().getConfiguration());cfg.densityDpi=dpi;
                 Context sized=c.createConfigurationContext(cfg);float density=sized.getResources().getDisplayMetrics().density;
                 android.widget.FrameLayout host=new android.widget.FrameLayout(sized);
@@ -1083,7 +1086,9 @@ public class WidgetInstrumentation extends Instrumentation {
                     measureCalendar(host,Math.round(widthDp*density),Math.round(heightDp*density));
                     android.view.ViewGroup week=tree.findViewById(R.id.calendar_week_0);
                     for(int i=0;i<amounts.length;i++)completeCalendarTotal(week.getChildAt(i),R.id.calendar_day_total,CalendarAmountFormatter.compact(amounts[i],true));
-                    checkTotalGeometry(tree.findViewById(R.id.calendar_forecast),R.id.calendar_forecast_total);
+                    android.view.View forecast=tree.findViewById(R.id.calendar_forecast);
+                    if(dpi==420)completeCalendarTotal(forecast,R.id.calendar_forecast_total,"111万");
+                    else checkTotalGeometry(forecast,R.id.calendar_forecast_total);
                 }
             }
         });
