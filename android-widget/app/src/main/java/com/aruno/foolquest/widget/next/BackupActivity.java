@@ -45,7 +45,7 @@ public final class BackupActivity extends Activity {
                 if(!tree.isEmpty()){
                     BackupFiles files=new BackupFiles(this,Uri.parse(tree));Map<String,Uri> docs=files.documents();
                     List<String> names=new ArrayList<>(docs.keySet());Collections.sort(names,Collections.reverseOrder());
-                    for(String n:names)if(n.startsWith("aruno-result-")&&n.endsWith(".json"))try{
+                    for(String n:names)if(BackupFormat.generationName(n))try{
                         String json=BackupFiles.read(this,docs.get(n));JSONObject b=BackupFormat.parse(json);copies.add(json);labels.add(label(b,"端末フォルダー"));
                     }catch(Exception invalid){corrupt++;}
                 }
@@ -65,8 +65,13 @@ public final class BackupActivity extends Activity {
     private void preview(String json){
         try {
             JSONObject b=BackupFormat.parse(json);
-            String expected; synchronized(BackupCoordinator.LOCK){expected=BackupFormat.canonical(BackupFormat.encode(backups.raw.getAll()));}
+            String expected;boolean damaged=false;
+            synchronized(BackupCoordinator.LOCK){
+                expected=BackupFormat.fingerprint(backups.raw.getAll());
+                try{BackupFormat.encode(backups.raw.getAll());}catch(Exception invalid){damaged=true;}
+            }
             String message=BackupFormat.summary(b)+"\n\n現在の収益・手動追加・損失・目標・表示設定を置き換えます。確認後に変更があった場合は復旧を中止します。\n復旧前の現状を独立フォルダーへ保全できた場合だけ適用します。\nCouponの現在の取得済みキャッシュと認証設定は維持し、サーバーは変更しません。";
+            if(damaged)message+="\n\n現在データに破損・未対応の値があります。認証情報を除く現状を専用の隔離ファイルへ保存・照合してから復旧します。壊れたCouponキャッシュは隔離保存し、復旧元の正常な値を使用します。隔離ファイルは通常の復旧対象には含めません。";
             new AlertDialog.Builder(this).setTitle("復旧内容の確認").setMessage(message).setNegativeButton("キャンセル",null)
                 .setPositiveButton("確認して復旧する",(d,w)->work(()->backups.restore(json,expected),()->alert("復旧完了","復旧後の金額・目標・表示設定を確認してください。ウィジェットへ再描画を送信しました。"))).show();
         }catch(Exception e){alert("復旧できません",e.getMessage()==null?"破損・未対応のファイルです。現在のデータは変更しません。":e.getMessage());}

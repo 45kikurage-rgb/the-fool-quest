@@ -124,13 +124,14 @@ public final class ManagementActivity extends Activity {
             .setMessage("通常のパスワードではなく、日別収益の読取専用キーを入力します。確認ページで管理者認証後に表示されるキーをコピーし、ここへ貼り付けて保存してください。")
             .setView(form).setNegativeButton("戻る",null)
             .setNeutralButton("接続解除",(d,w)->execute(()->{
-                CouponDailyReader.setToken(this,"");CalendarWidget.renderAll(this);
+                CouponDailyReader.setToken(this,"");CalendarWidget.renderAll(this);showHome();
             }))
             .setPositiveButton("保存",(d,w)->execute(()->{
                 String token=key.getText().toString().trim();
                 if(token.isEmpty())throw new IllegalArgumentException("読取専用キーを入力してください");
                 CouponDailyReader.setToken(this,token);
                 RevenueJob.requestRefresh(this);
+                showHome();
             })).show();
     }
     private void showHome() throws Exception {
@@ -154,6 +155,7 @@ public final class ManagementActivity extends Activity {
         if(coupon<0)info("Couponは未取得です。ネットワーク接続後に更新してください。");
         if(tiktok<0)info("TikTokは未登録です。CSVまたはサイトの旧データを取り込んでください。");
         info("ウィジェットは同じ端末内の収益・目標を表示します。Couponは中央管理台帳の読取専用です。");
+        info(CouponDailyReader.status(this,month));
         action("えらべるPayのポイント履歴をChromeで開く",
             ()->openUrl("https://wallet.vaton.jp/point/point_logs"));
         action("CSVを取り込む",()->pick("text/*",OPEN_CSV));

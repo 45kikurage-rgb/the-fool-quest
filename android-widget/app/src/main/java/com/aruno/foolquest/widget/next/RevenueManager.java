@@ -481,19 +481,22 @@ final class RevenueManager {
         if(losses!=null){
             if(losses.length()>10000)throw new IllegalArgumentException("損失履歴が多すぎます");
             java.util.HashSet<String> lossIds=new java.util.HashSet<>();
+            java.util.Map<String,Long> categoryTotals=new java.util.HashMap<>();
+            java.util.Map<String,Long> dailyTotals=new java.util.HashMap<>();
             for(int i=0;i<losses.length();i++){
                 JSONObject row=losses.getJSONObject(i);
-                checkDate(row.getString("date"));
-                requireCategory(row.getString("category"));
-                strictNumber(row.get("amount"),true);
+                String date=row.getString("date");
+                checkDate(date);
+                String category=requireCategory(row.getString("category"));
+                long amount=strictNumber(row.get("amount"),true);
+                // Validate the losses themselves, including months without CSV data,
+                // and the combined per-day loss used by the calendar.
+                String monthCategory=date.substring(0,7)+"/"+category;
+                categoryTotals.put(monthCategory,plus(categoryTotals.getOrDefault(monthCategory,0L),amount));
+                dailyTotals.put(date,plus(dailyTotals.getOrDefault(date,0L),amount));
                 String id=row.getString("id");
                 if(id.isEmpty()||id.length()>100||!lossIds.add(id))
                     throw new IllegalArgumentException("損失履歴IDが不正です");
-            }
-            for(Iterator<String> it=months.keys();it.hasNext();){
-                String month=it.next();
-                lossSum(losses,month,"tiktok");
-                lossSum(losses,month,"coupon");
             }
         }
         JSONObject goals=root.getJSONObject("goals");

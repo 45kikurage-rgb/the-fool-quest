@@ -25,16 +25,16 @@ public class CalendarWidget extends AppWidgetProvider {
     };
     // User decision 2026-11-14: the daily total's 万 is drawn at 0.35x so the
     // digits carry the row (was 0.43x through code44). Since code46 the unit
-    // hangs on its own line below the digits (see totalAmount), and a
+    // is in its own TextView below the digits (see totalAmount), and a
     // negative total's minus sign is drawn at 0.55x: in this font the minus
     // is a full em wide, wider than a digit, so reducing it is what lets
     // the digits themselves grow.
     private static final float DAILY_TOTAL_UNIT_SCALE=0.35f;
     private static final float DAILY_TOTAL_SIGN_SCALE=0.55f;
     // The underline separates the daily total from its C/T detail rows
-    // (user-selected design "mock 4", 2026-11-14). It is an UnderlineSpan
-    // over the digits only, not a paint flag, so the unit line hanging
-    // below the digits is not underlined.
+    // (user-selected design "mock 4", 2026-11-14). A separate physical-pixel
+    // rule spans the reduced minus and digits at one baseline; the small
+    // unit below it is not underlined.
     private static final int DAILY_TOTAL_FLAGS=Paint.ANTI_ALIAS_FLAG|Paint.FAKE_BOLD_TEXT_FLAG|Paint.SUBPIXEL_TEXT_FLAG;
     private static final String[] SUMMARY_LABELS={"Total","Coupon","TikTok"};
     static int[] ids(Context c){
@@ -169,11 +169,6 @@ public class CalendarWidget extends AppWidgetProvider {
         // so each of its lines is capped at about half the band.
         float lossSize=Math.min(detailSize,(rowSpace*0.54f-0.35f)/lineHeight);
         RemoteViews rv=new RemoteViews(c.getPackageName(),R.layout.widget_calendar_v42);
-        String title=month.substring(0,4)+"年"+Integer.parseInt(month.substring(5))+"月\u3000";
-        String[] amounts=new String[SUMMARY_LABELS.length];
-        for(int i=0;i<amounts.length;i++){
-            amounts[i]=CalendarAmountFormatter.monthNet(data.totals[i],data.totalKnown[i]||data.totals[i]>=0);
-        }
         // Keep every header field at the same glyph height. Fit the available
         // width with one shared horizontal scale, including unusually large sums.
         float headerSize=Math.min(26f,32f/lineHeight);
@@ -201,8 +196,9 @@ public class CalendarWidget extends AppWidgetProvider {
         float dailyTotalSize=Math.min(previousDailyTotalSize+3f/(dailyDensity*lineHeight),
             headerSize/1.20f);
         dailyTotalSize+=6f/(dailyDensity*glyphRatio(totalMeasure));
-        // The digits line plus the hanging unit line must fit the total's
-        // 2.02 band; the unit line is DAILY_TOTAL_UNIT_SCALE of a line.
+        // Preserve code46's numerical size. The existing weighted slot's
+        // 9px base also leaves room for the separate 1px rule and native
+        // line rounding; no extra font shrink is needed after splitting.
         dailyTotalSize=Math.min(dailyTotalSize,
             (rowSpace*2.02f-1.25f)/(lineHeight*(1f+DAILY_TOTAL_UNIT_SCALE)));
         // Keep every day's total at one size, including −99.9 (the unit
@@ -216,9 +212,36 @@ public class CalendarWidget extends AppWidgetProvider {
             dailyPixelMeasure.measureText(String.valueOf(ch)));
         float pixelWidth=3*pixelDigit+dailyPixelMeasure.measureText("−")*DAILY_TOTAL_SIGN_SCALE
             +dailyPixelMeasure.measureText(".");
+        // Share one horizontal fit across every day and the forecast. Even
+        // unusually large values therefore keep the same numerical font size.
+        for(int day=1;day<data.days.length;day++){
+            String value=CalendarAmountFormatter.compactOrZero(data.days[day][0],data.known[day][0]||data.days[day][0]>=0);
+            pixelWidth=Math.max(pixelWidth,totalDigitsAdvance(dailyPixelMeasure,value));
+        }
+        String currentMonth=RevenueMath.month(now);
+        int forecastElapsed=month.compareTo(currentMonth)<0?CalendarRevenueData.daysInMonth(month)
+            :month.equals(currentMonth)?Integer.parseInt(RevenueMath.date("dd",now)):0;
+        String forecastTotal=CalendarAmountFormatter.forecast(data.totals[0],data.totalKnown[0]||data.totals[0]>=0,
+            forecastElapsed,CalendarRevenueData.daysInMonth(month));
+        pixelWidth=Math.max(pixelWidth,totalDigitsAdvance(dailyPixelMeasure,forecastTotal));
         float dailyTotalScale=totalScale.getFloat()*Math.min(1f,
             Math.max(1f,amountWidth*dailyDensity-1f)/Math.max(pixelWidth,
                 dailyTotalSize*dailyDensity*boldWidth));
+        // Recheck at the applied scale: native hinting/relative spans do not
+        // scale exactly from either the 100px probe or the unscaled glyphs.
+        // One shared fit keeps every day's numerical font size unchanged.
+        float totalBudget=Math.max(1f,(float)Math.floor(amountWidth*dailyDensity)-2f);
+        for(int attempt=0;attempt<8;attempt++){
+            dailyPixelMeasure.setTextScaleX(dailyTotalScale);
+            float widest=totalDigitsAdvance(dailyPixelMeasure,"−99.9万");
+            for(int day=1;day<data.days.length;day++){
+                String value=CalendarAmountFormatter.compactOrZero(data.days[day][0],data.known[day][0]||data.days[day][0]>=0);
+                widest=Math.max(widest,totalDigitsAdvance(dailyPixelMeasure,value));
+            }
+            widest=Math.max(widest,totalDigitsAdvance(dailyPixelMeasure,forecastTotal));
+            if(widest<=totalBudget)break;
+            dailyTotalScale*=Math.min(.99f,totalBudget/widest);
+        }
         totalMeasure.setTextScaleX(dailyTotalScale);
         detailSize=Math.min(detailSize,totalSize*0.90f);
         lossSize=Math.min(lossSize,detailSize);
@@ -255,16 +278,12 @@ public class CalendarWidget extends AppWidgetProvider {
                     forecast.setFloat(R.id.calendar_forecast_title,"setTextScaleX",Math.min(1f,100*forecastBudget/(forecastTitleSize*measure.measureText("月末予想"))));
                     forecast.setInt(R.id.calendar_forecast_total,"setPaintFlags",DAILY_TOTAL_FLAGS);
                     forecast.setFloat(R.id.calendar_forecast_total,"setTextScaleX",dailyTotalScale);
-                    // Center the digits in the total band; the unit line
-                    // hangs below them (see totalAmount).
-                    forecast.setFloat(R.id.calendar_forecast_total,"setTranslationY",
-                        -dailyTotalSize*dailyDensity*lineHeight*DAILY_TOTAL_UNIT_SCALE/2f);
-                    forecast.setTextColor(R.id.calendar_forecast_total,data.totalKnown[0]&&data.totals[0]<0?0xffff9292:0xffffffff);
+                    int forecastColor=data.totalKnown[0]&&data.totals[0]<0?0xffff9292:0xffffffff;
                     int[] values={R.id.calendar_forecast_total,R.id.calendar_forecast_coupon,R.id.calendar_forecast_tiktok};
                     String[] projected=new String[3];
                     for(int i=0;i<3;i++){
                         projected[i]=CalendarAmountFormatter.forecast(data.totals[i],data.totalKnown[i]||data.totals[i]>=0,elapsed,days);
-                        if(i==0)totalAmount(forecast,values[i],projected[i],dailyTotalSize,amountWidth,totalMeasure);
+                        if(i==0)totalAmount(forecast,values[i],projected[i],dailyTotalSize,amountWidth,totalMeasure,dailyDensity,forecastColor);
                         else amount(forecast,values[i],projected[i],detailSize,detailWidth,measure);
                     }
                     forecast.setTextViewTextSize(R.id.calendar_forecast_c_label,TypedValue.COMPLEX_UNIT_DIP,detailSize);
@@ -311,7 +330,9 @@ public class CalendarWidget extends AppWidgetProvider {
                 // displays as 0.0万 (see compactOrZero); the stored data still
                 // records it as unknown, never as a fabricated zero.
                 boolean showTikTok=isPast||isToday;
-                cell.setViewVisibility(R.id.calendar_day_total,showCoupon&&(filter==0||filter==1)?View.VISIBLE:View.INVISIBLE);
+                int totalVisibility=showCoupon&&(filter==0||filter==1)?View.VISIBLE:View.INVISIBLE;
+                cell.setViewVisibility(R.id.calendar_total_slot,totalVisibility);
+                cell.setViewVisibility(R.id.calendar_day_total,totalVisibility);
                 cell.setViewVisibility(R.id.calendar_coupon_row,showCoupon&&(filter==0||filter==2)?View.VISIBLE:View.INVISIBLE);
                 cell.setViewVisibility(R.id.calendar_tiktok_row,showTikTok&&(filter==0||filter==3)?View.VISIBLE:View.INVISIBLE);
                 // The corner block stays invisible unless the day has a
@@ -334,14 +355,9 @@ public class CalendarWidget extends AppWidgetProvider {
                         :(data.known[day][0]||data.days[day][0]>=0);
                     cell.setInt(R.id.calendar_day_total,"setPaintFlags",DAILY_TOTAL_FLAGS);
                     cell.setFloat(R.id.calendar_day_total,"setTextScaleX",dailyTotalScale);
-                    // Center the digits in the total band; the unit line
-                    // hangs below them (see totalAmount).
-                    cell.setFloat(R.id.calendar_day_total,"setTranslationY",
-                        -dailyTotalSize*dailyDensity*lineHeight*DAILY_TOTAL_UNIT_SCALE/2f);
-                    cell.setTextColor(R.id.calendar_day_total,
-                        totalKnown&&total<0&&total!=RevenueMath.UNKNOWN?0xffff9292:0xffffffff);
+                    int totalColor=totalKnown&&total<0&&total!=RevenueMath.UNKNOWN?0xffff9292:0xffffffff;
                     totalAmount(cell,R.id.calendar_day_total,CalendarAmountFormatter.compactOrZero(total,totalKnown),
-                        dailyTotalSize,amountWidth,totalMeasure);
+                        dailyTotalSize,amountWidth,totalMeasure,dailyDensity,totalColor);
                     amount(cell,R.id.calendar_day_coupon,CalendarAmountFormatter.compactOrZero(data.days[day][1],(data.known[day][1]||data.days[day][1]>=0)),detailSize,detailWidth,measure);
                     if(showTikTok)amount(cell,R.id.calendar_day_tiktok,
                         CalendarAmountFormatter.compactOrZero(data.days[day][2],(data.known[day][2]||data.days[day][2]>=0)),detailSize,detailWidth,measure);
@@ -462,33 +478,44 @@ public class CalendarWidget extends AppWidgetProvider {
         for(int y=0;y<height;y++)for(int x=0;x<width;x++)if((pixels[y*width+x]>>>24)>=160){top=Math.min(top,y);bottom=Math.max(bottom,y);}
         raster.recycle();return digitRatios[key]=Math.max(.1f,(bottom-top+1)/paint.getTextSize());
     }
-    // Total styling (user decisions 2026-11-14): the digits carry the row
-    // and the unit hangs on a second line below them at the right; a
-    // negative total's minus sign is reduced to DAILY_TOTAL_SIGN_SCALE;
-    // the underline covers the digits only. The fit measures the digits
-    // line as drawn: the unit takes no width on that line and the minus
-    // counts at its reduced scale. Callers shift the view up by half the
-    // unit line so the digits, not the two-line block, are what centers
-    // in the total band.
-    private static void totalAmount(RemoteViews cell,int view,String text,float size,float width,Paint measure){
+    // Keep digits, their uniform rule and the small unit in separate native
+    // views. RelativeSizeSpan is needed only for the reduced minus; a single
+    // physical-pixel rule avoids font-size-dependent underline runs.
+    private static float totalDigitsAdvance(Paint measure,String text){
+        return android.text.Layout.getDesiredWidth(totalDigits(text),new android.text.TextPaint(measure));
+    }
+    private static android.text.SpannableString totalDigits(String text){
+        int unit=text.indexOf('万');if(unit<0)unit=text.indexOf('億');
+        String digits=unit<0?text:text.substring(0,unit);
+        android.text.SpannableString styled=new android.text.SpannableString(digits);
+        if(digits.startsWith("−"))styled.setSpan(
+            new android.text.style.RelativeSizeSpan(DAILY_TOTAL_SIGN_SCALE),0,1,
+            android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        return styled;
+    }
+    private static void totalAmount(RemoteViews cell,int view,String text,float size,float width,Paint measure,float density,int color){
         int unit=text.indexOf('万');
         if(unit<0)unit=text.indexOf('億');
         String digits=unit<0?text:text.substring(0,unit);
-        String styled=unit<0?text:digits+"\n"+text.charAt(unit);
-        android.text.SpannableString spannable=new android.text.SpannableString(styled);
-        spannable.setSpan(new android.text.style.UnderlineSpan(),0,digits.length(),
-            android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        if(digits.startsWith("−"))spannable.setSpan(
-            new android.text.style.RelativeSizeSpan(DAILY_TOTAL_SIGN_SCALE),0,1,
-            android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        if(unit>=0)spannable.setSpan(
-            new android.text.style.RelativeSizeSpan(DAILY_TOTAL_UNIT_SCALE),
-            digits.length()+1,styled.length(),android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        float measured=measure.measureText(digits);
-        if(digits.startsWith("−"))measured-=measure.measureText("−")*(1f-DAILY_TOTAL_SIGN_SCALE);
+        android.text.SpannableString spannable=totalDigits(text);
+        float fitted=size;
         cell.setTextViewText(view,spannable);
-        cell.setTextViewTextSize(view,TypedValue.COMPLEX_UNIT_DIP,
-            Math.min(size,100*width/Math.max(1,measured)));
+        cell.setTextViewTextSize(view,TypedValue.COMPLEX_UNIT_DIP,fitted);
+        cell.setContentDescription(view,text);
+        cell.setTextViewText(R.id.calendar_total_unit,unit<0?"":text.substring(unit,unit+1));
+        cell.setTextViewTextSize(R.id.calendar_total_unit,TypedValue.COMPLEX_UNIT_DIP,fitted*DAILY_TOTAL_UNIT_SCALE);
+        cell.setInt(R.id.calendar_total_unit,"setPaintFlags",DAILY_TOTAL_FLAGS);
+        cell.setFloat(R.id.calendar_total_unit,"setTextScaleX",1f);
+        cell.setTextColor(view,color);
+        cell.setTextColor(R.id.calendar_total_unit,color);
+        cell.setInt(R.id.calendar_total_rule,"setBackgroundColor",color);
+        // Match TextView's actual styled shaping, including small-size font
+        // hinting and the reduced minus. Scaling a 100px probe is not exact
+        // enough for a one-pixel underline on small/low-density hosts.
+        android.text.TextPaint actual=new android.text.TextPaint(measure);
+        actual.setTextSize(fitted*density);
+        cell.setInt(R.id.calendar_total_rule,"setWidth",Math.max(1,
+            (int)Math.ceil(android.text.Layout.getDesiredWidth(spannable,actual))));
     }
     private static void amount(RemoteViews cell,int view,String text,float size,float width,Paint measure){
         amount(cell,view,text,size,width,measure,0.55f);

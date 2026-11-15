@@ -20,6 +20,7 @@ import javax.crypto.spec.GCMParameterSpec;
 final class CouponDailyReader {
     private static final String TOKEN = "myBestCouponDailyCredentialV1";
     private static final String SNAPSHOTS = "couponRevenueDailyV2";
+    private static final String STATUS = "couponDailyFetchStatusV1";
     private static final String API = "https://aruno-consolidated-ledger-api.45kikurage.workers.dev/api/v1/revenue/daily?month=";
 
     private static SecretKey key(boolean create) throws Exception {
@@ -56,6 +57,47 @@ final class CouponDailyReader {
         catch(Exception invalid){return null;}
     }
 
+    private static SharedPreferences statusPreferences(Context c) {
+        // Operational fetch status is separate from backed-up revenue and credentials.
+        return c.getSharedPreferences(STATUS, Context.MODE_PRIVATE);
+    }
+
+    private static String fingerprint(String credential) throws Exception {
+        byte[] digest=java.security.MessageDigest.getInstance("SHA-256")
+            .digest(credential.getBytes(StandardCharsets.US_ASCII));
+        StringBuilder value=new StringBuilder();
+        for(byte b:digest)value.append(String.format(Locale.US,"%02x",b&255));
+        return value.toString();
+    }
+
+    private static synchronized void recordStatus(Context c,String credential,String month,String code) {
+        if(!credential.equals(RevenueStore.prefs(c).getString(TOKEN,"")))return;
+        try {
+            SharedPreferences.Editor edit=statusPreferences(c).edit();
+            edit.putString(month+".credential",fingerprint(credential))
+                .putString(month+".code",code).putLong(month+".at",System.currentTimeMillis());
+            edit.apply();
+        } catch(Exception ignored) { /* A status write must not invalidate a saved projection. */ }
+    }
+
+    static String status(Context c,String month) {
+        String prefix="クーポン日別：";
+        try {
+            String credential=RevenueStore.prefs(c).getString(TOKEN,"");
+            if(credential.isEmpty())return prefix+"未設定";
+            SharedPreferences p=statusPreferences(c);
+            if(!fingerprint(credential).equals(p.getString(month+".credential","")))return prefix+"未取得";
+            String code=p.getString(month+".code","");
+            long at=p.getLong(month+".at",0);
+            if("OK".equals(code))return prefix+"取得済み（"+RevenueMath.date("yyyy-MM-dd HH:mm",at)+"）";
+            String reason="KEY_UNAVAILABLE".equals(code)||"CREDENTIAL".equals(code)
+                ?"接続キーを確認してください":"SAVE".equals(code)
+                ?"端末への保存失敗":RevenueFailure.label(code);
+            boolean retained=snapshot(RevenueStore.prefs(c),month)!=null;
+            return prefix+reason+(retained?"（前回の正常データは保持）":"（未取得）");
+        } catch(Exception unavailable) { return prefix+"状態を確認できません"; }
+    }
+
     static JSONObject validate(String raw, String month, long now) throws Exception {
         long total = RevenueStore.validateCoupon(raw, month);
         JSONObject source = new JSONObject(raw);
@@ -90,33 +132,44 @@ final class CouponDailyReader {
         SharedPreferences p = RevenueStore.prefs(c);
         String credential = p.getString(TOKEN,"");
         if (credential.isEmpty()) return;
-        String[] parts = credential.split("\\.", -1);
-        SecretKey key = key(false);
-        if (key == null || parts.length != 2) return;
-        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-        cipher.init(Cipher.DECRYPT_MODE,key,new GCMParameterSpec(128,Base64.decode(parts[0],Base64.NO_WRAP)));
-        String token = new String(cipher.doFinal(Base64.decode(parts[1],Base64.NO_WRAP)),StandardCharsets.US_ASCII);
-        HttpURLConnection connection = (HttpURLConnection)new URL(API+month).openConnection();
+        HttpURLConnection connection = null;
+        String failure="CREDENTIAL";
         try {
+            String[] parts = credential.split("\\.", -1);
+            SecretKey key = key(false);
+            if (key == null || parts.length != 2) {
+                recordStatus(c,credential,month,"KEY_UNAVAILABLE");
+                return;
+            }
+            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+            cipher.init(Cipher.DECRYPT_MODE,key,new GCMParameterSpec(128,Base64.decode(parts[0],Base64.NO_WRAP)));
+            String token = new String(cipher.doFinal(Base64.decode(parts[1],Base64.NO_WRAP)),StandardCharsets.US_ASCII);
+            failure=null;
+            connection = (HttpURLConnection)new URL(API+month).openConnection();
             connection.setRequestProperty("Authorization","Bearer "+token);
-            JSONObject data = validate(RevenueHttp.read(connection),month,System.currentTimeMillis());
-            save(p,credential,month,data);
-        } catch(RevenueHttp.HttpFailure e) {
-            throw e; // A failed fetch must never erase the last-good daily projection.
+            String raw=RevenueHttp.read(connection);
+            failure="INVALID_RESPONSE";
+            JSONObject data = validate(raw,month,System.currentTimeMillis());
+            failure="SAVE";
+            if(save(p,credential,month,data))recordStatus(c,credential,month,"OK");
+        } catch(Exception e) {
+            recordStatus(c,credential,month,failure==null?RevenueFailure.code(e):failure);
+            throw e; // Preserve the last-good daily projection and monthly result.
         } finally {
-            connection.disconnect();
+            if(connection!=null)connection.disconnect();
         }
     }
 
-    private static synchronized void save(SharedPreferences p,String credential,String month,JSONObject data) throws Exception {
-        if (!credential.equals(p.getString(TOKEN,""))) return;
+    private static synchronized boolean save(SharedPreferences p,String credential,String month,JSONObject data) throws Exception {
+        if (!credential.equals(p.getString(TOKEN,""))) return false;
         if (month == null) {
             p.edit().remove(SNAPSHOTS).apply();
-            return;
+            return true;
         }
         JSONObject snapshots = new JSONObject(p.getString(SNAPSHOTS,"{}"));
         if (data == null) snapshots.remove(month);
         else snapshots.put(month,data);
         p.edit().putString(SNAPSHOTS,snapshots.toString()).apply();
+        return true;
     }
 }

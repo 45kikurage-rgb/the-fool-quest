@@ -45,6 +45,9 @@ jobs:
           javac --release 8 -encoding UTF-8 -classpath "build/classes:build/deps/json.jar:$ANDROID_JAR" -d build/test tests/BackupFormatTest.java
           java -cp "build/test:build/classes:build/deps/json.jar:$ANDROID_JAR" com.aruno.foolquest.widget.next.BackupFormatTest
           python3 scripts/test-backup-failure.py build/deps/json.jar
+          python3 scripts/test-widget-render-order.py
+          python3 scripts/test-revenue-ownership.py build/deps/json.jar
+          python3 scripts/test-update-failure.py build/deps/json.jar
       - name: Android17 native rendering, forecast taps, backup and reboot
         run: |
           set -euo pipefail

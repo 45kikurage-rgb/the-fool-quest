@@ -38,12 +38,16 @@ public final class CalendarControlActivity extends Activity {
             +CalendarAmountFormatter.monthNet(amounts[2],data.known[day][2])
             +"\nクーポン（獲得額）  "+coupon
             +(!data.known[day][2]?"\n※ TikTok Liteの当日収益は未取得":"");
-        detail+="\n損失合計  "+CalendarAmountFormatter.dailyLoss(data.dailyLosses[day])
-            +"\n  TikTok Lite  "+CalendarAmountFormatter.dailyLoss(data.losses[day][0])
-            +"\n  クーポン  "+CalendarAmountFormatter.dailyLoss(data.losses[day][1]);
+        detail+="\n損失合計  "+lossDetail(data.dailyLosses[day])
+            +"\n  TikTok Lite  "+lossDetail(data.losses[day][0])
+            +"\n  クーポン  "+lossDetail(data.losses[day][1]);
         new AlertDialog.Builder(this,R.style.ResultDialogTheme)
             .setTitle(normalized).setMessage(detail).setPositiveButton("閉じる",(d,w)->finish())
             .setOnCancelListener(d->finish()).show();
+    }
+    private static String lossDetail(long amount){
+        // This dialog is the exact-yen alternative to the compact widget.
+        return amount<=0?"":CalendarAmountFormatter.monthNet(-amount,true);
     }
     private void showFilters(){
         final String[] entries={"4種類表示","合計のみ","クーポンのみ","TikTok Liteのみ","損失のみ"};

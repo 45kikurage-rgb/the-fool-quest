@@ -1,5 +1,10 @@
 const test=require('node:test'),assert=require('node:assert/strict');
-const {readSnapshot,toUri,toIntentUri,currentMonth}=require('../web-export.js');
+const {readSnapshot,toUri,toIntentUri,currentMonth}=require('../../widget-export.js');
+test('published export and retained compatibility copy stay identical',()=>{
+ const fs=require('node:fs'),path=require('node:path');
+ assert.equal(fs.readFileSync(path.join(__dirname,'../../widget-export.js'),'utf8'),
+              fs.readFileSync(path.join(__dirname,'../web-export.js'),'utf8'));
+});
 const at=Date.parse('2026-10-08T23:00:00Z');
 function storage(data){return {getItem:k=>k in data?typeof data[k]==='string'?data[k]:JSON.stringify(data[k]):null,setItem:()=>{throw Error('must not write')}};}
 test('same monthly CSV + manual formula, custom targets, read-only',()=>{

@@ -277,6 +277,7 @@ public final class SettingsActivity extends Activity {
         try{
             if(raw==null||raw.length()>4096)throw new IllegalArgumentException("連携データの長さが不正です");
             RevenueStore.Import data=RevenueStore.Import.parse(Uri.parse(raw));
+            RevenueStore.Import.checkAvailable(this);
             new AlertDialog.Builder(this).setTitle("サイトの表示値を受け取る")
                 .setMessage(data.month+"\nTikTok "+RevenueMath.money(data.tiktok)+"\n目標 Total "+RevenueMath.money(data.goalTotal)+"\nTikTok "+RevenueMath.money(data.goalTiktok)+"\nCoupon "+RevenueMath.money(data.goalCoupon)+"\n\nサイトの表示と一致していることを確認してください。")
                 .setNegativeButton("キャンセル",null).setPositiveButton("受け取る",(dialog,which)->{

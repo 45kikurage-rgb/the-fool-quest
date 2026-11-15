@@ -16,7 +16,7 @@ package android.util;
 import java.io.*;
 import java.nio.file.*;
 public class AtomicFile {
-  public static String silentFailure;
+  public static String silentFailure, readFailure;
   private final File base, pending;
   public AtomicFile(File base) { this.base=base; pending=new File(base+".new"); }
   public FileOutputStream startWrite() throws IOException { return new FileOutputStream(pending); }
@@ -25,7 +25,7 @@ public class AtomicFile {
     if (!base.getName().equals(silentFailure) && !pending.renameTo(base)) throw new AssertionError("fixture rename failed");
   }
   public void failWrite(FileOutputStream out) { try {out.close();}catch(IOException ignored){} pending.delete(); }
-  public byte[] readFully() throws IOException { return Files.readAllBytes(base.toPath()); }
+  public byte[] readFully() throws IOException { if(base.getName().equals(readFailure))throw new IOException("synthetic local read failure");return Files.readAllBytes(base.toPath()); }
   public void delete() { base.delete();pending.delete(); }
 }
 """,
@@ -157,12 +157,13 @@ final class BackupFiles {
     return docs;
   }
   static String read(Context context,Uri uri){return copies.get(uri.toString());}
-  void append(String name,String json){copies.put(name,json);}
+  void append(String name,String json){if(denied)throw new SecurityException("synthetic SAF loss");copies.put(name,json);}
+  void appendQuarantine(String name,String json)throws Exception {BackupFormat.parseQuarantine(json);append(name,json);}
   void prune(){}
 }
-final class RevenueWidget {static void renderAll(Context c){throw new AssertionError("not exercised");}}
+final class RevenueWidget {static void renderAll(Context c){}}
 final class CalendarWidgetState {static void discardPendingSummaries(){}}
-final class CalendarWidget {static void renderAll(Context c){throw new AssertionError("not exercised");}}
+final class CalendarWidget {static void renderAll(Context c){}}
 final class RevenueManager {
   static void validate(JSONObject data){throw new AssertionError("not exercised");}
   static void requireMonth(String month){throw new AssertionError("not exercised");}
@@ -223,6 +224,50 @@ public class SafFixture {
     catch(IOException e){require(e.getMessage().contains("保存後照合"));}
     require("original".equals(BackupCoordinator.read(write)));
     System.out.println("R-04 control: Result already rejects silent AtomicFile replacement failure via readback.");
+    AtomicFile.silentFailure=null;
+
+    File truncated=new File(coordinator.directory,"aruno-result-change-1001-c.json");
+    File schema=new File(coordinator.directory,"aruno-result-change-1002-d.json");
+    File unreadable=new File(coordinator.directory,"aruno-result-change-1003-e.json");
+    File later=new File(coordinator.directory,"aruno-result-change-3000-f.json");
+    Files.writeString(truncated.toPath(),"{truncated");
+    JSONObject invalidBody=new JSONObject(new JSONObject(valid).getString("body")).put("version",2);
+    String invalidText=BackupFormat.canonical(invalidBody);
+    Files.writeString(schema.toPath(),new JSONObject().put("body",invalidText).put("sha256",BackupFormat.sha(invalidText)).toString());
+    Files.writeString(unreadable.toPath(),valid);BackupCoordinator.write(later,valid);
+    AtomicFile.readFailure=unreadable.getName();coordinator.flush();
+    require(coordinator.meta.getInt("damagedJournalCount",0)==3 && coordinator.meta.getInt("checksumMismatchCount",0)==1);
+    require(valid.equals(BackupFiles.copies.get(later.getName())) && new File(later+".sent").exists());
+    require(truncated.isFile()&&schema.isFile()&&unreadable.isFile()&&!new File(unreadable+".sent").exists());
+    require(Boolean.FALSE.equals(unsent.invoke(coordinator)));
+    AtomicFile.readFailure=null;coordinator.flush();
+    require(new File(unreadable+".sent").exists()&&coordinator.meta.getInt("damagedJournalCount",0)==2);
+    System.out.println("PASS: truncated, unsupported-schema and unreadable local journals retained; valid successors export; recovered local reads retry without spinning.");
+
+    coordinator.raw.edit().putString("nativeRevenueV1","{broken-live-json").putString("couponRevenueMonthlyV1","{broken-coupon")
+        .putString("myBestCouponDailyCredentialV1","credential-must-stay-local").putString("password","password-must-stay-local").commit();
+    String expected=BackupFormat.fingerprint(coordinator.raw.getAll());
+    coordinator.raw.edit().putInt("font",39).commit();
+    int prior=BackupFiles.copies.size();
+    try{coordinator.restore(valid,expected);throw new AssertionError("stale preview accepted");}catch(IOException e){require(e.getMessage().contains("確認後"));}
+    require(BackupFiles.copies.size()==prior);
+    expected=BackupFormat.fingerprint(coordinator.raw.getAll());BackupFiles.denied=true;
+    try{coordinator.restore(valid,expected);throw new AssertionError("restore without verified external preservation");}catch(SecurityException expectedFailure){}
+    require("{broken-live-json".equals(coordinator.raw.getString("nativeRevenueV1","")));
+    BackupFiles.denied=false;coordinator.restore(valid,expected);
+    coordinator.worker.submit(()->{}).get(10,java.util.concurrent.TimeUnit.SECONDS);
+    require(coordinator.raw.getLong("tiktok",0)==123&&!coordinator.raw.contains("nativeRevenueV1")&&!coordinator.raw.contains("couponRevenueMonthlyV1"));
+    require("credential-must-stay-local".equals(coordinator.raw.getString("myBestCouponDailyCredentialV1","")));
+    boolean quarantine=false;
+    for(var entry:BackupFiles.copies.entrySet())if(entry.getKey().startsWith("aruno-result-quarantine-")){
+      var body=BackupFormat.parseQuarantine(entry.getValue());quarantine=true;
+      require(body.getJSONObject("preferences").getJSONObject("nativeRevenueV1").getString("value").equals("{broken-live-json"));
+      require(!entry.getValue().contains("credential-must-stay-local")&&!entry.getValue().contains("password-must-stay-local"));
+      try{BackupFormat.parse(entry.getValue());throw new AssertionError("quarantine accepted as a normal backup");}catch(IllegalArgumentException rejected){}
+    }
+    require(quarantine);
+    coordinator.worker.shutdown();require(coordinator.worker.awaitTermination(10,java.util.concurrent.TimeUnit.SECONDS));
+    System.out.println("PASS: damaged live state quarantined before valid restore, stale preview/SAF denial reject, malformed Coupon not reapplied, credentials stay local.");
   }
 }
 """,
