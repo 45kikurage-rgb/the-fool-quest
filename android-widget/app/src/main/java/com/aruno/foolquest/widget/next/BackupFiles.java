@@ -33,6 +33,13 @@ final class BackupFiles {
     }
     Uri append(String name,String json)throws Exception {
         BackupFormat.parse(json);
+        return appendVerified(name,json,false);
+    }
+    Uri appendQuarantine(String name,String json)throws Exception {
+        BackupFormat.parseQuarantine(json);
+        return appendVerified(name,json,true);
+    }
+    private Uri appendVerified(String name,String json,boolean quarantine)throws Exception {
         Uri document=DocumentsContract.createDocument(context.getContentResolver(),root(),"application/octet-stream",name+".pending");
         if(document==null)throw new IOException("保存先にファイルを作成できません");
         try {
@@ -45,7 +52,8 @@ final class BackupFiles {
             Uri complete=DocumentsContract.renameDocument(context.getContentResolver(),document,name);
             if(complete==null)throw new IOException("保存先が安全なファイル確定に対応していません");
             if(!json.equals(read(context,complete)))throw new IOException("確定後の再読込が一致しません");
-            BackupFormat.parse(read(context,complete));return complete;
+            if(quarantine)BackupFormat.parseQuarantine(read(context,complete));else BackupFormat.parse(read(context,complete));
+            return complete;
         }catch(Exception e){
             // A .pending file is never offered as a healthy generation; retain it for diagnosis.
             throw e;
@@ -53,7 +61,7 @@ final class BackupFiles {
     }
     void prune()throws Exception {
         Map<String,Uri> docs=documents();Map<String,List<String>> groups=new HashMap<>();
-        for(String name:docs.keySet())if(name.matches("aruno-result-(change|daily|safety)-[0-9]+-[a-f0-9-]+\\.json")){
+        for(String name:docs.keySet())if(BackupFormat.generationName(name)){
             try{String k=BackupFormat.parse(read(context,docs.get(name))).getString("kind");groups.computeIfAbsent(k,x->new ArrayList<>()).add(name);}catch(Exception corrupt){/* corrupt files never count toward good retention */}
         }
         for(List<String> names:groups.values()){

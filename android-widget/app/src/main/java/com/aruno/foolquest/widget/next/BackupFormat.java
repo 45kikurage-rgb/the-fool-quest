@@ -28,6 +28,44 @@ final class BackupFormat {
         for(Map.Entry<String,?> e:source.entrySet())if(type(e.getKey())!=null)out.put(e.getKey(),e.getValue());
         return out;
     }
+    /** A fingerprint must remain available even when live data cannot pass the recovery schema. */
+    static String fingerprint(Map<String,?> source)throws Exception {
+        JSONObject out=new JSONObject();
+        for(Map.Entry<String,Object> e:select(source).entrySet()){
+            Object value=e.getValue();String actual;
+            if(value instanceof String)actual="string";
+            else if(value instanceof Integer)actual="int";
+            else if(value instanceof Long)actual="long";
+            else if(value instanceof Boolean)actual="boolean";
+            else if(value instanceof Float){actual="float";value=value.toString();}
+            else if(value instanceof Set){
+                actual="stringSet";List<String> items=new ArrayList<>();
+                for(Object item:(Set<?>)value){if(!(item instanceof String))throw new IllegalArgumentException("退避できない設定型です");items.add((String)item);}
+                Collections.sort(items);value=new JSONArray(items);
+            }else throw new IllegalArgumentException("退避できない設定型です");
+            out.put(e.getKey(),new JSONObject().put("type",actual).put("value",value));
+        }
+        return canonical(out);
+    }
+    static String quarantine(Map<String,?> source,long time,int version)throws Exception {
+        String body=canonical(new JSONObject().put("format","aruno-result-quarantine").put("version",1)
+            .put("package",PACKAGE).put("savedAt",time).put("appVersion",version)
+            .put("credentialsIncluded",false).put("preferences",new JSONObject(fingerprint(source))));
+        String json=new JSONObject().put("body",body).put("sha256",sha(body)).toString();
+        parseQuarantine(json);return json;
+    }
+    /** Quarantines are evidence only; they are never accepted as normal recovery generations. */
+    static JSONObject parseQuarantine(String json)throws Exception {
+        if(json.getBytes(StandardCharsets.UTF_8).length>LIMIT)throw new IllegalArgumentException("退避ファイルが大きすぎます");
+        JSONObject envelope=new JSONObject(json);String body=envelope.getString("body");
+        if(!sha(body).equals(envelope.getString("sha256")))throw new ChecksumMismatch();
+        JSONObject b=new JSONObject(body);
+        if(!"aruno-result-quarantine".equals(b.getString("format"))||b.getInt("version")!=1||!PACKAGE.equals(b.getString("package"))||b.getLong("savedAt")<=0||b.getBoolean("credentialsIncluded"))throw new IllegalArgumentException("未対応の退避ファイルです");
+        JSONObject values=b.getJSONObject("preferences");
+        for(Iterator<String> it=values.keys();it.hasNext();)if(type(it.next())==null)throw new IllegalArgumentException("退避対象外の設定です");
+        return b;
+    }
+    static boolean generationName(String name){return name.matches("aruno-result-(change|daily|safety)-[0-9]+-[a-f0-9-]+\\.json");}
     static JSONObject encode(Map<String,?> source)throws Exception {
         JSONObject out=new JSONObject();
         for(Map.Entry<String,Object> e:select(source).entrySet()){

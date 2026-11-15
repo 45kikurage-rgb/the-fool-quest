@@ -8,6 +8,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.SizeF;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -17,8 +19,17 @@ import android.widget.RemoteViews;
 
 public final class RevenueWidget extends AppWidgetProvider {
     static final String REFRESH="com.aruno.foolquest.widget.next.REFRESH";
+    private static final Handler renderer=new Handler(Looper.getMainLooper());
     static int[] ids(Context c){return AppWidgetManager.getInstance(c).getAppWidgetIds(new ComponentName(c,RevenueWidget.class));}
     static void renderAll(Context c){
+        // Read the snapshot and publish it on the same looper as settings and
+        // widget callbacks. A slower background render must not replace a newer
+        // main-thread render with an older data/settings snapshot.
+        if(Looper.myLooper()!=Looper.getMainLooper()){
+            Context app=c.getApplicationContext();
+            renderer.post(()->{try{renderAll(app);}catch(RuntimeException failed){android.util.Log.w("AruMyBest","Gauge refresh failed after saving data");}});
+            return;
+        }
         AppWidgetManager manager=AppWidgetManager.getInstance(c);
         RevenueStore.Data d=RevenueStore.read(c);DisplaySettings s=DisplaySettings.load(RevenueStore.prefs(c));
         for(int id:ids(c))render(c,manager,id,d,s);

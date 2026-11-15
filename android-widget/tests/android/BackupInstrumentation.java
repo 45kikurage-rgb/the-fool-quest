@@ -16,7 +16,7 @@ public final class BackupInstrumentation extends Instrumentation {
     @Override public void onCreate(Bundle a){super.onCreate(a);args=a;start();}
     private void ok(boolean v,String message){checks++;if(!v)throw new AssertionError(message);}
     private void drained()throws Exception {for(int i=0;i<3;i++)b.worker.submit(()->{}).get(40,TimeUnit.SECONDS);}
-    private String current()throws Exception{return BackupFormat.canonical(BackupFormat.encode(b.raw.getAll()));}
+    private String current()throws Exception{return BackupFormat.fingerprint(b.raw.getAll());}
     private void pickerClick(String... labels)throws Exception {
         for(int tries=0;tries<60;tries++){
             AccessibilityNodeInfo root=getUiAutomation().getRootInActiveWindow();
@@ -153,6 +153,41 @@ public final class BackupInstrumentation extends Instrumentation {
             String before=current();
             b.restore(restore,before);ok(new RevenueManager(c).manualTotal(month)==250,"older valid generation remains recoverable after more than ten writes");
             b.meta.edit().putLong("backupTestExpected",new RevenueManager(c).tiktok(month)).commit();drained();
+            // Recovery must not require the live state to pass the same schema as a valid backup.
+            String healthy=BackupFormat.create(b.raw.getAll(),"safety",System.currentTimeMillis(),b.version());
+            String oldNative=b.raw.getString("nativeRevenueV1","");String oldMonthly=b.raw.getString("couponRevenueMonthlyV1","{}");
+            synchronized(BackupCoordinator.LOCK){
+                b.raw.edit().putString("nativeRevenueV1","{damaged-live-json").putString("couponRevenueMonthlyV1","{damaged-monthly-json")
+                    .putString("font","wrong-live-type").putString("backupTestSecret","must-not-leave-device").commit();
+                String stale=current();b.raw.edit().putInt("font",39).commit();
+                boolean refused=false;try{b.restore(healthy,stale);}catch(IOException changed){refused=true;}
+                ok(refused&&"{damaged-live-json".equals(b.raw.getString("nativeRevenueV1","")),"changed damaged live data rejects stale restore preview");
+                b.raw.edit().putString("font","wrong-live-type").commit();
+                b.restore(healthy,current());
+            }
+            ok(oldNative.equals(b.raw.getString("nativeRevenueV1",""))&&oldMonthly.equals(b.raw.getString("couponRevenueMonthlyV1","")),"valid backup restores damaged native and Coupon caches after preservation");
+            ok(b.raw.getInt("font",0)==37&&"must-not-leave-device".equals(b.raw.getString("backupTestSecret","")),"restore repairs wrong live type and retains excluded local settings");
+            Map<String,Uri> quarantineDocs=new BackupFiles(c,Uri.parse(b.meta.getString("tree",""))).documents();boolean preserved=false;
+            for(Map.Entry<String,Uri> entry:quarantineDocs.entrySet())if(entry.getKey().startsWith("aruno-result-quarantine-")){
+                String json=BackupFiles.read(c,entry.getValue());JSONObject q=BackupFormat.parseQuarantine(json);
+                if("{damaged-live-json".equals(q.getJSONObject("preferences").getJSONObject("nativeRevenueV1").getString("value"))){
+                    preserved=true;ok(!json.contains("must-not-leave-device")&&!json.contains("myBestCouponDailyCredentialV1"),"verified external quarantine excludes credentials and unlisted keys");
+                    boolean ordinary=false;try{BackupFormat.parse(json);ordinary=true;}catch(Exception notGeneration){}
+                    ok(!ordinary&&!BackupFormat.generationName(entry.getKey()),"quarantine is never accepted or counted as a normal backup generation");
+                }
+            }
+            ok(preserved,"damaged live data reaches a verified independent SAF quarantine before restore");drained();
+            File truncatedJournal=new File(b.directory,"aruno-result-change-1000000000002-00000000-0000-0000-0000-000000000043.json");
+            File unsupportedJournal=new File(b.directory,"aruno-result-change-1000000000003-00000000-0000-0000-0000-000000000044.json");
+            JSONObject unsupportedBody=new JSONObject(new JSONObject(healthy).getString("body")).put("version",2);
+            String unsupportedText=BackupFormat.canonical(unsupportedBody);
+            synchronized(BackupCoordinator.LOCK){
+                BackupCoordinator.write(truncatedJournal,"{truncated");
+                BackupCoordinator.write(unsupportedJournal,new JSONObject().put("body",unsupportedText).put("sha256",BackupFormat.sha(unsupportedText)).toString());
+                b.capture("safety",true);b.flush();
+            }
+            ok(truncatedJournal.isFile()&&unsupportedJournal.isFile()&&!new File(truncatedJournal+".sent").exists()&&!new File(unsupportedJournal+".sent").exists(),"syntax/schema damaged journals stay unchanged and unsent");
+            ok(b.meta.getInt("damagedJournalCount",0)==2&&Boolean.FALSE.equals(unsent.invoke(b)),"syntax/schema errors remain visible without blocking valid successor exports or retry spinning");
             ok(RevenueWidget.ids(c).length>=0&&CalendarWidget.ids(c).length>=0,"all widget providers remain queryable");
         }
         result.putString("stream","PASS "+checks+" backup Android checks");finish(-1,result);

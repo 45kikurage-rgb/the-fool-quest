@@ -78,11 +78,23 @@ final class RevenueStore {
             if(i.at>System.currentTimeMillis()+300000L || i.at<System.currentTimeMillis()-86400000L) throw new IllegalArgumentException("連携データが古いです。サイトで再作成してください");
             return i;
         }
+        private static void checkNativeOwner(SharedPreferences p) {
+            if(!p.getString("nativeRevenueV1","").isEmpty())
+                throw new IllegalArgumentException("アプリ内の収益管理を開始済みのため、旧サイトの表示値は取り込めません。収益管理画面のCSV取込・手動追加・月間目標設定を使用してください。旧サイトの履歴は「バックアップ・復元」から移行できます。");
+        }
+        static void checkAvailable(Context c) {
+            synchronized(BackupCoordinator.LOCK){checkNativeOwner(prefs(c));}
+        }
         void save(Context c) {
-            SharedPreferences p=prefs(c);
-            if(at<p.getLong("importAt",0)) throw new IllegalArgumentException("新しいデータが既に保存されています");
-            p.edit().putString("importMonth",month).putLong("tiktok",tiktok).putLong("goalTotal",goalTotal)
-                .putLong("goalTiktok",goalTiktok).putLong("goalCoupon",goalCoupon).putLong("importAt",at).apply();
+            synchronized(BackupCoordinator.LOCK){
+                SharedPreferences p=prefs(c);
+                // Native history owns both revenue and goals once created. Recheck at
+                // commit time because it may have been created after the confirmation.
+                checkNativeOwner(p);
+                if(at<p.getLong("importAt",0)) throw new IllegalArgumentException("新しいデータが既に保存されています");
+                p.edit().putString("importMonth",month).putLong("tiktok",tiktok).putLong("goalTotal",goalTotal)
+                    .putLong("goalTiktok",goalTiktok).putLong("goalCoupon",goalCoupon).putLong("importAt",at).apply();
+            }
             CalendarWidget.renderAll(c);
         }
     }

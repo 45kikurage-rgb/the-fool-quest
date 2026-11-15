@@ -22,8 +22,8 @@ final class RevenueUpdate {
             if(done!=null)WAITERS.add(done);
             if(!BUSY.compareAndSet(false,true))return;
         }
-        RevenueWidget.renderAll(app);
-        EXECUTOR.execute(()->{
+        try { RevenueWidget.renderAll(app); } catch(RuntimeException ignored) { }
+        try { EXECUTOR.execute(()->{
             HttpURLConnection con=null;
             try {
                 String month=RevenueMath.month(System.currentTimeMillis());
@@ -43,13 +43,23 @@ final class RevenueUpdate {
             }catch(Exception e){
                 RevenueStore.saveFailure(app,RevenueFailure.code(e));
             }finally{
-                if(con!=null)con.disconnect();
-                List<Runnable> completed;
-                synchronized(LOCK){BUSY.set(false);completed=new ArrayList<>(WAITERS);WAITERS.clear();}
-                RevenueWidget.renderAll(app);
-                CalendarWidget.renderAll(app);
-                for(Runnable callback:completed){try{callback.run();}catch(RuntimeException ignored){}}
+                try { if(con!=null)con.disconnect(); }
+                finally { complete(app); }
             }
-        });
+        }); } catch(RuntimeException unavailable) {
+            try { RevenueStore.saveFailure(app,"SCHEDULE"); }
+            finally { complete(app); }
+        }
+    }
+    private static void redraw(Context app){
+        // A launcher/RemoteViews failure must not block the reader or its callbacks.
+        try { RevenueWidget.renderAll(app); } catch(RuntimeException ignored) { }
+        try { CalendarWidget.renderAll(app); } catch(RuntimeException ignored) { }
+    }
+    private static void complete(Context app){
+        List<Runnable> completed;
+        synchronized(LOCK){BUSY.set(false);completed=new ArrayList<>(WAITERS);WAITERS.clear();}
+        redraw(app);
+        for(Runnable callback:completed){try{callback.run();}catch(RuntimeException ignored){}}
     }
 }

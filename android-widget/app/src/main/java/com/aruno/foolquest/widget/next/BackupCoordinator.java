@@ -39,7 +39,7 @@ final class BackupCoordinator {
         }catch(Exception e){if(stream!=null)atomic.failWrite(stream);throw e;}
     }
     List<File> local(){
-        File[] files=directory.listFiles((d,n)->n.matches("aruno-result-(change|daily|safety)-[0-9]+-[a-f0-9-]+\\.json"));
+        File[] files=directory.listFiles((d,n)->BackupFormat.generationName(n));
         List<File> out=new ArrayList<>(files==null?Collections.emptyList():Arrays.asList(files));
         Collections.sort(out,(a,b)->b.getName().compareTo(a.getName()));return out;
     }
@@ -140,10 +140,12 @@ final class BackupCoordinator {
     String status(){
         String folder=meta.getString("folderLabel","");long at=meta.getLong("lastSuccess",0);
         int damaged=meta.getInt("checksumMismatchCount",0);
+        int unreadable=meta.getInt("damagedJournalCount",0);
         return "保存先："+(folder.isEmpty()?"未選択（独立ファイル保存は未開始）":folder)
             +"\n最終成功："+(at==0?"未完了":RevenueMath.date("yyyy-MM-dd HH:mm:ss",at))
             +"\n保存件数："+meta.getInt("lastRecords",0)+"／正常性："+(at==0?"未確認":"保存後SHA-256照合済み")
             +(damaged==0?"":"\nSHA-256不一致で端末に保持したファイル："+damaged+"件")
+            +(unreadable==0?"":"\n読取・形式エラーで端末に保持したファイル："+unreadable+"件")
             +(meta.getString("error","").isEmpty()?"":"\n要確認："+meta.getString("error",""));
     }
     void select(Uri tree,int flags)throws Exception {
@@ -152,7 +154,7 @@ final class BackupCoordinator {
         if(grant!=(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION))throw new IOException("読取・保存の両権限が必要です");
         context.getContentResolver().takePersistableUriPermission(tree,grant);
         BackupFiles files=new BackupFiles(context,tree);int max=0;Map<String,Uri> docs=files.documents();
-        for(String name:docs.keySet())if(name.startsWith("aruno-result-")&&name.endsWith(".json"))try{max=Math.max(max,BackupFormat.parse(BackupFiles.read(context,docs.get(name))).getInt("records"));}catch(Exception corrupt){}
+        for(String name:docs.keySet())if(BackupFormat.generationName(name))try{max=Math.max(max,BackupFormat.parse(BackupFiles.read(context,docs.get(name))).getInt("records"));}catch(Exception corrupt){}
         synchronized(LOCK){
             if(!meta.edit().putString("tree",tree.toString()).putString("folderLabel",android.provider.DocumentsContract.getTreeDocumentId(tree)).putInt("lastNonemptyRecords",Math.max(max,meta.getInt("lastNonemptyRecords",0))).commit())throw new IOException("保存先を記録できません");
             if(max>0&&BackupFormat.records(BackupFormat.select(raw.getAll()))==0){failure(new IOException("収益が空です。既存バックアップを復旧対象として確認してください"));return;}
@@ -167,7 +169,7 @@ final class BackupCoordinator {
             try {
                 JSONObject b=BackupFormat.parse(read(f));
                 if(b.getInt("records")>0||meta.getInt("lastNonemptyRecords",0)==0)return true;
-            }catch(BackupFormat.ChecksumMismatch damaged){/* Keep the local file for review. */}
+            }catch(Exception damaged){/* Local read/format failures are retained; do not spin on them. */}
         }return false;
     }
     void retry(){synchronized(LOCK){if(scheduled)return;scheduled=true;}
@@ -182,17 +184,17 @@ final class BackupCoordinator {
         BackupFiles files=new BackupFiles(context,Uri.parse(value));
         Map<String,Uri> docs=files.documents();List<File> pending;
         synchronized(LOCK){pending=local();}Collections.reverse(pending);
-        int damaged=0;
+        int damaged=0,unreadable=0;
         for(File local:pending){
             if(new File(directory,local.getName()+".sent").exists())continue;
-            String json=read(local);
-            JSONObject b;
-            try {b=BackupFormat.parse(json);}
+            String json;JSONObject b;
+            try {json=read(local);b=BackupFormat.parse(json);}
             catch(BackupFormat.ChecksumMismatch mismatch){
                 damaged++;
                 // Keep the original and leave it unsent. A newer valid backup can still be copied.
                 continue;
             }
+            catch(Exception invalid){unreadable++;continue;}
             if(b.getInt("records")==0&&meta.getInt("lastNonemptyRecords",0)>0)continue;
             Uri present=docs.get(local.getName());
             if(present==null)files.append(local.getName(),json);
@@ -200,31 +202,50 @@ final class BackupCoordinator {
             write(new File(directory,local.getName()+".sent"),"ok");
             meta.edit().putLong("lastSuccess",Math.max(b.getLong("savedAt"),meta.getLong("lastSuccess",0))).putInt("lastRecords",b.getInt("records")).remove("error").commit();lastToast="";
         }
-        meta.edit().putInt("checksumMismatchCount",damaged).commit();
+        meta.edit().putInt("checksumMismatchCount",damaged).putInt("damagedJournalCount",unreadable).commit();
         files.prune();synchronized(LOCK){pruneLocal();}
     }
     void restore(String json,String expectedCurrent)throws Exception {
         JSONObject body=BackupFormat.parse(json);Map<String,Object> incoming=BackupFormat.decode(body.getJSONObject("preferences"));
         synchronized(LOCK){
-            String current=BackupFormat.canonical(BackupFormat.encode(raw.getAll()));
+            String current=BackupFormat.fingerprint(raw.getAll());
             if(!current.equals(expectedCurrent))throw new IOException("確認後にデータが変わりました。復旧内容をもう一度確認してください");
             String tree=meta.getString("tree","");if(tree.isEmpty())throw new IOException("復旧前の保全用に端末フォルダーを選択してください");
             Map<String,Object> before=new HashMap<>(raw.getAll());
             // A valid empty current state is still protected before a user-confirmed restore.
-            String safety=BackupFormat.create(before,"safety",System.currentTimeMillis(),version());
-            File saved=append(safety);
-            new BackupFiles(context,Uri.parse(tree)).append(saved.getName(),safety);
-            write(new File(directory,saved.getName()+".sent"),"ok");
+            String safety=null;
+            try{safety=BackupFormat.create(before,"safety",System.currentTimeMillis(),version());}catch(Exception damaged){
+                String quarantine=BackupFormat.quarantine(before,System.currentTimeMillis(),version());
+                File saved=new File(directory,"aruno-result-quarantine-"+System.currentTimeMillis()+"-"+UUID.randomUUID()+".json");
+                write(saved,quarantine);
+                new BackupFiles(context,Uri.parse(tree)).appendQuarantine(saved.getName(),quarantine);
+            }
+            if(safety!=null){
+                File saved=append(safety);
+                new BackupFiles(context,Uri.parse(tree)).append(saved.getName(),safety);
+                write(new File(directory,saved.getName()+".sent"),"ok");
+            }
             Map<String,Object> merged=new HashMap<>(before);
             for(String key:new ArrayList<>(merged.keySet()))if(BackupFormat.type(key)!=null)merged.remove(key);
             merged.putAll(incoming);
             // Coupon data is a device display cache. No server/API writes; current server projections win.
-            for(String k:Arrays.asList("coupon","couponAt","couponMonth"))if(before.containsKey(k))merged.put(k,before.get(k));
+            Map<String,Object> currentCoupon=new HashMap<>();
+            for(String k:Arrays.asList("coupon","couponAt","couponMonth"))if(before.containsKey(k))currentCoupon.put(k,before.get(k));
+            try{
+                BackupFormat.encode(currentCoupon);
+                if(currentCoupon.containsKey("coupon")&&currentCoupon.containsKey("couponMonth")){
+                    for(String k:Arrays.asList("coupon","couponAt","couponMonth"))merged.remove(k);
+                    merged.putAll(currentCoupon);
+                }
+            }catch(Exception damaged){/* already preserved in quarantine */}
             for(String k:Arrays.asList("couponRevenueMonthlyV1","couponRevenueDailyV2"))if(before.containsKey(k)){
-                JSONObject combined=new JSONObject(incoming.containsKey(k)?(String)incoming.get(k):"{}");
-                JSONObject latest=new JSONObject((String)before.get(k));
-                for(Iterator<String> it=latest.keys();it.hasNext();){String month=it.next();combined.put(month,latest.get(month));}
-                merged.put(k,combined.toString());
+                try{
+                    BackupFormat.encode(Collections.singletonMap(k,before.get(k)));
+                    JSONObject combined=new JSONObject(incoming.containsKey(k)?(String)incoming.get(k):"{}");
+                    JSONObject latest=new JSONObject((String)before.get(k));
+                    for(Iterator<String> it=latest.keys();it.hasNext();){String month=it.next();combined.put(month,latest.get(month));}
+                    merged.put(k,combined.toString());
+                }catch(Exception damaged){/* retain valid incoming; malformed current projection is quarantined */}
             }
             BackupFormat.encode(merged);
             if(!BackupPreferences.replace(raw,merged)||!merged.equals(raw.getAll())){
