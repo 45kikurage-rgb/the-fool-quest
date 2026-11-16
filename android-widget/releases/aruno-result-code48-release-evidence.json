@@ -64,7 +64,7 @@
     "従来の中央揃え基準の高さを保持したまま、日別合計と月末予想を正確に1物理ピクセル上へ移動。",
     "文字サイズ・C/Tの位置・損失と日付の配置・金額計算・保存データ・package・既存署名は変更なし。"
   ],
-  "publicationStatus": "PUBLISHING_PENDING_VERIFICATION",
+  "publicationStatus": "PUBLISHED_VERIFIED",
   "distributionUrls": [
     "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
     "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
@@ -76,5 +76,41 @@
   "physicalDeviceVerified": false,
   "formalOperationConfirmed": false,
   "historicalDataLoss": "code32 cause remains undetermined; previously lost physical-device data is not claimed recovered.",
-  "transferMethod": "Existing signed artifact registered in PR #68 was verified byte-identical to the ops signing receipt (run 43765368932) by SHA-256 and Git blob; no rebuild or re-signing."
+  "transferMethod": "Existing signed artifact registered in PR #68 was verified byte-identical to the ops signing receipt (run 43765368932) by SHA-256 and Git blob; no rebuild or re-signing.",
+  "publicVerification": {
+    "versionCode": 48,
+    "versionName": "0.1.47",
+    "sourceCommit": "5c7ae3c40c09ad90a28d8f7a98b423d953a46979",
+    "releaseCommit": "0d9477f6b80add68184785dcec78ad00180be3db",
+    "sha256": "9855b131b95fb13b8e53e9a8ee76ec7bc9efcc4668d6858d0a67709b666d8909",
+    "size": 3202551,
+    "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+    "verifiedAt": "2026-11-16T01:48:46.000000+00:00",
+    "origins": [
+      {
+        "origin": "https://the-fool-quest.45kikurage.workers.dev",
+        "http": 200,
+        "pageVersion": 48,
+        "manifestVersion": 48,
+        "apkSha256": "9855b131b95fb13b8e53e9a8ee76ec7bc9efcc4668d6858d0a67709b666d8909",
+        "apkBytes": 3202551,
+        "certificateMatches": true,
+        "certificateVerification": "Public bytes exactly equal the existing-certificate signed APK verified against the ops signing receipt in run43765368932.",
+        "previousCode47Retained": true
+      },
+      {
+        "origin": "https://45kikurage-rgb.github.io/the-fool-quest",
+        "http": 200,
+        "pageVersion": 48,
+        "manifestVersion": 48,
+        "apkSha256": "9855b131b95fb13b8e53e9a8ee76ec7bc9efcc4668d6858d0a67709b666d8909",
+        "apkBytes": 3202551,
+        "certificateMatches": true,
+        "certificateVerification": "Public bytes exactly equal the existing-certificate signed APK verified against the ops signing receipt in run43765368932.",
+        "previousCode47Retained": true
+      }
+    ],
+    "physicalDeviceVerified": false,
+    "formalOperationConfirmed": false
+  }
 }
