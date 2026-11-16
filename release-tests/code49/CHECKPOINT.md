@@ -1,6 +1,6 @@
 # Aruno-Result code49 checkpoint
 
-Status: IMPLEMENTED_ANDROID17_PENDING
+Status: SIGNED_PENDING_PUBLICATION
 Target: versionCode 49 / versionName 0.1.48
 Change: user decision 2026-11-16 — the calendar totals (daily total and
 month-end forecast total) no longer display the 万 unit. C/T detail rows,
@@ -46,10 +46,21 @@ unchanged from code48.
   scripts/build-android-tests.sh both build clean, and the built APK
   reports versionCode 49 / 0.1.48.
 
+
+## Validation and release
+
+Native Android17 run 43815899229 succeeded on the pull request head f1c0289c.
+Existing-signer restoration (primary and backup), signing and official code48-to-49
+upgrade/data retention succeeded in ops run 43839652944 (attempt #3; attempts #1 and #2
+failed at the same dump_ui step because Pixel Launcher went ANR immediately after
+emulator boot, before the code49 APK was installed — an emulator-environment fault, not
+an app fault; the core upgrade checks passed in both failed attempts as well). The signed
+APK SHA-256 c2110cd814dd78b4046de775bd45c7bfcc9685d1a91000c6fa0e85e146a9305a matches the
+artifact registered in PR #69 byte for byte (Git blob 37b8fa1ab3d74395db99a0d0407ac5dc7d19158e), certificate unchanged.
+Publication metadata is registered in PR #69 in the companion commit; publication
+verification and Pixel 10 physical acceptance remain pending.
+
 ## Remaining gates
 
-- Android 17 native CI on the pull request must pass in full.
-- Existing-signature signing in aruno-platform-ops, the code48 -> code49
-  emulator upgrade check, publication metadata, both-origin
-  verification, and the Pixel 10 physical-device check follow the
-  code48 path.
+- PR #69 merge, both-origin verification, and the Pixel 10
+  physical-device check follow the code48 path.
