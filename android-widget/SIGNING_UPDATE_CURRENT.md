@@ -21,16 +21,25 @@
 | backup暗号文 SHA-256 | 38bc420fac1555130c16b89b2ee2700252e7b9e1c3a29b5f8c54b5e71cad673d |
 | 復号情報の管理 | opsの既存GitHub Actions Secret ARUNO_SIGNING_ROOTS_JSON と config/signing-recovery.json。値は非公開・暗号文と別管理 |
 | アクセス方法 | GitHub接続で固定repo/commit/path/blobを確認。権限のあるopsの既存署名runnerだけで復元し、別runnerの両経路検証後に署名 |
-| 署名経路 | ops .github/workflows/aruno-result-code48-existing-signature.yml（版ごとに用意）、projects/github-signing/trial_candidate.py |
-| 最終独立復元試験 | 2026-11-16（日本時間）。run43765368932、別runnerで主/backup両成功（署名レシートで確認） |
+| 署名経路 | ops .github/workflows/aruno-result-code49-existing-signature.yml（版ごとに用意）、projects/github-signing/trial_candidate.py |
+| 最終独立復元試験 | 2026-11-16（日本時間）。run43839652944、別runnerで主/backup両成功（署名レシートで確認） |
 | 鍵の置換・新規作成 | なし |
 | 実機確認 | Pixel 10未接続。未確認 |
 
 主/backupは独立repo・別runnerで検証するが、GitHubサービス全体から独立した災害復旧を新たに証明したものではない。外部保管コピーや復号情報の外部UIからの再取得は今回未実施。
 
-最新のAPK・ソースcommit・versionCode・APK SHA-256・証明書・試験run・配布URL・公開後照合は [code48更新記録](releases/aruno-result-code48-release-evidence.json) と [配布manifest](releases/manifest.json) を参照。これらの状態を最優先し、候補作成を公開済みと扱わない。
+最新のAPK・ソースcommit・versionCode・APK SHA-256・証明書・試験run・配布URL・公開後照合は [code49更新記録](releases/aruno-result-code49-release-evidence.json) と [配布manifest](releases/manifest.json) を参照。これらの状態を最優先し、候補作成を公開済みと扱わない。
 
 旧package com.aruno.foolquest.widget の鍵・証明書は別系列。流用・統合・新鍵への置換・アンインストールによる更新回避はしない。新しいチャットも、統括CURRENTとこの台帳・最新のrelease証拠を読み、GitHub接続とCI操作権限を確認して引き継ぐ。Library/利用者PCを通常の鍵取得元として必須にしない。
+
+## code49 合計の「万」表示をなくす（2026-11-17 日本時間）
+
+- source `f1c0289cdf579b1b094a33daef89059b5aaa2856` / v0.1.48 / code49 / 3,202,551 bytes。
+- APK SHA-256 `c2110cd814dd78b4046de775bd45c7bfcc9685d1a91000c6fa0e85e146a9305a`。既存package・証明書を保持。
+- 日別合計と月末予想の合計から「万」の表示をなくし、数字だけを表示。C・Tの行、損失表示、その他の金額は「万」を含め従来通り。数字の大きさ・下線・位置は不変。
+- Android17 run43815899229成功。署名・独立主/backup復元・正式code48→49上書き（UID・データ保持・再起動）はops run43839652944のattempt #3で成功（attempt #1・#2はエミュレータ起動直後のPixel Launcher ANRによる階層ダンプ失敗で、アプリの不具合ではない）。
+- 本番公開・両配布元のHTTP200、code49、APKの全SHA-256・サイズ・既存署名との同一バイト、前code48保持を確認。公開merge `2b13d2edbb1f0b2e4a98d1a055b933823fd5d68a`（PR #69）。Pixel10実機と正式運用開始は未確認。
+- PRのCloudflareプレビュービルド（Workers Builds）は全コミットで失敗したが必須チェックではなく、マージと本番デプロイは正常完了。失敗の実ログはCloudflareダッシュボード側でのみ閲覧でき、原因は未確認。
 
 ## code48 合計下線の重ね表示と1ピクセル詰め（2026-11-16 日本時間）
 
