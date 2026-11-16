@@ -23,12 +23,15 @@ public class CalendarWidget extends AppWidgetProvider {
         R.id.calendar_week_0,R.id.calendar_week_1,R.id.calendar_week_2,
         R.id.calendar_week_3,R.id.calendar_week_4
     };
-    // User decision 2026-11-14: the daily total's 万 is drawn at 0.35x so the
-    // digits carry the row (was 0.43x through code44). Since code46 the unit
-    // is in its own TextView below the digits (see totalAmount), and a
-    // negative total's minus sign is drawn at 0.55x: in this font the minus
-    // is a full em wide, wider than a digit, so reducing it is what lets
-    // the digits themselves grow.
+    // User decision 2026-11-14: the daily total's 万 was drawn at 0.35x so
+    // the digits carry the row (was 0.43x through code44); since code46 the
+    // unit sat in its own TextView below the digits (see totalAmount).
+    // Code49 (user decision 2026-11-16) removes the total's unit entirely;
+    // this scale remains only as the historical cap in the digit-size
+    // computation, so the digits keep exactly the size they had. A negative
+    // total's minus sign is drawn at 0.55x: in this font the minus is a full
+    // em wide, wider than a digit, so reducing it is what lets the digits
+    // themselves grow.
     private static final float DAILY_TOTAL_UNIT_SCALE=0.35f;
     private static final float DAILY_TOTAL_SIGN_SCALE=0.55f;
     // The underline separates the daily total from its C/T detail rows
@@ -215,13 +218,13 @@ public class CalendarWidget extends AppWidgetProvider {
         // Share one horizontal fit across every day and the forecast. Even
         // unusually large values therefore keep the same numerical font size.
         for(int day=1;day<data.days.length;day++){
-            String value=CalendarAmountFormatter.compactOrZero(data.days[day][0],data.known[day][0]||data.days[day][0]>=0);
+            String value=CalendarAmountFormatter.totalCompactOrZero(data.days[day][0],data.known[day][0]||data.days[day][0]>=0);
             pixelWidth=Math.max(pixelWidth,totalDigitsAdvance(dailyPixelMeasure,value));
         }
         String currentMonth=RevenueMath.month(now);
         int forecastElapsed=month.compareTo(currentMonth)<0?CalendarRevenueData.daysInMonth(month)
             :month.equals(currentMonth)?Integer.parseInt(RevenueMath.date("dd",now)):0;
-        String forecastTotal=CalendarAmountFormatter.forecast(data.totals[0],data.totalKnown[0]||data.totals[0]>=0,
+        String forecastTotal=CalendarAmountFormatter.totalForecast(data.totals[0],data.totalKnown[0]||data.totals[0]>=0,
             forecastElapsed,CalendarRevenueData.daysInMonth(month));
         pixelWidth=Math.max(pixelWidth,totalDigitsAdvance(dailyPixelMeasure,forecastTotal));
         float dailyTotalScale=totalScale.getFloat()*Math.min(1f,
@@ -233,9 +236,9 @@ public class CalendarWidget extends AppWidgetProvider {
         float totalBudget=Math.max(1f,(float)Math.floor(amountWidth*dailyDensity)-2f);
         for(int attempt=0;attempt<8;attempt++){
             dailyPixelMeasure.setTextScaleX(dailyTotalScale);
-            float widest=totalDigitsAdvance(dailyPixelMeasure,"−99.9万");
+            float widest=totalDigitsAdvance(dailyPixelMeasure,"−99.9");
             for(int day=1;day<data.days.length;day++){
-                String value=CalendarAmountFormatter.compactOrZero(data.days[day][0],data.known[day][0]||data.days[day][0]>=0);
+                String value=CalendarAmountFormatter.totalCompactOrZero(data.days[day][0],data.known[day][0]||data.days[day][0]>=0);
                 widest=Math.max(widest,totalDigitsAdvance(dailyPixelMeasure,value));
             }
             widest=Math.max(widest,totalDigitsAdvance(dailyPixelMeasure,forecastTotal));
@@ -282,7 +285,9 @@ public class CalendarWidget extends AppWidgetProvider {
                     int[] values={R.id.calendar_forecast_total,R.id.calendar_forecast_coupon,R.id.calendar_forecast_tiktok};
                     String[] projected=new String[3];
                     for(int i=0;i<3;i++){
-                        projected[i]=CalendarAmountFormatter.forecast(data.totals[i],data.totalKnown[i]||data.totals[i]>=0,elapsed,days);
+                        projected[i]=i==0
+                            ?CalendarAmountFormatter.totalForecast(data.totals[i],data.totalKnown[i]||data.totals[i]>=0,elapsed,days)
+                            :CalendarAmountFormatter.forecast(data.totals[i],data.totalKnown[i]||data.totals[i]>=0,elapsed,days);
                         if(i==0)totalAmount(c,forecast,values[i],projected[i],dailyTotalSize,amountWidth,totalMeasure,dailyDensity,forecastColor);
                         else amount(forecast,values[i],projected[i],detailSize,detailWidth,measure);
                     }
@@ -356,7 +361,7 @@ public class CalendarWidget extends AppWidgetProvider {
                     cell.setInt(R.id.calendar_day_total,"setPaintFlags",DAILY_TOTAL_FLAGS);
                     cell.setFloat(R.id.calendar_day_total,"setTextScaleX",dailyTotalScale);
                     int totalColor=totalKnown&&total<0&&total!=RevenueMath.UNKNOWN?0xffff9292:0xffffffff;
-                    totalAmount(c,cell,R.id.calendar_day_total,CalendarAmountFormatter.compactOrZero(total,totalKnown),
+                    totalAmount(c,cell,R.id.calendar_day_total,CalendarAmountFormatter.totalCompactOrZero(total,totalKnown),
                         dailyTotalSize,amountWidth,totalMeasure,dailyDensity,totalColor);
                     amount(cell,R.id.calendar_day_coupon,CalendarAmountFormatter.compactOrZero(data.days[day][1],(data.known[day][1]||data.days[day][1]>=0)),detailSize,detailWidth,measure);
                     if(showTikTok)amount(cell,R.id.calendar_day_tiktok,
@@ -478,9 +483,10 @@ public class CalendarWidget extends AppWidgetProvider {
         for(int y=0;y<height;y++)for(int x=0;x<width;x++)if((pixels[y*width+x]>>>24)>=160){top=Math.min(top,y);bottom=Math.max(bottom,y);}
         raster.recycle();return digitRatios[key]=Math.max(.1f,(bottom-top+1)/paint.getTextSize());
     }
-    // Keep digits, their uniform rule and the small unit in separate native
-    // views. The single physical-pixel rule overlays the visible digit bottom;
-    // it never reserves a row or inherits the reduced minus font metrics.
+    // Keep the digits and their uniform rule in separate native views (the
+    // unit view remains in the layout but is GONE for unit-less totals since
+    // code49). The single physical-pixel rule overlays the visible digit
+    // bottom; it never reserves a row or inherits the reduced minus metrics.
     private static float totalDigitsAdvance(Paint measure,String text){
         return android.text.Layout.getDesiredWidth(totalDigits(text),new android.text.TextPaint(measure));
     }
@@ -506,6 +512,9 @@ public class CalendarWidget extends AppWidgetProvider {
         cell.setTextViewTextSize(R.id.calendar_total_unit,TypedValue.COMPLEX_UNIT_DIP,fitted*DAILY_TOTAL_UNIT_SCALE);
         cell.setInt(R.id.calendar_total_unit,"setPaintFlags",DAILY_TOTAL_FLAGS);
         cell.setFloat(R.id.calendar_total_unit,"setTextScaleX",1f);
+        // Code49 (user decision 2026-11-16): totals carry no unit, so the unit
+        // view leaves the stack entirely instead of reserving an empty row.
+        cell.setViewVisibility(R.id.calendar_total_unit,unit<0?View.GONE:View.VISIBLE);
         cell.setTextColor(view,color);
         cell.setTextColor(R.id.calendar_total_unit,color);
         cell.setInt(R.id.calendar_total_rule,"setBackgroundColor",color);
@@ -517,15 +526,21 @@ public class CalendarWidget extends AppWidgetProvider {
         cell.setInt(R.id.calendar_total_rule,"setWidth",Math.max(1,
             (int)Math.ceil(android.text.Layout.getDesiredWidth(spannable,actual))));
         android.widget.TextView digitProbe=totalProbe(c,spannable,actual);
-        Paint unitPaint=new Paint(actual);unitPaint.setTextSize(fitted*density*DAILY_TOTAL_UNIT_SCALE);
-        unitPaint.setTextScaleX(1f);
-        android.widget.TextView unitProbe=totalProbe(c,unit<0?"":text.substring(unit,unit+1),unitPaint);
-        // Freeze code47's native stack height before moving it exactly one
+        int unitHeight=0;
+        if(unit>=0){
+            Paint unitPaint=new Paint(actual);unitPaint.setTextSize(fitted*density*DAILY_TOTAL_UNIT_SCALE);
+            unitPaint.setTextScaleX(1f);
+            unitHeight=totalProbe(c,text.substring(unit,unit+1),unitPaint).getMeasuredHeight();
+        }
+        // Freeze the native stack height before moving it exactly one
         // physical pixel up. Use native TextView measurement, including its
         // baseline rounding, rather than approximating it from font metrics.
+        // Code49: without a unit the stack is the digits plus the same one
+        // physical pixel of clearance the rule row used to occupy; the stack
+        // stays centered in the weighted slot.
         int digitHeight=digitProbe.getMeasuredHeight();
         cell.setInt(R.id.calendar_total_stack,"setMinimumHeight",
-            digitHeight+unitProbe.getMeasuredHeight()+1);
+            digitHeight+unitHeight+1);
         cell.setFloat(R.id.calendar_total_rule,"setTranslationY",
             totalDigitInkBottom(digitProbe)-(digitHeight-1));
     }

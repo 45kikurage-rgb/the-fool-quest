@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Keep this weighted slot unchanged so Coupon/TikTok retain their positions.
-     The one-pixel rule overlays the digits, so it consumes no unit height.
-     The stack retains the old centering height and moves up one physical pixel. -->
+     The one-pixel rule overlays the digits, so it consumes no row height.
+     Code49: the total has no unit row; the stack is digits plus one pixel of
+     clearance, centered in the slot, and still moves up one physical pixel. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/calendar_total_slot"
     android:layout_width="match_parent" android:layout_height="9px"

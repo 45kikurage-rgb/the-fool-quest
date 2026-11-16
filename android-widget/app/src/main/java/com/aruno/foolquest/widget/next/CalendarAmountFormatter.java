@@ -7,10 +7,19 @@ public final class CalendarAmountFormatter {
     private CalendarAmountFormatter() {}
     /** Display only: round to 1,000 yen, retaining the full value in storage/details. */
     public static String compact(long yen,boolean known) {
+        return compact(yen,known,true);
+    }
+    private static String compact(long yen,boolean known,boolean withUnit) {
         if(!known||yen==RevenueMath.UNKNOWN)return "—";
         java.math.BigDecimal value=java.math.BigDecimal.valueOf(yen)
             .divide(java.math.BigDecimal.valueOf(10000),1,java.math.RoundingMode.HALF_UP);
-        return (value.signum()<0?"−":"")+value.abs().toPlainString()+"万";
+        return (value.signum()<0?"−":"")+value.abs().toPlainString()+(withUnit?"万":"");
+    }
+    /** Day-total display only (user decision 2026-11-16): the total carries no
+        万 unit; the small unit never composed well under the digits. C/T detail
+        rows keep their unit via compact/compactOrZero. */
+    public static String totalCompact(long yen,boolean known) {
+        return compact(yen,known,false);
     }
     public static String compactLoss(long yen){return yen<=0?"":compact(-yen,true);}
     /** Day-cell display only (user decision 2026-11-14): an unknown amount in a
@@ -20,12 +29,24 @@ public final class CalendarAmountFormatter {
     public static String compactOrZero(long yen,boolean known) {
         return !known||yen==RevenueMath.UNKNOWN?"0.0万":compact(yen,true);
     }
+    /** Total variant of compactOrZero (user decision 2026-11-16): an unknown
+        day total renders as 0.0 without a unit. */
+    public static String totalCompactOrZero(long yen,boolean known) {
+        return !known||yen==RevenueMath.UNKNOWN?"0.0":totalCompact(yen,true);
+    }
     /** Forecast in whole man-yen; integer arithmetic avoids rounding before projection. */
     public static String forecast(long yen,boolean known,int elapsed,int days){
+        return forecast(yen,known,elapsed,days,true);
+    }
+    /** Forecast-total variant without the 万 unit (user decision 2026-11-16). */
+    public static String totalForecast(long yen,boolean known,int elapsed,int days){
+        return forecast(yen,known,elapsed,days,false);
+    }
+    private static String forecast(long yen,boolean known,int elapsed,int days,boolean withUnit){
         if(!known||yen==RevenueMath.UNKNOWN||elapsed<1||elapsed>days)return "—";
         return java.math.BigInteger.valueOf(yen).multiply(java.math.BigInteger.valueOf(days))
             .divide(java.math.BigInteger.valueOf(elapsed).multiply(java.math.BigInteger.valueOf(10000)))
-            .toString().replace('-','−')+"万";
+            .toString().replace('-','−')+(withUnit?"万":"");
     }
     public static String day(long yen) {
         if(yen<0)return "—";
