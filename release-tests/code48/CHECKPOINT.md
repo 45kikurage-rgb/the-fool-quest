@@ -29,8 +29,11 @@ upgrade/data retention succeeded in ops run43765368932; the signed APK
 SHA-256 9855b131b95fb13b8e53e9a8ee76ec7bc9efcc4668d6858d0a67709b666d8909
 matches the artifact registered in PR #68 byte for byte (Git blob
 e615f2ed3208495ebd9774b1e420a89b814c64e9), certificate unchanged.
-Publication and both-origin retrieval are in progress; they are recorded in
-releases/aruno-result-code48-release-evidence.json when complete.
+Publication completed: PR #68 merged to main as 0d9477f6b80add68184785dcec78ad00180be3db.
+Both origins (Cloudflare Workers and GitHub Pages) were re-fetched and serve
+code48 with the identical APK SHA-256 and bytes; the code47 APK is retained.
+Details are recorded in releases/aruno-result-code48-release-evidence.json.
+Pixel10 physical acceptance remains separate and unconfirmed.
 Only Android17/API37 is an execution target. Pixel10 physical acceptance is
 separate and unconfirmed. Do not rebuild or re-sign a validated artifact for
 transfer; use hash-verified Git blob transfer without giant conversation output.
