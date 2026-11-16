@@ -21,9 +21,16 @@ Latest own signing ledger was read in full before work. Existing certificate:
 
 ## Validation and release
 
-Resource XML parse and whitespace checks passed locally. Native Android17,
-existing-signer restoration, official code47-to48 upgrade/data retention,
-signed/tested payload equality, publication and both-origin retrieval pending.
+Resource XML parse and whitespace checks passed locally. Native Android17
+run43764726052 succeeded (first candidate run43764178091 failed on a real
+geometry assertion and was corrected in 5c7ae3c; see below). Existing-signer
+restoration (primary and backup), signing and official code47-to48
+upgrade/data retention succeeded in ops run43765368932; the signed APK
+SHA-256 9855b131b95fb13b8e53e9a8ee76ec7bc9efcc4668d6858d0a67709b666d8909
+matches the artifact registered in PR #68 byte for byte (Git blob
+e615f2ed3208495ebd9774b1e420a89b814c64e9), certificate unchanged.
+Publication and both-origin retrieval are in progress; they are recorded in
+releases/aruno-result-code48-release-evidence.json when complete.
 Only Android17/API37 is an execution target. Pixel10 physical acceptance is
 separate and unconfirmed. Do not rebuild or re-sign a validated artifact for
 transfer; use hash-verified Git blob transfer without giant conversation output.
