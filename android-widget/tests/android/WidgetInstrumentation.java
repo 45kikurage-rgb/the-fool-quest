@@ -557,7 +557,7 @@ public class WidgetInstrumentation extends Instrumentation {
                     ok(signs.length==1&&signs[0].getSizeChange()==0.55f&&styledNegative.getSpanStart(signs[0])==0,
                         "negative total keeps only the reduced minus span; its unit is a separate view");
                     ok(styledNegative.getSpans(0,styledNegative.length(),android.text.style.UnderlineSpan.class).length==0,
-                        "a separate one-pixel rule replaces font-size-dependent underline runs");
+                        "one overlaid physical-pixel rule replaces font-size-dependent underline runs");
                     android.widget.TextView missing=firstRow.getChildAt(2).findViewById(R.id.calendar_day_total);
                     ok(negative.getCurrentTextColor()==0xffff9292&&missing.getCurrentTextColor()==0xffffffff,
                         "negative totals use red and unknown totals retain white");
@@ -988,9 +988,22 @@ public class WidgetInstrumentation extends Instrumentation {
         android.widget.TextView digits=cell.findViewById(id),unit=cell.findViewById(R.id.calendar_total_unit),rule=cell.findViewById(R.id.calendar_total_rule);
         android.view.View slot=cell.findViewById(R.id.calendar_total_slot);
         float digitsTop=relativeTop(digits,slot),unitTop=relativeTop(unit,slot),ruleTop=relativeTop(rule,slot);
-        ok(digitsTop>=0&&unitTop+unit.getHeight()<=slot.getHeight()
-                &&digitsTop+digits.getHeight()<=ruleTop&&ruleTop+1<=unitTop,
-            "digits, single-pixel rule and entire unit have separate unclipped native rows: slot="+slot.getHeight()+" digit="+digits.getHeight()+" unit="+unit.getHeight());
+        android.graphics.Rect digitsInk=visibleInk(digits);
+        ok(digitsTop>=-1&&unitTop+unit.getHeight()<=slot.getHeight()
+                &&unitTop>=digitsTop+digits.getHeight(),
+            "digits and entire unit remain unclipped native rows: slot="+slot.getHeight()+" digit="+digits.getHeight()+" unit="+unit.getHeight());
+        ok(digitsInk.height()>0&&digitsTop+digitsInk.top>=0&&ruleTop==digitsTop+digitsInk.bottom-1,
+            "the one-pixel rule overlays the actual digits' bottom ink pixel instead of reserving a row below them"
+                +" text="+digits.getText()+" digitsTop="+digitsTop+" digitsInk="+digitsInk+" ruleTop="+ruleTop+" size="+digits.getTextSize());
+        // Code47 centered three separate rows: digits, a one-pixel rule,
+        // then the unit. Keep that native reference height even though the
+        // rule is now decoration, so removing a row cannot silently recenter
+        // the glyphs by a density-dependent amount.
+        int code47StackHeight=digits.getHeight()+1+unit.getHeight();
+        int code47DigitsTop=Math.max(0,(slot.getHeight()-code47StackHeight)/2);
+        ok(digitsTop==code47DigitsTop-1,
+            "date-to-total distance shrinks by exactly one physical pixel at every density"
+                +" oldTop="+code47DigitsTop+" newTop="+digitsTop);
         ok(digits.getLayout().getHeight()<=digits.getHeight()&&unit.getLayout().getHeight()<=unit.getHeight(),
             "both native TextView layouts fit; no total-text clipping exception");
         ok(rule.getHeight()==1&&rule.getWidth()>0&&Math.abs(relativeLeft(rule,slot)+rule.getWidth()-slot.getWidth())<=1
@@ -1004,6 +1017,32 @@ public class WidgetInstrumentation extends Instrumentation {
         int color=digits.getCurrentTextColor();
         for(int x=0;x<line.getWidth();x++)ok(line.getPixel(x,0)==color,"underline has one continuous color and baseline across minus/digits x="+x);
         line.recycle();
+        android.graphics.Bitmap renderedRule=android.graphics.Bitmap.createBitmap(cell.getWidth(),cell.getHeight(),android.graphics.Bitmap.Config.ARGB_8888);
+        cell.draw(new android.graphics.Canvas(renderedRule));
+        int ruleLeft=Math.round(relativeLeft(rule,cell)),ruleY=Math.round(relativeTop(rule,cell));
+        ok(ruleLeft>=0&&ruleY>=0&&ruleLeft+rule.getWidth()<=renderedRule.getWidth()&&ruleY<renderedRule.getHeight(),
+            "the entire overlaid underline stays within the parent cell");
+        for(int x=0;x<rule.getWidth();x++)ok(renderedRule.getPixel(ruleLeft+x,ruleY)==color,
+            "parent drawing preserves the same continuous underline beneath the reduced minus and digits x="+x);
+        android.graphics.Bitmap standaloneDigits=android.graphics.Bitmap.createBitmap(digits.getWidth(),digits.getHeight(),android.graphics.Bitmap.Config.ARGB_8888);
+        digits.draw(new android.graphics.Canvas(standaloneDigits));
+        int digitsLeft=Math.round(relativeLeft(digits,cell)),digitsY=Math.round(relativeTop(digits,cell));
+        int cellBackground=((android.graphics.drawable.ColorDrawable)cell.getBackground()).getColor();
+        for(int y=0;y<standaloneDigits.getHeight();y++)for(int x=0;x<standaloneDigits.getWidth();x++){
+            int pixel=standaloneDigits.getPixel(x,y),alpha=pixel>>>24;
+            if(alpha<160||digitsY+y==ruleY)continue; // The overlay deliberately decorates the bottom ink row.
+            boolean inside=digitsLeft+x>=0&&digitsLeft+x<renderedRule.getWidth()
+                &&digitsY+y>=0&&digitsY+y<renderedRule.getHeight();
+            int actual=inside?renderedRule.getPixel(digitsLeft+x,digitsY+y):0;
+            boolean same=inside;
+            for(int shift:new int[]{0,8,16}){
+                int composite=(((pixel>>>shift)&255)*alpha+((cellBackground>>>shift)&255)*(255-alpha)+127)/255;
+                same&=Math.abs(((actual>>>shift)&255)-composite)<=2;
+            }
+            ok(same,"moving the total one pixel upward preserves every other visible digit pixel in parent drawing");
+        }
+        standaloneDigits.recycle();
+        renderedRule.recycle();
         if(unit.getText().length()==0)return;
         // Compare the standalone unit's pixels with those actually drawn by
         // its cell. This catches clipping by a parent even if TextView's own
@@ -1034,6 +1073,9 @@ public class WidgetInstrumentation extends Instrumentation {
         long now=java.time.Instant.parse("2026-12-01T00:00:00Z").toEpochMilli();
         runOnMainSync(()->{
             for(int dpi:new int[]{160,420,480})for(int widthDp:new int[]{280,320,411})for(int heightDp:new int[]{236,400,520}){
+                // Integer-only forecast digits have a different bottom ink
+                // edge from daily decimal amounts in the corporate font.
+                values.totals[0]=dpi==420?1110000:-654152;
                 android.content.res.Configuration cfg=new android.content.res.Configuration(c.getResources().getConfiguration());cfg.densityDpi=dpi;
                 Context sized=c.createConfigurationContext(cfg);float density=sized.getResources().getDisplayMetrics().density;
                 android.widget.FrameLayout host=new android.widget.FrameLayout(sized);
@@ -1044,7 +1086,9 @@ public class WidgetInstrumentation extends Instrumentation {
                     measureCalendar(host,Math.round(widthDp*density),Math.round(heightDp*density));
                     android.view.ViewGroup week=tree.findViewById(R.id.calendar_week_0);
                     for(int i=0;i<amounts.length;i++)completeCalendarTotal(week.getChildAt(i),R.id.calendar_day_total,CalendarAmountFormatter.compact(amounts[i],true));
-                    checkTotalGeometry(tree.findViewById(R.id.calendar_forecast),R.id.calendar_forecast_total);
+                    android.view.View forecast=tree.findViewById(R.id.calendar_forecast);
+                    if(dpi==420)completeCalendarTotal(forecast,R.id.calendar_forecast_total,"111万");
+                    else checkTotalGeometry(forecast,R.id.calendar_forecast_total);
                 }
             }
         });

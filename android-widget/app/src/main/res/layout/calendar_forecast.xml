@@ -15,14 +15,18 @@
             android:layout_weight="2.02" android:layout_marginBottom="-3px">
             <LinearLayout android:id="@+id/calendar_total_stack"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical" android:orientation="vertical" android:gravity="end">
-                <TextView android:id="@+id/calendar_forecast_total" style="@style/CalendarDailyAmount"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:maxLines="1" android:textScaleX="@dimen/calendar_daily_total_width_scale" />
-                <TextView android:id="@+id/calendar_total_rule" style="@style/CalendarDailyText"
-                    android:layout_width="wrap_content" android:layout_height="1px"
-                    android:includeFontPadding="false" android:importantForAccessibility="no"
-                    android:background="#FFFFFF" />
+                android:layout_gravity="center_vertical" android:orientation="vertical" android:gravity="end"
+                android:translationY="-1px">
+                <FrameLayout android:id="@+id/calendar_total_digits"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content">
+                    <TextView android:id="@+id/calendar_forecast_total" style="@style/CalendarDailyAmount"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:maxLines="1" android:textScaleX="@dimen/calendar_daily_total_width_scale" />
+                    <TextView android:id="@+id/calendar_total_rule" style="@style/CalendarDailyText"
+                        android:layout_width="wrap_content" android:layout_height="1px"
+                        android:layout_gravity="bottom|end" android:includeFontPadding="false"
+                        android:importantForAccessibility="no" android:background="#FFFFFF" />
+                </FrameLayout>
                 <TextView android:id="@+id/calendar_total_unit" style="@style/CalendarDailyAmount"
                     android:layout_width="wrap_content" android:layout_height="wrap_content"
                     android:maxLines="1" android:importantForAccessibility="no" />

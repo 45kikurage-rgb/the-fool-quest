@@ -1,21 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Keep this weighted slot unchanged so Coupon/TikTok retain their positions.
-     Separate native text rows prevent the small unit from inheriting a large
-     newline strut. A physical one-pixel rule has one baseline under every run. -->
+     The one-pixel rule overlays the digits, so it consumes no unit height.
+     The stack retains the old centering height and moves up one physical pixel. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/calendar_total_slot"
     android:layout_width="match_parent" android:layout_height="9px"
     android:layout_weight="2.02" android:layout_marginBottom="-3px">
     <LinearLayout android:id="@+id/calendar_total_stack"
         android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical" android:orientation="vertical" android:gravity="end">
-        <TextView android:id="@+id/calendar_day_total" style="@style/CalendarDailyAmount"
-            android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:maxLines="1" android:textScaleX="@dimen/calendar_daily_total_width_scale" />
-        <TextView android:id="@+id/calendar_total_rule" style="@style/CalendarDailyText"
-            android:layout_width="wrap_content" android:layout_height="1px"
-            android:includeFontPadding="false" android:importantForAccessibility="no"
-            android:background="#FFFFFF" />
+        android:layout_gravity="center_vertical" android:orientation="vertical" android:gravity="end"
+        android:translationY="-1px">
+        <FrameLayout android:id="@+id/calendar_total_digits"
+            android:layout_width="wrap_content" android:layout_height="wrap_content">
+            <TextView android:id="@+id/calendar_day_total" style="@style/CalendarDailyAmount"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:maxLines="1" android:textScaleX="@dimen/calendar_daily_total_width_scale" />
+            <TextView android:id="@+id/calendar_total_rule" style="@style/CalendarDailyText"
+                android:layout_width="wrap_content" android:layout_height="1px"
+                android:layout_gravity="bottom|end" android:includeFontPadding="false"
+                android:importantForAccessibility="no" android:background="#FFFFFF" />
+        </FrameLayout>
         <TextView android:id="@+id/calendar_total_unit" style="@style/CalendarDailyAmount"
             android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:maxLines="1" android:importantForAccessibility="no" />
