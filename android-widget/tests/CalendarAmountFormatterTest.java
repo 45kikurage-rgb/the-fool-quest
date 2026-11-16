@@ -52,6 +52,21 @@ public class CalendarAmountFormatterTest {
         eq(CalendarAmountFormatter.forecast(10000,true,0,31),"—");
         eq(CalendarAmountFormatter.forecast(0,true,10,30),"0万");
         eq(CalendarAmountFormatter.forecast(10,false,10,30),"—");
+        // Code49: totals drop the 万 unit; C/T detail rows keep it (above).
+        eq(CalendarAmountFormatter.totalCompact(57250,true),"5.7");
+        eq(CalendarAmountFormatter.totalCompact(999000,true),"99.9");
+        eq(CalendarAmountFormatter.totalCompact(999500,true),"100.0");
+        eq(CalendarAmountFormatter.totalCompact(1,true),"0.0");
+        eq(CalendarAmountFormatter.totalCompact(-54290,true),"−5.4");
+        eq(CalendarAmountFormatter.totalCompact(0,false),"—");
+        eq(CalendarAmountFormatter.totalCompactOrZero(0,false),"0.0");
+        eq(CalendarAmountFormatter.totalCompactOrZero(RevenueMath.UNKNOWN,true),"0.0");
+        eq(CalendarAmountFormatter.totalCompactOrZero(57250,true),"5.7");
+        eq(CalendarAmountFormatter.totalCompactOrZero(-54290,true),"−5.4");
+        eq(CalendarAmountFormatter.totalForecast(654152,true,9,30),"218");
+        eq(CalendarAmountFormatter.totalForecast(-19999,true,31,31),"−1");
+        eq(CalendarAmountFormatter.totalForecast(10000,true,0,31),"—");
+        eq(CalendarAmountFormatter.totalForecast(0,true,10,30),"0");
         System.out.println("PASS "+assertions+" daily-6-digit formatting checks");
     }
 }

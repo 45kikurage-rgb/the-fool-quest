@@ -1,22 +1,23 @@
 {
   "applicationId": "com.aruno.foolquest.widget.next",
-  "version": "0.1.47",
-  "versionCode": 48,
+  "version": "0.1.48",
+  "versionCode": 49,
   "minSdk": 26,
   "targetSdk": 35,
   "size": 3202551,
-  "sha256": "9855b131b95fb13b8e53e9a8ee76ec7bc9efcc4668d6858d0a67709b666d8909",
+  "sha256": "c2110cd814dd78b4046de775bd45c7bfcc9685d1a91000c6fa0e85e146a9305a",
   "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
   "couponUpdate": "Daily revenue for priced coupons via authenticated Ledger; monthly reader retained",
   "tiktokUpdate": "On-demand current-month point-history CSV fetch in the in-app WebView; manual CSV import and manual revenue entry remain available",
   "changes": [
+    "日別合計と月末予想の合計から「万」の表示をなくしました。C・Tの行、損失表示、その他の金額は「万」を含め従来通りです。数字の大きさ・下線・位置は変更していません。",
     "合計の「万」の下端見切れと、縮小マイナス・数字の下線ずれを修正。",
     "破損データを認証情報なしで隔離保全して復旧し、壊れた保存待ちファイル後も正常なバックアップ保存を継続。",
     "アプリ内管理開始後の旧サイトsnapshot競合を防止し、CSV・手動追加・損失・目標・明示的JSON移行を維持。",
     "ゲージ描画を直列化し、更新状態と完了通知を描画失敗から保護。日別連携の成否を月次と別表示。",
     "損失専用月の上限検証と、日別詳細での正確な損失円額表示。"
   ],
-  "file": "aruno-result-0.1.47.apk",
+  "file": "aruno-result-0.1.48.apk",
   "installation": "Update in place without uninstalling. Existing package, signer and data paths are retained. Use the existing backup folder selection to keep automatic independent backup files.",
   "legacy": {
     "applicationId": "com.aruno.foolquest.widget",
@@ -29,11 +30,11 @@
   },
   "previousRelease": {
     "applicationId": "com.aruno.foolquest.widget.next",
-    "version": "0.1.46",
-    "versionCode": 47,
-    "file": "aruno-result-0.1.46.apk",
+    "version": "0.1.47",
+    "versionCode": 48,
+    "file": "aruno-result-0.1.47.apk",
     "size": 3202551,
-    "sha256": "a862d0dd77672048270f8631c2360d333c231de8f8e0cbc7f46b76a6a8f7ecdb",
+    "sha256": "9855b131b95fb13b8e53e9a8ee76ec7bc9efcc4668d6858d0a67709b666d8909",
     "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730"
   },
   "archives": [
@@ -290,25 +291,25 @@
       "file": "fool-quest-widget-0.1.13-original.apk"
     }
   ],
-  "sourceCommit": "5c7ae3c40c09ad90a28d8f7a98b423d953a46979",
-  "unsignedSha256": "aa8fcdcd25d15bafcb637fd2f2a3fb18554cc399415ef5682b82d5d87bc81ccb",
+  "sourceCommit": "f1c0289cdf579b1b094a33daef89059b5aaa2856",
+  "unsignedSha256": "eb7a5aae23fe171cebc04b7c2ed8794afc77b0d09e018ec76194074d3236ffc1",
   "deviceVerified": false,
   "deliveryStatus": "production-update",
   "dailyTargetUpdate": "JST midnight; exact alarm when allowed, inexact fallback otherwise; no network required",
-  "signingRunId": 43765368932,
-  "softwareTestRunId": 43764726052,
+  "signingRunId": 43839652944,
+  "softwareTestRunId": 43815899229,
   "distributionUrls": [
     "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
     "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
   ],
   "lossUpdate": "Manually record, edit and delete separate TikTok Lite and Coupon losses by date; preserve the gross source; net amounts subtract losses once",
   "lossDisplay": "Combined daily losses shown in red at the top-right of the date band on two lines (label over amount), on loss days only; daily and monthly totals are net of losses",
-  "upgradeTestRunId": 43765368932,
-  "publicationStatus": "PUBLISHED_VERIFIED",
+  "upgradeTestRunId": 43839652944,
+  "publicationStatus": "PUBLISHING_PENDING_VERIFICATION",
   "displayName": "Aruno-Result",
-  "releaseStatus": "TOTAL_RULE_OVERLAY_AND_ONE_PIXEL_GAP_PHYSICAL_PENDING",
+  "releaseStatus": "TOTAL_NO_UNIT_PHYSICAL_PENDING",
   "updateRecommended": false,
-  "notice": "Daily total underline overlaid on the digit ink bottom as one continuous rule across the reduced minus and digits; daily and forecast totals moved up exactly one physical pixel. Physical device acceptance remains unconfirmed.",
+  "notice": "Daily and forecast totals no longer display the 万 unit; C/T rows, corner loss and all other amounts keep their units. Digit size, underline and positions are unchanged. Physical device acceptance remains unconfirmed.",
   "backup": {
     "format": "aruno-result-backup",
     "formatVersion": 1,
@@ -322,7 +323,7 @@
   },
   "softwareChecks": {
     "nativeAndroid17": {
-      "run": 43764726052,
+      "run": 43815899229,
       "result": "success"
     },
     "nativeVisualMatrix": {
@@ -333,63 +334,27 @@
       "physicalDevice": false
     },
     "officialUpgrade": {
-      "run": 43765368932,
-      "fromCode": 47,
-      "toCode": 48,
+      "run": 43839652944,
+      "fromCode": 48,
+      "toCode": 49,
       "api": 37,
       "uidPreserved": true,
       "reboot": "PASS",
       "dataPreservation": "PASS_DISPOSABLE_EMULATOR"
     },
     "independentRestore": {
-      "run": 43765368932,
+      "run": 43839652944,
       "primary": "success",
       "backup": "success"
     },
     "signedPayloadMatches": {
       "passed": true,
-      "signingBuildUnsignedSha256": "aa8fcdcd25d15bafcb637fd2f2a3fb18554cc399415ef5682b82d5d87bc81ccb"
+      "signingBuildUnsignedSha256": "eb7a5aae23fe171cebc04b7c2ed8794afc77b0d09e018ec76194074d3236ffc1"
     }
   },
-  "android17TestRunId": 43764726052,
-  "releaseEvidence": "aruno-result-code48-release-evidence.json",
+  "android17TestRunId": 43815899229,
+  "releaseEvidence": "aruno-result-code49-release-evidence.json",
   "launcherBackground": "#FFFFFF",
   "launcherArtworkUnchanged": true,
-  "launcherIconResource": "@drawable/zz_aruno_launcher_white",
-  "publicVerification": {
-    "versionCode": 48,
-    "versionName": "0.1.47",
-    "sourceCommit": "5c7ae3c40c09ad90a28d8f7a98b423d953a46979",
-    "releaseCommit": "0d9477f6b80add68184785dcec78ad00180be3db",
-    "sha256": "9855b131b95fb13b8e53e9a8ee76ec7bc9efcc4668d6858d0a67709b666d8909",
-    "size": 3202551,
-    "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
-    "verifiedAt": "2026-11-16T01:48:46.000000+00:00",
-    "origins": [
-      {
-        "origin": "https://the-fool-quest.45kikurage.workers.dev",
-        "http": 200,
-        "pageVersion": 48,
-        "manifestVersion": 48,
-        "apkSha256": "9855b131b95fb13b8e53e9a8ee76ec7bc9efcc4668d6858d0a67709b666d8909",
-        "apkBytes": 3202551,
-        "certificateMatches": true,
-        "certificateVerification": "Public bytes exactly equal the existing-certificate signed APK verified against the ops signing receipt in run43765368932.",
-        "previousCode47Retained": true
-      },
-      {
-        "origin": "https://45kikurage-rgb.github.io/the-fool-quest",
-        "http": 200,
-        "pageVersion": 48,
-        "manifestVersion": 48,
-        "apkSha256": "9855b131b95fb13b8e53e9a8ee76ec7bc9efcc4668d6858d0a67709b666d8909",
-        "apkBytes": 3202551,
-        "certificateMatches": true,
-        "certificateVerification": "Public bytes exactly equal the existing-certificate signed APK verified against the ops signing receipt in run43765368932.",
-        "previousCode47Retained": true
-      }
-    ],
-    "physicalDeviceVerified": false,
-    "formalOperationConfirmed": false
-  }
+  "launcherIconResource": "@drawable/zz_aruno_launcher_white"
 }

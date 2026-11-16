@@ -550,12 +550,12 @@ public class WidgetInstrumentation extends Instrumentation {
                     android.view.ViewGroup firstRow=(android.view.ViewGroup)grid.getChildAt(0);
                     completeCalendarText(firstRow.getChildAt(0),R.id.calendar_day_number,"1");
                     android.view.View negativeDay=firstRow.getChildAt(1);
-                    completeCalendarTotal(negativeDay,R.id.calendar_day_total,"−99.9万");
+                    completeCalendarTotal(negativeDay,R.id.calendar_day_total,"−99.9");
                     android.widget.TextView negative=negativeDay.findViewById(R.id.calendar_day_total);
                     android.text.Spanned styledNegative=(android.text.Spanned)negative.getText();
                     android.text.style.RelativeSizeSpan[] signs=styledNegative.getSpans(0,styledNegative.length(),android.text.style.RelativeSizeSpan.class);
                     ok(signs.length==1&&signs[0].getSizeChange()==0.55f&&styledNegative.getSpanStart(signs[0])==0,
-                        "negative total keeps only the reduced minus span; its unit is a separate view");
+                        "negative total keeps only the reduced minus span (code49: no unit anywhere in the total)");
                     ok(styledNegative.getSpans(0,styledNegative.length(),android.text.style.UnderlineSpan.class).length==0,
                         "one overlaid physical-pixel rule replaces font-size-dependent underline runs");
                     android.widget.TextView missing=firstRow.getChildAt(2).findViewById(R.id.calendar_day_total);
@@ -565,7 +565,7 @@ public class WidgetInstrumentation extends Instrumentation {
                     ok(lastRow.getChildCount()==7,"calendar keeps seven columns");
                     android.view.View lastDay=lastRow.getChildAt(2);
                     completeCalendarText(lastDay,R.id.calendar_day_number,"31");
-                    completeCalendarTotal(lastDay,R.id.calendar_day_total,"99.9万");
+                    completeCalendarTotal(lastDay,R.id.calendar_day_total,"99.9");
                     completeCalendarText(lastDay,R.id.calendar_coupon_label,"C");
                     completeCalendarText(lastDay,R.id.calendar_day_coupon,"35.0万");
                     completeCalendarText(lastDay,R.id.calendar_tiktok_label,"T");
@@ -615,8 +615,8 @@ public class WidgetInstrumentation extends Instrumentation {
                             &&total.getCurrentTextColor()==0xffffffff,
                         "daily total uses an emphasized, consistent size and weight");
                     android.widget.TextView unit=lastDay.findViewById(R.id.calendar_total_unit);
-                    ok(Math.abs(unit.getTextSize()-total.getTextSize()*0.35f)<0.01f,
-                        "the independent total unit retains its 0.35 size");
+                    ok(unit.getVisibility()==android.view.View.GONE&&unit.getText().length()==0,
+                        "code49: the total unit view is gone from the stack, not merely emptied");
                     checkTotalGeometry(lastDay,R.id.calendar_day_total);
                     checkTotalGeometry(negativeDay,R.id.calendar_day_total);
                     ok(coupon.getCurrentTextColor()==0xff63e09e
@@ -737,7 +737,7 @@ public class WidgetInstrumentation extends Instrumentation {
             ok("0.0".contentEquals(((android.widget.TextView)pastBlank.findViewById(R.id.calendar_day_total)).getText())
                 &&"0.0万".contentEquals(((android.widget.TextView)pastBlank.findViewById(R.id.calendar_day_coupon)).getText())
                 &&"0.0万".contentEquals(((android.widget.TextView)pastBlank.findViewById(R.id.calendar_day_tiktok)).getText()),
-                "past days without data display 0.0万 for total, coupon and TikTok (user decision 2026-11-14)");
+                "past days without data display 0.0 for the total and 0.0万 for coupon and TikTok (user decisions 2026-11-14 and 2026-11-16)");
             android.text.Spanned todayTotal=(android.text.Spanned)((android.widget.TextView)today.findViewById(R.id.calendar_day_total)).getText();
             ok(todayTotal.getSpans(0,todayTotal.length(),android.text.style.UnderlineSpan.class).length==0
                     &&today.findViewById(R.id.calendar_total_rule).getVisibility()==android.view.View.VISIBLE,
@@ -775,12 +775,14 @@ public class WidgetInstrumentation extends Instrumentation {
             ok(previousBottom<=y+ink.top,"daily numeric GLYPHS do not overlap after exact physical-height transfer: "+value.getText()+" previous="+previousBottom+" top="+(y+ink.top));
             previousBottom=y+ink.bottom;
             if(id==R.id.calendar_day_total){
+                // Code49: no unit row remains under the digits, so the
+                // digits' own ink bottom (already in previousBottom) is the
+                // lowest total element and must clear the Coupon row.
                 android.widget.TextView unit=day.findViewById(R.id.calendar_total_unit);
-                android.graphics.Rect unitInk=visibleInk(unit);
-                float unitY=relativeTop(unit,day);
-                ok(unitInk.height()>0&&unitY+unitInk.bottom<=relativeTop(day.findViewById(R.id.calendar_coupon_row),day)+1,
-                    "the complete unit stays above Coupon instead of being clipped or overlapping it");
-                previousBottom=unitY+unitInk.bottom;
+                ok(unit.getVisibility()==android.view.View.GONE,
+                    "code49: total unit view is gone, so nothing hangs below the digits");
+                ok(previousBottom<=relativeTop(day.findViewById(R.id.calendar_coupon_row),day)+1,
+                    "the total digits stay above Coupon instead of being clipped or overlapping it");
             }
         }
         // The corner loss keeps its ink inside the date band, clear of the
@@ -908,7 +910,7 @@ public class WidgetInstrumentation extends Instrumentation {
                 android.view.View forecast=tree[0].findViewById(R.id.calendar_forecast);
                 ok(forecast.findViewById(R.id.calendar_forecast_title).getVisibility()==android.view.View.VISIBLE,"forecast title always remains");
                 ok((forecast.findViewById(R.id.calendar_forecast_values).getVisibility()==android.view.View.VISIBLE)==(n%2==0),"tap toggles every amount and C/T label together");
-                if(n==0){completeCalendarText(forecast,R.id.calendar_forecast_title,"月末予想");completeCalendarTotal(forecast,R.id.calendar_forecast_total,"218万");completeCalendarText(forecast,R.id.calendar_forecast_coupon,"163万");completeCalendarText(forecast,R.id.calendar_forecast_tiktok,"54万");}
+                if(n==0){completeCalendarText(forecast,R.id.calendar_forecast_title,"月末予想");completeCalendarTotal(forecast,R.id.calendar_forecast_total,"218");completeCalendarText(forecast,R.id.calendar_forecast_coupon,"163万");completeCalendarText(forecast,R.id.calendar_forecast_tiktok,"54万");}
             });
             android.graphics.Bitmap bitmap=android.graphics.Bitmap.createBitmap(tree[0].getWidth(),tree[0].getHeight(),android.graphics.Bitmap.Config.ARGB_8888);
             runOnMainSync(()->tree[0].draw(new android.graphics.Canvas(bitmap)));
@@ -975,7 +977,13 @@ public class WidgetInstrumentation extends Instrumentation {
     void completeCalendarTotal(android.view.View root,int id,String expected){
         int unit=expected.indexOf('万');if(unit<0)unit=expected.indexOf('億');
         completeCalendarText(root,id,unit<0?expected:expected.substring(0,unit));
-        completeCalendarText(root,R.id.calendar_total_unit,unit<0?"":expected.substring(unit,unit+1));
+        if(unit<0){
+            // Code49 totals have no unit: the unit view must be GONE (a
+            // merely empty view would still reserve its row in the stack).
+            android.widget.TextView unitView=root.findViewById(R.id.calendar_total_unit);
+            ok(unitView.getVisibility()==android.view.View.GONE&&unitView.getText().length()==0,
+                "unit-less total leaves the unit view gone: "+expected);
+        }else completeCalendarText(root,R.id.calendar_total_unit,expected.substring(unit,unit+1));
         checkTotalGeometry(root,id);
     }
     float relativeTop(android.view.View child,android.view.View ancestor){
@@ -987,25 +995,27 @@ public class WidgetInstrumentation extends Instrumentation {
     void checkTotalGeometry(android.view.View cell,int id){
         android.widget.TextView digits=cell.findViewById(id),unit=cell.findViewById(R.id.calendar_total_unit),rule=cell.findViewById(R.id.calendar_total_rule);
         android.view.View slot=cell.findViewById(R.id.calendar_total_slot);
-        float digitsTop=relativeTop(digits,slot),unitTop=relativeTop(unit,slot),ruleTop=relativeTop(rule,slot);
+        float digitsTop=relativeTop(digits,slot),ruleTop=relativeTop(rule,slot);
         android.graphics.Rect digitsInk=visibleInk(digits);
-        ok(digitsTop>=-1&&unitTop+unit.getHeight()<=slot.getHeight()
-                &&unitTop>=digitsTop+digits.getHeight(),
-            "digits and entire unit remain unclipped native rows: slot="+slot.getHeight()+" digit="+digits.getHeight()+" unit="+unit.getHeight());
+        ok(unit.getVisibility()==android.view.View.GONE,
+            "code49: the unit view is gone, so the stack holds digits only");
+        ok(digitsTop>=-1&&digitsTop+digits.getHeight()<=slot.getHeight(),
+            "digits remain an unclipped native row inside the slot: slot="+slot.getHeight()+" digit="+digits.getHeight());
         ok(digitsInk.height()>0&&digitsTop+digitsInk.top>=0&&ruleTop==digitsTop+digitsInk.bottom-1,
             "the one-pixel rule overlays the actual digits' bottom ink pixel instead of reserving a row below them"
                 +" text="+digits.getText()+" digitsTop="+digitsTop+" digitsInk="+digitsInk+" ruleTop="+ruleTop+" size="+digits.getTextSize());
-        // Code47 centered three separate rows: digits, a one-pixel rule,
-        // then the unit. Keep that native reference height even though the
-        // rule is now decoration, so removing a row cannot silently recenter
-        // the glyphs by a density-dependent amount.
-        int code47StackHeight=digits.getHeight()+1+unit.getHeight();
-        int code47DigitsTop=Math.max(0,(slot.getHeight()-code47StackHeight)/2);
-        ok(digitsTop==code47DigitsTop-1,
-            "date-to-total distance shrinks by exactly one physical pixel at every density"
-                +" oldTop="+code47DigitsTop+" newTop="+digitsTop);
-        ok(digits.getLayout().getHeight()<=digits.getHeight()&&unit.getLayout().getHeight()<=unit.getHeight(),
-            "both native TextView layouts fit; no total-text clipping exception");
+        // Code49 stack: the digits plus the same one physical pixel of
+        // clearance the code47 rule row occupied, centered in the weighted
+        // slot and shifted up exactly one physical pixel (the code48 move is
+        // preserved). Removing the unit row recenters the digits inside the
+        // slot by design; this formula pins that position at every density.
+        int code49StackHeight=digits.getHeight()+1;
+        int code49DigitsTop=Math.max(0,(slot.getHeight()-code49StackHeight)/2);
+        ok(digitsTop==code49DigitsTop-1,
+            "unit-less stack stays centered in the slot and one physical pixel up at every density"
+                +" expected="+code49DigitsTop+" newTop="+digitsTop);
+        ok(digits.getLayout().getHeight()<=digits.getHeight(),
+            "the digits' native TextView layout fits; no total-text clipping exception");
         ok(rule.getHeight()==1&&rule.getWidth()>0&&Math.abs(relativeLeft(rule,slot)+rule.getWidth()-slot.getWidth())<=1
                 &&Math.abs(rule.getWidth()-digits.getLayout().getLineWidth(0))<=2.01f,
             "one physical pixel rule spans the measured minus/digits advance at one baseline, not a one-pixel stub"
@@ -1065,7 +1075,7 @@ public class WidgetInstrumentation extends Instrumentation {
         }
         ok(ink>0,"independent unit has visible native glyph pixels");expected.recycle();parent.recycle();
     }
-    void totalUnitAndRuleChecks(){
+    void totalRuleChecks(){
         CalendarRevenueData.Month values=new CalendarRevenueData.Month();
         long[] amounts={0,999000,-999000,1234567890L};
         for(int i=0;i<amounts.length;i++){values.days[i+1][0]=amounts[i];values.known[i+1][0]=true;}
@@ -1085,9 +1095,9 @@ public class WidgetInstrumentation extends Instrumentation {
                     if(pass==1)views.reapply(sized,tree);
                     measureCalendar(host,Math.round(widthDp*density),Math.round(heightDp*density));
                     android.view.ViewGroup week=tree.findViewById(R.id.calendar_week_0);
-                    for(int i=0;i<amounts.length;i++)completeCalendarTotal(week.getChildAt(i),R.id.calendar_day_total,CalendarAmountFormatter.compact(amounts[i],true));
+                    for(int i=0;i<amounts.length;i++)completeCalendarTotal(week.getChildAt(i),R.id.calendar_day_total,CalendarAmountFormatter.totalCompact(amounts[i],true));
                     android.view.View forecast=tree.findViewById(R.id.calendar_forecast);
-                    if(dpi==420)completeCalendarTotal(forecast,R.id.calendar_forecast_total,"111万");
+                    if(dpi==420)completeCalendarTotal(forecast,R.id.calendar_forecast_total,"111");
                     else checkTotalGeometry(forecast,R.id.calendar_forecast_total);
                 }
             }
@@ -1628,7 +1638,7 @@ public class WidgetInstrumentation extends Instrumentation {
             host.stopListening();runOnMainSync(activity::finish);
             code42Checks();
             calendarLayoutChecks();
-            totalUnitAndRuleChecks();
+            totalRuleChecks();
             calendarHeaderReapplyChecks();
             forecastInteractionChecks();
             couponDailyContractChecks();
