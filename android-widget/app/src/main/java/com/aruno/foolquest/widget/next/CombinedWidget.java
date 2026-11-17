@@ -10,7 +10,7 @@ public final class CombinedWidget extends CalendarWidget {
     static RemoteViews buildViews(Context c,int id,String month,int filter,int summary,CalendarRevenueData.Month days,
                                   long now,RevenueStore.Data revenue,DisplaySettings settings,int width,int height){
         int gaugeHeight=Math.round(height*0.31f);
-        RemoteViews views=new RemoteViews(c.getPackageName(),R.layout.widget_combined_v42);
+        RemoteViews views=new RemoteViews(c.getPackageName(),R.layout.widget_combined_v50);
         views.removeAllViews(R.id.combined_gauge);
         CalendarWidget.addStable(views,R.id.combined_gauge,NativeWidgetViews.create(c,revenue,settings,width,gaugeHeight).views,0);
         views.removeAllViews(R.id.combined_calendar);

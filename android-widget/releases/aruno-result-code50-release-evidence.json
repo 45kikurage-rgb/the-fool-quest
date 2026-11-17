@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "applicationId": "com.aruno.foolquest.widget.next",
+  "version": "0.1.49",
+  "versionCode": 50,
+  "sourceCommit": "3807e50ee36a5dd3a32f75cc08b779814e778d63",
+  "testCommit": "3807e50ee36a5dd3a32f75cc08b779814e778d63",
+  "apkSha256": "3ebfd7ba7d0d5ff3f5f1b93ae07ce97bde21610e887b783fd5eff4b766d7f808",
+  "apkBytes": 3206807,
+  "certificateSha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+  "signingReceipt": {
+    "apk_sha256": "3ebfd7ba7d0d5ff3f5f1b93ae07ce97bde21610e887b783fd5eff4b766d7f808",
+    "app_id": "foolquest-widget-next",
+    "certificate_sha256": "8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730",
+    "device_verified": false,
+    "existing_key": true,
+    "package": "com.aruno.foolquest.widget.next",
+    "production_release": false,
+    "published": false,
+    "run_id": "43987610880",
+    "schema": 1,
+    "source_commit": "3807e50ee36a5dd3a32f75cc08b779814e778d63",
+    "source_repository": "45kikurage-rgb/the-fool-quest",
+    "trial_signed": true,
+    "unsigned_sha256": "516ce272a85e601990971280e3f96474dfb15b9036b2f5a4c1728a26ab20fafb",
+    "version_code": 50,
+    "version_name": "0.1.49",
+    "workflow_commit": "58e9d18b80e558c860d929d76bb1435ac2128355"
+  },
+  "signingReceiptNote": "Pre-publication signing receipt; later publication is tracked independently.",
+  "softwareChecks": {
+    "nativeAndroid17": {
+      "run": 43986719941,
+      "result": "success"
+    },
+    "nativeVisualMatrix": {
+      "rasterRuleSpansTotal": "PASS",
+      "rightEdgeAlignment": "PASS",
+      "applyAndReapply": true,
+      "physicalDevice": false
+    },
+    "officialUpgrade": {
+      "run": 43987610880,
+      "fromCode": 49,
+      "toCode": 50,
+      "api": 37,
+      "uidPreserved": true,
+      "reboot": "PASS",
+      "dataPreservation": "PASS_DISPOSABLE_EMULATOR"
+    },
+    "independentRestore": {
+      "run": 43987610880,
+      "primary": "success",
+      "backup": "success"
+    },
+    "signedPayloadMatches": {
+      "passed": true,
+      "signingBuildUnsignedSha256": "516ce272a85e601990971280e3f96474dfb15b9036b2f5a4c1728a26ab20fafb"
+    }
+  },
+  "changes": [
+    "マイナスの日別合計と月末予想の合計で、下線がマイナス記号の途中から始まる問題を修正しました。合計は数字と下線を一体にした画像としてアプリ側で描画し、下線がマイナスを含む全体に付きます。",
+    "合計の右揃え、数字の大きさ・高さ・位置、C・Tの行、「万」なしの表示仕様は code49 から変更していません。",
+    "金額計算・保存データ・package・既存署名は変更なし。"
+  ],
+  "publicationStatus": "PUBLISHING_PENDING_VERIFICATION",
+  "distributionUrls": [
+    "https://the-fool-quest.45kikurage.workers.dev/widget-download.html",
+    "https://45kikurage-rgb.github.io/the-fool-quest/widget-download.html"
+  ],
+  "apkUrls": [
+    "https://the-fool-quest.45kikurage.workers.dev/android-widget/releases/aruno-result-0.1.49.apk",
+    "https://45kikurage-rgb.github.io/the-fool-quest/android-widget/releases/aruno-result-0.1.49.apk"
+  ],
+  "physicalDeviceVerified": false,
+  "formalOperationConfirmed": false,
+  "historicalDataLoss": "code32 cause remains undetermined; previously lost physical-device data is not claimed recovered.",
+  "transferMethod": "Existing signed artifact registered in PR #70 was verified byte-identical to the ops signing receipt (run 43987610880) by SHA-256 and Git blob; no rebuild or re-signing."
+}

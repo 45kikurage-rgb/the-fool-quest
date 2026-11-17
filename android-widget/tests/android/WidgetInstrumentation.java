@@ -25,6 +25,13 @@ public class WidgetInstrumentation extends Instrumentation {
     int checks; Context c; File output; Bundle args; Activity nativeFixture;
     java.util.Map<String,Float> measuredGaugeHeights=new java.util.HashMap<>();
     void ok(boolean x,String name){checks++;if(!x)throw new AssertionError(name);}
+    void mainSlice(String phase,Runnable work){
+        android.util.Log.i("ArunoWidgetTests","START "+phase);
+        long started=android.os.SystemClock.uptimeMillis();
+        runOnMainSync(work);
+        waitForIdleSync();
+        android.util.Log.i("ArunoWidgetTests","DONE "+phase+" ms="+(android.os.SystemClock.uptimeMillis()-started)+" checks="+checks);
+    }
     void png(android.graphics.Bitmap b,String name)throws Exception{try(FileOutputStream f=new FileOutputStream(new File(output,name+".png"))){b.compress(android.graphics.Bitmap.CompressFormat.PNG,100,f);}}
     android.widget.Button button(android.view.View view,String text){
         if(view instanceof android.widget.Button&&((android.widget.Button)view).getText().toString().equals(text))return (android.widget.Button)view;
@@ -332,13 +339,18 @@ public class WidgetInstrumentation extends Instrumentation {
             data.days[2][0]=-56000;data.known[2][0]=true;data.days[2][1]=53000;data.days[2][2]=1000;data.dailyLosses[2]=110000;
             long now=java.time.Instant.parse("2026-12-01T00:00:00Z").toEpochMilli();
             for(int dpi:new int[]{160,320,480}){
-              runOnMainSync(()->{
                 android.content.res.Configuration cfg=new android.content.res.Configuration(c.getResources().getConfiguration());cfg.densityDpi=dpi;
                 Context sized=c.createConfigurationContext(cfg);float density=sized.getResources().getDisplayMetrics().density;
-                android.widget.FrameLayout host=new android.widget.FrameLayout(sized);
-                android.view.View tree=CalendarWidget.buildViews(sized,13042,"2026-11",0,0,data,now,411,400).apply(sized,host);
-                host.addView(tree,new android.widget.FrameLayout.LayoutParams(-1,-1));
                 int width=Math.round(411*density),height=Math.round(400*density);
+                final android.widget.FrameLayout[] hosts={null};final android.view.View[] trees={null};
+                mainSlice("code42 setup dpi="+dpi,()->{
+                    android.widget.FrameLayout host=new android.widget.FrameLayout(sized);hosts[0]=host;
+                    long buildStarted=android.os.SystemClock.uptimeMillis();
+                    android.view.View tree=CalendarWidget.buildViews(sized,13042,"2026-11",0,0,data,now,411,400).apply(sized,host);trees[0]=tree;
+                    long buildMillis=android.os.SystemClock.uptimeMillis()-buildStarted;
+                    android.util.Log.i("ArunoWidgetTests","single calendar build+inflate dpi="+dpi+" ms="+buildMillis);
+                    ok(buildMillis<5000,"single calendar build stays below the main-thread input timeout: ms="+buildMillis);
+                    host.addView(tree,new android.widget.FrameLayout.LayoutParams(-1,-1));
                 android.view.View baseline=Code41CalendarReference.buildViews(sized,13042,"2026-11",0,0,data,now,411,400).apply(sized,null);
                 android.view.View day=((android.view.ViewGroup)tree.findViewById(R.id.calendar_week_0)).getChildAt(0);
                 android.view.View oldDay=((android.view.ViewGroup)baseline.findViewById(R.id.calendar_week_0)).getChildAt(0);
@@ -366,11 +378,15 @@ public class WidgetInstrumentation extends Instrumentation {
                         ok(Math.abs(delta-(-2f))<=1f,"code41 visible digit height delta at dpi"+dpi+" id"+id+" is "+delta);
                     }
                 }
+                });
                 for(int position=0;position<3;position++){
-                    DisplaySettings settings=new DisplaySettings();settings.calendarHeaderMonthAlign=position;settings.calendarHeaderCategoryAlign=(position+1)%3;settings.calendarHeaderAmountAlign=(position+2)%3;
+                    final int selectedPosition=position;
                     ((BackupPreferences)RevenueStore.prefs(c)).raw.edit().putInt("calendarHeaderMonthAlign",position).putInt("calendarHeaderCategoryAlign",(position+1)%3).putInt("calendarHeaderAmountAlign",(position+2)%3).commit();
                     for(int category=0;category<3;category++){
-                        CalendarWidget.buildViews(sized,13042,"2026-11",0,category,data,now,411,400).reapply(sized,tree);measureCalendar(host,width,height);
+                        final int selectedCategory=category;
+                        mainSlice("code42 header dpi="+dpi+" alignment="+position+" category="+category,()->{
+                            android.widget.FrameLayout host=hosts[0];android.view.View tree=trees[0];
+                        CalendarWidget.buildViews(sized,13042,"2026-11",0,selectedCategory,data,now,411,400).reapply(sized,tree);measureCalendar(host,width,height);
                         android.graphics.Bitmap image=android.graphics.Bitmap.createBitmap(width,height,android.graphics.Bitmap.Config.ARGB_8888);tree.draw(new android.graphics.Canvas(image));
                         int[] pixels=new int[width*height];image.getPixels(pixels,0,width,0,0,width,height);
                         int[] ids={R.id.calendar_title,R.id.calendar_summary_label,R.id.calendar_summary_amount};
@@ -381,16 +397,19 @@ public class WidgetInstrumentation extends Instrumentation {
                             for(int y=top;y<top+field.getHeight();y++)for(int x=left;x<left+field.getWidth();x++){
                                 int color=pixels[y*width+x];if(android.graphics.Color.red(color)>180&&android.graphics.Color.green(color)>180&&android.graphics.Color.blue(color)>180){inkTop=Math.min(inkTop,y);inkBottom=Math.max(inkBottom,y);}
                             }
-                            int selected=(position+i)%3;int above=inkTop-top,below=top+field.getHeight()-1-inkBottom;
+                            int selected=(selectedPosition+i)%3;int above=inkTop-top,below=top+field.getHeight()-1-inkBottom;
                             if(!(inkBottom>=inkTop&&(selected==0?above<=2:selected==1?below<=2:Math.abs(above-below)<=2)))try{png(image,"failed-header-"+dpi+"-"+i+"-"+selected);}catch(Exception ex){throw new RuntimeException(ex);}
                             ok(inkBottom>=inkTop&&(selected==0?above<=2:selected==1?below<=2:Math.abs(above-below)<=2),"parent-drawn header glyph alignment dpi"+dpi+" field"+i+" mode"+selected+" above"+above+" below"+below+" translation="+field.getTranslationY()+" baseline="+((android.widget.TextView)field).getBaseline()+" lines="+((android.widget.TextView)field).getLayout().getLineCount()+" layoutH="+((android.widget.TextView)field).getLayout().getHeight()+" fieldH="+field.getHeight());
                         }
-                        if(dpi==480&&category==0)screenshots.add(image);else image.recycle();
+                        if(dpi==480&&selectedCategory==0)screenshots.add(image);else image.recycle();
+                        });
                     }
                 }
+                mainSlice("code42 rows dpi="+dpi,()->{
+                    android.widget.FrameLayout host=hosts[0];android.view.View tree=trees[0];
                 ((BackupPreferences)RevenueStore.prefs(c)).raw.edit().putInt("calendarHeaderMonthAlign",2).putInt("calendarHeaderCategoryAlign",2).putInt("calendarHeaderAmountAlign",2).commit();
                 CalendarWidget.buildViews(sized,13042,"2026-11",0,0,data,now,411,400).reapply(sized,tree);measureCalendar(host,width,height);
-                day=((android.view.ViewGroup)tree.findViewById(R.id.calendar_week_0)).getChildAt(0);
+                android.view.View day=((android.view.ViewGroup)tree.findViewById(R.id.calendar_week_0)).getChildAt(0);
                 day=((android.view.ViewGroup)tree.findViewById(R.id.calendar_week_4)).getChildAt(0);
                 android.view.View forecast=tree.findViewById(R.id.calendar_forecast);
                 int[] dayIds={R.id.calendar_day_number,R.id.calendar_day_total,R.id.calendar_day_coupon,R.id.calendar_day_tiktok};
@@ -402,8 +421,10 @@ public class WidgetInstrumentation extends Instrumentation {
                     // fit its cell. Amount rows still share the daily size.
                     if(i==0)ok(Math.abs((a.getTextSize()-b.getTextSize())-3f*density)<=0.02f*density+0.001f,"forecast title is daily glyph size minus 3 row0");
                     else ok(a.getTextSize()==b.getTextSize(),"forecast shares daily glyph size row"+i);
-                    float ya=0,yb=0;for(android.view.View v=a;v!=day;v=(android.view.View)v.getParent())ya+=v.getY();for(android.view.View v=b;v!=forecast;v=(android.view.View)v.getParent())yb+=v.getY();
-                    ok(Math.abs(ya-yb)<=1&&a.getHeight()==b.getHeight(),"forecast shares daily row slot"+i);
+                    android.view.View visibleA=i==1?day.findViewById(R.id.calendar_total_image):a;
+                    android.view.View visibleB=i==1?forecast.findViewById(R.id.calendar_total_image):b;
+                    float ya=0,yb=0;for(android.view.View v=visibleA;v!=day;v=(android.view.View)v.getParent())ya+=v.getY();for(android.view.View v=visibleB;v!=forecast;v=(android.view.View)v.getParent())yb+=v.getY();
+                    ok(Math.abs(ya-yb)<=1&&visibleA.getHeight()==visibleB.getHeight(),"forecast shares daily row slot"+i);
                 }
                 android.view.View lossDay=((android.view.ViewGroup)tree.findViewById(R.id.calendar_week_0)).getChildAt(1);
                 completeCalendarText(lossDay,R.id.calendar_loss_label,"損失");completeCalendarText(lossDay,R.id.calendar_day_loss,"−11.0万");
@@ -420,8 +441,7 @@ public class WidgetInstrumentation extends Instrumentation {
                     &&lossDate.getRight()<=lossBlock.getLeft()+1,
                     "loss block shares the date band at the top of the cell");
                 if(dpi==480){android.graphics.Bitmap image=android.graphics.Bitmap.createBitmap(width,height,android.graphics.Bitmap.Config.ARGB_8888);tree.draw(new android.graphics.Canvas(image));screenshots.add(image);}
-              });
-              waitForIdleSync();
+                });
             }
             new DisplaySettings().save(RevenueStore.prefs(c));
         }
@@ -439,7 +459,7 @@ public class WidgetInstrumentation extends Instrumentation {
         runOnMainSync(()->button(settingsPage.getWindow().getDecorView(),"設定を保存").performClick());waitForIdleSync();
         DisplaySettings fromUi=DisplaySettings.load(RevenueStore.prefs(c));
         ok(fromUi.calendarHeaderMonthAlign==0&&fromUi.calendarHeaderCategoryAlign==1&&fromUi.calendarHeaderAmountAlign==2,"all three user-selected positions save through actual SettingsActivity");
-        runOnMainSync(settingsPage::finish);new DisplaySettings().save(RevenueStore.prefs(c));
+        runOnMainSync(settingsPage::finish);waitForIdleSync();new DisplaySettings().save(RevenueStore.prefs(c));
         executor().submit(()->{}).get(30,TimeUnit.SECONDS);
         final Activity rapidHost=startActivitySync(new Intent(c,SettingsActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
         // Actual host update/reapply and PendingIntent delivery, for both widget types.
@@ -470,7 +490,7 @@ public class WidgetInstrumentation extends Instrumentation {
             ok(RevenueStore.prefs(c).getInt("calendar.summary."+id,-1)==(17*2)%3,"latest rapid category state reaches the existing durable backup boundary");
             host.deleteAppWidgetId(id);
         }
-        host.stopListening();runOnMainSync(rapidHost::finish);
+        host.stopListening();runOnMainSync(rapidHost::finish);waitForIdleSync();
         DisplaySettings keep=DisplaySettings.load(RevenueStore.prefs(c));keep.calendarHeaderMonthAlign=0;keep.calendarHeaderCategoryAlign=1;keep.calendarHeaderAmountAlign=2;keep.save(RevenueStore.prefs(c));
         DisplaySettings restored=DisplaySettings.load(RevenueStore.prefs(c));ok(restored.calendarHeaderMonthAlign==0&&restored.calendarHeaderCategoryAlign==1&&restored.calendarHeaderAmountAlign==2,"independent header preferences survive load/save");
         new DisplaySettings().save(RevenueStore.prefs(c));
@@ -529,13 +549,13 @@ public class WidgetInstrumentation extends Instrumentation {
         data.dailyLosses[31]=1500;
         data.losses[31][0]=1000;
         data.losses[31][1]=500;
-        runOnMainSync(()->{
-            for(float fontScale:new float[]{1f,2f}){
+        for(float fontScale:new float[]{1f,2f}){
                 android.content.res.Configuration config=new android.content.res.Configuration(c.getResources().getConfiguration());
                 config.fontScale=fontScale;
                 config.densityDpi=480;
                 Context sized=c.createConfigurationContext(config);
                 for(int widthDp:new int[]{280,320,411}){
+                    mainSlice("calendar layout fontScale="+fontScale+" width="+widthDp,()->{
                     float density=sized.getResources().getDisplayMetrics().density;
                     int width=Math.round(widthDp*density);
                     int height=Math.round(236*density);
@@ -632,6 +652,7 @@ public class WidgetInstrumentation extends Instrumentation {
                     completeCalendarText(lastRow.getChildAt(5),R.id.calendar_control,"カテゴリー\n表示変更");
                     completeCalendarText(lastRow.getChildAt(6),R.id.calendar_control,"年月\n表示変更");
                     checkCalendarHeader(calendar,"2026年5月\u3000","Total","¥9,007,199,254,740,991");
+                    });
                 }
             }
             // Code44 spec (Pixel 10 device check, code42/code43): at the
@@ -640,6 +661,7 @@ public class WidgetInstrumentation extends Instrumentation {
             // see the device failure. Render at the device-like height 520
             // and require the title to keep a 4dp reserve in its budget.
             for(int tallDpi:new int[]{420,480}){
+                mainSlice("calendar tall dpi="+tallDpi,()->{
                 android.content.res.Configuration tallConfig=new android.content.res.Configuration(c.getResources().getConfiguration());
                 tallConfig.densityDpi=tallDpi;
                 Context tallContext=c.createConfigurationContext(tallConfig);
@@ -670,7 +692,9 @@ public class WidgetInstrumentation extends Instrumentation {
                     ok(tallTitle.getLayout().getLineWidth(0)<=(tallAmountBudget-4f)*tallDensity+1f,
                         "forecast title line stays inside the reserved budget dpi="+tallDpi
                         +" line="+tallTitle.getLayout().getLineWidth(0)+" budget="+((tallAmountBudget-4f)*tallDensity));
+                });
             }
+        mainSlice("calendar combined and daily content",()->{
             CalendarWidgetState.toggleForecast(c,first);
             android.view.View hidden=CalendarWidget.buildViews(c,first,"2026-11",0,0,data,
                 java.time.Instant.parse("2026-11-09T00:00:00Z").toEpochMilli()).apply(c,new android.widget.FrameLayout(c));
@@ -720,7 +744,7 @@ public class WidgetInstrumentation extends Instrumentation {
             for(int filter:new int[]{CalendarWidgetState.ALL,CalendarWidgetState.TOTAL,CalendarWidgetState.COUPON,CalendarWidgetState.TIKTOK,CalendarWidgetState.LOSS}){
                 android.view.View filtered=CalendarWidget.buildViews(c,first,"2026-11",filter,0,current,now).apply(c,host);
                 android.view.View day=((android.view.ViewGroup)filtered.findViewById(R.id.calendar_week_0)).getChildAt(3);
-                int[] rowIds={R.id.calendar_day_total,R.id.calendar_coupon_row,R.id.calendar_tiktok_row,R.id.calendar_loss_block};
+                int[] rowIds={R.id.calendar_total_slot,R.id.calendar_coupon_row,R.id.calendar_tiktok_row,R.id.calendar_loss_block};
                 for(int row=0;row<4;row++)ok((day.findViewById(rowIds[row]).getVisibility()==android.view.View.VISIBLE)==(filter==0||filter==row+1),
                     "each of five filters displays only its requested rows, including loss");
                 ok("5.7".contentEquals(((android.widget.TextView)day.findViewById(R.id.calendar_day_total)).getText()),"filtering never changes loss-adjusted total");
@@ -740,10 +764,11 @@ public class WidgetInstrumentation extends Instrumentation {
                 "past days without data display 0.0 for the total and 0.0万 for coupon and TikTok (user decisions 2026-11-14 and 2026-11-16)");
             android.text.Spanned todayTotal=(android.text.Spanned)((android.widget.TextView)today.findViewById(R.id.calendar_day_total)).getText();
             ok(todayTotal.getSpans(0,todayTotal.length(),android.text.style.UnderlineSpan.class).length==0
-                    &&today.findViewById(R.id.calendar_total_rule).getVisibility()==android.view.View.VISIBLE,
-                "daily total carries an independent thin rule under all digits and the reduced minus");
+                    &&today.findViewById(R.id.calendar_total_rule).getVisibility()==android.view.View.GONE
+                    &&today.findViewById(R.id.calendar_total_image).getVisibility()==android.view.View.VISIBLE,
+                "daily total carries the single rasterized rule under all digits and the reduced minus");
             android.view.View tomorrow=firstRow.getChildAt(4);
-            ok(tomorrow.findViewById(R.id.calendar_day_total).getVisibility()==android.view.View.INVISIBLE
+            ok(tomorrow.findViewById(R.id.calendar_total_slot).getVisibility()==android.view.View.INVISIBLE
                 &&tomorrow.findViewById(R.id.calendar_coupon_row).getVisibility()==android.view.View.INVISIBLE,
                 "future days show their date but no revenue");
         });
@@ -755,23 +780,25 @@ public class WidgetInstrumentation extends Instrumentation {
         host.layout(0,0,width,height);
     }
 
-    android.graphics.Rect visibleInk(android.widget.TextView text){
+    android.graphics.Rect visibleInk(android.view.View text){
         android.graphics.Bitmap image=android.graphics.Bitmap.createBitmap(Math.max(1,text.getWidth()),Math.max(1,text.getHeight()),android.graphics.Bitmap.Config.ARGB_8888);
-        text.draw(new android.graphics.Canvas(image));int top=image.getHeight(),bottom=-1;
+        text.draw(new android.graphics.Canvas(image));int top=image.getHeight(),bottom=-1,left=image.getWidth(),right=-1;
         int[] pixels=new int[image.getWidth()*image.getHeight()];image.getPixels(pixels,0,image.getWidth(),0,0,image.getWidth(),image.getHeight());
-        for(int y=0;y<image.getHeight();y++)for(int x=0;x<image.getWidth();x++)if((pixels[y*image.getWidth()+x]>>>24)>=160){top=Math.min(top,y);bottom=Math.max(bottom,y);}
-        image.recycle();return new android.graphics.Rect(0,top,0,bottom+1);
+        for(int y=0;y<image.getHeight();y++)for(int x=0;x<image.getWidth();x++)if((pixels[y*image.getWidth()+x]>>>24)>=160){top=Math.min(top,y);bottom=Math.max(bottom,y);left=Math.min(left,x);right=Math.max(right,x);}
+        image.recycle();return right<left?new android.graphics.Rect():new android.graphics.Rect(left,top,right+1,bottom+1);
     }
     void checkDailyCompaction(android.view.View host,android.view.View day,int width,int height){
         float previousBottom=-1;
         for(int id:new int[]{R.id.calendar_day_total,R.id.calendar_day_coupon,R.id.calendar_day_tiktok}){
-            android.widget.TextView value=day.findViewById(id);android.graphics.Rect ink=visibleInk(value);
-            float y=0;for(android.view.View view=value;view!=day;view=(android.view.View)view.getParent())y+=view.getY();
-            ok(ink.height()>0&&ink.top>=0&&ink.bottom<=value.getHeight(),
+            android.widget.TextView value=day.findViewById(id);
+            android.view.View visible=id==R.id.calendar_day_total?day.findViewById(R.id.calendar_total_image):value;
+            android.graphics.Rect ink=visibleInk(visible);
+            float y=0;for(android.view.View view=visible;view!=day;view=(android.view.View)view.getParent())y+=view.getY();
+            ok(ink.height()>0&&ink.top>=0&&ink.bottom<=visible.getHeight(),
                 "daily amount has visible unclipped ink id="+id+" text="+value.getText()
-                +" box="+value.getWidth()+"x"+value.getHeight()+" size="+value.getTextSize()
+                +" box="+visible.getWidth()+"x"+visible.getHeight()+" size="+value.getTextSize()
                 +" scale="+value.getTextScaleX()+" scroll="+value.getScrollX()
-                +" layoutWidth="+value.getLayout().getWidth()+" ink="+ink);
+                +" renderedWidth="+visible.getWidth()+" ink="+ink);
             ok(previousBottom<=y+ink.top,"daily numeric GLYPHS do not overlap after exact physical-height transfer: "+value.getText()+" previous="+previousBottom+" top="+(y+ink.top));
             previousBottom=y+ink.bottom;
             if(id==R.id.calendar_day_total){
@@ -809,14 +836,14 @@ public class WidgetInstrumentation extends Instrumentation {
         final java.util.List<String> names=new java.util.ArrayList<>();
         long now=java.time.Instant.parse("2026-12-01T00:00:00Z").toEpochMilli();
         String[] labels={"Total","Coupon","TikTok"};
-        runOnMainSync(()->{
-            for(float fontScale:new float[]{1f,2f}){
+        for(float fontScale:new float[]{1f,2f}){
                 android.content.res.Configuration config=new android.content.res.Configuration(c.getResources().getConfiguration());
                 config.fontScale=fontScale;config.densityDpi=480;
                 Context sized=c.createConfigurationContext(config);
                 float density=sized.getResources().getDisplayMetrics().density;
                 ok(density==3f,"header regression runs at density three");
                 for(int widthDp:new int[]{280,320,411}){
+                    mainSlice("header reapply fontScale="+fontScale+" width="+widthDp,()->{
                     int width=Math.round(widthDp*density),height=Math.round(236*density);
                     android.widget.FrameLayout host=new android.widget.FrameLayout(sized);
                     CalendarRevenueData.Month data=new CalendarRevenueData.Month();
@@ -849,7 +876,7 @@ public class WidgetInstrumentation extends Instrumentation {
                         }
                     }
                     android.view.View day=((android.view.ViewGroup)calendar.findViewById(R.id.calendar_week_0)).getChildAt(0);
-                    int[] rowIds={R.id.calendar_day_total,R.id.calendar_coupon_row,R.id.calendar_tiktok_row,R.id.calendar_loss_block};
+                    int[] rowIds={R.id.calendar_total_slot,R.id.calendar_coupon_row,R.id.calendar_tiktok_row,R.id.calendar_loss_block};
                     float[] rowTops=new float[4];
                     int[] rowHeights=new int[4];
                     for(int i=0;i<4;i++){android.view.View row=day.findViewById(rowIds[i]);rowTops[i]=row.getY();rowHeights[i]=row.getHeight();}
@@ -863,9 +890,9 @@ public class WidgetInstrumentation extends Instrumentation {
                                 "hidden categories retain the same daily row slots after reapply");
                         }
                     }
+                    });
                 }
             }
-        });
         for(int i=0;i<shots.size();i++){png(shots.get(i),names.get(i));shots.get(i).recycle();}
     }
 
@@ -975,15 +1002,10 @@ public class WidgetInstrumentation extends Instrumentation {
     }
 
     void completeCalendarTotal(android.view.View root,int id,String expected){
-        int unit=expected.indexOf('万');if(unit<0)unit=expected.indexOf('億');
-        completeCalendarText(root,id,unit<0?expected:expected.substring(0,unit));
-        if(unit<0){
-            // Code49 totals have no unit: the unit view must be GONE (a
-            // merely empty view would still reserve its row in the stack).
-            android.widget.TextView unitView=root.findViewById(R.id.calendar_total_unit);
-            ok(unitView.getVisibility()==android.view.View.GONE&&unitView.getText().length()==0,
-                "unit-less total leaves the unit view gone: "+expected);
-        }else completeCalendarText(root,R.id.calendar_total_unit,expected.substring(unit,unit+1));
+        android.widget.TextView metadata=root.findViewById(id);
+        ok(expected.contentEquals(metadata.getText()),"raster total retains exact signed display metadata: "+expected);
+        ok(expected.contentEquals(root.findViewById(R.id.calendar_total_image).getContentDescription()),
+            "visible total image exposes the same signed amount for accessibility: "+expected);
         checkTotalGeometry(root,id);
     }
     float relativeTop(android.view.View child,android.view.View ancestor){
@@ -992,88 +1014,168 @@ public class WidgetInstrumentation extends Instrumentation {
     float relativeLeft(android.view.View child,android.view.View ancestor){
         float left=0;for(android.view.View v=child;v!=ancestor;v=(android.view.View)v.getParent())left+=v.getX();return left;
     }
+    android.graphics.Bitmap totalBitmap(android.view.View cell){
+        android.widget.ImageView image=cell.findViewById(R.id.calendar_total_image);
+        ok(image.getDrawable() instanceof android.graphics.drawable.BitmapDrawable,"total has an app-rendered bitmap");
+        return ((android.graphics.drawable.BitmapDrawable)image.getDrawable()).getBitmap();
+    }
+    android.graphics.Rect bitmapInk(android.graphics.Bitmap bitmap,int excludedY){
+        int left=bitmap.getWidth(),right=-1,top=bitmap.getHeight(),bottom=-1;
+        for(int y=0;y<bitmap.getHeight();y++)if(y!=excludedY)for(int x=0;x<bitmap.getWidth();x++)
+            if((bitmap.getPixel(x,y)>>>24)>=160){left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y);}
+        return right<left?new android.graphics.Rect():new android.graphics.Rect(left,top,right+1,bottom+1);
+    }
     void checkTotalGeometry(android.view.View cell,int id){
-        android.widget.TextView digits=cell.findViewById(id),unit=cell.findViewById(R.id.calendar_total_unit),rule=cell.findViewById(R.id.calendar_total_rule);
-        android.view.View slot=cell.findViewById(R.id.calendar_total_slot);
-        float digitsTop=relativeTop(digits,slot),ruleTop=relativeTop(rule,slot);
-        android.graphics.Rect digitsInk=visibleInk(digits);
-        ok(unit.getVisibility()==android.view.View.GONE,
-            "code49: the unit view is gone, so the stack holds digits only");
-        ok(digitsTop>=-1&&digitsTop+digits.getHeight()<=slot.getHeight(),
-            "digits remain an unclipped native row inside the slot: slot="+slot.getHeight()+" digit="+digits.getHeight());
-        ok(digitsInk.height()>0&&digitsTop+digitsInk.top>=0&&ruleTop==digitsTop+digitsInk.bottom-1,
-            "the one-pixel rule overlays the actual digits' bottom ink pixel instead of reserving a row below them"
-                +" text="+digits.getText()+" digitsTop="+digitsTop+" digitsInk="+digitsInk+" ruleTop="+ruleTop+" size="+digits.getTextSize());
-        // Code49 stack: the digits plus the same one physical pixel of
-        // clearance the code47 rule row occupied, centered in the weighted
-        // slot and shifted up exactly one physical pixel (the code48 move is
-        // preserved). Removing the unit row recenters the digits inside the
-        // slot by design; this formula pins that position at every density.
-        int code49StackHeight=digits.getHeight()+1;
-        int code49DigitsTop=Math.max(0,(slot.getHeight()-code49StackHeight)/2);
-        ok(digitsTop==code49DigitsTop-1,
-            "unit-less stack stays centered in the slot and one physical pixel up at every density"
-                +" expected="+code49DigitsTop+" newTop="+digitsTop);
-        ok(digits.getLayout().getHeight()<=digits.getHeight(),
-            "the digits' native TextView layout fits; no total-text clipping exception");
-        ok(rule.getHeight()==1&&rule.getWidth()>0&&Math.abs(relativeLeft(rule,slot)+rule.getWidth()-slot.getWidth())<=1
-                &&Math.abs(rule.getWidth()-digits.getLayout().getLineWidth(0))<=2.01f,
-            "one physical pixel rule spans the measured minus/digits advance at one baseline, not a one-pixel stub"
-                +" text="+digits.getText()+" size="+digits.getTextSize()+" scale="+digits.getTextScaleX()
-                +" rule="+rule.getWidth()+"x"+rule.getHeight()+" line="+digits.getLayout().getLineWidth(0)
-                +" right="+(relativeLeft(rule,slot)+rule.getWidth())+" slot="+slot.getWidth());
-        android.graphics.Bitmap line=android.graphics.Bitmap.createBitmap(rule.getWidth(),1,android.graphics.Bitmap.Config.ARGB_8888);
-        rule.draw(new android.graphics.Canvas(line));
-        int color=digits.getCurrentTextColor();
-        for(int x=0;x<line.getWidth();x++)ok(line.getPixel(x,0)==color,"underline has one continuous color and baseline across minus/digits x="+x);
-        line.recycle();
-        android.graphics.Bitmap renderedRule=android.graphics.Bitmap.createBitmap(cell.getWidth(),cell.getHeight(),android.graphics.Bitmap.Config.ARGB_8888);
-        cell.draw(new android.graphics.Canvas(renderedRule));
-        int ruleLeft=Math.round(relativeLeft(rule,cell)),ruleY=Math.round(relativeTop(rule,cell));
-        ok(ruleLeft>=0&&ruleY>=0&&ruleLeft+rule.getWidth()<=renderedRule.getWidth()&&ruleY<renderedRule.getHeight(),
-            "the entire overlaid underline stays within the parent cell");
-        for(int x=0;x<rule.getWidth();x++)ok(renderedRule.getPixel(ruleLeft+x,ruleY)==color,
-            "parent drawing preserves the same continuous underline beneath the reduced minus and digits x="+x);
-        android.graphics.Bitmap standaloneDigits=android.graphics.Bitmap.createBitmap(digits.getWidth(),digits.getHeight(),android.graphics.Bitmap.Config.ARGB_8888);
-        digits.draw(new android.graphics.Canvas(standaloneDigits));
-        int digitsLeft=Math.round(relativeLeft(digits,cell)),digitsY=Math.round(relativeTop(digits,cell));
-        int cellBackground=((android.graphics.drawable.ColorDrawable)cell.getBackground()).getColor();
-        for(int y=0;y<standaloneDigits.getHeight();y++)for(int x=0;x<standaloneDigits.getWidth();x++){
-            int pixel=standaloneDigits.getPixel(x,y),alpha=pixel>>>24;
-            if(alpha<160||digitsY+y==ruleY)continue; // The overlay deliberately decorates the bottom ink row.
-            boolean inside=digitsLeft+x>=0&&digitsLeft+x<renderedRule.getWidth()
-                &&digitsY+y>=0&&digitsY+y<renderedRule.getHeight();
-            int actual=inside?renderedRule.getPixel(digitsLeft+x,digitsY+y):0;
-            boolean same=inside;
-            for(int shift:new int[]{0,8,16}){
-                int composite=(((pixel>>>shift)&255)*alpha+((cellBackground>>>shift)&255)*(255-alpha)+127)/255;
-                same&=Math.abs(((actual>>>shift)&255)-composite)<=2;
-            }
-            ok(same,"moving the total one pixel upward preserves every other visible digit pixel in parent drawing");
-        }
-        standaloneDigits.recycle();
-        renderedRule.recycle();
-        if(unit.getText().length()==0)return;
-        // Compare the standalone unit's pixels with those actually drawn by
-        // its cell. This catches clipping by a parent even if TextView's own
-        // layout reports a complete second line.
-        android.graphics.Bitmap expected=android.graphics.Bitmap.createBitmap(unit.getWidth(),unit.getHeight(),android.graphics.Bitmap.Config.ARGB_8888);
-        unit.draw(new android.graphics.Canvas(expected));
+        android.widget.TextView digits=cell.findViewById(id),unit=cell.findViewById(R.id.calendar_total_unit);
+        android.view.View rule=cell.findViewById(R.id.calendar_total_rule),slot=cell.findViewById(R.id.calendar_total_slot);
+        android.widget.ImageView image=cell.findViewById(R.id.calendar_total_image);
+        android.graphics.Bitmap bitmap=totalBitmap(cell);
+        android.graphics.Rect ink=bitmapInk(bitmap,-1);
+        ok(digits.getVisibility()==android.view.View.GONE&&unit.getVisibility()==android.view.View.GONE
+                &&rule.getVisibility()==android.view.View.GONE,
+            "host never draws resource-font total metadata, legacy unit, or duplicate rule");
+        ok(image.getWidth()==bitmap.getWidth()&&image.getHeight()==bitmap.getHeight(),
+            "total pixels keep their physical dimensions without host font or image scaling");
+        float imageTop=relativeTop(image,slot),imageLeft=relativeLeft(image,slot);
+        ok(imageTop>=-1&&imageTop+image.getHeight()<=slot.getHeight(),
+            "complete total raster stays inside the unchanged weighted slot");
+        int stackHeight=image.getHeight()+1;
+        ok(imageTop==Math.max(0,(slot.getHeight()-stackHeight)/2)-1,
+            "total retains native text height, centered stack, and one physical pixel upward shift");
+        ok(Math.abs(imageLeft+image.getWidth()-slot.getWidth())<=1,
+            "actual rendered total image, including a minus, ends at the slot right edge");
+        ok(ink.width()>0&&ink.height()>0&&ink.right==bitmap.getWidth(),
+            "total raster has no strong-ink right bearing left over from a host font mismatch");
+        int ruleY=ink.bottom-1,color=digits.getCurrentTextColor();
+        for(int x=0;x<bitmap.getWidth();x++)ok(bitmap.getPixel(x,ruleY)==color,
+            "one physical pixel rule spans the raster at the actual digit bottom x="+x);
+        android.graphics.Rect numberInk=bitmapInk(bitmap,ruleY);
+        ok(numberInk.width()>0&&bitmap.getWidth()-numberInk.right<=1,
+            "visible numeric glyphs, excluding the full-width rule, reach the raster right edge");
         android.graphics.Bitmap parent=android.graphics.Bitmap.createBitmap(cell.getWidth(),cell.getHeight(),android.graphics.Bitmap.Config.ARGB_8888);
         cell.draw(new android.graphics.Canvas(parent));
-        int left=Math.round(relativeLeft(unit,cell)),top=Math.round(relativeTop(unit,cell)),ink=0;
+        int left=Math.round(relativeLeft(image,cell)),top=Math.round(relativeTop(image,cell));
         int background=((android.graphics.drawable.ColorDrawable)cell.getBackground()).getColor();
-        for(int y=0;y<expected.getHeight();y++)for(int x=0;x<expected.getWidth();x++){
-            int pixel=expected.getPixel(x,y),alpha=pixel>>>24;if(alpha<160)continue;
-            ink++;boolean inside=left+x>=0&&left+x<parent.getWidth()&&top+y>=0&&top+y<parent.getHeight();
-            boolean same=inside;int actual=inside?parent.getPixel(left+x,top+y):0;
+        for(int y=0;y<bitmap.getHeight();y++)for(int x=0;x<bitmap.getWidth();x++){
+            int pixel=bitmap.getPixel(x,y),alpha=pixel>>>24;if(alpha<160)continue;
+            boolean same=left+x>=0&&left+x<parent.getWidth()&&top+y>=0&&top+y<parent.getHeight();
+            int actual=same?parent.getPixel(left+x,top+y):0;
             for(int shift:new int[]{0,8,16}){
                 int composite=(((pixel>>>shift)&255)*alpha+((background>>>shift)&255)*(255-alpha)+127)/255;
                 same&=Math.abs(((actual>>>shift)&255)-composite)<=2;
             }
-            ok(same,"every visible unit glyph pixel survives parent drawing, including bottom/right edges");
+            ok(same,"every visible raster glyph and rule pixel survives actual parent drawing");
         }
-        ok(ink>0,"independent unit has visible native glyph pixels");expected.recycle();parent.recycle();
+        parent.recycle();
+    }
+    void totalRestrictedHostChecks(){
+        CalendarRevenueData.Month values=new CalendarRevenueData.Month();
+        values.days[1][0]=56000;values.known[1][0]=true;
+        values.days[2][0]=-56000;values.known[2][0]=true;
+        for(int day=1;day<=2;day++){
+            values.days[day][1]=45000;values.known[day][1]=true;
+            values.days[day][2]=11000;values.known[day][2]=true;
+        }
+        values.totals[0]=-56000;values.totalKnown[0]=true;
+        long now=java.time.Instant.parse("2026-12-01T00:00:00Z").toEpochMilli();
+        for(int dpi:new int[]{160,420,480}){
+            mainSlice("restricted RemoteViews dpi="+dpi,()->{
+                android.content.res.Configuration cfg=new android.content.res.Configuration(c.getResources().getConfiguration());cfg.densityDpi=dpi;
+                Context app=c.createConfigurationContext(cfg);
+                Context launcher=getContext().createConfigurationContext(cfg);
+                ok(!app.getPackageName().equals(launcher.getPackageName()),
+                    "regression fixture uses a genuinely different package as the RemoteViews host");
+                float density=app.getResources().getDisplayMetrics().density;
+                int width=Math.round(411*density),height=Math.round(400*density);
+                android.widget.RemoteViews original=CalendarWidget.buildViews(app,13550,"2026-11",0,0,values,now,411,400);
+                android.widget.FrameLayout normalHost=new android.widget.FrameLayout(app);
+                android.view.View normal=original.apply(app,normalHost);normalHost.addView(normal,new android.widget.FrameLayout.LayoutParams(-1,-1));
+                measureCalendar(normalHost,width,height);
+                android.os.Parcel parcel=android.os.Parcel.obtain();
+                original.writeToParcel(parcel,0);parcel.setDataPosition(0);
+                android.widget.RemoteViews delivered=android.widget.RemoteViews.CREATOR.createFromParcel(parcel);parcel.recycle();
+                android.widget.FrameLayout remoteHost=new android.widget.FrameLayout(launcher);
+                android.view.View remote=delivered.apply(launcher,remoteHost);remoteHost.addView(remote,new android.widget.FrameLayout.LayoutParams(-1,-1));
+                for(int pass=0;pass<2;pass++){
+                    if(pass==1)delivered.reapply(launcher,remote);
+                    measureCalendar(remoteHost,width,height);
+                    android.view.ViewGroup normalWeek=normal.findViewById(R.id.calendar_week_0),remoteWeek=remote.findViewById(R.id.calendar_week_0);
+                    float[] rightGaps=new float[2];
+                    for(int day=0;day<2;day++){
+                        android.view.View reference=normalWeek.getChildAt(day),actual=remoteWeek.getChildAt(day);
+                        android.widget.ImageView image=actual.findViewById(R.id.calendar_total_image);
+                        ok(image.getContext().isRestricted(),"inflated total really uses a restricted RemoteViews application context");
+                        ok(image.getContext().getPackageName().equals(app.getPackageName()),"restricted remote context uses app resources");
+                        completeCalendarTotal(actual,R.id.calendar_day_total,day==0?"5.6":"−5.6");
+                        android.graphics.Bitmap expected=totalBitmap(reference),rendered=totalBitmap(actual);
+                        ok(expected.sameAs(rendered),"different-package restricted host receives identical app-font total pixels dpi="+dpi+" pass="+pass+" day="+day);
+                        android.widget.TextView metadata=reference.findViewById(R.id.calendar_day_total);
+                        CalendarTotalRaster.Result explicit=CalendarTotalRaster.render(app,metadata.getText(),new android.text.TextPaint(metadata.getPaint()),metadata.getCurrentTextColor());
+                        ok(explicit.bitmap.sameAs(rendered),"delivered total matches explicit corporate-font raster, including reduced minus");
+                        explicit.bitmap.recycle();
+                        android.graphics.Rect all=bitmapInk(rendered,-1),digits=bitmapInk(rendered,all.bottom-1);
+                        android.view.View slot=actual.findViewById(R.id.calendar_total_slot);
+                        rightGaps[day]=slot.getWidth()-(relativeLeft(image,slot)+digits.right);
+                        ok(rightGaps[day]>=-1&&rightGaps[day]<=1,"visible last digit reaches common slot right edge without counting the underline");
+                        for(int row:new int[]{R.id.calendar_coupon_row,R.id.calendar_tiktok_row}){
+                            android.view.View before=reference.findViewById(row),after=actual.findViewById(row);
+                            ok(relativeTop(before,reference)==relativeTop(after,actual)&&before.getHeight()==after.getHeight(),
+                                "restricted total fix leaves C/T row placement unchanged dpi="+dpi);
+                        }
+                    }
+                    ok(Math.abs(rightGaps[0]-rightGaps[1])<=1,"paired 5.6 and −5.6 have the same visible numeric right edge");
+                    android.widget.TextView normalMetadata=normalWeek.getChildAt(1).findViewById(R.id.calendar_day_total);
+                    android.widget.TextView restrictedMetadata=remoteWeek.getChildAt(1).findViewById(R.id.calendar_day_total);
+                    float appAdvance=normalMetadata.getPaint().measureText("−5.6"),hostAdvance=restrictedMetadata.getPaint().measureText("−5.6");
+                    ok(Math.abs(appAdvance-hostAdvance)>1f,
+                        "fixture reproduces the legacy resource-font mismatch that existing same-package tests missed");
+                }
+            });
+        }
+    }
+    long widgetBitmapBytes(android.view.View view,java.util.IdentityHashMap<android.graphics.Bitmap,Boolean> seen){
+        long bytes=0;
+        if(view instanceof android.widget.ImageView){
+            android.graphics.drawable.Drawable drawable=((android.widget.ImageView)view).getDrawable();
+            if(drawable instanceof android.graphics.drawable.BitmapDrawable){
+                android.graphics.Bitmap bitmap=((android.graphics.drawable.BitmapDrawable)drawable).getBitmap();
+                if(seen.put(bitmap,Boolean.TRUE)==null)bytes+=bitmap.getAllocationByteCount();
+            }
+        }
+        if(view instanceof android.view.ViewGroup){
+            android.view.ViewGroup group=(android.view.ViewGroup)view;
+            for(int child=0;child<group.getChildCount();child++)bytes+=widgetBitmapBytes(group.getChildAt(child),seen);
+        }
+        return bytes;
+    }
+    void totalResponsiveBitmapBudgetChecks(){
+        CalendarRevenueData.Month days=new CalendarRevenueData.Month();
+        for(int day=1;day<=30;day++){days.days[day][0]=day%2==0?-999000:999000;days.known[day][0]=true;}
+        days.totals[0]=-999000;days.totalKnown[0]=true;
+        RevenueStore.Data revenue=RevenueStore.read(c);DisplaySettings settings=DisplaySettings.load(RevenueStore.prefs(c));
+        long now=java.time.Instant.parse("2026-12-01T00:00:00Z").toEpochMilli();
+        mainSlice("responsive combined eight variants",()->{
+            android.util.DisplayMetrics metrics=c.getResources().getDisplayMetrics();
+            int width=Math.max(120,Math.min(411,(int)(metrics.widthPixels/metrics.density)));
+            ArrayList<android.util.SizeF> sizes=new ArrayList<>();
+            for(int height:new int[]{350,380,410,440,470,500,530,560})sizes.add(new android.util.SizeF(width,height));
+            Bundle options=new Bundle();options.putParcelableArrayList(AppWidgetManager.OPTION_APPWIDGET_SIZES,sizes);
+            java.util.IdentityHashMap<android.graphics.Bitmap,Boolean> seen=new java.util.IdentityHashMap<>();
+            long[] bytes={0};int[] variants={0};
+            long buildStarted=android.os.SystemClock.uptimeMillis();
+            android.widget.RemoteViews responsive=RevenueWidget.sizedViews(c,options,CombinedWidget.MIN_HEIGHT,460,(w,h)->{
+                android.widget.RemoteViews variant=CombinedWidget.buildViews(c,13551,"2026-11",0,0,days,now,revenue,settings,w,h);
+                bytes[0]+=widgetBitmapBytes(variant.apply(c,null),seen);variants[0]++;return variant;
+            });
+            long buildMillis=android.os.SystemClock.uptimeMillis()-buildStarted;
+            android.util.Log.i("ArunoWidgetTests","eight combined variants build+inflate ms="+buildMillis);
+            ok(buildMillis<5000,"eight responsive variants finish below the main-thread input timeout: ms="+buildMillis);
+            ok(responsive!=null&&variants[0]==8&&seen.size()>8,
+                "responsive budget includes all eight combined-widget sizes, gauges, and signed calendar rasters");
+            long limit=6L*metrics.widthPixels*metrics.heightPixels;
+            ok(bytes[0]>0&&bytes[0]<limit,
+                "all eight responsive bitmap allocations fit the widget screen budget: bytes="+bytes[0]+" limit="+limit);
+        });
     }
     void totalRuleChecks(){
         CalendarRevenueData.Month values=new CalendarRevenueData.Month();
@@ -1081,8 +1183,8 @@ public class WidgetInstrumentation extends Instrumentation {
         for(int i=0;i<amounts.length;i++){values.days[i+1][0]=amounts[i];values.known[i+1][0]=true;}
         values.totals[0]=-654152;values.totalKnown[0]=true;
         long now=java.time.Instant.parse("2026-12-01T00:00:00Z").toEpochMilli();
-        runOnMainSync(()->{
-            for(int dpi:new int[]{160,420,480})for(int widthDp:new int[]{280,320,411})for(int heightDp:new int[]{236,400,520}){
+        for(int dpi:new int[]{160,420,480})for(int widthDp:new int[]{280,320,411})for(int heightDp:new int[]{236,400,520}){
+            mainSlice("total matrix dpi="+dpi+" width="+widthDp+" height="+heightDp,()->{
                 // Integer-only forecast digits have a different bottom ink
                 // edge from daily decimal amounts in the corporate font.
                 values.totals[0]=dpi==420?1110000:-654152;
@@ -1100,8 +1202,8 @@ public class WidgetInstrumentation extends Instrumentation {
                     if(dpi==420)completeCalendarTotal(forecast,R.id.calendar_forecast_total,"111");
                     else checkTotalGeometry(forecast,R.id.calendar_forecast_total);
                 }
-            }
-        });
+            });
+        }
     }
     void completeCalendarText(android.view.View root,int id,String expected){
         android.widget.TextView text=root.findViewById(id);
@@ -1626,7 +1728,7 @@ public class WidgetInstrumentation extends Instrumentation {
             ok(RevenueStore.read(c).couponAt>beforeTap&&RevenueStore.read(c).error.isEmpty(),"widget tap updates Coupon");
             ok(scheduler.getPendingJob(RevenueJob.MANUAL)==null,"no duplicate manual job");
             png(getUiAutomation().takeScreenshot(),"native-widget-opens-revenue");
-            removeMonitor(tapMonitor);runOnMainSync(management::finish);
+            removeMonitor(tapMonitor);runOnMainSync(management::finish);waitForIdleSync();
             dimensions.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,280);dimensions.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,100);exactSizes.clear();exactSizes.add(new android.util.SizeF(280,100));dimensions.putParcelableArrayList(AppWidgetManager.OPTION_APPWIDGET_SIZES,exactSizes);manager.updateAppWidgetOptions(id,dimensions);
             runOnMainSync(()->{android.view.ViewGroup.LayoutParams lp=view[0].getLayoutParams();lp.width=Math.round(280*activity.getResources().getDisplayMetrics().density);lp.height=Math.round(100*activity.getResources().getDisplayMetrics().density);view[0].setLayoutParams(lp);});
             Thread.sleep(700);png(getUiAutomation().takeScreenshot(),"native-widget-host-resized");
@@ -1635,10 +1737,13 @@ public class WidgetInstrumentation extends Instrumentation {
                 ok(last.getBottom()<=content.getHeight(),"real host resize retains the entire Coupon row");
                 ok(view[0].findViewById(R.id.coupon_gauge_holder).getHeight()>0,"real host resize retains the third gauge");
             });
-            host.stopListening();runOnMainSync(activity::finish);
+            host.stopListening();runOnMainSync(activity::finish);waitForIdleSync();
+            android.util.Log.i("ArunoWidgetTests","PHASE calendar regressions after fixture activity finish");
             code42Checks();
             calendarLayoutChecks();
             totalRuleChecks();
+            totalRestrictedHostChecks();
+            totalResponsiveBitmapBudgetChecks();
             calendarHeaderReapplyChecks();
             forecastInteractionChecks();
             couponDailyContractChecks();
