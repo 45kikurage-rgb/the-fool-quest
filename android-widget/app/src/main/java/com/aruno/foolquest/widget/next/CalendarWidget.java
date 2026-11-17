@@ -134,7 +134,7 @@ public class CalendarWidget extends AppWidgetProvider {
             for(int i=0;i<3;i++){data.totals[i]=cache.getJSONArray("totals").getLong(i);data.totalKnown[i]=cache.getJSONArray("known").getBoolean(i);}
             int summary=CalendarWidgetState.summary(c,id);
             RemoteViews patch=RevenueWidget.sizedViews(c,manager.getAppWidgetOptions(id),combined?CombinedWidget.MIN_HEIGHT:236,combined?460:360,(w,h)->{
-                RemoteViews views=new RemoteViews(c.getPackageName(),combined?R.layout.widget_combined_v42:R.layout.widget_calendar_v42);
+                RemoteViews views=new RemoteViews(c.getPackageName(),combined?R.layout.widget_combined_v50:R.layout.widget_calendar_v50);
                 applyHeader(c,views,id,month,summary,data,w);return views;
             });
             manager.partiallyUpdateAppWidget(id,patch);partialRenderCount++;return true;
@@ -171,7 +171,7 @@ public class CalendarWidget extends AppWidgetProvider {
         // The corner loss block stacks two lines inside the 1.08 date band,
         // so each of its lines is capped at about half the band.
         float lossSize=Math.min(detailSize,(rowSpace*0.54f-0.35f)/lineHeight);
-        RemoteViews rv=new RemoteViews(c.getPackageName(),R.layout.widget_calendar_v42);
+        RemoteViews rv=new RemoteViews(c.getPackageName(),R.layout.widget_calendar_v50);
         // Keep every header field at the same glyph height. Fit the available
         // width with one shared horizontal scale, including unusually large sums.
         float headerSize=Math.min(26f,32f/lineHeight);
@@ -337,7 +337,7 @@ public class CalendarWidget extends AppWidgetProvider {
                 boolean showTikTok=isPast||isToday;
                 int totalVisibility=showCoupon&&(filter==0||filter==1)?View.VISIBLE:View.INVISIBLE;
                 cell.setViewVisibility(R.id.calendar_total_slot,totalVisibility);
-                cell.setViewVisibility(R.id.calendar_day_total,totalVisibility);
+                cell.setViewVisibility(R.id.calendar_total_image,totalVisibility);
                 cell.setViewVisibility(R.id.calendar_coupon_row,showCoupon&&(filter==0||filter==2)?View.VISIBLE:View.INVISIBLE);
                 cell.setViewVisibility(R.id.calendar_tiktok_row,showTikTok&&(filter==0||filter==3)?View.VISIBLE:View.INVISIBLE);
                 // The corner block stays invisible unless the day has a
@@ -483,10 +483,8 @@ public class CalendarWidget extends AppWidgetProvider {
         for(int y=0;y<height;y++)for(int x=0;x<width;x++)if((pixels[y*width+x]>>>24)>=160){top=Math.min(top,y);bottom=Math.max(bottom,y);}
         raster.recycle();return digitRatios[key]=Math.max(.1f,(bottom-top+1)/paint.getTextSize());
     }
-    // Keep the digits and their uniform rule in separate native views (the
-    // unit view remains in the layout but is GONE for unit-less totals since
-    // code49). The single physical-pixel rule overlays the visible digit
-    // bottom; it never reserves a row or inherits the reduced minus metrics.
+    // Render the bundled font before crossing into a launcher's restricted
+    // RemoteViews context. The signed amount and its rule share one raster.
     private static float totalDigitsAdvance(Paint measure,String text){
         return android.text.Layout.getDesiredWidth(totalDigits(text),new android.text.TextPaint(measure));
     }
@@ -500,71 +498,22 @@ public class CalendarWidget extends AppWidgetProvider {
         return styled;
     }
     private static void totalAmount(Context c,RemoteViews cell,int view,String text,float size,float width,Paint measure,float density,int color){
-        int unit=text.indexOf('万');
-        if(unit<0)unit=text.indexOf('億');
-        String digits=unit<0?text:text.substring(0,unit);
         android.text.SpannableString spannable=totalDigits(text);
-        float fitted=size;
+        // Retain text metadata for data/readback compatibility; the visible,
+        // accessible output is the raster, never a host-side font fallback.
         cell.setTextViewText(view,spannable);
-        cell.setTextViewTextSize(view,TypedValue.COMPLEX_UNIT_DIP,fitted);
-        cell.setContentDescription(view,text);
-        cell.setTextViewText(R.id.calendar_total_unit,unit<0?"":text.substring(unit,unit+1));
-        cell.setTextViewTextSize(R.id.calendar_total_unit,TypedValue.COMPLEX_UNIT_DIP,fitted*DAILY_TOTAL_UNIT_SCALE);
-        cell.setInt(R.id.calendar_total_unit,"setPaintFlags",DAILY_TOTAL_FLAGS);
-        cell.setFloat(R.id.calendar_total_unit,"setTextScaleX",1f);
-        // Code49 (user decision 2026-11-16): totals carry no unit, so the unit
-        // view leaves the stack entirely instead of reserving an empty row.
-        cell.setViewVisibility(R.id.calendar_total_unit,unit<0?View.GONE:View.VISIBLE);
+        cell.setTextViewTextSize(view,TypedValue.COMPLEX_UNIT_DIP,size);
         cell.setTextColor(view,color);
-        cell.setTextColor(R.id.calendar_total_unit,color);
-        cell.setInt(R.id.calendar_total_rule,"setBackgroundColor",color);
-        // Match TextView's actual styled shaping, including small-size font
-        // hinting and the reduced minus. Scaling a 100px probe is not exact
-        // enough for a one-pixel underline on small/low-density hosts.
+        cell.setViewVisibility(view,View.GONE);
+        cell.setTextViewText(R.id.calendar_total_unit,"");
+        cell.setViewVisibility(R.id.calendar_total_unit,View.GONE);
+        cell.setViewVisibility(R.id.calendar_total_rule,View.GONE);
         android.text.TextPaint actual=new android.text.TextPaint(measure);
-        actual.setTextSize(fitted*density);
-        cell.setInt(R.id.calendar_total_rule,"setWidth",Math.max(1,
-            (int)Math.ceil(android.text.Layout.getDesiredWidth(spannable,actual))));
-        android.widget.TextView digitProbe=totalProbe(c,spannable,actual);
-        int unitHeight=0;
-        if(unit>=0){
-            Paint unitPaint=new Paint(actual);unitPaint.setTextSize(fitted*density*DAILY_TOTAL_UNIT_SCALE);
-            unitPaint.setTextScaleX(1f);
-            unitHeight=totalProbe(c,text.substring(unit,unit+1),unitPaint).getMeasuredHeight();
-        }
-        // Freeze the native stack height before moving it exactly one
-        // physical pixel up. Use native TextView measurement, including its
-        // baseline rounding, rather than approximating it from font metrics.
-        // Code49: without a unit the stack is the digits plus the same one
-        // physical pixel of clearance the rule row used to occupy; the stack
-        // stays centered in the weighted slot.
-        int digitHeight=digitProbe.getMeasuredHeight();
-        cell.setInt(R.id.calendar_total_stack,"setMinimumHeight",
-            digitHeight+unitHeight+1);
-        cell.setFloat(R.id.calendar_total_rule,"setTranslationY",
-            totalDigitInkBottom(digitProbe)-(digitHeight-1));
-    }
-    private static android.widget.TextView totalProbe(Context c,CharSequence text,Paint paint){
-        android.widget.TextView probe=new android.widget.TextView(c,null,0,R.style.CalendarDailyAmount);
-        probe.setText(text);probe.setTextSize(TypedValue.COMPLEX_UNIT_PX,paint.getTextSize());
-        probe.setTextScaleX(paint.getTextScaleX());probe.setPaintFlags(paint.getFlags());
-        probe.setTextColor(android.graphics.Color.WHITE);
-        int unconstrained=View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED);
-        probe.measure(unconstrained,unconstrained);
-        probe.layout(0,0,probe.getMeasuredWidth(),probe.getMeasuredHeight());return probe;
-    }
-    private static int totalDigitInkBottom(android.widget.TextView probe){
-        // The same styled native view as the widget includes hinting, reduced
-        // minus shaping and baseline rounding. Font ascent/descent alone can
-        // place this decorative line one pixel too low on small hosts.
-        int width=Math.max(1,probe.getWidth()),height=Math.max(1,probe.getHeight());
-        android.graphics.Bitmap raster=android.graphics.Bitmap.createBitmap(width,height,android.graphics.Bitmap.Config.ARGB_8888);
-        probe.draw(new android.graphics.Canvas(raster));
-        int[] pixels=new int[width*height];raster.getPixels(pixels,0,width,0,0,width,height);
-        int bottom=-1;
-        for(int y=0;y<height;y++)for(int x=0;x<width;x++)
-            if((pixels[y*width+x]>>>24)>=160)bottom=Math.max(bottom,y);
-        raster.recycle();return Math.max(0,bottom);
+        actual.setTextSize(size*density);
+        CalendarTotalRaster.Result total=CalendarTotalRaster.render(c,spannable,actual,color);
+        cell.setImageViewBitmap(R.id.calendar_total_image,total.bitmap);
+        cell.setContentDescription(R.id.calendar_total_image,text);
+        cell.setInt(R.id.calendar_total_stack,"setMinimumHeight",total.height+1);
     }
     private static void amount(RemoteViews cell,int view,String text,float size,float width,Paint measure){
         amount(cell,view,text,size,width,measure,0.55f);
