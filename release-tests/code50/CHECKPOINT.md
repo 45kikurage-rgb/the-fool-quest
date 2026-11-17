@@ -1,6 +1,6 @@
 # Aruno-Result code50 checkpoint
 
-Status: SIGNED_VERIFIED_PUBLICATION_PENDING
+Status: PUBLISHED_VERIFIED
 Target: versionCode 50 / versionName 0.1.49
 Change: user report 2026-11-17 — on the Pixel 10, a negative daily total
 ("-5.6") showed its underline starting partway into the minus sign, so
@@ -50,13 +50,19 @@ right alignment, digit size and positions are unchanged.
 
 Existing-signer restoration (primary and backup), signing and the
 official code49-to-50 upgrade/data-retention verification succeeded in
-ops run 43987610880 (upgrade job on attempt #2; attempt #1's upgrade
-failure is recorded in PROGRESS50). Signed APK SHA-256
+ops run 43987610880 (upgrade job on attempt #2; attempt #1
+failed on a 15-second adb reboot timeout inside the verification step —
+an emulator/ADB-side fault, not an app or check failure — and the
+identical verification then passed in full). Signed APK SHA-256
 3ebfd7ba7d0d5ff3f5f1b93ae07ce97bde21610e887b783fd5eff4b766d7f808,
 3,206,807 bytes, certificate unchanged
 (8495f4b4b508ca5b24c2b7fd714b21963f5b1c0275659f434e3e0d9e239c6730).
-Publication metadata is registered in PR #70. Publication and the
-two-origin re-fetch verification are recorded here when complete.
+Publication metadata is registered in PR #70. Publication completed:
+PR #70 merged to main as 32b7ce71f8c2c4ee517f111231954f126c2b5262.
+Both origins (Cloudflare Workers and GitHub Pages) were re-fetched and
+serve code50 with the identical APK SHA-256 and bytes; the code49 APK
+is retained. Details are recorded in
+releases/aruno-result-code50-release-evidence.json.
 Pixel 10 physical acceptance remains separate and unconfirmed.
 
 ## Remaining gates
