@@ -774,9 +774,9 @@ public class WidgetInstrumentation extends Instrumentation {
             float y=0;for(android.view.View view=visible;view!=day;view=(android.view.View)view.getParent())y+=view.getY();
             ok(ink.height()>0&&ink.top>=0&&ink.bottom<=visible.getHeight(),
                 "daily amount has visible unclipped ink id="+id+" text="+value.getText()
-                +" box="+value.getWidth()+"x"+value.getHeight()+" size="+value.getTextSize()
+                +" box="+visible.getWidth()+"x"+visible.getHeight()+" size="+value.getTextSize()
                 +" scale="+value.getTextScaleX()+" scroll="+value.getScrollX()
-                +" layoutWidth="+value.getLayout().getWidth()+" ink="+ink);
+                +" renderedWidth="+visible.getWidth()+" ink="+ink);
             ok(previousBottom<=y+ink.top,"daily numeric GLYPHS do not overlap after exact physical-height transfer: "+value.getText()+" previous="+previousBottom+" top="+(y+ink.top));
             previousBottom=y+ink.bottom;
             if(id==R.id.calendar_day_total){
